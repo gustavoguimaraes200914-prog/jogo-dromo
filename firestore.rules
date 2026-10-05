@@ -1,0 +1,258 @@
+rules_version = '2';
+
+// ============================================================
+//  REGRAS DE SEGURANÇA DO KODA (Firebase / Firestore)
+//
+//  COMO USAR: console.firebase.google.com -> seu projeto ->
+//  Firestore Database -> aba "Regras" -> apague o que está lá,
+//  cole este arquivo inteiro e clique em "Publicar".
+//
+//  POR QUE ISSO IMPORTA MAIS QUE TUDO: o arquivo do site é
+//  público — qualquer pessoa abre o código-fonte, copia a
+//  configuração do Firebase e conversa DIRETO com o banco, sem
+//  passar pelo site. Nenhuma proteção escrita no site segura
+//  isso. Quem segura são estas regras, que rodam no servidor do
+//  Google. Se hoje estiver em "modo de teste"
+//  (allow read, write: if true), qualquer pessoa do mundo pode
+//  apagar todos os jogos e ler todas as conversas.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- atalhos ----------
+    function logado() {
+      return request.auth != null;
+    }
+    function meuEmail() {
+      return request.auth.token.email;
+    }
+    function sou(email) {
+      return logado() && meuEmail() == email;
+    }
+    function souAdmin() {
+      // o mesmo e-mail que está em ADMIN_EMAIL no site
+      return logado() && meuEmail() == 'gustavoguimaraes200914@gmail.com';
+    }
+    function naoEstouBanido() {
+      return !exists(/databases/$(database)/documents/bannedUsers/$(meuEmail()))
+        || get(/databases/$(database)/documents/bannedUsers/$(meuEmail())).data.banned != true;
+    }
+    function tamanhoOk(limite) {
+      return request.resource.size() < limite;
+    }
+
+    // ---------- jogos publicados (o CATÁLOGO) ----------
+    // Todo mundo logado vê. NINGUÉM grava pelo site: só o servidor de
+    // análise (que usa a conta de serviço e por isso passa por cima destas
+    // regras) e o admin. O dono só pode tirar o próprio jogo do ar.
+    match /publicGames/{gameId} {
+      allow read: if logado();
+      allow create, update: if souAdmin();
+      allow delete: if souAdmin() || sou(resource.data.creatorEmail);
+    }
+
+    // ---------- jogos enviados para análise ----------
+    // Publicar = gravar aqui com status 'analise'. Quem decide é o servidor.
+    // O dono não consegue se aprovar, nem mexer no veredito, nem na trava.
+    match /gameSubmissions/{gameId} {
+      function camposDoEnvio() {
+        return ['id', 'name', 'category', 'bg', 'cover', 'shape', 'codeB64', 'hasDifficulty', 'multiplayerCounts', 'trad',
+                'creatorEmail', 'creatorUid', 'creatorName', 'updatedAt', 'status', 'enviadoEm', 'lang'];
+      }
+      allow read: if souAdmin() || (logado() && resource.data.creatorEmail == meuEmail());
+      // o id não pode ser de um jogo que já está no catálogo em nome de outra pessoa
+      function idLivreOuMeu(gameId) {
+        return !exists(/databases/$(database)/documents/publicGames/$(gameId))
+            || get(/databases/$(database)/documents/publicGames/$(gameId)).data.creatorEmail == meuEmail();
+      }
+      function formatoOk() {
+        return request.resource.data.name is string && request.resource.data.name.size() <= 120
+            && request.resource.data.codeB64 is string
+            && (request.resource.data.creatorName == null || (request.resource.data.creatorName is string && request.resource.data.creatorName.size() <= 80));
+      }
+      allow create: if logado() && naoEstouBanido()
+                    && gameId.matches('[A-Za-z0-9_-]{1,150}')
+                    && idLivreOuMeu(gameId) && formatoOk()
+                    && request.resource.data.id == gameId
+                    && request.resource.data.creatorEmail == meuEmail()
+                    && request.resource.data.status == 'analise'
+                    && request.resource.data.keys().hasOnly(camposDoEnvio());
+      allow update: if souAdmin() || (logado() && naoEstouBanido()
+                    && resource.data.creatorEmail == meuEmail()
+                    && request.resource.data.creatorEmail == meuEmail()
+                    && request.resource.data.id == gameId
+                    && (
+                      // versão nova do jogo: volta para a análise, sem tocar no veredito
+                      (request.resource.data.status == 'analise' && formatoOk()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(camposDoEnvio()))
+                      ||
+                      // pedido de revisão humana: só depois de recusado, e sem mudar o jogo
+                      (resource.data.status == 'recusado'
+                        && request.resource.data.status == 'recurso'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'recurso']))
+                    ));
+      allow delete: if souAdmin() || (logado() && resource.data.creatorEmail == meuEmail());
+    }
+
+    // ---------- registros e limites da análise ----------
+    // só o servidor escreve; o admin lê os registros no painel de moderação
+    match /moderacaoLog/{logId} {
+      allow read: if souAdmin();
+      allow write: if false;
+    }
+    match /moderacaoUso/{email} {
+      allow read, write: if false;
+    }
+
+    // ---------- dados pessoais de cada conta (jogos locais, rascunhos...) ----------
+    // ninguém além do próprio dono lê ou escreve
+    match /userData/{uid} {
+      allow read, write: if logado() && request.auth.uid == uid;
+      // o admin não LÊ os dados de ninguém; só consegue apagar quando remove uma conta
+      allow delete: if souAdmin();
+    }
+
+    // ---------- perfis públicos ----------
+    match /publicProfiles/{email} {
+      allow read: if logado();
+      allow write: if sou(email) && request.resource.data.email == email;
+      allow delete: if souAdmin() || sou(email);
+    }
+
+    // ---------- comentários ----------
+    match /gameComments/{commentId} {
+      allow read: if logado();
+      allow create: if logado() && naoEstouBanido()
+                    && request.resource.data.authorEmail == meuEmail()
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() <= 500;
+      allow update: if false; // comentário não se edita: ou fica, ou é apagado
+      allow delete: if souAdmin() || sou(resource.data.authorEmail);
+    }
+
+    // ---------- novidades (feed de quem você segue) ----------
+    // todo mundo logado lê; cada pessoa só publica novidade em nome dela
+    match /activities/{activityId} {
+      allow read: if logado();
+      allow create: if logado() && naoEstouBanido()
+                    && request.resource.data.authorEmail == meuEmail();
+      allow update: if false;
+      allow delete: if souAdmin() || sou(resource.data.authorEmail);
+    }
+
+    // ---------- curtidas em comentários ----------
+    // id é "idDoComentario__email"
+    match /commentLikes/{likeId} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.userEmail == meuEmail();
+      allow update: if false;
+      allow delete: if souAdmin() || sou(resource.data.userEmail);
+    }
+
+    // ---------- curtidas ----------
+    // o id do documento é "idDoJogo__email", então dá pra conferir o dono
+    match /gameLikes/{likeId} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.userEmail == meuEmail();
+      allow update: if false;
+      allow delete: if souAdmin() || sou(resource.data.userEmail);
+    }
+
+    // ---------- jogos salvos (pro ranking de "mais salvos") ----------
+    // id é "idDoJogo__email", igual ao das curtidas
+    match /gameSaves/{saveId} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.userEmail == meuEmail();
+      allow update: if false;
+      allow delete: if souAdmin() || sou(resource.data.userEmail);
+    }
+
+    // ---------- pontuações (ranking mundial e temporada) ----------
+    // todo mundo lê; cada pessoa só escreve a pontuação dela, e o
+    // documento tem que ser o dela mesma (id "idDoJogo__email")
+    match /gameScores/{scoreId} {
+      allow read: if logado();
+      allow create, update: if logado() && naoEstouBanido()
+                            && request.resource.data.userEmail == meuEmail()
+                            && request.resource.data.best is number
+                            && request.resource.data.best >= 0;
+      allow delete: if souAdmin() || sou(resource.data.userEmail);
+    }
+
+    // ---------- quem está jogando agora ----------
+    match /gamePresence/{email} {
+      allow read: if logado();
+      allow write: if sou(email);
+    }
+
+    // ---------- quantas pessoas já entraram em cada jogo ----------
+    // só dá pra somar 1 de cada vez: ninguém "inventa" 50 mil jogadas
+    match /gameStats/{gameId} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.plays == 1;
+      allow update: if logado() && request.resource.data.plays == resource.data.plays + 1;
+      allow delete: if souAdmin();
+    }
+
+    // ---------- seguir pessoas ----------
+    // id é "quemSegue__quemEseguido"
+    match /follows/{followId} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.followerEmail == meuEmail()
+                    && request.resource.data.followingEmail != meuEmail();
+      allow update: if false;
+      allow delete: if souAdmin() || sou(resource.data.followerEmail);
+    }
+
+    // ---------- conversas ----------
+    // só quem participa lê; e ninguém se coloca numa conversa alheia
+    match /conversations/{convId} {
+      allow read: if logado() && meuEmail() in resource.data.participants;
+      allow create: if logado() && naoEstouBanido()
+                    && meuEmail() in request.resource.data.participants;
+      allow update: if logado() && meuEmail() in resource.data.participants;
+      allow delete: if souAdmin();
+    }
+
+    // ---------- mensagens ----------
+    match /messages/{messageId} {
+      allow read: if logado()
+                  && meuEmail() in get(/databases/$(database)/documents/conversations/$(resource.data.conversationId)).data.participants;
+      allow create: if logado() && naoEstouBanido()
+                    && request.resource.data.senderEmail == meuEmail()
+                    && meuEmail() in get(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)).data.participants
+                    && tamanhoOk(1500000); // foto/áudio dentro do limite do Firestore
+      allow update: if sou(resource.data.senderEmail)
+                    && request.resource.data.senderEmail == resource.data.senderEmail;
+      allow delete: if souAdmin() || sou(resource.data.senderEmail);
+    }
+
+    // ---------- denúncias ----------
+    // qualquer pessoa denuncia; só o admin lê e resolve
+    match /gameReports/{reportId} {
+      allow read: if souAdmin();
+      allow create: if logado() && request.resource.data.reporterEmail == meuEmail();
+      allow update, delete: if souAdmin();
+    }
+
+    // ---------- selo de verificado ----------
+    // todo mundo vê o selo; só o admin dá e tira
+    match /verifiedCreators/{email} {
+      allow read: if logado();
+      allow write: if souAdmin();
+    }
+
+    // ---------- banimentos ----------
+    // a pessoa só consegue ler o banimento dela; só o admin escreve
+    match /bannedUsers/{email} {
+      allow read: if sou(email) || souAdmin();
+      allow write: if souAdmin();
+    }
+
+    // ---------- qualquer coisa fora daqui: proibido ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
