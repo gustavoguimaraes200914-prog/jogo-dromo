@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Bolinhas Online (exemplo)</title>
+<style>
+html,body{margin:0;height:100%;background:#0f2d27;overflow:hidden;font-family:system-ui,sans-serif;touch-action:none}
+canvas{display:block;width:100%;height:100%}
+#st{position:fixed;left:8px;top:8px;color:#fff;font-weight:700;font-size:14px;background:#0008;padding:4px 10px;border-radius:12px}
+</style></head><body>
+<canvas id="c"></canvas><div id="st">Conectando…</div>
+<script>
+// Exemplo mínimo de jogo online do Koda: toque na tela e a sua bolinha vai até lá; todo mundo da sala vê todo mundo.
+var c = document.getElementById('c'), x = c.getContext('2d'), st = document.getElementById('st');
+var W, H; function ajusta(){ W = c.width = innerWidth; H = c.height = innerHeight; } ajusta(); addEventListener('resize', ajusta);
+var cores = ['#ff6b5b','#ffe07a','#5ff0d0','#8ec5ff','#ffb3d1','#c3a6ff'];
+var eu = {x: .5, y: .5, alvoX: .5, alvoY: .5, cor: cores[Math.floor(Math.random()*cores.length)]};
+var outros = {};   // id -> {nome, x, y, cor}
+function mover(e){ var t = e.touches ? e.touches[0] : e; eu.alvoX = t.clientX / W; eu.alvoY = t.clientY / H; }
+c.addEventListener('pointerdown', mover); c.addEventListener('pointermove', function(e){ if(e.buttons || e.pointerType === 'touch') mover(e); });
+
+var online = window.KODA && window.KODA.online;
+if(online){
+  online.aoReceber(function(d, deId){
+    if(!d || typeof d.x !== 'number' || typeof d.y !== 'number') return;           // nunca confie no que chega
+    var o = outros[deId] || (outros[deId] = {nome: '?', cor: '#fff', x: d.x, y: d.y});
+    o.x = Math.max(0, Math.min(1, d.x)); o.y = Math.max(0, Math.min(1, d.y));
+    if(typeof d.cor === 'string' && /^#[0-9a-f]{6}$/i.test(d.cor)) o.cor = d.cor;
+  });
+  online.aoEntrar(function(j){ outros[j.id] = {nome: j.nome, cor: '#fff', x: .5, y: .5}; });
+  online.aoSair(function(j){ delete outros[j.id]; });
+  online.aoDesconectar(function(){ st.textContent = 'Reconectando…'; outros = {}; });
+  online.aoConectar(function(info){
+    st.textContent = 'Sala ' + info.sala + ' · ' + info.jogadores.length + ' jogadores';
+    outros = {}; info.jogadores.forEach(function(j){ if(j.id !== info.eu) outros[j.id] = {nome: j.nome, cor: '#fff', x: .5, y: .5}; });
+  });
+  online.entrar({max: 16}).catch(function(){ st.textContent = 'Sem internet? Jogando sozinho.'; });
+  setInterval(function(){ if(online.ligado()) online.enviar({x: eu.x, y: eu.y, cor: eu.cor}); }, 120);   // ~8 vezes por segundo
+} else { st.textContent = 'Jogando offline'; }
+
+function bola(px, py, cor, nome){
+  x.fillStyle = cor; x.strokeStyle = '#08322B'; x.lineWidth = 4;
+  x.beginPath(); x.arc(px * W, py * H, 20, 0, 7); x.fill(); x.stroke();
+  if(nome){ x.fillStyle = '#fff'; x.font = '700 13px system-ui'; x.textAlign = 'center'; x.fillText(nome, px * W, py * H - 28); }
+}
+(function loop(){
+  eu.x += (eu.alvoX - eu.x) * .2; eu.y += (eu.alvoY - eu.y) * .2;
+  x.clearRect(0, 0, W, H);
+  for(var id in outros){ var o = outros[id]; bola(o.x, o.y, o.cor, o.nome); }
+  bola(eu.x, eu.y, eu.cor, 'você');
+  requestAnimationFrame(loop);
+})();
+</script></body></html>
