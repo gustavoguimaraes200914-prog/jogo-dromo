@@ -5009,9 +5009,26 @@ const LANGS = [
   {id:'zh', nome:'中文'},
   {id:'ko', nome:'한국어'}
 ];
-let currentLang = localStorage.getItem(LANG_KEY) || 'pt';
-/* idioma guardado que não existe mais (ou lixo no localStorage) volta pro português */
-if(!LANGS.some(l=>l.id===currentLang)) currentLang = 'pt';
+/* O idioma padrão é o INGLÊS (língua do mundo). Quem nunca entrou no Koda abre em inglês, e a escolha fica guardada.
+   Quem já usava o Koda antes (tem dados guardados) e nunca escolheu idioma continua em português, como sempre viu. */
+function idiomaInicial(){
+  let guardado = null;
+  try{ guardado = localStorage.getItem(LANG_KEY); }catch(e){}
+  if(guardado) return guardado;
+  let id = 'en';
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i) || '';
+      if(k !== 'koda_dispositivo' && (k.indexOf('jogodromo_') === 0 || k.indexOf('koda_') === 0)){ id = 'pt'; break; }
+    }
+  }catch(e){}
+  try{ localStorage.setItem(LANG_KEY, id); }catch(e){}
+  return id;
+}
+let currentLang = idiomaInicial();
+/* idioma guardado que não existe mais (ou lixo no localStorage) volta pro inglês */
+if(!LANGS.some(l=>l.id===currentLang)) currentLang = 'en';
+try{ document.documentElement.lang = ({pt:'pt-BR', en:'en', es:'es', it:'it', fr:'fr', de:'de', nl:'nl', ja:'ja', zh:'zh', ko:'ko'})[currentLang] || 'en'; }catch(e){}
 try{ document.documentElement.dataset.idioma = currentLang; }catch(e){}   // o CSS ajusta o que precisa por idioma (ex.: nomes compridos em japonês)
 
 /* ============================================================
@@ -11302,7 +11319,7 @@ const I18N = {
   }
 };
 function tTexto(key, vars){
-  let s = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.pt && I18N.pt[key]) || key;
+  let s = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || (I18N.pt && I18N.pt[key]) || key;
   if(vars) for(const k in vars) s = s.replace('{'+k+'}', vars[k]);
   return s;
 }
@@ -11527,7 +11544,7 @@ function collectLocalData(){
   let banca = null;
   try{ banca = JSON.parse(localStorage.getItem('jogodromo_banca')); }catch(e){}
   const dados = {
-    customGames, drafts, hiddenGames, likedGames, savedGames, contactNicknames, chatWallpapers, contactPhotos, lang: localStorage.getItem(LANG_KEY) || 'pt',
+    customGames, drafts, hiddenGames, likedGames, savedGames, contactNicknames, chatWallpapers, contactPhotos, lang: localStorage.getItem(LANG_KEY) || currentLang,
     coins: Math.max(0, parseInt(localStorage.getItem('jogodromo_moedas'),10) || 0),
     theme: localStorage.getItem('jogodromo_tema') || 'claro',
     ownedThemes: Array.isArray(temas) ? temas : ['claro'],
