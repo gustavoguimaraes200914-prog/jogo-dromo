@@ -1,0 +1,20 @@
+name = "koda-online"
+main = "worker.js"
+compatibility_date = "2026-09-16"
+
+# Quem pode abrir salas (o endereço do site). Se um dia você tiver domínio próprio, junte aqui, separado por vírgula.
+[vars]
+ORIGENS = "https://koda.gamersite.workers.dev"
+
+[[durable_objects.bindings]]
+name = "SALA"
+class_name = "Sala"
+
+[[durable_objects.bindings]]
+name = "DIRETORIO"
+class_name = "Diretorio"
+
+# "new_sqlite_classes" é o tipo que existe no plano GRÁTIS da Cloudflare
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Sala", "Diretorio"]
