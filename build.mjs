@@ -1,6 +1,7 @@
 /* Gera a versão PUBLICADA do Koda em dist/.
    O código legível (index.html) fica só no GitHub. O site no ar é uma cópia com o JavaScript embaralhado:
    nomes sem sentido, textos escondidos numa tabela, sem comentários, sem espaços. Tudo continua funcionando igual.
+   Além disso o código só roda no endereço oficial (trava de domínio): uma cópia do site em outro lugar é mandada de volta para ele.
    Rodar: npm run build   (a Cloudflare roda isso sozinha antes de publicar, pelo [build] do wrangler.toml)
 
    Se alguma coisa falhar aqui, o build PARA (exit 1) e o site no ar continua como estava: nunca vai um site quebrado
@@ -16,7 +17,17 @@ const JavaScriptObfuscator = require('javascript-obfuscator');
 const acorn = require('acorn');
 
 const RAIZ = path.dirname(new URL(import.meta.url).pathname);
-const SAIDA = path.join(RAIZ, 'dist');
+const SAIDA = path.join(RAIZ, path.basename(process.env.KODA_SAIDA || 'dist'));   // (testes usam outra pasta; a Cloudflare usa dist)
+
+/* TRAVA DE DOMÍNIO: o JavaScript embaralhado só roda nestes endereços. Quem salvar o site e hospedar em outro lugar
+   cai no endereço oficial em vez de ter uma cópia funcionando. Tem que ser o endereço EXATO: um ".gamersite.workers.dev"
+   (com ponto na frente) deixaria passar qualquer conta que termine igual, como "evil-gamersite.workers.dev".
+   >>> QUANDO O KODA GANHAR DOMÍNIO PRÓPRIO (ex.: koda.com), ponha o domínio aqui, senão todo mundo que entrar por ele
+   >>> será mandado para o endereço oficial. (Para testar em localhost: KODA_DOMINIOS=localhost; vazio = sem trava.) */
+const DOMINIOS = process.env.KODA_DOMINIOS !== undefined
+  ? process.env.KODA_DOMINIOS.split(',').map(x => x.trim()).filter(Boolean)
+  : ['koda.gamersite.workers.dev'];
+const ENDERECO_OFICIAL = 'https://koda.gamersite.workers.dev';
 
 /* Funções que o Koda copia COMO TEXTO para dentro dos jogos (fn.toString()). Elas precisam ficar inteiras e sem
    depender de nada de fora, então têm a marca "javascript-obfuscator:disable" no index.html. Se alguém tirar a marca
@@ -32,7 +43,7 @@ const NOMES_QUE_FICAM = ['^applyFilters$'];
 /* outros arquivos da pasta que vão pro ar como estão (só estes tipos: nada de .js, .sql, .rules, .md, .toml) */
 const ESTATICOS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico', '.mp3', '.ogg', '.wav', '.mp4', '.webm',
   '.woff', '.woff2', '.ttf', '.css', '.json', '.txt', '.webmanifest']);
-const IGNORAR = new Set(['node_modules', 'dist', 'multiplayer', '.git', '.github', '.wrangler', 'package.json', 'package-lock.json']);
+const IGNORAR = new Set(['node_modules', 'dist', 'dist-test', 'dist-lock', 'multiplayer', '.git', '.github', '.wrangler', 'package.json', 'package-lock.json']);
 
 function falhar(msg){
   console.error('\nERRO NO BUILD: ' + msg + '\nO site no ar não foi alterado.\n');
@@ -54,7 +65,7 @@ function opcoes(ehGrande, semente){
     stringArrayRotate: true,
     stringArrayShuffle: true,
     stringArrayThreshold: 0.75,
-    stringArrayEncoding: [],
+    stringArrayEncoding: [],                  // sem codificar os textos: base64 deixou o site 60% mais lento no celular (testado); os textos não são segredo
     stringArrayWrappersCount: 1,
     stringArrayWrappersType: 'variable',
     splitStrings: false,
@@ -66,7 +77,9 @@ function opcoes(ehGrande, semente){
     debugProtection: false,
     disableConsoleOutput: false,
     numbersToExpressions: false,
-    renameProperties: false                  // propriedades (document.x, localStorage...) não podem mudar de nome
+    renameProperties: false,                 // propriedades (document.x, localStorage...) não podem mudar de nome
+    domainLock: DOMINIOS,
+    domainLockRedirectUrl: ENDERECO_OFICIAL
   };
 }
 
@@ -147,6 +160,7 @@ function processarHtml(nome, html, estrito){
   return {html: partes.join(''), totalScripts, grandes};
 }
 
+console.log(DOMINIOS.length ? 'Trava de domínio: ' + DOMINIOS.join(', ') : 'ATENÇÃO: build SEM trava de domínio (só para testes).');
 const t0 = Date.now();
 fs.rmSync(SAIDA, {recursive: true, force: true});
 fs.mkdirSync(SAIDA, {recursive: true});
@@ -185,4 +199,4 @@ if(!temIndex) falhar('não achei index.html.');
 const tam = fs.statSync(path.join(SAIDA, 'index.html')).size;
 if(tam < 500000) falhar('index.html embaralhado ficou pequeno demais (' + tam + ' bytes).');
 if(tam > 24 * 1048576) falhar('index.html passou do limite de 25 MB da Cloudflare.');
-console.log('Pronto em ' + ((Date.now() - t0) / 1000).toFixed(1) + 's -> dist/');
+console.log('Pronto em ' + ((Date.now() - t0) / 1000).toFixed(1) + 's -> ' + path.basename(SAIDA) + '/');
