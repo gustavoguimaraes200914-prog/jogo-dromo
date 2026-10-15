@@ -1,5 +1,10 @@
 name = "koda"
 compatibility_date = "2026-09-16"
 
+# Antes de publicar, a Cloudflare roda o build: ele embaralha o código e põe a versão publicada em dist/.
+# (O código legível fica só no GitHub. Veja build.mjs.)
+[build]
+command = "node build.mjs"
+
 [assets]
-directory = "."
+directory = "./dist"
