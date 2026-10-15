@@ -4653,12 +4653,7 @@
   var quick = reduced || played; // já viu a intro nesta sessão (ex.: recarregou) → só o logo pronto + carregando
 
   try{
-    /* mesma regra do site: quem nunca entrou vê inglês; quem já tinha dados guardados e nunca escolheu idioma continua em português */
-    var lang = localStorage.getItem('jogodromo_lang');
-    if(!lang){
-      lang = 'en';
-      for(var ki = 0; ki < localStorage.length; ki++){ var kk = localStorage.key(ki) || ''; if(kk !== 'koda_dispositivo' && (kk.indexOf('jogodromo_') === 0 || kk.indexOf('koda_') === 0)){ lang = 'pt'; break; } }
-    }
+    var lang = localStorage.getItem('jogodromo_lang') || 'pt';
     document.getElementById('ksLoaderText').textContent = ({pt:'carregando', en:'loading', es:'cargando', it:'caricamento', fr:'chargement', de:'lädt', nl:'laden', ja:'読み込み中', zh:'加载中', ko:'불러오는 중'})[lang] || 'carregando';
   }catch(e){}
 
@@ -16342,7 +16337,6 @@ function hardenGameFrame(iframe){
    1) o código do jogo passa a usar kodaLocalStorage / kodaSessionStorage (ver jogoCodigoSeguro);
    2) essas duas são a memória de verdade quando ela funciona, ou uma de mentira que funciona igual;
    3) mesmo quem ainda chamar localStorage direto recebe a memória que funciona (quando o navegador deixa trocar). */
-// javascript-obfuscator:disable
 function kodaMemoriaDoJogo(){
   function mem(){ var d = {}; var m = {getItem:function(k){ k = String(k); return Object.prototype.hasOwnProperty.call(d, k) ? d[k] : null; },
     setItem:function(k, v){ d[String(k)] = String(v); }, removeItem:function(k){ delete d[String(k)]; }, clear:function(){ d = {}; },
@@ -16376,7 +16370,6 @@ function kodaMemoriaDoJogo(){
   /* window.open sem janela devolve null: o jogo que escreve nela não quebra */
   try{ var ab = window.open; window.open = function(){ var w = null; try{ w = ab.apply(window, arguments); }catch(e){} return w || {document:{write:function(){}, writeln:function(){}, close:function(){}, open:function(){}}, close:function(){}, focus:function(){}, closed:true, postMessage:function(){}}; }; }catch(e){}
 }
-// javascript-obfuscator:enable
 const GAME_STORAGE_SHIM = '<script>(' + kodaMemoriaDoJogo.toString() + ')();<\/script>';
 /* o código do jogo passa a usar a memória que sempre funciona (fora isso, nada muda) */
 function jogoCodigoSeguro(code){
@@ -16501,7 +16494,6 @@ function prepararCodigoDoJogo(bruto){
    Agora: 1) as coisas que o navegador proíbe aqui ganham uma versão de mentira que funciona;
    2) erros bobos são ignorados; 3) erro de verdade com o jogo já na tela vira só uma faixinha embaixo, que some;
    4) a tela de erro grande só aparece quando o jogo nem chegou a mostrar nada, e mesmo assim dá pra fechar. */
-// javascript-obfuscator:disable
 function kodaRedeDentroDoJogo(T){
   try{ void document.cookie; }catch(e){
     var biscoitos = {};
@@ -16569,9 +16561,7 @@ function kodaRedeDentroDoJogo(T){
   window.addEventListener('error', function(e){ if(e && e.target && e.target !== window) return; erro((e && e.message) || T.desconhecido); });
   window.addEventListener('unhandledrejection', function(e){ var r = e && e.reason; erro((r && (r.name ? r.name + ': ' : '') + (r.message || '')) || String(r || T.desconhecido)); });
 }
-// javascript-obfuscator:enable
 /* RODA DENTRO DO QUADRO DO JOGO. Celular de tela 3x: o jogo que usa devicePixelRatio passa a desenhar em 2x (quase 2x menos pixels pra pintar a cada quadro). */
-// javascript-obfuscator:disable
 function kodaLeveDentroDoJogo(){
   try{
     var d = window.devicePixelRatio || 1;
@@ -16579,7 +16569,6 @@ function kodaLeveDentroDoJogo(){
       Object.defineProperty(window, 'devicePixelRatio', {get:function(){ return 2; }, configurable:true});
   }catch(e){}
 }
-// javascript-obfuscator:enable
 function jogoRedeDeSeguranca(){
   const T = {titulo: t('game_crashed_title'), faixa: t('game_err_faixa'), ok: t('game_err_ok'), fechar: t('game_err_fechar'), desconhecido: t('game_err_desconhecido')};
   return GAME_STORAGE_SHIM + '<script>(' + kodaLeveDentroDoJogo.toString() + ')();<\/script>' + '<script>(' + kodaRedeDentroDoJogo.toString() + ')(' + JSON.stringify(T).replace(/</g, '\\u003c') + ');<\/script>';
@@ -16601,7 +16590,6 @@ function jogoRedeDeSeguranca(){
    Essa função não roda aqui: o texto dela vai pro quadro do jogo.
    D = {texto original: texto traduzido}. {n} = número que muda
    ("Pontos: {n}"), {x} = outro pedaço que muda (um nome). */
-// javascript-obfuscator:disable
 function kodaTradutorDoJogo(D){
   var exato = {}, maiusc = {}, moldes = [];
   function escapa(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
@@ -16719,7 +16707,6 @@ function kodaTradutorDoJogo(D){
   }catch(e){}
   document.addEventListener('DOMContentLoaded', function(){ percorre(document); });
 }
-// javascript-obfuscator:enable
 
 /* monta o <script> do tradutor pro idioma de quem vai jogar (ou nada) */
 function tradutorDoJogo(trad, lang){
@@ -19866,7 +19853,6 @@ function moedasDaPartida(gameId, pontos, bateuRecorde, ehPublicado){
    Se o jogo chamar KODA.pontuar um dia que seja, ela se cala (o jogo sabe melhor).
    Placar que cresce sozinho, com ninguém mexendo no jogo (AFK), não vale: esse pedaço é descontado.
    api = {enviar(n) -> true se mandou, parcial(n), explicito() -> o jogo avisa sozinho?, parado() -> faz tempo que ninguém mexe?} */
-// javascript-obfuscator:disable
 function kodaAutoPontos(api){
   try{
     var NOMES = ['score','pontos','pontuacao','pontuação','points','placar','pts','punkte','puntos','punti','currentScore','playerScore','gameScore','scoreAtual','pontosAtuais','Score','Pontos','Points'];
@@ -20016,7 +20002,6 @@ function kodaAutoPontos(api){
     var timer = setInterval(tick, 500);
   }catch(e){}
 }
-// javascript-obfuscator:enable
 
 /* ---------- quem está realmente mexendo no jogo ----------
    ESTA FUNÇÃO RODA DENTRO DO QUADRO DO JOGO (entra pelo toString), por isso não pode usar nada do site.
@@ -20025,7 +20010,6 @@ function kodaAutoPontos(api){
    Resultado: jogo deixado aberto (AFK), ou "jogando sozinho", não rende moeda nem missão.
    Devolve {ocio() -> ms desde a última coisa que a pessoa fez (0 enquanto segura uma tecla/o dedo, até 30s),
             janela() -> {a: ações de verdade, p: pedaços de meio segundo com movimento} e zera} */
-// javascript-obfuscator:disable
 function kodaEntradaReal(){
   var E = {ult: 0, acoes: 0, fatias: {}, nFatias: 0, seg: {}, ultAcao: 0, ultRoda: 0, ultMov: 0, gpBtn: false};
   var MAX_SEGURAR = 30000;
@@ -20079,7 +20063,6 @@ function kodaEntradaReal(){
     janela: function(){ var r = {a: E.acoes, p: E.nFatias}; E.acoes = 0; E.fatias = {}; E.nFatias = 0; return r; }
   };
 }
-// javascript-obfuscator:enable
 
 
 /* ============================================================
@@ -20093,7 +20076,6 @@ const ONLINE_MAX_MSG = 1500;      // tamanho máximo de cada mensagem (texto JSO
 const ONLINE_POR_SEG = 10;        // mensagens por segundo que um jogo pode mandar (cabe no plano grátis)
 
 /* esta função é copiada pra DENTRO do quadro do jogo (por isso não pode usar nada de fora) */
-// javascript-obfuscator:disable
 function kodaOnlineNoJogo(manda){
   var eu = null, sala = 0, lista = [], pend = null, balde = 20, bt = Date.now();
   var oC = [], oR = [], oE = [], oS = [], oD = [];
@@ -20152,7 +20134,6 @@ function kodaOnlineNoJogo(manda){
     sair: function(){ manda('onlineSair', 1); eu = null; lista = []; }
   };
 }
-// javascript-obfuscator:enable
 
 
 /* ---------- o lado do Koda (fora do quadro): abre a conexão, repassa as mensagens e mostra a sala ---------- */
@@ -20304,12 +20285,6 @@ window.addEventListener('message', function(ev){
   }
 });
 
-/* ATENÇÃO (build): as funções kodaMemoriaDoJogo, kodaLeveDentroDoJogo, kodaRedeDentroDoJogo, kodaTradutorDoJogo,
-   kodaEntradaReal, kodaOnlineNoJogo e kodaAutoPontos são copiadas COMO TEXTO (toString) para dentro dos jogos. Por isso têm
-   marcas de "desligar o embaralhamento" em volta (linhas de comentário com a palavra javascript-obfuscator, dois pontos e
-   disable/enable) e não podem usar nada de fora delas. NUNCA escreva essas marcas em outro lugar, nem dentro de comentários:
-   elas desligam o embaralhamento do que vier depois. Função nova desse tipo precisa das mesmas marcas e entrar na lista
-   FUNCOES_COPIADAS do build.mjs. O site publicado é o index.html embaralhado (npm run build). */
 /* o pedacinho de código que entra dentro do quadro do jogo */
 const KODA_BRIDGE = '<script>(function(){'
   + 'var ultimo=0, explicito=false;'
