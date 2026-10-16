@@ -16167,12 +16167,15 @@ async function liveWatchUnread(){
   });
   setUnreadBadge(n);
 }
+/* Ritmos dos vigias de fundo. O plano grátis do Firebase dá 50 mil leituras por dia, e o catálogo inteiro (jogos + perfis)
+   é lido a cada batida do vigia "catalog": a 20 s, uma aba aberta gastava ~30 mil leituras por hora e estourava a cota
+   do dia (o servidor da análise começou a levar erro 429). Voltar para o site ainda atualiza na hora (liveTick(true)). */
 function startLiveSync(){
-  addLiveWatcher('stats', 12000, refreshGameStats);
-  addLiveWatcher('catalog', 20000, liveWatchCatalog);
+  addLiveWatcher('stats', 45000, refreshGameStats);
+  addLiveWatcher('catalog', 120000, liveWatchCatalog);
   addLiveWatcher('ownData', 60000, liveWatchOwnData);
-  addLiveWatcher('unread', 15000, liveWatchUnread);
-  addLiveWatcher('presence', 12000, refreshPresencaVisivel);
+  addLiveWatcher('unread', 30000, liveWatchUnread);
+  addLiveWatcher('presence', 45000, refreshPresencaVisivel);
   addLiveWatcher('minhaAnalise', 20000, ()=>sincronizarMinhasAnalises(false));
   refreshGameStats(); // já mostra os números na primeira vez, sem esperar a batida
   if(liveTimer) return;
@@ -16180,7 +16183,7 @@ function startLiveSync(){
 }
 /* visitante: só a lista de jogos se atualiza sozinha */
 function startLiveSyncVisitante(){
-  addLiveWatcher('catalog', 20000, liveWatchCatalog);
+  addLiveWatcher('catalog', 120000, liveWatchCatalog);
   if(liveTimer) return;
   liveTimer = setInterval(()=>liveTick(false), LIVE_TICK_MS);
 }

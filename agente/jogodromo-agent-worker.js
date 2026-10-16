@@ -39,7 +39,7 @@
 /* ---------------------------------------------------------------------------
    CONFIGURAÇÃO
 --------------------------------------------------------------------------- */
-const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-16';
+const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-16b-retentativa';
 const PROJETO_PADRAO   = 'jogodromo';
 const ADMIN_PADRAO     = 'gustavoguimaraes200914@gmail.com';
 const MODELO_PADRAO    = 'claude-sonnet-4-6';
@@ -315,6 +315,33 @@ function deCampos(fields){
   return o;
 }
 
+/* O Firebase às vezes responde "muitos pedidos" (429) ou dá um tropeço (5xx): tenta de novo, com um intervalo
+   que vai crescendo (e respeita o Retry-After, se ele mandar). Só depois de 4 tentativas desiste. */
+const ESPERAS_RETENTATIVA = [500, 1200, 2500];
+async function pedirComRetentativa(url, init){
+  let res;
+  for(let i = 0; i <= ESPERAS_RETENTATIVA.length; i++){
+    res = await fetch(url, init);
+    if(res.status !== 429 && res.status < 500) return res;
+    if(i === ESPERAS_RETENTATIVA.length) break;
+    let espera = ESPERAS_RETENTATIVA[i];
+    const ra = parseFloat(res.headers && res.headers.get && res.headers.get('retry-after'));
+    if(isFinite(ra) && ra > 0) espera = Math.min(4000, Math.max(espera, ra * 1000));
+    await new Promise(r => setTimeout(r, espera));
+  }
+  return res;
+}
+/* o motivo que o Google deu (ex.: RESOURCE_EXHAUSTED: cota diária), para o admin saber o que houve */
+async function falhaHttp(oQue, res){
+  let detalhe = '';
+  try{
+    const txt = await res.text();
+    try{ const j = JSON.parse(txt); const e = j.error || (Array.isArray(j) && j[0] && j[0].error) || {}; detalhe = [e.status, e.message].filter(Boolean).join(' ').slice(0, 160); }
+    catch(e){ detalhe = String(txt || '').replace(/\s+/g, ' ').slice(0, 120); }
+  }catch(e){}
+  return new Error(oQue + ' (' + res.status + (detalhe ? ': ' + detalhe : '') + ')');
+}
+
 class Banco {
   constructor(cfg){
     this.cfg = cfg;
@@ -327,9 +354,9 @@ class Banco {
   }
   caminho(p){ return p.split('/').map(encodeURIComponent).join('/'); }
   async ler(p){
-    const res = await fetch(this.base + '/' + this.caminho(p), { headers: await this.cabecalhos() });
+    const res = await pedirComRetentativa(this.base + '/' + this.caminho(p), { headers: await this.cabecalhos() });
     if(res.status === 404) return null;
-    if(!res.ok) throw new Error('falha ao ler ' + p + ' (' + res.status + ')');
+    if(!res.ok) throw await falhaHttp('falha ao ler ' + p, res);
     const doc = await res.json();
     return { dados: deCampos(doc.fields || {}), atualizadoEm: doc.updateTime || null };
   }
@@ -342,25 +369,25 @@ class Banco {
     if(opcoes.seAtualizadoEm) qs.push('currentDocument.updateTime=' + encodeURIComponent(opcoes.seAtualizadoEm));
     if(opcoes.soSeNaoExistir) qs.push('currentDocument.exists=false');
     const url = this.base + '/' + this.caminho(p) + (qs.length ? '?' + qs.join('&') : '');
-    const res = await fetch(url, { method: 'PATCH', headers: await this.cabecalhos(), body: JSON.stringify({ fields: paraCampos(dados) }) });
+    const res = await pedirComRetentativa(url, { method: 'PATCH', headers: await this.cabecalhos(), body: JSON.stringify({ fields: paraCampos(dados) }) });
     if(res.status === 400 || res.status === 409 || res.status === 412){
       const corpo = await res.text();
       if(/FAILED_PRECONDITION|ABORTED|ALREADY_EXISTS|does not match|precondition/i.test(corpo)) return false;
       throw new Error('falha ao gravar ' + p + ' (' + res.status + ')');
     }
-    if(!res.ok) throw new Error('falha ao gravar ' + p + ' (' + res.status + ')');
+    if(!res.ok) throw await falhaHttp('falha ao gravar ' + p, res);
     const doc = await res.json().catch(() => ({}));
     return { atualizadoEm: doc.updateTime || null };
   }
   async adicionar(colecao, dados){
-    const res = await fetch(this.base + '/' + this.caminho(colecao), { method: 'POST', headers: await this.cabecalhos(), body: JSON.stringify({ fields: paraCampos(dados) }) });
-    if(!res.ok) throw new Error('falha ao adicionar em ' + colecao + ' (' + res.status + ')');
+    const res = await pedirComRetentativa(this.base + '/' + this.caminho(colecao), { method: 'POST', headers: await this.cabecalhos(), body: JSON.stringify({ fields: paraCampos(dados) }) });
+    if(!res.ok) throw await falhaHttp('falha ao adicionar em ' + colecao, res);
     const doc = await res.json().catch(() => ({}));
     return doc.name ? doc.name.split('/').pop() : null;
   }
   async apagar(p){
-    const res = await fetch(this.base + '/' + this.caminho(p), { method: 'DELETE', headers: await this.cabecalhos() });
-    if(!res.ok && res.status !== 404) throw new Error('falha ao apagar ' + p + ' (' + res.status + ')');
+    const res = await pedirComRetentativa(this.base + '/' + this.caminho(p), { method: 'DELETE', headers: await this.cabecalhos() });
+    if(!res.ok && res.status !== 404) throw await falhaHttp('falha ao apagar ' + p, res);
     return true;
   }
   /* lista uma coleção trazendo só alguns campos (para não baixar o código de todos os jogos) */
@@ -368,8 +395,8 @@ class Banco {
     const qs = ['pageSize=' + (tamanho || 100)];
     (campos || []).forEach(c => qs.push('mask.fieldPaths=' + encodeURIComponent(c)));
     if(pagina) qs.push('pageToken=' + encodeURIComponent(pagina));
-    const res = await fetch(this.base + '/' + this.caminho(colecao) + '?' + qs.join('&'), { headers: await this.cabecalhos() });
-    if(!res.ok) throw new Error('falha ao listar ' + colecao + ' (' + res.status + ')');
+    const res = await pedirComRetentativa(this.base + '/' + this.caminho(colecao) + '?' + qs.join('&'), { headers: await this.cabecalhos() });
+    if(!res.ok) throw await falhaHttp('falha ao listar ' + colecao, res);
     const r = await res.json();
     return {
       docs: (r.documents || []).map(d => ({ id: d.name.split('/').pop(), dados: deCampos(d.fields || {}) })),
