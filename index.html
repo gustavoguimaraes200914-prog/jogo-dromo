@@ -45,6 +45,7 @@
   html.ov-cheio, html.ov-cheio body{background:#0b2a24;}
   html.ov-cheio .app, html.ov-cheio .bg-blob, html.ov-cheio #bottomNav{visibility:hidden;}
   html.folha-cheia, html.folha-cheia body{background:#0d1650;}
+  html.entrada .app, html.entrada .bg-blob, html.entrada #bottomNav{visibility:hidden;}
   html,body{
     background: radial-gradient(circle at 20% 0%, var(--bg1), var(--bg2) 65%);
     min-height:100vh;
@@ -4659,7 +4660,14 @@
   var quick = reduced || played; // já viu a intro nesta sessão (ex.: recarregou) → só o logo pronto + carregando
 
   try{
-    var lang = localStorage.getItem('jogodromo_lang') || 'pt';
+    var lang = localStorage.getItem('jogodromo_lang');
+    if(!lang){   // mesma regra do site: quem chega agora fala inglês; quem já tinha dados guardados continua em português
+      lang = 'en';
+      for(var ki = 0; ki < localStorage.length; ki++){
+        var kk = localStorage.key(ki) || '';
+        if(kk !== 'koda_dispositivo' && (kk.indexOf('jogodromo_') === 0 || kk.indexOf('koda_') === 0)){ lang = 'pt'; break; }
+      }
+    }
     document.getElementById('ksLoaderText').textContent = ({pt:'carregando', en:'loading', es:'cargando', it:'caricamento', fr:'chargement', de:'lädt', nl:'laden', ja:'読み込み中', zh:'加载中', ko:'불러오는 중'})[lang] || 'carregando';
   }catch(e){}
 
@@ -4686,9 +4694,26 @@
     word.classList.add('waving');
     setTimeout(function(){ writeDone = true; tryExit(); }, quick ? 150 : 380);
   }
+  /* Telas de entrada (escolher aparelho, login, boas-vindas): o Início fica escondido atrás delas.
+     Sem isso ele aparecia pela transparência quando a intro sumia, antes da tela seguinte abrir. */
+  window.kodaEntrada = function(){
+    var h = document.documentElement;
+    h.classList.add('entrada');
+    if(window.__kodaEntradaVigia) return;
+    var livres = 0;
+    window.__kodaEntradaVigia = setInterval(function(){
+      var ocupado = document.querySelector('#kodaSplash, .disp-tela, .onb-bg, #authGate:not(.hidden)');
+      livres = ocupado ? 0 : livres + 1;
+      if(livres >= 3){ clearInterval(window.__kodaEntradaVigia); window.__kodaEntradaVigia = null; h.classList.remove('entrada'); }
+    }, 200);
+  };
   function tryExit(){
     if(exited || !ready || !writeDone) return;
     exited = true;
+    try{
+      var gate = document.getElementById('authGate');
+      if((typeof aparelhoPendente !== 'undefined' && aparelhoPendente) || (gate && !gate.classList.contains('hidden'))) window.kodaEntrada();
+    }catch(e){}
     splash.classList.add('out');
     // os cards do início entram de novo com a animação deles enquanto a intro some
     try{ if(typeof applyFilters === 'function') applyFilters(document.getElementById('search').value); }catch(e){}
@@ -14303,6 +14328,7 @@ function iniciarBoasVindas(user){
   try{ pend = localStorage.getItem(ONB_KEY); }catch(e){}
   if(!pend || !user || pend !== user.uid) return;
   if(!tutAtivo()){ try{ localStorage.removeItem(ONB_KEY); }catch(e){} return; }
+  try{ window.kodaEntrada(); }catch(e){}   // o Início não aparece entre a intro e as boas-vindas
   quandoAIntroSair(()=>{ if(!document.getElementById('onbBg')) abrirBoasVindas(user); });
 }
 
