@@ -39,6 +39,12 @@
      arrastava o site por baixo e o jogo parecia travar */
   html.ov-aberto, html.ov-aberto body{overflow:hidden !important;overscroll-behavior:none;}
   #overlay{overscroll-behavior:contain;}
+  /* janela/jogo em tela cheia aberto: o Início some de trás e o fundo vira liso. Assim nenhum pedaço dele (nem da loja)
+     espia pelas bordas, principalmente com o celular deitado, onde o Safari deixa faixas nas laterais */
+  .overlay.fullscreen-mode{background:#0b2a24;}
+  html.ov-cheio, html.ov-cheio body{background:#0b2a24;}
+  html.ov-cheio .app, html.ov-cheio .bg-blob, html.ov-cheio #bottomNav{visibility:hidden;}
+  html.folha-cheia, html.folha-cheia body{background:#0d1650;}
   html,body{
     background: radial-gradient(circle at 20% 0%, var(--bg1), var(--bg2) 65%);
     min-height:100vh;
@@ -16243,9 +16249,16 @@ function toast(msg){
 const overlay = document.getElementById('overlay');
 /* html.ov-aberto = tem janela/jogo aberto por cima (no lugar do :has(), que fazia a página toda refazer o estilo a cada mudança) */
 (function(){
-  const marca = ()=>document.documentElement.classList.toggle('ov-aberto', !overlay.classList.contains('hidden'));
+  const marca = ()=>{
+    const aberto = !overlay.classList.contains('hidden');
+    document.documentElement.classList.toggle('ov-aberto', aberto);
+    document.documentElement.classList.toggle('ov-cheio', aberto && overlay.classList.contains('fullscreen-mode'));
+  };
   marca();
   try{ new MutationObserver(marca).observe(overlay, {attributes:true, attributeFilter:['class']}); }catch(e){}
+  /* loja/folha em tela cheia aberta: a cor atrás (nas bordas do celular deitado) vira a da loja, não a do Início */
+  const folha = ()=>document.documentElement.classList.toggle('folha-cheia', !!document.querySelector('body > .game-menu-bg .kbs-sheet, body > .game-menu-bg .shop-sheet'));
+  try{ new MutationObserver(folha).observe(document.body, {childList:true}); }catch(e){}
 })();
 const modalBody = document.getElementById('modalBody');
 const modalTitle = document.getElementById('modalTitle');
