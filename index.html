@@ -2854,7 +2854,7 @@
   .onb-prog i::after{content:'';position:absolute;inset:0;background:#5FF0C4;transform:scaleX(0);transform-origin:left;transition:transform .45s ease;}
   .onb-prog i.on::after{transform:scaleX(1);}
   .onb-slides{position:relative;flex:1 1 auto;min-height:0;}
-  .onb-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;opacity:0;transform:translateY(46px);pointer-events:none;transition:opacity .35s ease,transform .45s cubic-bezier(.2,.8,.2,1);overflow-y:auto;padding:8px 0;}
+  .onb-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;text-align:center;gap:14px;opacity:0;transform:translateY(46px);pointer-events:none;transition:opacity .35s ease,transform .45s cubic-bezier(.2,.8,.2,1);overflow-y:auto;padding:8px 0;}
   .onb-slide.on{opacity:1;transform:none;pointer-events:auto;}
   .onb-slide.out{transform:translateY(-46px);}
   .onb-slide h2{margin:0;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.9rem;line-height:1.1;color:#fff;}
@@ -4714,6 +4714,20 @@
     .pz-loja{grid-template-columns:180px minmax(0,1fr);}
   }
   /* boas-vindas: o personagem grande e as opções */
+  .onb-gen{display:flex;flex-direction:column;gap:6px;width:100%;max-width:360px;margin:6px auto;}
+  .onb-gen-tit{margin:4px 0 0;font-weight:800;font-family:'Baloo 2',sans-serif;opacity:.85;}
+  .onb-gen-ops{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .onb-gen-ops button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px 7px;border-radius:16px;border:3px solid transparent;
+    background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font:800 .9rem 'Baloo 2',sans-serif;}
+  .onb-gen-ops button.on{border-color:#5CF2C4;background:rgba(92,242,196,.18);}
+  .onb-gen-ops .pz-corpo{width:54px;height:71px;}
+  @media (max-height:640px){ .onb-gen-ops .pz-corpo{width:40px;height:53px;} }
+  /* deitado: você e o agente lado a lado, pra caber o título sem rolar */
+  @media (max-height:500px) and (orientation:landscape){
+    .onb-gen{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:auto auto;column-gap:16px;max-width:560px;}
+    .onb-gen-ops button{padding:5px 4px;}
+    .onb-gen-ops .pz-corpo{width:34px;height:45px;}
+  }
   .onb-pers{display:flex;justify-content:center;margin:4px 0 2px;}
   .onb-pers .pz-corpo{width:104px;height:137px;}
   .onb-grid.onb-pers-grid{padding:5px;}
@@ -14533,9 +14547,9 @@ function abrirBoasVindas(user){
   const fotoGoogle = user.photoURL || null;
   const esc = chatListEscape;
   let escolha = {tipo: 'pers', i: -1, url: null};
-  /* o personagem da conta nova: começa com o sorteado dela; a grade mostra outros (todos com peças de graça) */
-  let pers = pzSemente(user.email), rodada = 0;
-  const opcoesPers = ()=>Array.from({length: 8}, (_, i)=>i === 0 && rodada === 0 ? pzSemente(user.email) : pzSemente(user.email + '|' + rodada + '|' + i));
+  /* conta nova: o personagem e o agente começam como o bonequinho de começo; aqui só escolhe menino ou menina pros dois */
+  const gen = {heroi: 'menino', agente: 'menino'};
+  const comGenero = g=>Object.assign(pzNorm(PZ_PADRAO), {genero: g});
   let passo = 0;
   const bg = document.createElement('div');
   bg.id = 'onbBg';
@@ -14554,13 +14568,14 @@ function abrirBoasVindas(user){
           <p>${esc(t('onb_nick_d'))}</p>
         </section>
         <section class="onb-slide" data-p="1">
-          <h2>${esc(t('onb_pers_t'))}</h2>
-          <div class="onb-pers" data-onb-pers></div>
-          <p>${esc(t('onb_pers_d', {loja: t('shop_title')}))}</p>
-          <div class="onb-grid onb-pers-grid" id="onbGrid"></div>
-          <div class="onb-acoes">
-            <button type="button" id="onbSortear"><span>${esc(t('onb_pers_sortear'))}</span></button>
+          <h2>${esc(t('onb_gen_t'))}</h2>
+          <div class="onb-gen" id="onbGen">
+            <p class="onb-gen-tit">${esc(t('pz_voce'))}</p>
+            <div class="onb-gen-ops" data-alvo="heroi"></div>
+            <p class="onb-gen-tit">${esc(t('ag_tab'))}</p>
+            <div class="onb-gen-ops" data-alvo="agente"></div>
           </div>
+          <p>${esc(t('onb_gen_d', {loja: t('shop_title')}))}</p>
         </section>
         <section class="onb-slide" data-p="2">
           <div class="onb-avatar big" data-onb-prev></div>
@@ -14583,10 +14598,11 @@ function abrirBoasVindas(user){
   const nickOk = () => nick.trim().length >= 2;
   function pintarPrev(){
     const inicial = esc((nick.trim() || nomeGoogle || user.email || 'K').charAt(0).toUpperCase());
-    const cod = pzCodigo(pers);
-    bg.querySelectorAll('[data-onb-prev]').forEach(el=>{ el.innerHTML = pzAv(cod, user.email); });
-    const grande = bg.querySelector('[data-onb-pers]'); if(grande) grande.innerHTML = pzCorpo(cod);
-    bg.querySelectorAll('#onbGrid button').forEach(b=>b.classList.toggle('on', b.dataset.cod === cod));
+    const cod = pzCodigo(comGenero(gen.heroi));
+    bg.querySelectorAll('[data-onb-prev]').forEach(el=>{ el.innerHTML = pzAv(cod); });
+    bg.querySelectorAll('.onb-gen-ops').forEach(caixa=>{
+      caixa.innerHTML = PZ_GENEROS.map(g=>`<button type="button" class="${gen[caixa.dataset.alvo] === g.id ? 'on' : ''}" data-g="${g.id}" aria-pressed="${gen[caixa.dataset.alvo] === g.id}">${pzCorpo(pzCodigo(comGenero(g.id)))}<span>${esc(t('cosm_pers_genero_' + g.id))}</span></button>`).join('');
+    });
     $('#onbTitFim').textContent = t('onb_pronto_t', {nome: nick.trim() || nomeGoogle || ''});
     $('#onbNext').disabled = passo === 0 && !nickOk();
   }
@@ -14606,7 +14622,9 @@ function abrirBoasVindas(user){
     $('#onbNext').disabled = true;
     try{
       if(nickOk()) localStorage.setItem(PROFILE_NICK_KEY, nick.trim().slice(0, 24));   // sem travar a troca de apelido depois (o prazo só começa quando a pessoa edita)
-      pzSalvarHeroi(pers);   // só peças de graça: não precisa comprar nada
+      pzSalvarHeroi(comGenero(gen.heroi));   // careca, camiseta branca e short azul: nada pra comprar
+      pzSalvarAgente({cfg: comGenero(gen.agente), nome: 'Kodi', balao: 'branco', oculto: false});
+      try{ agAtualizar(); }catch(e){}
     }catch(e){}
     try{ localStorage.removeItem(ONB_KEY); }catch(e){}
     try{ syncToServer(); syncPublicProfile(); updateAccountChip(user); }catch(e){}
@@ -14622,16 +14640,10 @@ function abrirBoasVindas(user){
     else concluir();
   });
   $('#onbSkip').addEventListener('click', concluir);
-  function montarGrade(){
-    $('#onbGrid').innerHTML = opcoesPers().map(c=>{ const cod = pzCodigo(c); return `<button type="button" data-cod="${esc(cod)}" aria-label="${esc(t('onb_pers_t'))}">${pzAv(cod)}</button>`; }).join('');
-    pintarPrev();
-  }
-  $('#onbGrid').addEventListener('click', e=>{
-    const b = e.target.closest('button[data-cod]'); if(!b) return;
-    pers = pzDeCodigo(b.dataset.cod) || pers; playSound('click'); pintarPrev();
+  $('#onbGen').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-g]'); if(!b) return;
+    gen[b.parentNode.dataset.alvo] = b.dataset.g; playSound('click'); pintarPrev();
   });
-  $('#onbSortear').addEventListener('click', ()=>{ rodada++; pers = pzSemente(user.email + '|' + rodada + '|0'); montarGrade(); playSound('click'); });
-  montarGrade();
   irPara(0);
   if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) setTimeout(()=>{ try{ input.focus(); input.select(); }catch(e){} }, 500);
 }
@@ -22459,7 +22471,7 @@ function openThemeShop(aba){
   }
 
   /* ---------- Personagem / Seu agente: o rascunho é o código do personagem e o agente (texto) ---------- */
-  const pzSub = {personagem:'cab', agente:'cab'};
+  const pzSub = {personagem:'genero', agente:'genero'};
   function pzCtx(){
     return {aba: abaAtual, heroi: pzDeCodigo(rascunho.personagem) || meuHeroi(), agente: pzAgDeTexto(rascunho.agente) || meuAgente(),
       sub: pzSub[abaAtual], testando: modoTesteDeMoedas(), carrinho: paraComprar.pers};
@@ -28271,7 +28283,73 @@ var PZ_NOMES = {
  costas_rabo:'Rabinho|Tail|Colita|Codina|Petite queue|Schwänzchen|Staartje|しっぽ|尾巴|꼬리',
  costas_prancha:'Prancha de surfe|Surfboard|Tabla de surf|Tavola da surf|Planche de surf|Surfbrett|Surfplank|サーフボード|冲浪板|서핑보드',
  costas_cristal:'Asas de cristal|Crystal wings|Alas de cristal|Ali di cristallo|Ailes de cristal|Kristallflügel|Kristallen vleugels|クリスタルの羽|水晶翅膀|크리스탈 날개',
- costas_imperial:'Capa imperial|Imperial cape|Capa imperial|Mantello imperiale|Cape impériale|Kaiserumhang|Keizerlijke cape|皇帝のマント|帝王披风|황제 망토'
+ costas_imperial:'Capa imperial|Imperial cape|Capa imperial|Mantello imperiale|Cape impériale|Kaiserumhang|Keizerlijke cape|皇帝のマント|帝王披风|황제 망토',
+ genero_menino:'Menino|Boy|Niño|Bambino|Garçon|Junge|Jongen|男の子|男孩|남자아이',
+ genero_menina:'Menina|Girl|Niña|Bambina|Fille|Mädchen|Meisje|女の子|女孩|여자아이',
+ mao_nenhum:'Nada|Nothing|Nada|Niente|Rien|Nichts|Niets|なし|无|없음',
+ mao_balao:'Balão|Balloon|Globo|Palloncino|Ballon|Luftballon|Ballon|風船|气球|풍선',
+ mao_sorvete:'Sorvete|Ice cream|Helado|Gelato|Glace|Eis|IJsje|アイスクリーム|冰淇淋|아이스크림',
+ mao_pirulito:'Pirulito|Lollipop|Piruleta|Lecca-lecca|Sucette|Lutscher|Lolly|ペロペロキャンディ|棒棒糖|막대사탕',
+ mao_varinha:'Varinha mágica|Magic wand|Varita mágica|Bacchetta magica|Baguette magique|Zauberstab|Toverstaf|魔法のステッキ|魔法棒|요술봉',
+ mao_espada:'Espada de madeira|Wooden sword|Espada de madera|Spada di legno|Épée en bois|Holzschwert|Houten zwaard|木の剣|木剑|나무 검',
+ mao_controle:'Controle de videogame|Game controller|Mando de videojuego|Controller|Manette|Controller|Controller|ゲームコントローラー|游戏手柄|게임 컨트롤러',
+ mao_celular:'Celular|Phone|Celular|Telefono|Téléphone|Handy|Telefoon|スマホ|手机|휴대폰',
+ mao_microfone:'Microfone|Microphone|Micrófono|Microfono|Micro|Mikrofon|Microfoon|マイク|麦克风|마이크',
+ mao_livro:'Livro|Book|Libro|Libro|Livre|Buch|Boek|本|书|책',
+ mao_flor:'Flor|Flower|Flor|Fiore|Fleur|Blume|Bloem|お花|花|꽃',
+ mao_ursinho:'Ursinho|Teddy bear|Osito|Orsacchiotto|Nounours|Teddybär|Teddybeer|くまのぬいぐるみ|小熊玩偶|곰 인형',
+ mao_bandeira:'Bandeira do Koda|Koda flag|Bandera de Koda|Bandiera Koda|Drapeau Koda|Koda-Flagge|Koda-vlag|Kodaの旗|Koda旗帜|Koda 깃발',
+ mao_guardachuva:'Guarda-chuva|Umbrella|Paraguas|Ombrello|Parapluie|Regenschirm|Paraplu|かさ|雨伞|우산',
+ mao_raquete:'Raquete|Racket|Raqueta|Racchetta|Raquette|Schläger|Racket|ラケット|球拍|라켓',
+ mao_bola:'Bola de futebol|Soccer ball|Balón de fútbol|Pallone|Ballon de foot|Fußball|Voetbal|サッカーボール|足球|축구공',
+ mao_trofeu:'Troféu|Trophy|Trofeo|Trofeo|Trophée|Pokal|Trofee|トロフィー|奖杯|트로피',
+ mao_pincel:'Pincel|Paintbrush|Pincel|Pennello|Pinceau|Pinsel|Kwast|絵筆|画笔|붓',
+ mao_caneca:'Caneca de chocolate|Hot cocoa mug|Taza de chocolate|Tazza di cioccolata|Tasse de chocolat|Kakaobecher|Mok chocomel|ココアのマグ|热可可杯|코코아 머그',
+ mao_lanterna:'Lanterna|Flashlight|Linterna|Torcia|Lampe de poche|Taschenlampe|Zaklamp|懐中電灯|手电筒|손전등',
+ mao_baldeabobora:'Balde de abóbora|Pumpkin bucket|Cubo de calabaza|Secchiello zucca|Seau citrouille|Kürbiseimer|Pompoenemmer|かぼちゃバケツ|南瓜桶|호박 바구니',
+ mao_bengala:'Bengala doce|Candy cane|Bastón de caramelo|Bastoncino di zucchero|Sucre d’orge|Zuckerstange|Zuurstok|キャンディケイン|拐杖糖|캔디케인',
+ mao_concha:'Concha|Seashell|Concha|Conchiglia|Coquillage|Muschel|Schelp|貝がら|贝壳|조개껍데기',
+ mao_sabre:'Sabre de luz|Light saber|Sable de luz|Spada laser|Sabre laser|Lichtschwert|Lichtzwaard|ライトセーバー|光剑|광선검',
+ mao_gatinho:'Gatinho|Kitten|Gatito|Gattino|Chaton|Kätzchen|Katje|子ねこ|小猫|아기 고양이',
+ mao_pato:'Patinho de borracha|Rubber duck|Patito de goma|Paperella|Canard en plastique|Quietscheente|Badeendje|おもちゃのアヒル|橡皮鸭|고무 오리',
+ mao_picole:'Picolé|Popsicle|Paleta|Ghiacciolo|Glace à l’eau|Eis am Stiel|Waterijsje|アイスキャンディー|冰棍|아이스바',
+ chapeu_bone:'Boné|Cap|Gorra|Cappellino|Casquette|Kappe|Pet|キャップ|棒球帽|캡 모자',
+ chapeu_bonetras:'Boné para trás|Backwards cap|Gorra hacia atrás|Cappellino al contrario|Casquette à l’envers|Kappe verkehrt|Pet achterstevoren|後ろかぶりキャップ|反戴帽|뒤로 쓴 모자',
+ chapeu_touca:'Touca|Knit cap|Gorro de lana|Berretto di lana|Bonnet tricoté|Strickmütze|Gebreide muts|ニットキャップ|针织帽|털모자',
+ chapeu_coelho:'Orelhas de coelho|Bunny ears|Orejas de conejo|Orecchie da coniglio|Oreilles de lapin|Hasenohren|Konijnenoren|うさみみ|兔耳朵|토끼 귀',
+ chapeu_urso:'Orelhas de urso|Bear ears|Orejas de oso|Orecchie da orso|Oreilles d’ours|Bärenohren|Berenoren|くまみみ|熊耳朵|곰 귀',
+ chapeu_unicornio:'Chifre de unicórnio|Unicorn horn|Cuerno de unicornio|Corno di unicorno|Corne de licorne|Einhorn-Horn|Eenhoornhoorn|ユニコーンの角|独角兽角|유니콘 뿔',
+ chapeu_mago:'Chapéu de mago|Wizard hat|Sombrero de mago|Cappello da mago|Chapeau de magicien|Zaubererhut|Tovenaarshoed|魔法使いの帽子|巫师帽|마법사 모자',
+ chapeu_bombeiro:'Capacete de bombeiro|Firefighter helmet|Casco de bombero|Casco da pompiere|Casque de pompier|Feuerwehrhelm|Brandweerhelm|消防士のヘルメット|消防头盔|소방관 헬멧',
+ chapeu_astronauta:'Capacete de astronauta|Astronaut helmet|Casco de astronauta|Casco da astronauta|Casque d’astronaute|Astronautenhelm|Astronautenhelm|宇宙飛行士のヘルメット|宇航员头盔|우주비행사 헬멧',
+ chapeu_pirata:'Chapéu de pirata|Pirate hat|Sombrero pirata|Cappello da pirata|Chapeau de pirate|Piratenhut|Piratenhoed|海賊の帽子|海盗帽|해적 모자',
+ chapeu_natacao:'Touca de natação|Swim cap|Gorro de natación|Cuffia da piscina|Bonnet de bain|Badekappe|Badmuts|水泳帽|泳帽|수영모',
+ chapeu_dino:'Capuz de dinossauro|Dino hood|Capucha de dinosaurio|Cappuccio da dinosauro|Capuche de dino|Dino-Kapuze|Dinokap|恐竜のフード|恐龙帽|공룡 후드',
+ chapeu_tiara:'Tiara|Tiara|Tiara|Tiara|Diadème|Diadem|Tiara|ティアラ|小皇冠|티아라',
+ chapeu_arco:'Tiara com laço|Bow headband|Diadema con lazo|Cerchietto con fiocco|Serre-tête à nœud|Haarreif mit Schleife|Haarband met strik|リボンのカチューシャ|蝴蝶结发箍|리본 머리띠',
+ chapeu_solar:'Chapéu de sol|Sun hat|Sombrero de sol|Cappello da sole|Chapeau de soleil|Sonnenhut|Zonnehoed|日よけ帽子|遮阳帽|햇빛 모자',
+ chapeu_capacete:'Capacete de moto|Motorcycle helmet|Casco de moto|Casco da moto|Casque de moto|Motorradhelm|Motorhelm|バイクのヘルメット|摩托头盔|오토바이 헬멧',
+ chapeu_cogumelo:'Chapéu de cogumelo|Mushroom hat|Sombrero de seta|Cappello a fungo|Chapeau champignon|Pilzhut|Paddenstoelhoed|きのこの帽子|蘑菇帽|버섯 모자',
+ aces_oculoscoracao:'Óculos de coração|Heart glasses|Gafas de corazón|Occhiali a cuore|Lunettes cœur|Herzbrille|Hartjesbril|ハートのメガネ|爱心眼镜|하트 안경',
+ aces_oculosquadrado:'Óculos quadrados|Square glasses|Gafas cuadradas|Occhiali quadrati|Lunettes carrées|Eckige Brille|Vierkante bril|四角いメガネ|方框眼镜|네모 안경',
+ aces_esqui:'Óculos de esqui|Ski goggles|Gafas de esquí|Maschera da sci|Masque de ski|Skibrille|Skibril|スキーゴーグル|滑雪镜|스키 고글',
+ aces_estrelarosto:'Estrela no rosto|Face star|Estrella en la cara|Stella sul viso|Étoile sur la joue|Wangenstern|Ster op de wang|ほっぺの星|脸颊星星|볼 별 스티커',
+ aces_pintura:'Pintura de rosto|Face paint|Pintura facial|Trucco sul viso|Maquillage|Gesichtsbemalung|Schmink|フェイスペイント|脸部彩绘|페이스 페인팅',
+ aces_bigodechique:'Bigode chique|Fancy mustache|Bigote elegante|Baffi eleganti|Moustache chic|Schicker Schnurrbart|Chique snor|おしゃれひげ|绅士胡|멋쟁이 콧수염',
+ aces_cavanhaque:'Cavanhaque|Goatee|Perilla|Pizzetto|Bouc|Spitzbart|Sik|やぎひげ|山羊胡|염소수염',
+ aces_brincos:'Brincos de ouro|Gold earrings|Pendientes de oro|Orecchini d’oro|Boucles d’oreilles en or|Goldohrringe|Gouden oorbellen|金のイヤリング|金耳环|금 귀걸이',
+ aces_gravataborboleta:'Gravata-borboleta|Bow tie|Pajarita|Papillon|Nœud papillon|Fliege|Strikje|蝶ネクタイ|领结|나비넥타이',
+ aces_perolas:'Colar de pérolas|Pearl necklace|Collar de perlas|Collana di perle|Collier de perles|Perlenkette|Parelketting|パールのネックレス|珍珠项链|진주 목걸이',
+ aces_medalha:'Medalha de ouro|Gold medal|Medalla de oro|Medaglia d’oro|Médaille d’or|Goldmedaille|Gouden medaille|金メダル|金牌|금메달',
+ aces_fonespescoco:'Fones no pescoço|Neck headphones|Auriculares al cuello|Cuffie al collo|Casque autour du cou|Kopfhörer am Hals|Koptelefoon om de nek|首かけヘッドホン|挂脖耳机|목에 건 헤드폰',
+ aces_lenco:'Lenço no pescoço|Neckerchief|Pañuelo al cuello|Foulard|Foulard|Halstuch|Halsdoek|ネッカチーフ|领巾|스카프',
+ aces_bigodesgato:'Bigodes de gato|Cat whiskers|Bigotes de gato|Baffi da gatto|Moustaches de chat|Katzenschnurrhaare|Kattensnorharen|ねこのひげ|猫胡须|고양이 수염',
+ costas_borboleta:'Asas de borboleta|Butterfly wings|Alas de mariposa|Ali di farfalla|Ailes de papillon|Schmetterlingsflügel|Vlindervleugels|ちょうちょの羽|蝴蝶翅膀|나비 날개',
+ costas_tartaruga:'Casco de tartaruga|Turtle shell|Caparazón de tortuga|Guscio di tartaruga|Carapace de tortue|Schildkrötenpanzer|Schildpadschild|カメのこうら|龟壳|거북이 등껍질',
+ costas_dinorabo:'Rabo de dinossauro|Dino tail|Cola de dinosaurio|Coda da dinosauro|Queue de dino|Dinoschwanz|Dinostaart|恐竜のしっぽ|恐龙尾巴|공룡 꼬리',
+ costas_capamagica:'Capa mágica|Magic cape|Capa mágica|Mantello magico|Cape magique|Zauberumhang|Toverkap|魔法のマント|魔法披风|마법 망토',
+ costas_mochila2:'Mochila escolar|School backpack|Mochila escolar|Zaino di scuola|Cartable|Schulranzen|Schooltas|ランドセル|书包|책가방',
+ costas_robo:'Asas de robô|Robot wings|Alas de robot|Ali robotiche|Ailes de robot|Roboterflügel|Robotvleugels|ロボットの翼|机器人翅膀|로봇 날개'
 };
 
 /* textos novos da tela: 'pt|en|es|it|fr|de|nl|ja|zh|ko' */
@@ -28310,7 +28388,11 @@ var PZ_TXT = {
  pass_tp_pers:'Personagem|Character|Personaje|Personaggio|Personnage|Figur|Personage|キャラクター|角色|캐릭터',
  onb_pers_t:'Escolha seu personagem|Pick your character|Elige tu personaje|Scegli il tuo personaggio|Choisis ton personnage|Wähle deine Figur|Kies je personage|キャラクターをえらぼう|选择你的角色|캐릭터를 골라요',
  onb_pers_d:'É ele que todo mundo vê no seu perfil. Você pode mudar tudo depois na {loja}.|This is who everyone sees on your profile. You can change everything later in the {loja}.|Es el que todos ven en tu perfil. Puedes cambiarlo todo después en la {loja}.|È quello che tutti vedono sul tuo profilo. Puoi cambiare tutto dopo nel {loja}.|C’est lui que tout le monde voit sur ton profil. Tu pourras tout changer plus tard dans la {loja}.|Diese Figur sehen alle auf deinem Profil. Du kannst später alles im {loja} ändern.|Dit ziet iedereen op je profiel. Je kunt later alles aanpassen in de {loja}.|プロフィールでみんなが見るのはこのキャラだよ。あとで{loja}で全部変えられるよ。|大家会在你的主页看到它。之后可以在{loja}里随时更改。|모두가 내 프로필에서 보는 캐릭터예요. 나중에 {loja}에서 다 바꿀 수 있어요.',
- onb_pers_sortear:'Sortear outro|Shuffle|Otro al azar|Un altro a caso|Un autre au hasard|Neu würfeln|Nog een|べつのにする|换一个|다른 걸로'
+ onb_pers_sortear:'Sortear outro|Shuffle|Otro al azar|Un altro a caso|Un autre au hasard|Neu würfeln|Nog een|べつのにする|换一个|다른 걸로',
+ pz_s_genero:'Gênero|Gender|Género|Genere|Genre|Geschlecht|Geslacht|性別|性别|성별',
+ pz_s_mao:'Mão|In hand|En la mano|In mano|En main|In der Hand|In de hand|手に持つ|手持|손에 들기',
+ onb_gen_t:'Menino ou menina?|Boy or girl?|¿Niño o niña?|Bambino o bambina?|Garçon ou fille ?|Junge oder Mädchen?|Jongen of meisje?|男の子？女の子？|男孩还是女孩？|남자아이? 여자아이?',
+ onb_gen_d:'Depois é só montar o visual na {loja}: cabelo, roupas e milhares de acessórios.|Then build your look in the {loja}: hair, clothes and thousands of accessories.|Después arma tu estilo en la {loja}: pelo, ropa y miles de accesorios.|Poi crea il tuo look nel {loja}: capelli, vestiti e migliaia di accessori.|Ensuite, crée ton style dans la {loja} : cheveux, vêtements et des milliers d’accessoires.|Danach gestaltest du deinen Look im {loja}: Haare, Kleidung und tausende Accessoires.|Daarna maak je je look in de {loja}: haar, kleding en duizenden accessoires.|あとは{loja}で髪型、服、たくさんのアクセサリーで見た目を作ろう。|之后在{loja}里打造造型：发型、衣服和成千上万的配饰。|그다음 {loja}에서 머리, 옷, 수많은 액세서리로 꾸며요.'
 };
 
 var PZ_PARTES = {
@@ -28720,7 +28802,127 @@ var PZ_PARTES = {
  {id:'tubarao', ev:'ferias', corta:8, fix:true, px:[[0,'..........X...........','.........XX...........','........XXX...........','......XXXXXXXXXX......','.....XXXXXXXXXXXX.....','....XXxxxxxxxxxxXX....','....XxxxxxxxxxxxxX....','....XxwXwXwXwXwXxX....','....Xx..........xX....','....Xx..........xX....','....Xx..........xX....','....Xx..........xX....']]},
  {id:'louros', ev:'passe', fix:true, px:[[4,'....VvgvVvgvVvgvVv....','....v............v....','....g............g....']]},
  {id:'aureolasol', d:14, fix:true, px:[[0,'.......qyyyyyyq.......','......y........y......','.......qyyyyyyq.......']]},
- {id:'coroareal', ev:'passe', fix:true, px:[[0,'.......g..gg..g.......','......ggg.gg.ggg......','......gggggggggg......','......gbgrgggrgb......','.....wwwwwwwwwwww.....']]}
+ {id:'coroareal', ev:'passe', fix:true, px:[[0,'.......g..gg..g.......','......ggg.gg.ggg......','......gggggggggg......','......gbgrgggrgb......','.....wwwwwwwwwwww.....']]},
+ /* novos (dá pra trocar a cor de quase todos) */
+ {id:'bone', p:6000, corta:6, px:[[3,
+ '......1111111111......',
+ '.....111133111111.....',
+ '....11111111111111....',
+ '...2222222222222222...']]},
+ {id:'bonetras', p:7500, corta:6, px:[[3,
+ '......1111111111......',
+ '.....111111111111.....',
+ '....11111111111111....',
+ '....22222333322222....']]},
+ {id:'touca', p:7500, corta:6, px:[[1,
+ '..........ww..........',
+ '........111111........',
+ '.......11111111.......',
+ '......3333333333......',
+ '....11111111111111....',
+ '....22222222222222....']]},
+ {id:'coelho', p:12000, px:[[0,
+ '.......11....11.......',
+ '.......1p....p1.......',
+ '.......1p....p1.......',
+ '.......11....11.......']]},
+ {id:'urso', p:12000, px:[[3,
+ '....111........111....',
+ '....1P1........1P1....']]},
+ {id:'unicornio', d:6, fix:true, px:[[0,
+ '...........y..........',
+ '..........yg..........',
+ '..........gy..........',
+ '......w...yy....w.....']]},
+ {id:'mago', p:30000, corta:6, px:[[0,
+ '............11........',
+ '...........1y1........',
+ '..........1111........',
+ '.........11y111.......',
+ '........11111111......',
+ '.......1111111111.....',
+ '..222222222222222222..']]},
+ {id:'bombeiro', p:24000, fix:true, corta:6, px:[[2,
+ '.......rrrrrrrr.......',
+ '......rrrggrrrrr......',
+ '.....rrrrggrrrrrr.....',
+ '.....RRRRRRRRRRRR.....',
+ '..rrrrrrrrrrrrrrrrrr..']]},
+ {id:'astronauta', p:90000, fix:true, corta:16, px:[[1,
+ '......xxxxxxxxxx......',
+ '....xxxxxxxxxxxxxx....',
+ '...xxxxxxxxxxxxxxxx...',
+ '...xXxxxxxxxxxxxxXx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xX............Xx...',
+ '...xxxxxxxxxxxxxxxx...',
+ '....xxxbxxxxxxrxxx....']]},
+ {id:'pirata', p:36000, fix:true, corta:5, px:[[1,
+ '.....kk........kk.....',
+ '.....kkkkkkkkkkkk.....',
+ '.....kkkkkwkkkkkk.....',
+ '....kkkkkkkkkkkkkk....',
+ '...gggggggggggggggg...']]},
+ {id:'natacao', p:4500, corta:8, px:[[3,
+ '.......11111111.......',
+ '.....113311111111.....',
+ '.....111111111111.....',
+ '.....111111111111.....',
+ '.....222222222222.....']]},
+ {id:'dino', p:45000, fix:true, corta:8, px:[[0,
+ '..........y..y........',
+ '........yvyyvy........',
+ '......vvvvvvvvvv......',
+ '.....vvvvvvvvvvvv.....',
+ '....vvvvvvvvvvvvvv....',
+ '....vVwVwVwVwVwVvv....',
+ '....vv..........vv....',
+ '....vv..........vv....',
+ '....vV..........Vv....',
+ '....vV..........Vv....',
+ '....vV..........Vv....',
+ '....vV..........Vv....']]},
+ {id:'tiara', p:18000, fix:true, px:[[3,
+ '........g.gg.g........',
+ '........ggpggg........']]},
+ {id:'arco', p:4500, px:[[3,
+ '...............1.1....',
+ '...............121....',
+ '....11111111111111....']]},
+ {id:'solar', p:9000, corta:5, px:[[2,
+ '.......11111111.......',
+ '......1111111111......',
+ '......2222222222......',
+ '.11111111111111111111.',
+ '..333333333333333333..']]},
+ {id:'capacete', p:36000, corta:16, px:[[2,
+ '......1111111111......',
+ '....11111111111111....',
+ '...1131111111111111...',
+ '...1311111111111111...',
+ '...1111111111111111...',
+ '...11............11...',
+ '...11............11...',
+ '...11BBBBBBBBBBBB11...',
+ '...11BbbbbbbbbbbB11...',
+ '...11BBBBBBBBBBBB11...',
+ '...11............11...',
+ '...12............21...',
+ '...22............22...']]},
+ {id:'cogumelo', p:21000, fix:true, corta:6, px:[[0,
+ '.......rrrrrrrr.......',
+ '.....rrwwrrrrrr.......',
+ '....rrwwrrrrwwrr......',
+ '...rrrrrrrrrwwrrr.....',
+ '..rrwwrrrrrrrrrrrr....',
+ '..RRRRRRRRRRRRRRRRRR..']]}
  ],
  aces:[
  {id:'nenhum', px:[]},
@@ -28739,7 +28941,60 @@ var PZ_PARTES = {
  {id:'colar', p:60000, fix:true, px:[[16,'........g....g........','.........gggg.........','..........gg..........']]},
  {id:'monoculo', p:45000, fix:true, px:[[9,'............gggg......','............g..g......','............g..g......','............gggg......','...............g......','...............g......']]},
  {id:'visor', ev:'passe', fix:true, px:[[10,'.....zzzzzzzzzzzz.....','.....ZwZZZZZZZZZZ.....']]},
- {id:'mergulho', ev:'ferias', fix:true, px:[[5,'..................yy..','..................y...','..................y...','..................y...','......bbbb..bbbb..y...','......b..bbbb..b..y...','......b..b..b..b..y...','......bbbb..bbbb.yy...']]}
+ {id:'mergulho', ev:'ferias', fix:true, px:[[5,'..................yy..','..................y...','..................y...','..................y...','......bbbb..bbbb..y...','......b..bbbb..b..y...','......b..b..b..b..y...','......bbbb..bbbb.yy...']]},
+ /* novos (dá pra trocar a cor de quase todos) */
+ {id:'oculoscoracao', p:12000, px:[[10,
+ '......1.1....1.1......',
+ '......111kkkk111......',
+ '.......1......1.......']]},
+ {id:'oculosquadrado', p:9000, px:[[9,
+ '......1111..1111......',
+ '......1..1111..1......',
+ '......1..1..1..1......',
+ '......1111..1111......']]},
+ {id:'esqui', p:15000, fix:true, px:[[9,
+ '......XXXXXXXXXX......',
+ '....kkXzbbzzbbzXkk....',
+ '......XbbzbbzbbX......',
+ '......XXXXXXXXXX......']]},
+ {id:'estrelarosto', p:3000, fix:true, px:[[11,
+ '...............y......',
+ '..............yyy.....',
+ '...............y......']]},
+ {id:'pintura', p:4500, px:[[12,
+ '.....11........11.....',
+ '.....1..........1.....']]},
+ {id:'bigodechique', p:12000, fix:true, px:[[11,
+ '.......N......N.......',
+ '........NNNNNN........']]},
+ {id:'cavanhaque', p:9000, fix:true, px:[[14,
+ '.........NNNN.........',
+ '..........NN..........']]},
+ {id:'brincos', p:9000, fix:true, px:[[12,
+ '....g............g....',
+ '....G............G....']]},
+ {id:'gravataborboleta', p:7500, px:[[16,
+ '........11.211........',
+ '........1....1........']]},
+ {id:'perolas', p:30000, fix:true, px:[[16,
+ '........wxwxwx........',
+ '.........wxw..........']]},
+ {id:'medalha', p:24000, fix:true, px:[[16,
+ '........r....b........',
+ '.........r..b.........',
+ '..........gg..........',
+ '..........GG..........']]},
+ {id:'fonespescoco', p:15000, px:[[15,
+ '.......kkkkkkkk.......',
+ '......11......11......']]},
+ {id:'lenco', p:6000, px:[[16,
+ '.......11111111.......',
+ '........111111........',
+ '.........1111.........',
+ '..........11..........']]},
+ {id:'bigodesgato', p:4500, fix:true, px:[[12,
+ '....kk..........kk....',
+ '....k............k....']]}
  ],
  costas:[
  {id:'nenhum', atras:[]},
@@ -28755,7 +29010,279 @@ var PZ_PARTES = {
  {id:'rabo', p:21000, atras:[[18,'..................11..','..................11..','..................1...','.................11...','................11....','.................2....']]},
  {id:'prancha', ev:'ferias', fix:true, atras:[[6,'..y...................','.yyy..................','.yqy..................','.yqy..................','.ywy..................','.yqy..................','.yqy..................','.ywy..................','.yqy..................','.yqy..................','.ywy..................','.yqy..................','.yqy..................','.yyy..................','..y...................']]},
  {id:'cristal', ev:'natal', fix:true, atras:[[11,'z....................z','zz..................zz','zwz................zwz','zbzz..............zzbz','zzbzz............zzbzz','.zzbz............zbzz.','..zzz............zzz..','...z..............z...']]},
- {id:'imperial', d:12, fix:true, atras:[[15,'...llllllllllllllll...','...llllllllllllllll...','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..gggggggggggggggggg..']], px:[[15,'.....wwwwwwwwwwww.....']]}
+ {id:'imperial', d:12, fix:true, atras:[[15,'...llllllllllllllll...','...llllllllllllllll...','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..llllllllllllllllll..','..gggggggggggggggggg..']], px:[[15,'.....wwwwwwwwwwww.....']]},
+ /* novos (dá pra trocar a cor de quase todos) */
+ {id:'borboleta', p:45000, atras:[[10,
+ '111..............111..',
+ '1w11............11w1..',
+ '11111..........11111..',
+ '.1311..........1131...',
+ '..11............11....',
+ '.111............111...',
+ '1w11............11w1..',
+ '111..............111..']]},
+ {id:'tartaruga', p:36000, fix:true, atras:[[14,
+ '....VVVVVVVVVVVVVV....',
+ '...VvyvvyvvyvvyvvV....',
+ '..VvvvvvvvvvvvvvvvV...',
+ '..VyvvyvvyvvyvvyvvV...',
+ '..VvvvvvvvvvvvvvvvV...',
+ '...VvyvvyvvyvvyvvV....',
+ '....VVVVVVVVVVVVV.....']]},
+ {id:'dinorabo', p:21000, atras:[[19,
+ '....................1.',
+ '...................11.',
+ '..................111.',
+ '.................111..',
+ '................1112..',
+ '................2w2...']]},
+ {id:'capamagica', p:60000, atras:[[15,
+ '...1111111111111111...',
+ '...11y11111111111y1...',
+ '..111111111111111111..',
+ '..1111y1111111y11111..',
+ '..111111111111111111..',
+ '..11y111111111111y11..',
+ '..111111111111111111..',
+ '..222222222222222222..']], px:[[16,
+ '........g....g........']]},
+ {id:'mochila2', p:15000, atras:[[15,
+ '...1111111111111111...',
+ '...1111111111111111...',
+ '...1222222222222221...',
+ '...1111111111111111...',
+ '...1111111111111111...',
+ '...2222222222222222...']], px:[[16,
+ '........2....2........',
+ '........2....2........',
+ '........2....2........']]},
+ {id:'robo', d:10, fix:true, atras:[[11,
+ 'X...................X.',
+ 'XX..................X.',
+ 'XzX................XzX',
+ 'XxzX..............XzxX',
+ 'XxxzX............XzxxX',
+ '.XxxX............XxxX.',
+ '..XXX............XXX..']]}
+ ],
+ mao:[
+ {id:'nenhum', px:[]},
+ {id:'balao', p:6000, px:[[7,
+ '...................11.',
+ '..................1311',
+ '..................1111',
+ '..................1112',
+ '...................22.',
+ '....................X.',
+ '...................X..',
+ '...................X..',
+ '..................X...',
+ '..................X...']]},
+ {id:'sorvete', p:4500, fix:true, px:[[13,
+ '..................pp..',
+ '.................pwpp.',
+ '.................pppp.',
+ '.................qQqq.',
+ '..................qq..',
+ '..................qq..',
+ '...................q..']]},
+ {id:'pirulito', p:4500, fix:true, px:[[11,
+ '.................rwr..',
+ '.................wrw..',
+ '.................rwr..',
+ '..................w...',
+ '..................w...',
+ '..................w...',
+ '..................w...',
+ '..................w...']]},
+ {id:'varinha', p:15000, fix:true, px:[[10,
+ '....................y.',
+ '...................ygy',
+ '....................y.',
+ '....................k.',
+ '...................k..',
+ '...................k..',
+ '..................k...',
+ '..................k...',
+ '..................k...',
+ '..................k...']]},
+ {id:'espada', p:12000, fix:true, px:[[8,
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '.................NNN..',
+ '..................k...',
+ '..................k...']]},
+ {id:'controle', p:18000, px:[[19,
+ '.................1111.',
+ '................1r11b1',
+ '................11..11']]},
+ {id:'celular', p:12000, fix:true, px:[[17,
+ '.................kk...',
+ '.................bb...',
+ '.................bb...',
+ '.................kk...']]},
+ {id:'microfone', p:15000, fix:true, px:[[14,
+ '.................kX...',
+ '.................kk...',
+ '..................X...',
+ '..................X...',
+ '..................X...',
+ '..................X...']]},
+ {id:'livro', p:6000, px:[[17,
+ '................11111.',
+ '................1www1.',
+ '................1www1.',
+ '................22222.']]},
+ {id:'flor', p:3000, fix:true, px:[[11,
+ '..................p...',
+ '.................pyp..',
+ '..................p...',
+ '..................v...',
+ '.................vv...',
+ '..................v...',
+ '..................v...',
+ '..................v...',
+ '..................v...']]},
+ {id:'ursinho', p:21000, fix:true, px:[[15,
+ '.................n..n.',
+ '.................nnnn.',
+ '.................kNNk.',
+ '.................nNNn.',
+ '..................nn..',
+ '.................n..n.']]},
+ {id:'bandeira', p:9000, fix:true, px:[[8,
+ '..................Xzzz',
+ '..................Xzwz',
+ '..................Xzzz',
+ '..................Xz..',
+ '..................X...',
+ '..................X...',
+ '..................X...',
+ '..................X...',
+ '..................X...',
+ '..................X...',
+ '..................X...',
+ '..................X...']]},
+ {id:'guardachuva', p:12000, px:[[7,
+ '................1111..',
+ '...............111111.',
+ '..............11111111',
+ '..............2.2..2.2',
+ '..................k...',
+ '..................k...',
+ '..................k...',
+ '..................k...',
+ '..................k...',
+ '..................k...',
+ '..................k...',
+ '.................kk...']]},
+ {id:'raquete', p:9000, fix:true, px:[[10,
+ '...................rr.',
+ '..................rwwr',
+ '..................rwwr',
+ '..................rwwr',
+ '...................rr.',
+ '...................k..',
+ '...................k..',
+ '...................k..',
+ '...................k..']]},
+ {id:'bola', p:7500, fix:true, px:[[20,
+ '..................kw..',
+ '.................kwwk.',
+ '.................wkkw.',
+ '..................wk..']]},
+ {id:'trofeu', d:5, fix:true, px:[[14,
+ '................g.gg.g',
+ '................gggggg',
+ '.................gGgg.',
+ '..................gg..',
+ '..................GG..',
+ '.................GGGG.']]},
+ {id:'pincel', p:7500, px:[[11,
+ '.....................1',
+ '....................11',
+ '....................n.',
+ '...................n..',
+ '...................n..',
+ '..................n...',
+ '..................n...',
+ '..................n...',
+ '..................n...']]},
+ {id:'caneca', p:6000, fix:true, px:[[17,
+ '..................nn..',
+ '.................wwwww',
+ '.................wwwkw',
+ '.................wwww.']]},
+ {id:'lanterna', p:6000, fix:true, px:[[15,
+ '.................yy...',
+ '.................XX...',
+ '.................XX...',
+ '.................XX...',
+ '.................XX...']]},
+ {id:'baldeabobora', p:9000, fix:true, px:[[17,
+ '.................kkkk.',
+ '................k....k',
+ '................qqqqqq',
+ '................qkqqkq',
+ '................qqkkqq',
+ '.................qqqq.']]},
+ {id:'bengala', p:6000, fix:true, px:[[11,
+ '..................rw..',
+ '.................r..w.',
+ '.................w..r.',
+ '....................w.',
+ '....................r.',
+ '....................w.',
+ '....................r.',
+ '....................w.',
+ '....................r.']]},
+ {id:'concha', p:4500, fix:true, px:[[18,
+ '..................pPp.',
+ '.................pPpPp',
+ '.................PpPpP',
+ '..................ppp.']]},
+ {id:'sabre', d:8, px:[[5,
+ '..................1...',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................1w1..',
+ '.................kkk..',
+ '..................X...',
+ '..................X...']]},
+ {id:'gatinho', p:30000, px:[[16,
+ '................1...1.',
+ '................11111.',
+ '................1k1k1.',
+ '................11p11.',
+ '.................111..']]},
+ {id:'pato', p:4500, fix:true, px:[[17,
+ '..................yy..',
+ '.................yykq.',
+ '.................yyyq.',
+ '.................yyy..']]},
+ {id:'picole', p:4500, px:[[12,
+ '.................111..',
+ '.................131..',
+ '.................111..',
+ '.................111..',
+ '..................n...',
+ '..................n...',
+ '..................n...']]}
  ]
 };
 
@@ -28789,10 +29316,16 @@ var PZ_OLHO_FELIZ = [[9, '.......hh....hh.......'], [10, '.......kk....kk.......
 /* os campos do personagem, na ordem do código; [campo, lista de onde sai] */
 var PZ_CAMPOS = [['pele', 'pele'], ['cab', 'cab'], ['corCab', 'cor'], ['olhos', 'olhos'], ['corOlhos', 'cor'], ['boca', 'boca'],
   ['camisa', 'camisa'], ['corCamisa', 'cor'], ['estampa', 'estampa'], ['corEstampa', 'cor'], ['calca', 'calca'], ['corCalca', 'cor'],
-  ['sapato', 'sapato'], ['corSapato', 'cor'], ['chapeu', 'chapeu'], ['aces', 'aces'], ['costas', 'costas']];
-/* o agente começa igual ao bonequinho pequeno do Koda: cabelo turquesa, camiseta amarela e short roxo */
-var PZ_PADRAO = {pele:'pessego', cab:'baguncado', corCab:'turquesa', olhos:'normal', corOlhos:'azul', boca:'nenhuma', camisa:'camiseta', corCamisa:'amarelo',
-  estampa:'lisa', corEstampa:'branco', calca:'short', corCalca:'roxo', sapato:'descalco', corSapato:'vermelho', chapeu:'nenhum', aces:'nenhum', costas:'nenhum'};
+  ['sapato', 'sapato'], ['corSapato', 'cor'], ['chapeu', 'chapeu'], ['aces', 'aces'], ['costas', 'costas'],
+  ['genero', 'genero'], ['mao', 'mao'], ['corChapeu', 'cor'], ['corAces', 'cor'], ['corCostas', 'cor'], ['corMao', 'cor']];
+var PZ_GENEROS = [{id:'menino'}, {id:'menina'}];
+/* todo mundo começa igual (o personagem e o agente): um menino careca, de camiseta branca e short azul.
+   A primeira escolha é menino ou menina; o resto a pessoa monta na loja (cabelo, roupa, acessórios...) */
+var PZ_PADRAO = {pele:'pessego', cab:'careca', corCab:'castanho', olhos:'normal', corOlhos:'azul', boca:'sorriso', camisa:'camiseta', corCamisa:'branco',
+  estampa:'lisa', corEstampa:'azul', calca:'short', corCalca:'azul', sapato:'descalco', corSapato:'branco', chapeu:'nenhum', aces:'nenhum', costas:'nenhum',
+  genero:'menino', mao:'nenhum', corChapeu:'vermelho', corAces:'preto', corCostas:'vermelho', corMao:'vermelho'};
+/* menina: cílios e bochechas rosadas */
+var PZ_MENINA = [[9, '......k........k......'], [10, '......k........k......'], [12, '......p........p......']];
 /* moldura antiga -> peça do personagem que entra no lugar dela (baús dos eventos, Koda Pass e quem já tinha) */
 var PZ_DE_MOLDURA = {
   hl_abobora:'chapeu_abobora', hl_noite:'boca_presas', hl_asas:'costas_morcego', hl_feitico:'chapeu_bruxa', hl_capa:'costas_vampiro', hl_eclipse:'olhos_eclipse', hl_ectoplasma:'pele_zumbi',
@@ -28806,7 +29339,7 @@ function pzMix(a, b, p){ const x = pzHex(a), y = pzHex(b); return '#' + x.map((v
 function pzEsc(c, p){ return pzMix(c, '#1a0f2a', p); }   // escurece puxando pro roxo bem escuro (fica mais bonito que preto)
 function pzClr(c, p){ return pzMix(c, '#ffffff', p); }
 function pzCoresDe(c){ return {'1':c, '2':pzEsc(c, .25), '3':pzClr(c, .32)}; }
-function pzLista(slot){ return slot === 'cor' ? PZ_CORES : slot === 'pele' ? PZ_PELES : (PZ_PARTES[slot] || []); }
+function pzLista(slot){ return slot === 'cor' ? PZ_CORES : slot === 'pele' ? PZ_PELES : slot === 'genero' ? PZ_GENEROS : (PZ_PARTES[slot] || []); }
 function pzItem(slot, chave){ const l = pzLista(slot); for(let i = 0; i < l.length; i++) if(l[i].id === chave) return l[i]; return null; }
 function pzLivre(x){ return !!x && !x.ev && !x.p && !x.d; }
 function pzHash(s){ let h = 2166136261; s = String(s || ''); for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -28822,7 +29355,7 @@ function pzHash(s){ let h = 2166136261; s = String(s || ''); for(let i = 0; i < 
 })();
 /* os itens da loja (tipo 'pers'): id = '<parte>_<peça>'. Item de evento/passe não tem preço (só sai do baú/passe) */
 const PERS_ITENS = [];
-['pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'cor'].forEach(slot=>{
+['pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao', 'cor'].forEach(slot=>{
   pzLista(slot).forEach(x=>{
     const it = {id: slot + '_' + x.id, slot, chave: x.id};
     if(x.ev) it.evento = x.ev;
@@ -28848,24 +29381,6 @@ function pzDeCodigo(s){
   const v = s.slice(4).split('.'), c = {};
   PZ_CAMPOS.forEach((f, i)=>{ c[f[0]] = v[i]; });
   return pzNorm(c);
-}
-/* quem ainda não escolheu ganha um personagem sorteado (sempre o mesmo pra mesma pessoa), só com peças de graça */
-function pzSemente(semente){
-  let h = pzHash(semente || 'koda');
-  const pega = (slot, filtro)=>{
-    const l = pzLista(slot).filter(x=>pzLivre(x) && (!filtro || filtro(x)));
-    h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0; h = (h ^ (h >>> 13)) >>> 0;
-    return l[h % l.length].id;
-  };
-  const corCabelo = ['preto', 'castanho', 'castanhoclaro', 'loiro', 'ruivo', 'turquesa', 'azul', 'rosa', 'roxo', 'vermelho'];
-  const corOlho = ['castanho', 'azul', 'verde', 'preto', 'turquesa', 'cinza'];
-  return pzNorm({
-    pele: pega('pele'), cab: pega('cab', x=>x.id !== 'careca'), corCab: pega('cor', x=>corCabelo.indexOf(x.id) >= 0),
-    olhos: pega('olhos'), corOlhos: pega('cor', x=>corOlho.indexOf(x.id) >= 0), boca: pega('boca', x=>x.id !== 'nenhuma'),
-    camisa: pega('camisa'), corCamisa: pega('cor'), estampa: pega('estampa'), corEstampa: pega('cor'),
-    calca: pega('calca'), corCalca: pega('cor'), sapato: pega('sapato', x=>x.id !== 'descalco'), corSapato: pega('cor'),
-    chapeu: 'nenhum', aces: pega('aces'), costas: 'nenhum'
-  });
 }
 function pzHexDe(slot, chave){ const it = pzItem(slot, chave); return it && it.hex ? it.hex : '#8E96A0'; }
 
@@ -28895,9 +29410,10 @@ function pzGrade(c, variante){
   if(c.cab === 'careca') base.h = pzEsc(sk, .55);
   const com = (cor, fixo)=>fixo ? base : Object.assign({}, base, pzCoresDe(cor));
   const P = {};
-  ['cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas'].forEach(s=>{ P[s] = pzItem(s, c[s]) || pzLista(s)[0]; });
+  ['cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'].forEach(s=>{ P[s] = pzItem(s, c[s]) || pzLista(s)[0]; });
+  const cCos = pzHexDe('cor', c.corCostas);
   const est = pzHexDe('cor', c.corEstampa), cEst = {'4':est, '5':pzEsc(est, .25)};
-  pzPint(g, tags, P.costas.atras, com(cab, P.costas.fix), 'costas');
+  pzPint(g, tags, P.costas.atras, com(cCos, P.costas.fix), 'costas');
   pzPint(g, tags, P.cab.atras, com(cab, P.cab.fix), 'cab');
   pzPint(g, tags, [PZ_BASE], base, 'corpo');
   pzPint(g, tags, P.sapato.px, com(pzHexDe('cor', c.corSapato), P.sapato.fix), 'sapato');
@@ -28905,16 +29421,18 @@ function pzGrade(c, variante){
   pzPint(g, tags, P.camisa.px, Object.assign(com(pzHexDe('cor', c.corCamisa), P.camisa.fix), cEst), 'cam');
   pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
   if(P.calca.sobre) pzPint(g, tags, P.calca.px, com(pzHexDe('cor', c.corCalca), P.calca.fix), 'calca');
-  pzPint(g, tags, P.costas.px, com(cab, P.costas.fix), 'costas');
+  pzPint(g, tags, P.costas.px, com(cCos, P.costas.fix), 'costas');
+  pzPint(g, tags, P.mao.px, com(pzHexDe('cor', c.corMao), P.mao.fix), 'mao');
   const olho = pzHexDe('cor', c.corOlhos);
   pzPint(g, tags, variante === 'feliz' ? PZ_OLHO_FELIZ : variante === 'pisca' ? PZ_OLHO_FECHADO : P.olhos.px,
     Object.assign({}, base, {e:olho, f:pzClr(olho, .35), E:pzEsc(olho, .4)}), 'olhos');
-  pzPint(g, tags, P.boca.px, base, 'boca');
-  pzPint(g, tags, P.aces.px, base, 'aces');
+  if(c.genero === 'menina') pzPint(g, tags, PZ_MENINA, Object.assign({}, base, {p:'#FFA3BE'}), 'olhos');
+  pzPint(g, tags, P.boca.px, c.genero === 'menina' ? Object.assign({}, base, {m:'#D9506E'}) : base, 'boca');
+  pzPint(g, tags, P.aces.px, com(pzHexDe('cor', c.corAces), P.aces.fix), 'aces');
   pzPint(g, tags, P.cab.px, com(cab, P.cab.fix), 'cab');
   /* chapéu que cobre a cabeça esconde o cabelo de cima (senão o topete atravessa o boné) */
   if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
-  pzPint(g, tags, P.chapeu.px, com(cab, P.chapeu.fix), 'chapeu');
+  pzPint(g, tags, P.chapeu.px, com(pzHexDe('cor', c.corChapeu), P.chapeu.fix), 'chapeu');
   return g;
 }
 const PZ_CACHE = new Map();
@@ -28949,7 +29467,7 @@ function pzSvg(c, modo, variante){
 
 /* ---------- no lugar da foto ---------- */
 /* 'valor' é o que vem no campo avatar (código 'kp1:...'; foto antiga ou nada viram o personagem sorteado da pessoa) */
-function pzCfgDe(valor, semente){ return pzDeCodigo(valor) || pzSemente(semente || ''); }
+function pzCfgDe(valor){ return pzDeCodigo(valor) || pzNorm(PZ_PADRAO); }   // quem ainda não montou o seu é o bonequinho de começo
 function pzFundo(c){
   const hx = pzHexDe('cor', c.corCamisa);
   return 'linear-gradient(160deg,' + pzClr(hx, .74) + ',' + pzClr(hx, .46) + ')';
@@ -28972,8 +29490,8 @@ function pzComPosse(c, reserva){
   return o;
 }
 function meuHeroi(){
-  const r = pzSemente(pzMeuEmail() || 'eu'), c = loadCosm().heroi;
-  return (c && typeof c === 'object') ? pzComPosse(pzNorm(c, r), r) : r;
+  const c = loadCosm().heroi;
+  return (c && typeof c === 'object') ? pzComPosse(pzNorm(c, PZ_PADRAO), PZ_PADRAO) : pzNorm(PZ_PADRAO);
 }
 function meuCodigo(){ return pzCodigo(meuHeroi()); }
 function pzNomeAgente(n){ n = String(n || '').replace(/[<>&"']/g, '').replace(/\s+/g, ' ').trim().slice(0, 16); return n || 'Kodi'; }
@@ -29038,9 +29556,17 @@ function pzMigrarMolduras(){
 }
 
 /* ---------- as abas "Personagem" e "Seu agente" da Loja do Koda ---------- */
-const PZ_SUBS = ['cab', 'olhos', 'boca', 'pele', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas'];
-const PZ_COR_DO = {cab:'corCab', olhos:'corOlhos', camisa:'corCamisa', estampa:'corEstampa', calca:'corCalca', sapato:'corSapato'};
-const PZ_ROSTO = {cab:1, olhos:1, boca:1, pele:1, chapeu:1, aces:1};
+const PZ_SUBS = ['genero', 'pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'];
+const PZ_COR_DO = {cab:'corCab', olhos:'corOlhos', camisa:'corCamisa', estampa:'corEstampa', calca:'corCalca', sapato:'corSapato',
+  chapeu:'corChapeu', aces:'corAces', costas:'corCostas', mao:'corMao'};
+const PZ_ROSTO = {genero:1, cab:1, olhos:1, boca:1, pele:1, chapeu:1, aces:1};
+/* a peça escolhida pega cor? (as de cor fixa, tipo a coroa, não) */
+function pzColorivel(slot, chave){
+  if(['cab', 'olhos', 'camisa', 'estampa', 'calca', 'sapato'].indexOf(slot) >= 0) return true;
+  const it = pzItem(slot, chave);
+  if(!it || it.fix) return false;
+  return [].concat(it.px || [], it.atras || []).some(m=>m.slice(1).some(l=>/[123]/.test(l)));
+}
 function pzAgDeTexto(s){ try{ const o = JSON.parse(s); return (o && typeof o === 'object') ? o : null; }catch(e){ return null; } }
 /* o que aparece numa lista: tudo que se compra, mais o que é de evento/passe e a pessoa já tem.
    Ordem: de graça, moedas (do mais barato), Koda Diamonds, e por fim os exclusivos. */
@@ -29069,7 +29595,7 @@ function pzPainelHtml(ctx){
   const eAg = ctx.aba === 'agente', esc = chatListEscape;
   const ag = ctx.agente, alvo = eAg ? pzNorm(ag.cfg, PZ_PADRAO) : ctx.heroi;
   const subs = eAg ? PZ_SUBS.concat(['balao']) : PZ_SUBS;
-  const sub = subs.indexOf(ctx.sub) >= 0 ? ctx.sub : 'cab';
+  const sub = subs.indexOf(ctx.sub) >= 0 ? ctx.sub : 'genero';
   const noCarrinho = id=>ctx.carrinho.indexOf(id) >= 0;
   let h = '<div class="pz-loja">';
   h += '<div class="pz-palco">'
@@ -29095,7 +29621,7 @@ function pzPainelHtml(ctx){
         + '<span class="pz-n">' + esc(t('cosm_pers_' + id)) + '</span>' + pzEtiqueta(sub, x, escolhido, car) + '</button>';
     }).join('') + '</div>';
   }
-  const campoCor = sub === 'balao' ? 'balao' : PZ_COR_DO[sub];
+  const campoCor = sub === 'balao' ? 'balao' : (PZ_COR_DO[sub] && pzColorivel(sub, alvo[sub]) ? PZ_COR_DO[sub] : null);
   if(campoCor){
     const atual = campoCor === 'balao' ? ag.balao : alvo[campoCor];
     h += '<p class="pz-sec">' + esc(sub === 'balao' ? t('pz_s_balao') : t('pz_cor')) + '</p><div class="pz-cores">' + pzVisiveis('cor', ctx.testando).map(x=>{
@@ -29111,8 +29637,9 @@ function pzPainelHtml(ctx){
 function pzSortearCfg(base){
   const c = Object.assign({}, base);
   PZ_CAMPOS.forEach(([campo, slot])=>{
+    if(campo === 'genero') return;   // o sorteio não troca menino/menina
     let ops = pzLista(slot).filter(x=>pzPossui(slot, x.id));
-    if((campo === 'chapeu' || campo === 'costas' || campo === 'aces') && Math.random() < .55) ops = ops.filter(x=>x.id === 'nenhum');
+    if((campo === 'chapeu' || campo === 'costas' || campo === 'aces' || campo === 'mao') && Math.random() < .55) ops = ops.filter(x=>x.id === 'nenhum');
     if(ops.length) c[campo] = ops[Math.floor(Math.random() * ops.length)].id;
   });
   return c;
