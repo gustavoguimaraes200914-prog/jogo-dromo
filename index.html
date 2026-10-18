@@ -256,10 +256,6 @@
   /* ---------- marca Koda (letras desenhadas em SVG) ---------- */
   .koda-wordmark{display:block;width:auto;overflow:visible;color:#111111;}
   .brand .koda-wordmark{height:30px;}
-  /* "by Nexus" embaixo do nome do Koda */
-  .topbar > .brand{flex-direction:column;align-items:flex-start;gap:4px;}
-  .by-nexus{display:inline-flex;align-items:center;gap:5px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.72rem;line-height:1;color:var(--ink);color:color-mix(in srgb,var(--ink) 75%,transparent);letter-spacing:.2px;padding-left:2px;}
-  .nexus-ico{width:16px;height:16px;flex:none;display:block;border-radius:5px;}
   .auth-brand .koda-wordmark{height:46px;}
 
   /* ---------- intro / tela de carregamento ---------- */
@@ -293,6 +289,10 @@
   .ks-wave{transform-box:fill-box;transform-origin:center bottom;}
   .ks-word.waving .ks-wave{animation:ksWave 1s ease-in-out infinite;}
   @keyframes ksWave{0%,100%{transform:translateY(0);}40%{transform:translateY(-14px);}}
+  /* "by Nexus": só na entrada, logo embaixo do nome */
+  .ks-by{display:flex;align-items:center;gap:7px;margin-top:-16px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.05rem;color:rgba(17,17,17,.8);opacity:0;transform:translateY(6px);transition:opacity .4s ease, transform .4s ease;letter-spacing:.3px;}
+  .ks-by.show{opacity:1;transform:none;}
+  .ks-by .nexus-ico{width:26px;height:26px;flex:none;display:block;}
   .ks-loader{
     display:flex;align-items:center;gap:7px;opacity:0;transform:translateY(8px);
     transition:opacity .4s ease, transform .4s ease;
@@ -4644,6 +4644,7 @@
   <div class="ks-blob ks-b3"></div>
   <div class="ks-center">
     <svg class="ks-word" id="ksWord" viewBox="-14 -18 362 140"></svg>
+    <div class="ks-by"><svg class="nexus-ico" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="#C4745A" stroke-width="6.4" stroke-linecap="round"><circle cx="50" cy="51.7" r="8"/><path d="M56.6 21.4A31 31 0 0 0 23.9 68.4"/><path d="M44.4 82.2A31 31 0 0 0 76 34.8"/><circle cx="71.5" cy="29.4" r="6.2"/><circle cx="28.2" cy="73.8" r="6.2"/></g></svg><span>by Nexus</span></div>
     <div class="ks-loader" id="ksLoader"><p id="ksLoaderText">carregando</p></div>
   </div>
 </div>
@@ -4693,6 +4694,8 @@
 
   var ready = false, writeDone = false, exited = false;
   var loader = document.getElementById('ksLoader');
+  var by = document.querySelector('#kodaSplash .ks-by');
+  function mostraBy(){ if(by) by.classList.add('show'); }   // "by Nexus" aparece junto com o "carregando", depois do nome escrito
 
   function finishWriting(){
     word.classList.add('waving');
@@ -4729,7 +4732,7 @@
 
   if(quick || letters.some(function(l){ return !l.len; })){
     letters.forEach(function(l){ l.pop.classList.add('filled'); });
-    setTimeout(function(){ loader.classList.add('show'); }, 120);
+    setTimeout(function(){ loader.classList.add('show'); mostraBy(); }, 120);
     finishWriting();
     return;
   }
@@ -4738,7 +4741,7 @@
     l.path.style.strokeDasharray = l.len + ' ' + l.len;
     l.path.style.strokeDashoffset = l.len;
   });
-  setTimeout(function(){ loader.classList.add('show'); }, 1500);
+  setTimeout(function(){ loader.classList.add('show'); mostraBy(); }, 1500);
 
   var START = 250, STAGGER = 420, DUR = 640;
   function ease(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
@@ -4769,8 +4772,7 @@
 <div class="app">
 
   <div class="topbar">
-    <div class="brand"><svg class="koda-wordmark" viewBox="-14 -18 362 140" role="img" aria-label="Koda"><use href="#koda-word"/></svg>
-      <span class="by-nexus"><svg class="nexus-ico" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="26" fill="#F9EDE7"/><g fill="none" stroke="#C4745A" stroke-width="4.6" stroke-linecap="round"><circle cx="50" cy="51.7" r="8"/><path d="M56.6 21.4A31 31 0 0 0 28.2 73.8"/><path d="M44.4 82.2A31 31 0 0 0 71.5 29.4"/><circle cx="71.5" cy="29.4" r="6.2" fill="#F9EDE7"/><circle cx="28.2" cy="73.8" r="6.2" fill="#F9EDE7"/></g></svg>by Nexus</span></div>
+    <div class="brand"><svg class="koda-wordmark" viewBox="-14 -18 362 140" role="img" aria-label="Koda"><use href="#koda-word"/></svg></div>
     <!-- Início / Mensagens / Perfil: os mesmos três botões aqui em cima e na barra de baixo -->
     <nav class="topnav hidden" id="topNav" aria-label="Menu">
       <div class="nav-pill">
@@ -29750,10 +29752,6 @@ function injetarCssCosmeticos(){
     /* a logo e os textos soltos em cima do papel (o cabeçalho e o aviso do
        ranking, o contador de online) usam a mesma cor alternativa dos botões,
        com um contorno da cor oposta: assim aparecem até em estampa listrada */
-    html[data-papel] .topbar .by-nexus{
-      color:var(--ab-fill);
-      text-shadow:0 0 2px var(--ab-edge), 0 0 4px var(--ab-edge), 0 0 9px var(--ab-edge);
-    }
     html[data-papel] .topbar .koda-wordmark{
       color:var(--ab-fill);
       filter:drop-shadow(0 0 1px var(--ab-edge)) drop-shadow(0 0 1px var(--ab-edge)) drop-shadow(0 0 3px var(--ab-edge));
