@@ -290,9 +290,13 @@
   .ks-word.waving .ks-wave{animation:ksWave 1s ease-in-out infinite;}
   @keyframes ksWave{0%,100%{transform:translateY(0);}40%{transform:translateY(-14px);}}
   /* "by Nexus": só na entrada, logo embaixo do nome */
-  .ks-by{display:flex;align-items:center;gap:7px;margin-top:-16px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.05rem;color:rgba(17,17,17,.8);opacity:0;transform:translateY(6px);transition:opacity .4s ease, transform .4s ease;letter-spacing:.3px;}
+  .ks-by{display:flex;align-items:center;gap:8px;margin-top:-22px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.05rem;color:rgba(17,17,17,.8);opacity:0;transform:translateY(6px);transition:opacity .4s ease, transform .4s ease;letter-spacing:.3px;}
   .ks-by.show{opacity:1;transform:none;}
-  .ks-by .nexus-ico{width:26px;height:26px;flex:none;display:block;}
+  .nexus-wrap{position:relative;width:38px;height:38px;flex:none;display:block;}
+  .nexus-wrap canvas{position:absolute;left:-46px;top:-46px;width:130px;height:130px;margin:0;background:none;border-radius:0;pointer-events:none;transition:opacity .35s ease;}
+  .nexus-wrap .nexus-ico{display:block;width:100%;height:100%;opacity:0;transition:opacity .35s ease;}
+  .nexus-wrap.done .nexus-ico{opacity:1;}
+  .nexus-wrap.done canvas{opacity:0;}
   .ks-loader{
     display:flex;align-items:center;gap:7px;opacity:0;transform:translateY(8px);
     transition:opacity .4s ease, transform .4s ease;
@@ -4644,7 +4648,7 @@
   <div class="ks-blob ks-b3"></div>
   <div class="ks-center">
     <svg class="ks-word" id="ksWord" viewBox="-14 -18 362 140"></svg>
-    <div class="ks-by"><svg class="nexus-ico" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="#C4745A" stroke-width="6.4" stroke-linecap="round"><circle cx="50" cy="51.7" r="8"/><path d="M56.6 21.4A31 31 0 0 0 23.9 68.4"/><path d="M44.4 82.2A31 31 0 0 0 76 34.8"/><circle cx="71.5" cy="29.4" r="6.2"/><circle cx="28.2" cy="73.8" r="6.2"/></g></svg><span>by Nexus</span></div>
+    <div class="ks-by"><span class="nexus-wrap"><canvas aria-hidden="true"></canvas><svg class="nexus-ico" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="#C4745A" stroke-width="6.4" stroke-linecap="round"><circle cx="50" cy="51.7" r="8"/><path d="M56.6 21.4A31 31 0 0 0 23.9 68.4"/><path d="M44.4 82.2A31 31 0 0 0 76 34.8"/><circle cx="71.5" cy="29.4" r="6.2"/><circle cx="28.2" cy="73.8" r="6.2"/></g></svg></span><span>by Nexus</span></div>
     <div class="ks-loader" id="ksLoader"><p id="ksLoaderText">carregando</p></div>
   </div>
 </div>
@@ -4695,7 +4699,64 @@
   var ready = false, writeDone = false, exited = false;
   var loader = document.getElementById('ksLoader');
   var by = document.querySelector('#kodaSplash .ks-by');
-  function mostraBy(){ if(by) by.classList.add('show'); }   // "by Nexus" aparece junto com o "carregando", depois do nome escrito
+  var nexusWrap = document.querySelector('#kodaSplash .nexus-wrap');
+  var byOk = true;   // a intro só sai depois que o Nexus terminou de se montar
+  function nexusPronto(){ if(nexusWrap) nexusWrap.classList.add('done'); if(!byOk){ byOk = true; tryExit(); } }
+  /* o símbolo do Nexus se monta com vários quadradinhos que voam até o lugar dele; no fim vira o desenho liso */
+  function nexusAnima(){
+    var cv = nexusWrap && nexusWrap.querySelector('canvas');
+    if(!cv || quick){ nexusPronto(); return; }
+    var ctx = cv.getContext && cv.getContext('2d');
+    if(!ctx){ nexusPronto(); return; }
+    byOk = false;
+    setTimeout(nexusPronto, 3000);   // nunca prende a intro
+    var N = 24, W = 130, SZ = 38, CELL = SZ / N, OFF = (W - SZ) / 2;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    cv.width = cv.height = Math.round(W * dpr);
+    var img = new Image();
+    img.onerror = nexusPronto;
+    img.onload = function(){
+      try{
+        var R = N * 4, off = document.createElement('canvas'); off.width = off.height = R;
+        var oc = off.getContext('2d'); oc.drawImage(img, 0, 0, R, R);
+        var d = oc.getImageData(0, 0, R, R).data, ps = [];
+        for(var cy = 0; cy < N; cy++) for(var cx = 0; cx < N; cx++){
+          var cob = 0;
+          for(var sy = 0; sy < 4; sy++) for(var sx = 0; sx < 4; sx++) cob += d[((cy * 4 + sy) * R + cx * 4 + sx) * 4 + 3];
+          if(cob / 16 < 70) continue;
+          var tx = OFF + cx * CELL, ty = OFF + cy * CELL;
+          ps.push({tx: tx, ty: ty, sx: tx + (Math.random() - .5) * W * 1.15, sy: ty + (Math.random() - .5) * W * 1.15,
+                   rot: (Math.random() - .5) * 7, d: Math.random() * 520,
+                   c: Math.random() < .12 ? '#F4B9A3' : 'hsl(14,47%,' + (48 + Math.random() * 14).toFixed(0) + '%)'});
+        }
+        var t0 = null, DUR = 720, FIM = 520 + DUR;
+        (function frame(now){
+          if(!nexusWrap.isConnected) return;
+          if(t0 === null) t0 = now;
+          var t = now - t0;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, W, W);
+          for(var i = 0; i < ps.length; i++){
+            var p = ps[i], k = Math.max(0, Math.min(1, (t - p.d) / DUR));
+            if(k <= 0) continue;
+            var e = 1 - Math.pow(1 - k, 3), x = p.sx + (p.tx - p.sx) * e, y = p.sy + (p.ty - p.sy) * e;
+            var sz = CELL * (1.9 - .9 * e) * 1.04;
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, k * 3);
+            ctx.fillStyle = p.c;
+            ctx.translate(x + CELL / 2, y + CELL / 2);
+            ctx.rotate(p.rot * (1 - e));
+            ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+            ctx.restore();
+          }
+          if(t < FIM) requestAnimationFrame(frame);
+          else setTimeout(nexusPronto, 120);
+        })(performance.now());
+      }catch(e){ nexusPronto(); }
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="none" stroke="#000" stroke-width="6.4" stroke-linecap="round"><circle cx="50" cy="51.7" r="8"/><path d="M56.6 21.4A31 31 0 0 0 23.9 68.4"/><path d="M44.4 82.2A31 31 0 0 0 76 34.8"/><circle cx="71.5" cy="29.4" r="6.2"/><circle cx="28.2" cy="73.8" r="6.2"/></g></svg>');
+  }
+  function mostraBy(){ if(by) by.classList.add('show'); nexusAnima(); }   // "by Nexus" aparece junto com o "carregando", depois do nome escrito
 
   function finishWriting(){
     word.classList.add('waving');
@@ -4715,7 +4776,7 @@
     }, 200);
   };
   function tryExit(){
-    if(exited || !ready || !writeDone) return;
+    if(exited || !ready || !writeDone || !byOk) return;
     exited = true;
     try{
       var gate = document.getElementById('authGate');
