@@ -4698,6 +4698,8 @@
   .pz-cor b{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:1px;background:#fff;color:#13312A;border-radius:999px;padding:0 4px;font:800 .5rem/1.5 'Baloo 2',sans-serif;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);}
   .pz-cor b svg{width:8px;height:8px;}
   .pz-cor.carrinho b{background:#FFC93C;}
+  .pz-cor.orig i{position:absolute;inset:6px;border-radius:50%;border:2px dashed rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(0,0,0,.18);}
+  .pz-total{margin:2px 0 0;text-align:center;font:800 .78rem 'Baloo 2',sans-serif;opacity:.75;}
   @media (min-width:700px){
     .pz-loja{display:grid;grid-template-columns:240px minmax(0,1fr);column-gap:16px;align-items:start;}
     .pz-loja > .pz-palco{grid-column:1;grid-row:1 / span 8;position:sticky;top:0;min-height:300px;flex-direction:row;}
@@ -4753,13 +4755,10 @@
   .ag.arrastando .ag-sombra{opacity:.45;transform:scale(.75);}
   .ag-coracao{position:absolute;left:50%;top:4px;width:14px;height:12px;margin-left:-7px;pointer-events:none;animation:agCoracao .9s ease-out forwards;}
   .ag-coracao svg{width:100%;height:100%;display:block;}
-  .ag.saindo .ag-sprite{animation:agSai .72s ease-in forwards;}
-  .ag.saindo .ag-sombra{opacity:0;transition:opacity .3s;}
   @keyframes agBoia{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
   @keyframes agPisca{0%{opacity:0;}93%{opacity:1;}97%{opacity:0;}100%{opacity:0;}}
   @keyframes agFofo{0%{transform:scale(1,1);}30%{transform:scale(1.16,.84);}60%{transform:scale(.92,1.08);}100%{transform:scale(1,1);}}
   @keyframes agCoracao{0%{opacity:0;transform:translate(0,0) scale(.4);}20%{opacity:1;}100%{opacity:0;transform:translate(var(--dx,0px),-40px) scale(1.15);}}
-  @keyframes agSai{0%{transform:translateY(0);}25%{transform:translateY(-16px) rotate(-10deg);}45%{transform:translateY(-6px) rotate(8deg);}100%{transform:translateY(-90px) scale(.3);opacity:0;}}
   .ag-balao{position:absolute;bottom:calc(100% + 10px);right:-4px;width:max-content;max-width:min(220px, calc(100vw - 28px));z-index:2;}
   .ag-balao.esq{right:auto;left:-4px;}
   .ag-balao.baixo{bottom:auto;top:calc(100% + 12px);}
@@ -11554,7 +11553,8 @@ const I18N = {
   }
 };
 function tTexto(key, vars){
-  let s = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || (I18N.pt && I18N.pt[key]) || key;
+  let s = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || (I18N.pt && I18N.pt[key])
+    || (key.indexOf('cosm_pers_estilo_') === 0 && typeof pzNomeEstilo === 'function' && pzNomeEstilo(key.slice(17))) || key;
   if(vars) for(const k in vars) s = s.replace('{'+k+'}', vars[k]);
   return s;
 }
@@ -14623,7 +14623,7 @@ function abrirBoasVindas(user){
     try{
       if(nickOk()) localStorage.setItem(PROFILE_NICK_KEY, nick.trim().slice(0, 24));   // sem travar a troca de apelido depois (o prazo só começa quando a pessoa edita)
       pzSalvarHeroi(comGenero(gen.heroi));   // careca, camiseta branca e short azul: nada pra comprar
-      pzSalvarAgente({cfg: comGenero(gen.agente), nome: 'Kodi', balao: 'branco', oculto: false});
+      pzSalvarAgente({cfg: comGenero(gen.agente), nome: '', balao: 'branco', oculto: false});
       try{ agAtualizar(); }catch(e){}
     }catch(e){}
     try{ localStorage.removeItem(ONB_KEY); }catch(e){}
@@ -22364,7 +22364,7 @@ function openThemeShop(aba){
   const paraComprar = {tema:[], fundo:[], nome:[], entrada:[], pers:[]};
 
   function itemDe(tipo, id){
-    return (tipo==='tema' ? THEMES : listaCosm(tipo)).find(x=>x.id===id);
+    return tipo==='tema' ? THEMES.find(x=>x.id===id) : cosmAchar(tipo, id);
   }
   function precoDe(tipo, id){
     const item = itemDe(tipo, id);
@@ -22483,21 +22483,22 @@ function openThemeShop(aba){
     paraComprar.pers = usados.filter((id, i)=>usados.indexOf(id) === i && itemDe('pers', id) && !jaEraMeu('pers', id));
   }
   function pzMudar(campo, valor){
+    const poe = cfg=>{ const antes = Object.assign({}, cfg); cfg[campo] = valor; if(antes[campo] !== valor) pzNovaPeca(cfg, campo, antes); };
     if(abaAtual === 'agente'){
       const a = pzAgDeTexto(rascunho.agente) || meuAgente();
-      if(campo === 'balao') a.balao = valor; else { a.cfg = pzNorm(a.cfg, PZ_PADRAO); a.cfg[campo] = valor; }
+      if(campo === 'balao') a.balao = valor; else { a.cfg = pzNorm(a.cfg, PZ_PADRAO); poe(a.cfg); }
       rascunho.agente = JSON.stringify(a);
     } else {
       const h = pzDeCodigo(rascunho.personagem) || meuHeroi();
-      h[campo] = valor;
+      poe(h);
       rascunho.personagem = pzCodigo(h);
     }
     pzRecalcular();
   }
   function pzLigarPainel(){
     bg.querySelectorAll('[data-pz-sub]').forEach(b=>b.addEventListener('click', ()=>{ pzSub[abaAtual] = b.dataset.pzSub; playSound('click'); desenha(); }));
-    bg.querySelectorAll('[data-pz-op],[data-pz-cor]').forEach(b=>b.addEventListener('click', ()=>{
-      const [campo, v] = (b.dataset.pzOp || b.dataset.pzCor).split('|');
+    bg.querySelectorAll('[data-pz-op],[data-pz-cor],[data-pz-est]').forEach(b=>b.addEventListener('click', ()=>{
+      const [campo, v] = (b.dataset.pzOp || b.dataset.pzCor || b.dataset.pzEst).split('|');
       pzMudar(campo, v); playSound('click'); desenha();
     }));
     const sorteio = bg.querySelector('[data-pz-sortear]');
@@ -22509,7 +22510,7 @@ function openThemeShop(aba){
     const nome = bg.querySelector('#pzAgNome');
     if(nome){
       nome.addEventListener('input', ()=>{ const a = pzAgDeTexto(rascunho.agente) || meuAgente(); a.nome = nome.value; rascunho.agente = JSON.stringify(a); });
-      nome.addEventListener('change', ()=>{ const a = pzAgDeTexto(rascunho.agente) || meuAgente(); a.nome = pzNomeAgente(nome.value); rascunho.agente = JSON.stringify(a); desenha(); });
+      nome.addEventListener('change', ()=>{ const a = pzAgDeTexto(rascunho.agente) || meuAgente(); a.nome = pzNomeLimpo(nome.value); rascunho.agente = JSON.stringify(a); desenha(); });
     }
     const tela = bg.querySelector('#pzAgTela');
     if(tela) tela.addEventListener('click', ()=>{ const a = pzAgDeTexto(rascunho.agente) || meuAgente(); a.oculto = !a.oculto; rascunho.agente = JSON.stringify(a); playSound('click'); desenha(); });
@@ -27514,7 +27515,7 @@ function relItens(moeda){
   const out = [];
   ['fundo', 'nome', 'entrada', 'pers'].forEach(tipo=>{
     listaCosm(tipo).forEach(it=>{
-      if(!it || it.evento || !(it.price > 0)) return;
+      if(!it || it.evento || !(it.price > 0) || it.slot === 'estilo') return;
       if((moeda === 'd') !== ehDiamante(it)) return;
       if(moeda === 'c' && it.price < 3000) return;
       try{ if(!epocaAberta(it)) return; }catch(e){}
@@ -28058,6 +28059,8 @@ function cjTalvezAbrir(g){
    - Cada peça é um desenho em quadradinhos (22 x 29). O contorno escuro é feito sozinho em volta de tudo.
    - Peças e cores são itens da Loja do Koda (tipo 'pers'): de graça, por moedas, por Koda Diamonds,
      dos baús de Halloween / Natal / Férias e do Koda Pass. Comprar uma peça vale pro personagem e pro agente.
+   - Cada peça que pega cor também tem estilos (listras, bolinhas, galáxia, dourado...): peça + estilo é um item
+     ('estilo_<parte>-<peça>-<estilo>'), e são eles que fazem a loja passar de 3 mil itens.
    - O personagem vai pros outros como um código curto no campo "avatar" do perfil: 'kp1:pele.cabelo.cor...'.
      ATENÇÃO: os ids das peças nunca mudam (o código de quem já salvou usa eles); peça nova entra no fim.
 ============================================================ */
@@ -28355,7 +28358,7 @@ var PZ_NOMES = {
 /* textos novos da tela: 'pt|en|es|it|fr|de|nl|ja|zh|ko' */
 var PZ_TXT = {
  ag_tab:'Seu agente|Your agent|Tu agente|Il tuo agente|Ton agent|Dein Agent|Jouw agent|エージェント|你的助手|나의 에이전트',
- shop_hint_agente:'Seu ajudante: aprende do que você gosta e sugere jogos. Segure e arraste para mudar de lugar.|Your helper: it learns what you like and suggests games. Hold and drag to move it.|Tu ayudante: aprende lo que te gusta y sugiere juegos. Mantén y arrastra para moverlo.|Il tuo aiutante: impara cosa ti piace e consiglia giochi. Tieni premuto e trascina per spostarlo.|Ton assistant : il apprend ce que tu aimes et propose des jeux. Maintiens et fais glisser pour le déplacer.|Dein Helfer: Er lernt, was dir gefällt, und schlägt Spiele vor. Halten und ziehen zum Verschieben.|Je hulpje: leert wat je leuk vindt en raadt spellen aan. Vasthouden en slepen om te verplaatsen.|あなたの助手：好みを学んでゲームをおすすめするよ。長押ししてドラッグで移動できるよ。|你的小助手：会学习你的喜好并推荐游戏。按住拖动就能移动它。|나의 도우미: 좋아하는 걸 배워서 게임을 추천해요. 꾹 눌러 끌면 옮길 수 있어요.',
+ shop_hint_agente:'Seu companheiro no Koda: ele te dá ideias de jogos. Toque para fazer carinho, segure e arraste para mudar de lugar.|Your buddy in Koda: it gives you game ideas. Tap to pet it, hold and drag to move it.|Tu compañero en Koda: te da ideas de juegos. Toca para hacerle cariño, mantén y arrastra para moverlo.|Il tuo compagno su Koda: ti dà idee di giochi. Tocca per coccolarlo, tieni premuto e trascina per spostarlo.|Ton compagnon sur Koda : il te donne des idées de jeux. Touche pour le câliner, maintiens et fais glisser pour le déplacer.|Dein Begleiter in Koda: Er hat Spielideen für dich. Tippen zum Streicheln, halten und ziehen zum Verschieben.|Je maatje in Koda: hij geeft je spelideeën. Tik om hem te aaien, vasthouden en slepen om te verplaatsen.|Kodaのなかま：ゲームのアイデアをくれるよ。タップでなでなで、長押ししてドラッグで移動できるよ。|你在Koda的小伙伴：会给你游戏点子。点一下摸摸它，按住拖动就能移动它。|Koda 속 나의 친구: 게임 아이디어를 줘요. 탭하면 쓰다듬고, 꾹 눌러 끌면 옮길 수 있어요.',
  pz_voce:'Você|You|Tú|Tu|Toi|Du|Jij|あなた|你|나',
  pz_cor:'Cor|Color|Color|Colore|Couleur|Farbe|Kleur|色|颜色|색',
  pz_sortear:'Sortear|Random|Al azar|A caso|Au hasard|Zufall|Willekeurig|ランダム|随机|랜덤',
@@ -28372,14 +28375,14 @@ var PZ_TXT = {
  pz_s_aces:'Acessório|Accessory|Accesorio|Accessorio|Accessoire|Accessoire|Accessoire|アクセサリー|配饰|액세서리',
  pz_s_costas:'Costas|Back|Espalda|Schiena|Dos|Rücken|Rug|せなか|背部|등',
  pz_s_balao:'Balão|Bubble|Globo|Fumetto|Bulle|Blase|Ballon|ふきだし|对话框|말풍선',
+ ag_nome_padrao:'Agente|Agent|Agente|Agente|Agent|Agent|Agent|エージェント|助手|에이전트',
  ag_nome_ph:'Nome do agente|Agent name|Nombre del agente|Nome dell’agente|Nom de l’agent|Name des Agenten|Naam van de agent|エージェントの名前|助手的名字|에이전트 이름',
  ag_na_tela:'Mostrar na tela de início|Show on the home screen|Mostrar en la pantalla de inicio|Mostra nella schermata iniziale|Afficher sur l’écran d’accueil|Auf dem Startbildschirm zeigen|Op het beginscherm tonen|ホーム画面に出す|显示在首页|홈 화면에 표시',
- ag_saiu:'{nome} foi descansar. Para chamar de volta: {caminho}.|{nome} went to rest. To bring it back: {caminho}.|{nome} se fue a descansar. Para traerlo de vuelta: {caminho}.|{nome} è andato a riposare. Per richiamarlo: {caminho}.|{nome} est parti se reposer. Pour le faire revenir : {caminho}.|{nome} ruht sich aus. Zurückholen: {caminho}.|{nome} gaat even rusten. Terughalen: {caminho}.|{nome}はおやすみ中。呼び戻すには：{caminho}|{nome}去休息了。想叫它回来：{caminho}|{nome}이(가) 쉬러 갔어요. 다시 부르려면: {caminho}',
  ag_voltou:'{nome} voltou!|{nome} is back!|¡{nome} volvió!|{nome} è tornato!|{nome} est de retour !|{nome} ist zurück!|{nome} is terug!|{nome}がもどってきた！|{nome}回来啦！|{nome}이(가) 돌아왔어요!',
  ag_s1:'Que tal jogar {jogo}? Acho que você vai gostar!|How about {jogo}? I think you’ll like it!|¿Qué tal {jogo}? ¡Creo que te va a gustar!|Che ne dici di {jogo}? Credo che ti piacerà!|Et si tu jouais à {jogo} ? Ça va te plaire !|Wie wär’s mit {jogo}? Das gefällt dir bestimmt!|Zin in {jogo}? Ik denk dat je het leuk vindt!|{jogo}であそんでみない？きっと気に入るよ！|要不要玩{jogo}？我觉得你会喜欢！|{jogo} 해볼래? 마음에 들 거야!',
  ag_s2:'Psiu! {jogo} tem a sua cara.|Psst! {jogo} is so your thing.|¡Psst! {jogo} es muy tu estilo.|Psst! {jogo} è proprio il tuo genere.|Psst ! {jogo}, c’est tout ton style.|Psst! {jogo} ist genau dein Ding.|Psst! {jogo} is echt iets voor jou.|ねえねえ、{jogo}はきみにぴったり！|嘘！{jogo}很适合你。|쉿! {jogo} 완전 네 스타일이야.',
  ag_s3:'Bora uma partida de {jogo}?|Up for a round of {jogo}?|¿Una partida de {jogo}?|Una partita a {jogo}?|Une partie de {jogo} ?|Eine Runde {jogo}?|Een potje {jogo}?|{jogo}を1回やろうよ！|来一局{jogo}吗？|{jogo} 한 판 할래?',
- ag_s4:'Você curte jogos assim… experimenta {jogo}!|You like games like this… try {jogo}!|Te gustan juegos así… ¡prueba {jogo}!|Ti piacciono giochi così… prova {jogo}!|Tu aimes ce genre de jeux… essaie {jogo} !|Du magst solche Spiele… probier {jogo}!|Je houdt van zulke spellen… probeer {jogo}!|こういうの好きでしょ？{jogo}もためしてみて！|你喜欢这类游戏……试试{jogo}吧！|이런 게임 좋아하지? {jogo} 해 봐!',
+ ag_s4:'Já jogou {jogo}? Experimenta!|Have you played {jogo}? Give it a try!|¿Ya jugaste {jogo}? ¡Pruébalo!|Hai già giocato a {jogo}? Provalo!|Tu as déjà joué à {jogo} ? Essaie !|Schon {jogo} gespielt? Probier’s aus!|Al eens {jogo} gespeeld? Probeer het!|{jogo}はもうやった？ためしてみて！|玩过{jogo}吗？试试看！|{jogo} 해 봤어? 한번 해 봐!',
  ag_s5:'Esse está bombando: {jogo}!|This one is a hit: {jogo}!|Este está arrasando: {jogo}!|Questo va fortissimo: {jogo}!|Celui-ci cartonne : {jogo} !|Das ist gerade angesagt: {jogo}!|Deze is populair: {jogo}!|いま人気：{jogo}！|这个超火：{jogo}！|요즘 인기 짱: {jogo}!',
  ag_aria:'{nome}, seu agente. Toque para uma sugestão de jogo; segure e arraste para mover.|{nome}, your agent. Tap for a game idea; hold and drag to move.|{nome}, tu agente. Toca para una idea de juego; mantén y arrastra para moverlo.|{nome}, il tuo agente. Tocca per un’idea di gioco; tieni premuto e trascina per spostarlo.|{nome}, ton agent. Touche pour une idée de jeu ; maintiens et fais glisser pour le déplacer.|{nome}, dein Agent. Tippen für eine Spielidee; halten und ziehen zum Verschieben.|{nome}, je agent. Tik voor een spelidee; vasthouden en slepen om te verplaatsen.|{nome}（あなたのエージェント）。タップでゲームのおすすめ、長押しドラッグで移動。|{nome}，你的助手。点击获取游戏推荐；按住拖动可移动。|{nome}, 나의 에이전트. 탭하면 게임 추천, 꾹 눌러 끌면 이동해요.',
  pz_molduras_sairam:'As molduras viraram personagem! O que você tinha de moldura foi devolvido.|Frames became characters! Whatever frames you had were refunded.|¡Los marcos se convirtieron en personajes! Te devolvimos los marcos que tenías.|Le cornici sono diventate personaggi! Le cornici che avevi ti sono state rimborsate.|Les cadres sont devenus des personnages ! Tes cadres ont été remboursés.|Aus Rahmen wurden Figuren! Deine Rahmen wurden erstattet.|Lijsten zijn personages geworden! Je lijsten zijn terugbetaald.|フレームはキャラクターになったよ！持っていたフレームは返金したよ。|头像框变成角色啦！你拥有的头像框已退还。|프레임이 캐릭터로 바뀌었어요! 가지고 있던 프레임은 환불됐어요.',
@@ -28389,6 +28392,29 @@ var PZ_TXT = {
  onb_pers_t:'Escolha seu personagem|Pick your character|Elige tu personaje|Scegli il tuo personaggio|Choisis ton personnage|Wähle deine Figur|Kies je personage|キャラクターをえらぼう|选择你的角色|캐릭터를 골라요',
  onb_pers_d:'É ele que todo mundo vê no seu perfil. Você pode mudar tudo depois na {loja}.|This is who everyone sees on your profile. You can change everything later in the {loja}.|Es el que todos ven en tu perfil. Puedes cambiarlo todo después en la {loja}.|È quello che tutti vedono sul tuo profilo. Puoi cambiare tutto dopo nel {loja}.|C’est lui que tout le monde voit sur ton profil. Tu pourras tout changer plus tard dans la {loja}.|Diese Figur sehen alle auf deinem Profil. Du kannst später alles im {loja} ändern.|Dit ziet iedereen op je profiel. Je kunt later alles aanpassen in de {loja}.|プロフィールでみんなが見るのはこのキャラだよ。あとで{loja}で全部変えられるよ。|大家会在你的主页看到它。之后可以在{loja}里随时更改。|모두가 내 프로필에서 보는 캐릭터예요. 나중에 {loja}에서 다 바꿀 수 있어요.',
  onb_pers_sortear:'Sortear outro|Shuffle|Otro al azar|Un altro a caso|Un autre au hasard|Neu würfeln|Nog een|べつのにする|换一个|다른 걸로',
+ pz_estilo:'Estilo|Style|Estilo|Stile|Style|Stil|Stijl|スタイル|风格|스타일',
+ pz_original:'Original|Original|Original|Originale|Original|Original|Origineel|オリジナル|原色|오리지널',
+ pz_total:'{n} peças, cores e estilos pra combinar|{n} pieces, colors and styles to mix and match|{n} piezas, colores y estilos para combinar|{n} pezzi, colori e stili da abbinare|{n} pièces, couleurs et styles à combiner|{n} Teile, Farben und Stile zum Kombinieren|{n} onderdelen, kleuren en stijlen om te combineren|組み合わせ自由なパーツ・色・スタイル {n}種類|{n} 种部件、颜色和风格随意搭配|조합할 수 있는 파츠·색·스타일 {n}개',
+ pz_est_liso:'Liso|Plain|Liso|Tinta unita|Uni|Einfarbig|Effen|無地|纯色|무지',
+ pz_est_listras:'Listras|Stripes|Rayas|Righe|Rayures|Streifen|Strepen|ボーダー|横条纹|줄무늬',
+ pz_est_verticais:'Listras em pé|Pinstripes|Rayas verticales|Righe verticali|Rayures verticales|Längsstreifen|Verticale strepen|ストライプ|竖条纹|세로 줄무늬',
+ pz_est_bolinhas:'Bolinhas|Polka dots|Lunares|Pois|Pois|Punkte|Stippen|水玉|波点|땡땡이',
+ pz_est_xadrez:'Xadrez|Checkered|Cuadros|Scacchi|Damier|Karo|Geblokt|チェック|格子|체크',
+ pz_est_diagonal:'Diagonal|Diagonal|Diagonal|Diagonale|Diagonale|Diagonal|Diagonaal|ななめ|斜纹|사선',
+ pz_est_degrade:'Degradê|Gradient|Degradado|Sfumato|Dégradé|Verlauf|Verloop|グラデーション|渐变|그라데이션',
+ pz_est_bicolor:'Duas cores|Two-tone|Bicolor|Bicolore|Bicolore|Zweifarbig|Tweekleurig|ツートン|双色|투톤',
+ pz_est_pontas:'Pontas coloridas|Dip-dye|Puntas de color|Punte colorate|Pointes colorées|Farbige Spitzen|Gekleurde punten|すそ色|渐染|끝 염색',
+ pz_est_mosaico:'Mosaico|Mosaic|Mosaico|Mosaico|Mosaïque|Mosaik|Mozaïek|モザイク|马赛克|모자이크',
+ pz_est_purpurina:'Purpurina|Glitter|Purpurina|Glitter|Paillettes|Glitzer|Glitter|ラメ|亮片|글리터',
+ pz_est_camuflado:'Camuflado|Camo|Camuflaje|Mimetico|Camouflage|Tarnmuster|Camouflage|迷彩|迷彩|카모',
+ pz_est_oncinha:'Oncinha|Leopard|Leopardo|Leopardato|Léopard|Leopard|Luipaard|ヒョウ柄|豹纹|호피',
+ pz_est_zebra:'Zebra|Zebra|Cebra|Zebrato|Zèbre|Zebra|Zebra|ゼブラ|斑马纹|얼룩말',
+ pz_est_arcoiris:'Arco-íris|Rainbow|Arcoíris|Arcobaleno|Arc-en-ciel|Regenbogen|Regenboog|にじ色|彩虹|무지개',
+ pz_est_galaxia:'Galáxia|Galaxy|Galaxia|Galassia|Galaxie|Galaxie|Melkweg|ギャラクシー|星空|은하수',
+ pz_est_chamas:'Chamas|Flames|Llamas|Fiamme|Flammes|Flammen|Vlammen|ほのお|火焰|불꽃',
+ pz_est_gelo:'Gelo|Ice|Hielo|Ghiaccio|Glace|Eis|IJs|こおり|冰霜|얼음',
+ pz_est_prata:'Prata|Silver|Plateado|Argento|Argenté|Silber|Zilver|シルバー|银色|실버',
+ pz_est_dourado:'Dourado|Gold|Dorado|Oro|Doré|Gold|Goud|ゴールド|金色|골드',
  pz_s_genero:'Gênero|Gender|Género|Genere|Genre|Geschlecht|Geslacht|性別|性别|성별',
  pz_s_mao:'Mão|In hand|En la mano|In mano|En main|In der Hand|In de hand|手に持つ|手持|손에 들기',
  onb_gen_t:'Menino ou menina?|Boy or girl?|¿Niño o niña?|Bambino o bambina?|Garçon ou fille ?|Junge oder Mädchen?|Jongen of meisje?|男の子？女の子？|男孩还是女孩？|남자아이? 여자아이?',
@@ -29317,13 +29343,28 @@ var PZ_OLHO_FELIZ = [[9, '.......hh....hh.......'], [10, '.......kk....kk.......
 var PZ_CAMPOS = [['pele', 'pele'], ['cab', 'cab'], ['corCab', 'cor'], ['olhos', 'olhos'], ['corOlhos', 'cor'], ['boca', 'boca'],
   ['camisa', 'camisa'], ['corCamisa', 'cor'], ['estampa', 'estampa'], ['corEstampa', 'cor'], ['calca', 'calca'], ['corCalca', 'cor'],
   ['sapato', 'sapato'], ['corSapato', 'cor'], ['chapeu', 'chapeu'], ['aces', 'aces'], ['costas', 'costas'],
-  ['genero', 'genero'], ['mao', 'mao'], ['corChapeu', 'cor'], ['corAces', 'cor'], ['corCostas', 'cor'], ['corMao', 'cor']];
+  ['genero', 'genero'], ['mao', 'mao'], ['corChapeu', 'cor'], ['corAces', 'cor'], ['corCostas', 'cor'], ['corMao', 'cor'],
+  ['estCab', 'estilo'], ['estCamisa', 'estilo'], ['estCalca', 'estilo'], ['estSapato', 'estilo'], ['estChapeu', 'estilo'], ['estAces', 'estilo'], ['estCostas', 'estilo'], ['estMao', 'estilo']];
+/* o estilo (listras, bolinhas, galáxia...) de cada parte; cada peça + estilo é um item da loja */
+var PZ_EST_DO = {cab:'estCab', camisa:'estCamisa', calca:'estCalca', sapato:'estSapato', chapeu:'estChapeu', aces:'estAces', costas:'estCostas', mao:'estMao'};
+var PZ_PARTE_DO_EST = {};
+Object.keys(PZ_EST_DO).forEach(k=>{ PZ_PARTE_DO_EST[PZ_EST_DO[k]] = k; });
+var PZ_ESTILOS = [{id:'liso'},
+  {id:'listras', p:3000}, {id:'verticais', p:3000}, {id:'bolinhas', p:3000}, {id:'xadrez', p:3000}, {id:'diagonal', p:3000},
+  {id:'degrade', p:3000}, {id:'bicolor', p:3000}, {id:'pontas', p:3000}, {id:'mosaico', p:3000},
+  {id:'purpurina', p:6000}, {id:'camuflado', p:6000}, {id:'oncinha', p:6000}, {id:'zebra', p:6000},
+  {id:'arcoiris', p:12000}, {id:'galaxia', p:12000}, {id:'chamas', p:12000}, {id:'gelo', p:12000},
+  {id:'prata', d:2}, {id:'dourado', d:3}];
+/* acessórios têm a cor "original" (do jeito que a peça foi desenhada) além das 41 cores */
+var PZ_COR_ORIG = {corChapeu:1, corAces:1, corCostas:1, corMao:1};
+var PZ_COR_NATIVA = {chapeu:'vermelho', aces:'preto', costas:'vermelho', mao:'vermelho'};
 var PZ_GENEROS = [{id:'menino'}, {id:'menina'}];
 /* todo mundo começa igual (o personagem e o agente): um menino careca, de camiseta branca e short azul.
    A primeira escolha é menino ou menina; o resto a pessoa monta na loja (cabelo, roupa, acessórios...) */
 var PZ_PADRAO = {pele:'pessego', cab:'careca', corCab:'castanho', olhos:'normal', corOlhos:'azul', boca:'sorriso', camisa:'camiseta', corCamisa:'branco',
   estampa:'lisa', corEstampa:'azul', calca:'short', corCalca:'azul', sapato:'descalco', corSapato:'branco', chapeu:'nenhum', aces:'nenhum', costas:'nenhum',
-  genero:'menino', mao:'nenhum', corChapeu:'vermelho', corAces:'preto', corCostas:'vermelho', corMao:'vermelho'};
+  genero:'menino', mao:'nenhum', corChapeu:'original', corAces:'original', corCostas:'original', corMao:'original',
+  estCab:'liso', estCamisa:'liso', estCalca:'liso', estSapato:'liso', estChapeu:'liso', estAces:'liso', estCostas:'liso', estMao:'liso'};
 /* menina: cílios e bochechas rosadas */
 var PZ_MENINA = [[9, '......k........k......'], [10, '......k........k......'], [12, '......p........p......']];
 /* moldura antiga -> peça do personagem que entra no lugar dela (baús dos eventos, Koda Pass e quem já tinha) */
@@ -29339,7 +29380,7 @@ function pzMix(a, b, p){ const x = pzHex(a), y = pzHex(b); return '#' + x.map((v
 function pzEsc(c, p){ return pzMix(c, '#1a0f2a', p); }   // escurece puxando pro roxo bem escuro (fica mais bonito que preto)
 function pzClr(c, p){ return pzMix(c, '#ffffff', p); }
 function pzCoresDe(c){ return {'1':c, '2':pzEsc(c, .25), '3':pzClr(c, .32)}; }
-function pzLista(slot){ return slot === 'cor' ? PZ_CORES : slot === 'pele' ? PZ_PELES : slot === 'genero' ? PZ_GENEROS : (PZ_PARTES[slot] || []); }
+function pzLista(slot){ return slot === 'cor' ? PZ_CORES : slot === 'pele' ? PZ_PELES : slot === 'genero' ? PZ_GENEROS : slot === 'estilo' ? PZ_ESTILOS : (PZ_PARTES[slot] || []); }
 function pzItem(slot, chave){ const l = pzLista(slot); for(let i = 0; i < l.length; i++) if(l[i].id === chave) return l[i]; return null; }
 function pzLivre(x){ return !!x && !x.ev && !x.p && !x.d; }
 function pzHash(s){ let h = 2166136261; s = String(s || ''); for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -29365,13 +29406,66 @@ const PERS_ITENS = [];
   });
 });
 
+/* ---------- estilos e peças de cor fixa ----------
+   Acessório desenhado com cor fixa (boné vermelho, dino, coroa...) também pega cor e estilo: a cor que mais
+   aparece nele vira a "tinta" (com a sombra junto) e o resto fica como foi desenhado.
+   Peça com pelo menos 6 quadradinhos de tinta ganha os estilos; cada peça + estilo é um item da loja. */
+var PZ_PARES = {r:'R', p:'P', b:'B', n:'N', v:'V', l:'L', z:'Z', q:'Q', g:'G', x:'X', y:'', k:'', w:''};
+var PZ_TINGE = {chapeu:1, aces:1, costas:1, mao:1};
+function pzCelulas(masks){ let n = 0; (masks || []).forEach(m=>m.slice(1).forEach(l=>{ for(const ch of l) if(ch === '1' || ch === '2' || ch === '3') n++; })); return n; }
+function pzTrocar(masks, mapa){ return masks ? masks.map(m=>[m[0]].concat(m.slice(1).map(l=>l.replace(/./g, ch=>mapa[ch] || ch)))) : masks; }
+/* o retângulo onde fica a tinta da peça (os estilos de faixa e de degradê se medem por ele) */
+function pzCaixa(masks){
+  let x0 = PZ_W, y0 = PZ_H, x1 = 0, y1 = 0;
+  masks.forEach(m=>m.slice(1).forEach((l, i)=>{ for(let x = 0; x < l.length; x++) if(/[123]/.test(l[x])){ const y = m[0] + i; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } }));
+  return [x0, y0, x1, y1];
+}
+Object.keys(PZ_EST_DO).forEach(slot=>{
+  pzLista(slot).forEach(it=>{
+    if(it.id === 'nenhum') return;
+    const tudo = [].concat(it.px || [], it.atras || []);
+    const nativo = !it.fix && pzCelulas(tudo) > 0;
+    if(!nativo && PZ_TINGE[slot]){
+      const conta = {};
+      tudo.forEach(m=>m.slice(1).forEach(l=>{ for(const ch of l){ const f = ch.toLowerCase(); if(f in PZ_PARES && (ch === f || PZ_PARES[f] === ch)) conta[f] = (conta[f] || 0) + 1; } }));
+      let f = null;
+      Object.keys(conta).forEach(k=>{ if(!f || conta[k] > conta[f]) f = k; });
+      if(f && conta[f] >= 3){
+        const mapa = {}; mapa[f] = '1'; if(PZ_PARES[f]) mapa[PZ_PARES[f]] = '2';
+        it.tinge = f; it.pxT = pzTrocar(it.px, mapa); it.atrasT = pzTrocar(it.atras, mapa);
+      }
+    }
+    const ef = it.tinge ? [].concat(it.pxT || [], it.atrasT || []) : nativo ? tudo : [];
+    it.nEst = pzCelulas(ef);
+    if(it.nEst) it.caixa = pzCaixa(ef);
+  });
+});
+function pzEstilavel(slot, chave){ const it = PZ_EST_DO[slot] && pzItem(slot, chave); return !!it && (it.nEst || 0) >= 6; }
+function pzIdEstilo(parte, chave, est){ return 'estilo_' + parte + '-' + chave + '-' + est; }
+Object.keys(PZ_EST_DO).forEach(parte=>{
+  pzLista(parte).forEach(x=>{
+    if(!pzEstilavel(parte, x.id)) return;
+    PZ_ESTILOS.forEach(e=>{
+      if(e.id === 'liso') return;
+      const it = {id: pzIdEstilo(parte, x.id, e.id), slot: 'estilo', parte, chave: x.id, estilo: e.id};
+      if(e.d){ it.price = e.d; it.moeda = 'd'; } else it.price = e.p;
+      PERS_ITENS.push(it);
+    });
+  });
+});
+/* nome de peça + estilo ("Boné · Listras"), montado na hora em qualquer idioma */
+function pzNomeEstilo(resto){
+  const v = String(resto).split('-');
+  return v.length === 3 ? t('cosm_pers_' + v[0] + '_' + v[1]) + ' · ' + t('pz_est_' + v[2]) : '';
+}
+
 /* ---------- configuração: limpa, código e personagem "da sorte" ---------- */
 function pzNorm(c, base){
   base = base || PZ_PADRAO;
   const o = {};
   PZ_CAMPOS.forEach(([campo, slot])=>{
     const v = c && c[campo];
-    o[campo] = (typeof v === 'string' && pzItem(slot, v)) ? v : base[campo];
+    o[campo] = (typeof v === 'string' && (pzItem(slot, v) || (v === 'original' && PZ_COR_ORIG[campo]))) ? v : base[campo];
   });
   return o;
 }
@@ -29385,7 +29479,7 @@ function pzDeCodigo(s){
 function pzHexDe(slot, chave){ const it = pzItem(slot, chave); return it && it.hex ? it.hex : '#8E96A0'; }
 
 /* ---------- o desenho ---------- */
-function pzPint(g, tags, masks, cores, tag, soTag){
+function pzPint(g, tags, masks, cores, tag, soTag, est){
   (masks || []).forEach(m=>{
     for(let i = 1; i < m.length; i++){
       const y = m[0] + i - 1, linha = m[i];
@@ -29395,12 +29489,68 @@ function pzPint(g, tags, masks, cores, tag, soTag){
         if(ch === '.') continue;
         const k = y * PZ_W + x;
         if(soTag && tags[k] !== soTag) continue;
-        const c = cores[ch] || PZ_FIXAS[ch];
+        let c = cores[ch] || PZ_FIXAS[ch];
+        if(est && (ch === '1' || ch === '2' || ch === '3')) c = est(x, y, ch) || c;
         if(!c) continue;
         g[k] = c; tags[k] = tag || null;
       }
     }
   });
+}
+var PZ_ARCO = ['#FF4D4D', '#FF9F2E', '#FFE14D', '#4CD964', '#3DA9FC', '#9B5CFF'];
+function pzRuido(x, y, s){ let h = Math.imul(x + 31, 374761393) ^ Math.imul(y + 17, 668265263) ^ Math.imul(s, 2246822519); h = Math.imul(h ^ (h >>> 13), 1274126177); return (h ^ (h >>> 16)) >>> 0; }
+function pzLuz(hx){ const [r, g, b] = pzHex(hx); return 0.299 * r + 0.587 * g + 0.114 * b; }
+/* devolve (x, y, quadradinho) -> cor; '2' é a sombra e '3' o brilho da cor do estilo naquele lugar */
+function pzEstiloFn(est, c, caixa){
+  const [x0, y0, x1, y1] = caixa, alt = y1 - y0 + 1, meio = (x0 + x1 + 1) / 2;
+  const k = pzLuz(c) > 160 ? pzEsc(c, .5) : pzClr(c, .72);      // a segunda cor: clara em cor escura, escura em cor clara
+  const fr = y=>alt > 1 ? (y - y0) / (alt - 1) : 0;
+  const cor = {
+    listras:(x, y)=>(y - y0) % 2 ? k : c,
+    verticais:(x, y)=>(x - x0) % 2 ? k : c,
+    bolinhas:(x, y)=>((y - y0) % 2 === 0 && (x - x0 + ((y - y0) % 4 ? 2 : 0)) % 4 === 0) ? k : c,
+    xadrez:(x, y)=>(((x - x0) >> 1) + ((y - y0) >> 1)) % 2 ? k : c,
+    diagonal:(x, y)=>(x + y) % 4 < 2 ? k : c,
+    degrade:(x, y)=>pzMix(pzClr(c, .5), pzEsc(c, .45), fr(y)),
+    bicolor:(x, y)=>x < meio ? c : k,
+    pontas:(x, y)=>(y - y0) >= Math.ceil(alt * .6) ? k : c,
+    mosaico:(x, y)=>[c, pzClr(c, .3), pzEsc(c, .3)][pzRuido(x, y, 1) % 3],
+    purpurina:(x, y)=>{ const r = pzRuido(x, y, 2) % 6; return r === 0 ? '#FFFFFF' : r === 1 ? pzClr(c, .5) : c; },
+    camuflado:(x, y)=>[c, pzEsc(c, .35), pzMix(c, '#6B7A3A', .45)][pzRuido(x >> 1, y >> 1, 3) % 3],
+    oncinha:(x, y)=>pzRuido(x >> 1, y >> 1, 4) % 4 === 0 ? '#3A2416' : c,
+    zebra:(x, y)=>(y + pzRuido(x >> 1, 0, 5) % 2) % 3 === 0 ? '#1E1B26' : '#F4F4F4',
+    arcoiris:(x, y)=>PZ_ARCO[(y - y0) % 6],
+    galaxia:(x, y)=>{ const r = pzRuido(x, y, 6) % 100; return r < 8 ? '#FFFFFF' : r < 13 ? '#FF8AE2' : r < 32 ? '#4B2FA0' : '#24145A'; },
+    chamas:(x, y)=>{ const f = fr(y); return f < .34 ? '#E8413C' : f < .67 ? '#FF8A2A' : '#FFE45C'; },
+    gelo:(x, y)=>pzRuido(x, y, 7) % 7 === 0 ? '#FFFFFF' : pzMix('#EAF8FF', '#6EC1FF', fr(y)),
+    prata:(x, y)=>((x - y) % 6 + 6) % 6 === 0 ? '#FFFFFF' : '#B9C4CE',
+    dourado:(x, y)=>((x - y) % 6 + 6) % 6 === 0 ? '#FFF1A6' : '#E8B020'
+  }[est];
+  if(!cor) return null;
+  const memo = {};
+  return (x, y, ch)=>{
+    const b = cor(x, y);
+    if(ch === '1') return b;
+    const m = ch + b;
+    return memo[m] || (memo[m] = ch === '2' ? pzEsc(b, .25) : pzClr(b, .32));
+  };
+}
+/* a cor "original" de um acessório: a tinta dele, ou a cor de sempre das peças que já pegavam cor */
+function pzHexOriginal(slot, it){ return it && it.tinge ? PZ_FIXAS[it.tinge] : pzHexDe('cor', (it && it.cor) || PZ_COR_NATIVA[slot] || 'vermelho'); }
+/* como pintar uma peça: {px, atras, cores, fn (estilo ou null)} */
+function pzPintura(slot, it, corId, estId, base){
+  const est = (estId && estId !== 'liso' && (it.nEst || 0) >= 6) ? estId : null;
+  let px = it.px, atras = it.atras, cores = Object.assign({}, base), c1 = null;
+  if(it.tinge){
+    if(corId === 'original' && !est) return {px, atras, cores, fn: null};
+    px = it.pxT; atras = it.atrasT;
+    if(corId === 'original'){
+      c1 = PZ_FIXAS[it.tinge];
+      Object.assign(cores, {'1': c1, '2': PZ_PARES[it.tinge] ? PZ_FIXAS[PZ_PARES[it.tinge]] : pzEsc(c1, .25), '3': pzClr(c1, .32)});
+    }
+  } else if(it.fix) return {px, atras, cores, fn: null};
+  if(!c1){ c1 = corId === 'original' ? pzHexOriginal(slot, it) : pzHexDe('cor', corId); Object.assign(cores, pzCoresDe(c1)); }
+  return {px, atras, cores, fn: est && it.caixa ? pzEstiloFn(est, c1, it.caixa) : null};
 }
 /* variante: '' normal · 'pisca' olhos fechados · 'feliz' olhinhos ^^ com bochecha (carinho) */
 function pzGrade(c, variante){
@@ -29408,31 +29558,32 @@ function pzGrade(c, variante){
   const sk = pzHexDe('pele', c.pele), cab = pzHexDe('cor', c.corCab);
   const base = {s:sk, S:pzEsc(sk, .16), T:pzEsc(sk, .32), h:pzEsc(cab, .45), H:pzEsc(cab, .3), m:'#B5485E'};
   if(c.cab === 'careca') base.h = pzEsc(sk, .55);
-  const com = (cor, fixo)=>fixo ? base : Object.assign({}, base, pzCoresDe(cor));
   const P = {};
   ['cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'].forEach(s=>{ P[s] = pzItem(s, c[s]) || pzLista(s)[0]; });
-  const cCos = pzHexDe('cor', c.corCostas);
+  const pin = (s, campoCor)=>pzPintura(s, P[s], c[campoCor], c[PZ_EST_DO[s]], base);
+  const Cos = pin('costas', 'corCostas'), Cab = pin('cab', 'corCab'), Sap = pin('sapato', 'corSapato'), Cal = pin('calca', 'corCalca'),
+    Cam = pin('camisa', 'corCamisa'), Mao = pin('mao', 'corMao'), Ace = pin('aces', 'corAces'), Cha = pin('chapeu', 'corChapeu');
   const est = pzHexDe('cor', c.corEstampa), cEst = {'4':est, '5':pzEsc(est, .25)};
-  pzPint(g, tags, P.costas.atras, com(cCos, P.costas.fix), 'costas');
-  pzPint(g, tags, P.cab.atras, com(cab, P.cab.fix), 'cab');
+  pzPint(g, tags, Cos.atras, Cos.cores, 'costas', null, Cos.fn);
+  pzPint(g, tags, Cab.atras, Cab.cores, 'cab', null, Cab.fn);
   pzPint(g, tags, [PZ_BASE], base, 'corpo');
-  pzPint(g, tags, P.sapato.px, com(pzHexDe('cor', c.corSapato), P.sapato.fix), 'sapato');
-  if(!P.calca.sobre) pzPint(g, tags, P.calca.px, com(pzHexDe('cor', c.corCalca), P.calca.fix), 'calca');
-  pzPint(g, tags, P.camisa.px, Object.assign(com(pzHexDe('cor', c.corCamisa), P.camisa.fix), cEst), 'cam');
+  pzPint(g, tags, Sap.px, Sap.cores, 'sapato', null, Sap.fn);
+  if(!P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
+  pzPint(g, tags, Cam.px, Object.assign(Cam.cores, cEst), 'cam', null, Cam.fn);
   pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
-  if(P.calca.sobre) pzPint(g, tags, P.calca.px, com(pzHexDe('cor', c.corCalca), P.calca.fix), 'calca');
-  pzPint(g, tags, P.costas.px, com(cCos, P.costas.fix), 'costas');
-  pzPint(g, tags, P.mao.px, com(pzHexDe('cor', c.corMao), P.mao.fix), 'mao');
+  if(P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
+  pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
+  pzPint(g, tags, Mao.px, Mao.cores, 'mao', null, Mao.fn);
   const olho = pzHexDe('cor', c.corOlhos);
   pzPint(g, tags, variante === 'feliz' ? PZ_OLHO_FELIZ : variante === 'pisca' ? PZ_OLHO_FECHADO : P.olhos.px,
     Object.assign({}, base, {e:olho, f:pzClr(olho, .35), E:pzEsc(olho, .4)}), 'olhos');
   if(c.genero === 'menina') pzPint(g, tags, PZ_MENINA, Object.assign({}, base, {p:'#FFA3BE'}), 'olhos');
   pzPint(g, tags, P.boca.px, c.genero === 'menina' ? Object.assign({}, base, {m:'#D9506E'}) : base, 'boca');
-  pzPint(g, tags, P.aces.px, com(pzHexDe('cor', c.corAces), P.aces.fix), 'aces');
-  pzPint(g, tags, P.cab.px, com(cab, P.cab.fix), 'cab');
+  pzPint(g, tags, Ace.px, Ace.cores, 'aces', null, Ace.fn);
+  pzPint(g, tags, Cab.px, Cab.cores, 'cab', null, Cab.fn);
   /* chapéu que cobre a cabeça esconde o cabelo de cima (senão o topete atravessa o boné) */
   if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
-  pzPint(g, tags, P.chapeu.px, com(pzHexDe('cor', c.corChapeu), P.chapeu.fix), 'chapeu');
+  pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
   return g;
 }
 const PZ_CACHE = new Map();
@@ -29484,9 +29635,15 @@ function pzCorpo(valor, semente, cls){
 function pzMeuEmail(){ try{ return (FIREBASE_ENABLED && fbAuth().currentUser) ? fbAuth().currentUser.email : ''; }catch(e){ return ''; } }
 function pzPossui(slot, chave){ const it = pzItem(slot, chave); return !!it && (pzLivre(it) || temCosm('pers', slot + '_' + chave)); }
 /* peça que a pessoa não tem (ex.: o modo de teste do dono acabou) volta pra uma de graça */
+/* estilo é por peça: ter "Listras" no boné não dá listras pra touca */
+function pzTemEstilo(parte, chave, est){ return est === 'liso' || (!!pzItem('estilo', est) && pzEstilavel(parte, chave) && temCosm('pers', pzIdEstilo(parte, chave, est))); }
 function pzComPosse(c, reserva){
   const o = {};
-  PZ_CAMPOS.forEach(([campo, slot])=>{ o[campo] = pzPossui(slot, c[campo]) ? c[campo] : reserva[campo]; });
+  PZ_CAMPOS.forEach(([campo, slot])=>{
+    if(slot === 'estilo') return;
+    o[campo] = (pzPossui(slot, c[campo]) || (c[campo] === 'original' && PZ_COR_ORIG[campo])) ? c[campo] : reserva[campo];
+  });
+  Object.keys(PZ_EST_DO).forEach(parte=>{ const e = PZ_EST_DO[parte]; o[e] = pzTemEstilo(parte, o[parte], c[e]) ? c[e] : 'liso'; });
   return o;
 }
 function meuHeroi(){
@@ -29494,28 +29651,33 @@ function meuHeroi(){
   return (c && typeof c === 'object') ? pzComPosse(pzNorm(c, PZ_PADRAO), PZ_PADRAO) : pzNorm(PZ_PADRAO);
 }
 function meuCodigo(){ return pzCodigo(meuHeroi()); }
-function pzNomeAgente(n){ n = String(n || '').replace(/[<>&"']/g, '').replace(/\s+/g, ' ').trim().slice(0, 16); return n || 'Kodi'; }
+/* o nome fica vazio quando é o padrão, aí aparece "Agente" na língua de cada um ('Kodi' era o padrão antigo) */
+function pzNomeLimpo(n){ n = String(n || '').replace(/[<>&"']/g, '').replace(/\s+/g, ' ').trim().slice(0, 16); return n === 'Kodi' ? '' : n; }
+function pzNomeAgente(n){ return pzNomeLimpo(n) || t('ag_nome_padrao'); }
 function meuAgente(){
   let o = loadCosm().agente;
   o = (o && typeof o === 'object') ? o : {};
   const bal = (typeof o.balao === 'string' && pzPossui('cor', o.balao)) ? o.balao : 'branco';
-  return {cfg: pzComPosse(pzNorm(o.cfg, PZ_PADRAO), PZ_PADRAO), nome: pzNomeAgente(o.nome), balao: bal, oculto: !!o.oculto};
+  return {cfg: pzComPosse(pzNorm(o.cfg, PZ_PADRAO), PZ_PADRAO), nome: pzNomeLimpo(o.nome), balao: bal, oculto: !!o.oculto};
 }
 function pzSalvarHeroi(c){ const o = loadCosm(); o.heroi = pzNorm(c); saveCosm(o); }
 function pzSalvarAgente(a){
   const o = loadCosm();
-  o.agente = {cfg: pzNorm(a.cfg, PZ_PADRAO), nome: pzNomeAgente(a.nome), balao: pzItem('cor', a.balao) ? a.balao : 'branco', oculto: !!a.oculto};
+  o.agente = {cfg: pzNorm(a.cfg, PZ_PADRAO), nome: pzNomeLimpo(a.nome), balao: pzItem('cor', a.balao) ? a.balao : 'branco', oculto: !!a.oculto};
   saveCosm(o);
 }
 /* as peças que uma configuração usa (ids da loja) */
-function pzIdsDe(c){ return PZ_CAMPOS.map(([campo, slot])=>slot + '_' + c[campo]); }
+function pzIdsDe(c){
+  return PZ_CAMPOS.map(([campo, slot])=>slot === 'estilo' ? pzIdEstilo(PZ_PARTE_DO_EST[campo], c[PZ_PARTE_DO_EST[campo]], c[campo]) : slot + '_' + c[campo]);
+}
 /* a amostrinha de um item do personagem (loja, presentes, baús dos eventos, Koda Pass): o meu personagem usando ele */
 function pzAmostra(item){
   if(!item) return '';
   if(item.slot === 'cor') return '<span class="shop-swatch pz-swatch-cor" style="background:' + pzHexDe('cor', item.chave) + '"></span>';
-  const c = meuHeroi(), campo = item.slot === 'pele' ? 'pele' : item.slot;
-  c[campo] = item.chave;
-  const rosto = ['cab', 'olhos', 'boca', 'pele', 'chapeu', 'aces'].indexOf(item.slot) >= 0;
+  const c = meuHeroi(), parte = item.slot === 'estilo' ? item.parte : item.slot;
+  c[parte] = item.chave;
+  if(item.slot === 'estilo') c[PZ_EST_DO[parte]] = item.estilo;
+  const rosto = ['cab', 'olhos', 'boca', 'pele', 'chapeu', 'aces'].indexOf(parte) >= 0;
   return '<span class="shop-swatch pz-swatch' + (rosto ? '' : ' corpo') + '" style="background:' + pzFundo(c) + '">' + pzSvg(c, rosto ? 'rosto' : 'corpo') + '</span>';
 }
 
@@ -29564,8 +29726,7 @@ const PZ_ROSTO = {genero:1, cab:1, olhos:1, boca:1, pele:1, chapeu:1, aces:1};
 function pzColorivel(slot, chave){
   if(['cab', 'olhos', 'camisa', 'estampa', 'calca', 'sapato'].indexOf(slot) >= 0) return true;
   const it = pzItem(slot, chave);
-  if(!it || it.fix) return false;
-  return [].concat(it.px || [], it.atras || []).some(m=>m.slice(1).some(l=>/[123]/.test(l)));
+  return !!it && it.id !== 'nenhum' && (!!it.tinge || (!it.fix && (it.nEst || 0) > 0));
 }
 function pzAgDeTexto(s){ try{ const o = JSON.parse(s); return (o && typeof o === 'object') ? o : null; }catch(e){ return null; } }
 /* o que aparece numa lista: tudo que se compra, mais o que é de evento/passe e a pessoa já tem.
@@ -29575,7 +29736,7 @@ function pzVisiveis(slot, testando){
   const grupo = x=>pzLivre(x) ? 0 : x.ev ? 3 : x.d ? 2 : 1;
   return l.map((x, i)=>({x, i})).sort((a, b)=>(grupo(a.x) - grupo(b.x)) || ((a.x.d || a.x.p || 0) - (b.x.d || b.x.p || 0)) || (a.i - b.i)).map(o=>o.x);
 }
-function pzItemLoja(slot, chave){ return PERS_ITENS.find(it=>it.id === slot + '_' + chave) || null; }
+function pzItemLoja(slot, chave){ return cosmAchar('pers', slot + '_' + chave) || null; }
 /* a etiqueta de cada peça: em uso, sua, no carrinho (preço amarelo) ou o preço */
 function pzEtiqueta(slot, x, escolhido, carrinho){
   const it = pzItemLoja(slot, x.id);
@@ -29605,14 +29766,16 @@ function pzPainelHtml(ctx){
      + '</div>';
   if(eAg){
     h += '<div class="pz-ag-ops">'
-       + '<input type="text" id="pzAgNome" maxlength="16" autocomplete="off" value="' + esc(String(ag.nome || '')) + '" placeholder="' + esc(t('ag_nome_ph')) + '" aria-label="' + esc(t('ag_nome_ph')) + '">'
+       + '<input type="text" id="pzAgNome" maxlength="16" autocomplete="off" value="' + esc(pzNomeLimpo(ag.nome)) + '" placeholder="' + esc(t('ag_nome_padrao')) + '" aria-label="' + esc(t('ag_nome_ph')) + '">'
        + '<button type="button" class="pz-tela' + (ag.oculto ? '' : ' on') + '" id="pzAgTela" role="switch" aria-checked="' + (!ag.oculto) + '"><span>' + esc(t('ag_na_tela')) + '</span><i></i></button>'
        + '</div>';
   }
+  h += '<p class="pz-total">' + esc(t('pz_total', {n: Number(PERS_ITENS.length).toLocaleString(currentLang)})) + '</p>';
   h += '<div class="pz-chips" role="tablist">' + subs.map(s=>'<button type="button" class="pz-chip' + (s === sub ? ' on' : '') + '" data-pz-sub="' + s + '" role="tab" aria-selected="' + (s === sub) + '">' + esc(t('pz_s_' + s)) + '</button>').join('') + '</div>';
   if(sub !== 'balao'){
     h += '<div class="pz-grade">' + pzVisiveis(sub, ctx.testando).map(x=>{
       const c2 = Object.assign({}, alvo); c2[sub] = x.id;
+      if(alvo[sub] !== x.id) pzNovaPeca(c2, sub, alvo);   // do jeito que vem ao tocar
       const id = sub + '_' + x.id, escolhido = alvo[sub] === x.id, car = escolhido && noCarrinho(id);
       const rosto = !!PZ_ROSTO[sub];
       return '<button type="button" class="pz-op' + (escolhido ? ' on' : '') + (car ? ' carrinho' : '') + '" data-pz-op="' + sub + '|' + x.id + '" title="' + esc(t('cosm_pers_' + id)) + '">'
@@ -29624,20 +29787,48 @@ function pzPainelHtml(ctx){
   const campoCor = sub === 'balao' ? 'balao' : (PZ_COR_DO[sub] && pzColorivel(sub, alvo[sub]) ? PZ_COR_DO[sub] : null);
   if(campoCor){
     const atual = campoCor === 'balao' ? ag.balao : alvo[campoCor];
-    h += '<p class="pz-sec">' + esc(sub === 'balao' ? t('pz_s_balao') : t('pz_cor')) + '</p><div class="pz-cores">' + pzVisiveis('cor', ctx.testando).map(x=>{
+    const orig = PZ_COR_ORIG[campoCor] ? '<button type="button" class="pz-cor orig' + (atual === 'original' ? ' on' : '') + '" data-pz-cor="' + campoCor + '|original" style="background:' + pzHexOriginal(sub, pzItem(sub, alvo[sub])) + '" title="' + esc(t('pz_original')) + '" aria-label="' + esc(t('pz_original')) + '"><i></i></button>' : '';
+    h += '<p class="pz-sec">' + esc(sub === 'balao' ? t('pz_s_balao') : t('pz_cor')) + '</p><div class="pz-cores">' + orig + pzVisiveis('cor', ctx.testando).map(x=>{
       const id = 'cor_' + x.id, on = atual === x.id, car = on && noCarrinho(id), meu = pzPossui('cor', x.id);
       const it = pzItemLoja('cor', x.id);
       return '<button type="button" class="pz-cor' + (on ? ' on' : '') + (car ? ' carrinho' : '') + '" data-pz-cor="' + campoCor + '|' + x.id + '" style="background:' + x.hex + '" title="' + esc(t('cosm_pers_' + id)) + '" aria-label="' + esc(t('cosm_pers_' + id)) + '">'
         + ((!meu || car) && it ? '<b>' + precoDoItem(it) + '</b>' : '') + '</button>';
     }).join('') + '</div>';
   }
+  const campoEst = PZ_EST_DO[sub];
+  if(campoEst && pzEstilavel(sub, alvo[sub])){
+    const rosto = !!PZ_ROSTO[sub];
+    h += '<p class="pz-sec">' + esc(t('pz_estilo')) + '</p><div class="pz-grade pz-estilos">' + pzVisiveis('estilo', ctx.testando).map(x=>{
+      const c2 = Object.assign({}, alvo); c2[campoEst] = x.id;
+      const id = pzIdEstilo(sub, alvo[sub], x.id), on = alvo[campoEst] === x.id, car = on && noCarrinho(id), it = cosmAchar('pers', id);
+      const etiq = on && !car ? '<span class="pz-ok">' + t('theme_in_use') + '</span>'
+        : pzTemEstilo(sub, alvo[sub], x.id) && !car ? '<span class="pz-ok">' + t('theme_use') + '</span>'
+        : '<span class="pz-pr">' + (it ? precoDoItem(it) : '') + '</span>';
+      return '<button type="button" class="pz-op' + (on ? ' on' : '') + (car ? ' carrinho' : '') + '" data-pz-est="' + campoEst + '|' + x.id + '" title="' + esc(t('pz_est_' + x.id)) + '">'
+        + '<span class="pz-mini' + (rosto ? '' : ' corpo') + '" style="background:' + pzFundo(c2) + '">' + pzSvg(c2, rosto ? 'rosto' : 'corpo') + '</span>'
+        + '<span class="pz-n">' + esc(t('pz_est_' + x.id)) + '</span>' + etiq + '</button>';
+    }).join('') + '</div>';
+  }
   return h + '</div>';
+}
+/* trocou de peça (c[parte] já é a nova): acessório volta pras cores originais dele,
+   e o estilo só continua se a pessoa já tiver ele pra peça nova */
+function pzNovaPeca(c, parte, antes){
+  const cc = PZ_COR_DO[parte], e = PZ_EST_DO[parte];
+  if(cc && PZ_COR_ORIG[cc]) c[cc] = 'original';
+  if(e && !pzTemEstilo(parte, c[parte], antes[e])) c[e] = 'liso';
 }
 /* "Sortear": mistura só com o que a pessoa já tem (nunca cobra nada sem ela ver) */
 function pzSortearCfg(base){
   const c = Object.assign({}, base);
   PZ_CAMPOS.forEach(([campo, slot])=>{
     if(campo === 'genero') return;   // o sorteio não troca menino/menina
+    if(slot === 'estilo'){
+      const parte = PZ_PARTE_DO_EST[campo], ops = PZ_ESTILOS.filter(e=>e.id !== 'liso' && pzTemEstilo(parte, c[parte], e.id));
+      c[campo] = ops.length && Math.random() < .4 ? ops[Math.floor(Math.random() * ops.length)].id : 'liso';
+      return;
+    }
+    if(PZ_COR_ORIG[campo] && Math.random() < .5){ c[campo] = 'original'; return; }
     let ops = pzLista(slot).filter(x=>pzPossui(slot, x.id));
     if((campo === 'chapeu' || campo === 'costas' || campo === 'aces' || campo === 'mao') && Math.random() < .55) ops = ops.filter(x=>x.id === 'nenhum');
     if(ops.length) c[campo] = ops[Math.floor(Math.random() * ops.length)].id;
@@ -29649,7 +29840,6 @@ function pzSortearCfg(base){
    O AGENTE NA TELA DE INÍCIO
    - Fica num canto; segurar e arrastar muda o lugar, e se soltar rápido ele é "jogado" e quica nas bordas.
    - 1 toque: dá uma sugestão de jogo (ou fecha o balão). Toques seguidos: carinho (coraçõezinhos).
-     4 toques seguidos: ele vai descansar e some (volta pela Loja do Koda → Seu agente).
    - A sugestão sai do mesmo "cérebro" dos jogos pra você (paratiRecomendar: o que você joga, curte e salva,
      o que pessoas parecidas curtem e o que está famoso), mais a memória do próprio agente: jogo que você
      ignorou ou abriu e largou em segundos ("julgou") cai na lista; jogo sugerido há pouco não repete.
@@ -29657,7 +29847,7 @@ function pzSortearCfg(base){
 ============================================================ */
 var AG_POS_KEY = 'koda_agente_pos', AG_MEM_KEY = 'koda_agente_mem';
 var agEl = null;
-var agE = {x:0, y:0, w:52, h:69, arr:null, voo:0, n:0, ultToque:0, tToque:null, tBalao:null, prox:0, sug:null, saindo:false, ovAntes:false, tFeliz:null};
+var agE = {x:0, y:0, w:52, h:69, arr:null, voo:0, n:0, ultToque:0, tToque:null, tBalao:null, prox:0, sug:null, ovAntes:false, tFeliz:null};
 function agMem(){ try{ const o = JSON.parse(localStorage.getItem(AG_MEM_KEY)); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; }catch(e){ return {}; } }
 function agMemSalvar(o){ try{ localStorage.setItem(AG_MEM_KEY, JSON.stringify(o)); }catch(e){} }
 function agMovimentoReduzido(){ try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
@@ -29693,12 +29883,12 @@ function agDesenhar(){
   const hx = pzHexDe('cor', a.balao);
   agEl.style.setProperty('--ag-bal', hx);
   agEl.style.setProperty('--ag-bal-txt', agTextoSobre(hx));
-  agEl.querySelector('.ag-corpo').setAttribute('aria-label', t('ag_aria', {nome: a.nome}));
+  agEl.querySelector('.ag-corpo').setAttribute('aria-label', t('ag_aria', {nome: pzNomeAgente(a.nome)}));
   agEl.hidden = !!a.oculto;
 }
 function agAtualizar(){ try{ if(!agEl) agIniciar(); else agDesenhar(); }catch(e){} }
 function agVisivel(){
-  if(!agEl || agEl.hidden || agE.saindo || document.hidden) return false;
+  if(!agEl || agEl.hidden || document.hidden) return false;
   const h = document.documentElement.classList;
   if(h.contains('ov-aberto') || h.contains('folha-cheia') || h.contains('entrada')) return false;
   const gate = document.getElementById('authGate');
@@ -29759,13 +29949,11 @@ function agVoar(vx, vy){
   agE.voo = requestAnimationFrame(passo);
 }
 function agToque(){
-  if(agE.saindo) return;
   const agora = Date.now();
   agE.n = agora - agE.ultToque < 450 ? agE.n + 1 : 1;
   agE.ultToque = agora;
   agCarinho();
   clearTimeout(agE.tToque);
-  if(agE.n >= 4){ agE.n = 0; agSair(); return; }
   agE.tToque = setTimeout(()=>{
     if(agE.n === 1){ if(agE.sug) agFecharBalao(true); else agSugerir(true); }
     agE.n = 0;
@@ -29782,21 +29970,6 @@ function agCarinho(){
   agEl.querySelector('.ag-corpo').appendChild(c);
   setTimeout(()=>{ if(c.parentNode) c.parentNode.removeChild(c); }, 950);
   try{ playSound('click'); }catch(e){}
-}
-/* 4 toques seguidos: vai descansar */
-function agSair(){
-  agE.saindo = true;
-  agFecharBalao(false);
-  agEl.classList.add('saindo');
-  const a = meuAgente();
-  setTimeout(()=>{
-    agEl.classList.remove('saindo', 'feliz');
-    agE.saindo = false;
-    pzSalvarAgente(Object.assign({}, a, {oculto: true}));
-    try{ syncToServer(); }catch(e){}
-    agEl.hidden = true;
-    toast(t('ag_saiu', {nome: a.nome, caminho: t('shop_title') + ' → ' + t('ag_tab')}));
-  }, 720);
 }
 /* ---------- sugestões ---------- */
 function agEscolher(){
@@ -31589,9 +31762,18 @@ function listaCosm(tipo){
 function campoCosm(tipo){
   return tipo==='fundo' ? 'fundos' : tipo==='moldura' ? 'molduras' : tipo==='nome' ? 'nomes' : tipo==='pers' ? 'persItens' : 'entradas';
 }
+/* achar um item pelo id sem varrer a lista toda (a do personagem tem milhares) */
+var COSM_IDX;
+function cosmAchar(tipo, id){
+  const l = listaCosm(tipo);
+  COSM_IDX = COSM_IDX || new Map();
+  let m = COSM_IDX.get(l);
+  if(!m || m.n !== l.length){ m = new Map(); l.forEach(x=>m.set(x.id, x)); m.n = l.length; COSM_IDX.set(l, m); }
+  return m.get(id);
+}
 /* de graça ou já comprado */
 function temCosm(tipo, id){
-  const item = listaCosm(tipo).find(x=>x.id===id);
+  const item = cosmAchar(tipo, id);
   if(!item) return false;
   if(item.price===0) return true;
   if(modoTesteDeMoedas()) return true;
