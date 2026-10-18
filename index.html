@@ -11877,6 +11877,7 @@ function applyRemoteData(data){
   if(data.cosmeticos && typeof data.cosmeticos === 'object'){
     localStorage.setItem('jogodromo_cosmeticos', JSON.stringify(data.cosmeticos));
     try{ aplicarFundo(); aplicarMolduraEmTudo(); }catch(e){}
+    try{ agAtualizar(); }catch(e){}
   }
   if(data.banca && typeof data.banca === 'object') localStorage.setItem('jogodromo_banca', JSON.stringify(data.banca));
   /* o contador de compartilhamentos só sobe: nunca volta pra um número menor (não dá pra ganhar de novo) */
@@ -15113,6 +15114,7 @@ async function initAuth(){
     }
     barrasDeNavegacao.remove();
     updateAccountChip(user);
+    try{ agAtualizar(); }catch(e){}   // o agente foi desenhado antes de saber quem entrou (as peças do modo de teste do dono só valem agora)
     /* toda conta que entrar neste aparelho fica guardada na listinha de trocar
        de conta — não importa por qual caminho a pessoa entrou */
     try{
@@ -16568,7 +16570,21 @@ function kodaMemoriaDoJogo(){
   /* window.open sem janela devolve null: o jogo que escreve nela não quebra */
   try{ var ab = window.open; window.open = function(){ var w = null; try{ w = ab.apply(window, arguments); }catch(e){} return w || {document:{write:function(){}, writeln:function(){}, close:function(){}, open:function(){}}, close:function(){}, focus:function(){}, closed:true, postMessage:function(){}}; }; }catch(e){}
 }
-const GAME_STORAGE_SHIM = '<script>(' + kodaMemoriaDoJogo.toString() + ')();<\/script>';
+/* Dentro do jogo valem as mesmas travas do site (o quadro do jogo é outra página, as do site não chegavam lá):
+   sem o menu do botão direito ("Inspecionar") e sem os atalhos de ver o código. Os jogos continuam recebendo
+   o clique direito e as teclas: só o menu e o atalho do navegador é que não abrem.
+   Fica numa função sozinha porque vai como texto pra dentro do quadro do jogo. */
+function kodaTravaDentroDoJogo(){
+  var escrever = function(el){ return !!(el && el.closest && el.closest('input, textarea, select, [contenteditable="true"]')); };
+  window.addEventListener('contextmenu', function(e){ if(!escrever(e.target)) e.preventDefault(); }, true);
+  window.addEventListener('keydown', function(e){
+    var k = String(e.key || '').toLowerCase(), cmd = e.ctrlKey || e.metaKey;
+    if(e.key === 'F12' || (cmd && (k === 'u' || k === 's' || k === 'p'))
+      || (cmd && e.shiftKey && (k === 'i' || k === 'j' || k === 'c' || k === 'k'))
+      || (e.metaKey && e.altKey && (k === 'i' || k === 'j' || k === 'u' || k === 'c'))) e.preventDefault();
+  }, true);
+}
+const GAME_STORAGE_SHIM = '<script>(' + kodaMemoriaDoJogo.toString() + ')();<\/script><script>(' + kodaTravaDentroDoJogo.toString() + ')();<\/script>';
 /* o código do jogo passa a usar a memória que sempre funciona (fora isso, nada muda) */
 function jogoCodigoSeguro(code){
   return String(code || '').replace(/\b(localStorage|sessionStorage)\b/g, (m)=>m === 'localStorage' ? 'kodaLocalStorage' : 'kodaSessionStorage');
@@ -19426,6 +19442,7 @@ function modoTesteLigado(){
 }
 function setModoTeste(ligado){
   try{ localStorage.setItem(MODO_TESTE_KEY, ligado ? '1' : '0'); }catch(e){}
+  try{ agAtualizar(); }catch(e){}
 }
 function modoTesteDeMoedas(){
   return isAdmin() && modoTesteLigado();
@@ -38004,6 +38021,9 @@ function initCareerSim(root){
   iframe.className = 'app-frame';
   iframe.setAttribute('title', 'Soccer Career Simulator');
   iframe.srcdoc = b64ToUtf8(CAREER_SIM_B64);
+  iframe.addEventListener('load', ()=>{
+    try{ const d = iframe.contentDocument, sc = d.createElement('script'); sc.textContent = '(' + kodaTravaDentroDoJogo.toString() + ')();'; d.head.appendChild(sc); }catch(e){}
+  });
   root.appendChild(iframe);
   return ()=>{ root.innerHTML = ''; };
 }
