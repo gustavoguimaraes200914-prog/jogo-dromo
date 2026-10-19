@@ -1326,7 +1326,7 @@
     font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;text-decoration:underline;}
   .auth-visit:focus-visible{outline:3px solid var(--mint);outline-offset:2px;}
   .auth-motivo{margin:0 0 12px;padding:9px 12px;border-radius:12px;background:#fff3c4;color:#4a3405;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.86rem;line-height:1.35;}
-  .auth-card[data-criar] .auth-google{border-color:#17c79e;box-shadow:0 0 0 3px rgba(23,199,158,.4);}
+  .auth-card[data-criar] #cadGo{box-shadow:0 0 0 3px rgba(23,199,158,.45);}
   .visitante-faixa{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px auto 10px;padding:7px 8px 7px 16px;border-radius:999px;width:fit-content;max-width:100%;
     background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.88rem;}
   .visitante-faixa button{border:none;border-radius:999px;padding:6px 16px;cursor:pointer;background:var(--mint);color:var(--on-mint);font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.84rem;}
@@ -2148,10 +2148,11 @@
   /* ---------- Modal ---------- */
   .auth-gate{
     position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#0d3a2b,#04110a);
-    display:flex;align-items:center;justify-content:center;padding:20px;
+    display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px;
   }
   .auth-gate.hidden{display:none;}
   .auth-card{
+    margin:auto;   /* no meio da tela, e se não couber (celular deitado) dá pra rolar sem cortar o topo */
     background:#eafff8;border-radius:22px;padding:28px 22px;width:100%;max-width:360px;
     box-shadow:0 16px 40px rgba(0,0,0,.35);
   }
@@ -2195,6 +2196,41 @@
     color:#C0392B;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.82rem;
     text-align:center;min-height:1.2em;margin:0 0 8px;
   }
+  /* criar conta com nome de usuário (tipo Roblox), entrar e recuperar com código */
+  .auth-painel[hidden],[data-rec][hidden],[data-seg][hidden]{display:none;}
+  .auth-rot{display:block;margin:2px 0 5px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.8rem;color:#2f5a4f;}
+  .auth-nasc{display:flex;gap:6px;margin-bottom:10px;}
+  .auth-nasc .auth-input{margin:0;padding:11px 4px;font-size:.9rem;background:#fff;min-width:0;flex:1.15;}
+  .auth-nasc .cad-d{flex:.85;} .auth-nasc .cad-m{flex:1.5;}
+  .auth-dica{margin:-4px 0 10px;font-size:.74rem;line-height:1.35;color:#557369;}
+  .auth-dica.ok{color:#0b7a5a;font-weight:700;} .auth-dica.ruim{color:#C0392B;font-weight:700;}
+  .auth-senha{position:relative;}
+  .auth-senha .auth-input{padding-right:46px;}
+  .auth-olho{position:absolute;right:5px;top:5px;width:38px;height:38px;border:none;background:none;color:#527066;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:9px;}
+  .auth-olho svg{width:20px;height:20px;}
+  .auth-olho[aria-pressed="true"]{color:#0b7a5a;}
+  .auth-gen{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+  .auth-gen button{display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 8px;border-radius:12px;border:2px solid #cfe8df;background:#fff;cursor:pointer;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.92rem;color:#08322B;min-width:0;}
+  .auth-gen button.on{border-color:#17c79e;background:#dcfaef;box-shadow:0 0 0 2px rgba(23,199,158,.35);}
+  .auth-gen .pz-corpo,.auth-gen-boneco{width:30px;height:40px;flex:none;}
+  .auth-troca{text-align:center;margin:12px 0 0;font-size:.86rem;color:#3f6359;}
+  .auth-link{border:none;background:none;padding:6px 2px;cursor:pointer;color:#0b7a5a;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.9rem;text-decoration:underline;}
+  .auth-link:focus-visible,.auth-olho:focus-visible,.auth-gen button:focus-visible{outline:3px solid #0b7a5a;outline-offset:2px;}
+  .auth-esqueci{display:block;margin:6px auto 0;}
+  .auth-voltar{display:block;margin:10px auto 0;}
+  .auth-texto{font-size:.86rem;line-height:1.4;color:#3f6359;text-align:center;margin:0 0 10px;}
+  .auth-ok{font-size:.86rem;line-height:1.4;color:#0b7a5a;font-weight:700;text-align:center;margin:0 0 10px;}
+  .auth-codigo{letter-spacing:.35em;text-align:center;font-weight:800;font-size:1.15rem;}
+  .auth-codigo::placeholder{letter-spacing:normal;font-weight:600;font-size:.95rem;}
+  .seg-card{max-width:360px;text-align:center;}
+  .seg-card h3{margin:4px 0 8px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.15rem;}
+  .seg-ic{display:flex;justify-content:center;color:#17c79e;}
+  .seg-ic svg{width:46px;height:46px;}
+  .seg-txt{font-size:.88rem;line-height:1.4;margin:0 0 12px;}
+  .profile-seguro-btn{width:100%;margin-top:12px;padding:10px;border:1.5px solid #bfe8d9;border-radius:12px;background:#effcf7;color:#0b5c46;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.86rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;overflow-wrap:anywhere;}
+  .profile-seguro-btn svg{width:18px;height:18px;flex:none;}
   .account-chip{
     background:var(--card);border-radius:14px;padding:9px 14px;box-shadow:var(--shadow);
     font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;color:var(--ink);
@@ -5035,19 +5071,16 @@
 <div class="auth-gate hidden" id="authGate">
   <div class="auth-card">
     <div class="auth-brand"><svg class="koda-wordmark" viewBox="-14 -18 362 140" role="img" aria-label="Koda"><use href="#koda-word"/></svg></div>
-    <div class="auth-title" data-i18n="auth_login_tab">Entrar</div>
     <p class="auth-motivo hidden" id="authMotivo" role="status"></p>
-    <p class="auth-error" id="authError"></p>
-    <input class="auth-input" id="authUser" type="email" placeholder="E-mail" data-i18n-ph="auth_username_ph" autocomplete="email">
-    <input class="auth-input" id="authPass" type="password" placeholder="Senha" data-i18n-ph="auth_password_ph" autocomplete="current-password">
-    <button class="auth-go" id="authGo" data-i18n="auth_login_tab">Entrar</button>
-    <div class="auth-or"><span data-i18n="auth_or">ou</span></div>
-    <button class="auth-google" id="authGoogle">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.1 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7c4.3-4 6.8-9.9 6.8-17.4z"/><path fill="#FBBC05" d="M10.5 19.3c-.5 1.5-.8 3.1-.8 4.7s.3 3.2.8 4.7l-7.9 6.1C.9 31.6 0 27.9 0 24s.9-7.6 2.6-10.8l7.9 6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.7 2.2-8.6 2.2-6.3 0-11.6-3.6-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
-      <span data-i18n="auth_google_btn">Entrar com o Google</span>
-    </button>
+    <div id="authPaineis"></div>
+    <div id="authExtra">
+      <div class="auth-or"><span data-i18n="auth_or">ou</span></div>
+      <button class="auth-google" id="authGoogle" type="button">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.1 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7c4.3-4 6.8-9.9 6.8-17.4z"/><path fill="#FBBC05" d="M10.5 19.3c-.5 1.5-.8 3.1-.8 4.7s.3 3.2.8 4.7l-7.9 6.1C.9 31.6 0 27.9 0 24s.9-7.6 2.6-10.8l7.9 6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.7 2.2-8.6 2.2-6.3 0-11.6-3.6-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        <span data-i18n="auth_google_btn">Entrar com o Google</span>
+      </button>
+    </div>
     <button class="auth-visit" id="authVisit" type="button" data-i18n="vis_btn">Entrar como visitante</button>
-    <p class="auth-note" data-i18n="auth_no_signup_note">Não tem conta? Sem problema: entre com o Google e a sua conta é criada na hora. Com e-mail e senha, só entra quem já tem cadastro.</p>
   </div>
 </div>
 
@@ -5184,9 +5217,8 @@ function mostrarPortaoDeConta(motivo){
   const card = gate.querySelector('.auth-card');
   if(card) card.setAttribute('data-criar', '1');
   gate.dataset.pedido = '1';
-  const tit = gate.querySelector('.auth-title'); if(tit) tit.textContent = t('vis_titulo');
+  try{ authPainel('criar'); erroPortao(''); }catch(e){}
   const v = document.getElementById('authVisit'); if(v) v.textContent = t('vis_voltar');
-  const er = document.getElementById('authError'); if(er) er.textContent = '';
   gate.classList.remove('hidden');
 }
 function fecharPortaoDeConta(){
@@ -5196,7 +5228,6 @@ function fecharPortaoDeConta(){
   gate.dataset.pedido = '';
   const m = document.getElementById('authMotivo'); if(m){ m.textContent = ''; m.classList.add('hidden'); }
   const card = gate.querySelector('.auth-card'); if(card) card.removeAttribute('data-criar');
-  const tit = gate.querySelector('.auth-title'); if(tit) tit.textContent = t('auth_login_tab');
   const v = document.getElementById('authVisit'); if(v) v.textContent = t('vis_btn');
 }
 /* true = é visitante e a tela de criar conta abriu (quem chamou para por aí) */
@@ -11552,6 +11583,72 @@ const I18N = {
     banca_futebol_laranja:'Naranja', banca_futebol_dia_cristal:'Cristal', banca_futebol_dia_imperial:'Imperial',
   }
 };
+/* textos da entrada com nome de usuário: 'pt|en|es|it|fr|de|nl|ja|zh|ko' (entram já aqui: a tela de entrar é montada logo no começo) */
+var CONTA_TXT = {
+ cad_titulo:'Criar conta|Create account|Crear cuenta|Crea account|Créer un compte|Konto erstellen|Account maken|アカウントを作る|创建账号|계정 만들기',
+ cad_nasc:'Data de nascimento|Birthday|Fecha de nacimiento|Data di nascita|Date de naissance|Geburtsdatum|Geboortedatum|生年月日|出生日期|생년월일',
+ cad_dia:'Dia|Day|Día|Giorno|Jour|Tag|Dag|日|日|일',
+ cad_mes:'Mês|Month|Mes|Mese|Mois|Monat|Maand|月|月|월',
+ cad_ano:'Ano|Year|Año|Anno|Année|Jahr|Jaar|年|年|년',
+ cad_nome:'Nome de usuário|Username|Nombre de usuario|Nome utente|Nom d’utilisateur|Benutzername|Gebruikersnaam|ユーザー名|用户名|사용자 이름',
+ cad_nome_dica:'3 a 20 letras ou números (pode usar _). Não use seu nome de verdade.|3 to 20 letters or numbers (_ is ok). Don’t use your real name.|3 a 20 letras o números (puedes usar _). No uses tu nombre real.|Da 3 a 20 lettere o numeri (puoi usare _). Non usare il tuo vero nome.|3 à 20 lettres ou chiffres (_ autorisé). N’utilise pas ton vrai nom.|3 bis 20 Buchstaben oder Zahlen (_ erlaubt). Nimm nicht deinen echten Namen.|3 tot 20 letters of cijfers (_ mag). Gebruik niet je echte naam.|英数字3〜20文字（_ も使える）。本名は使わないでね。|3到20个字母或数字（可以用 _）。不要用真名。|영문·숫자 3~20자(_ 사용 가능). 진짜 이름은 쓰지 마세요.',
+ cad_nome_ok:'Esse nome está livre!|That username is free!|¡Ese nombre está libre!|Questo nome è libero!|Ce nom est libre !|Der Name ist frei!|Die naam is vrij!|その名前は使えるよ！|这个名字可以用！|사용할 수 있는 이름이에요!',
+ cad_nome_usado:'Esse nome já existe. Tente outro.|That username is taken. Try another.|Ese nombre ya existe. Prueba otro.|Questo nome esiste già. Provane un altro.|Ce nom existe déjà. Essaie un autre.|Den Namen gibt es schon. Probier einen anderen.|Die naam bestaat al. Probeer een andere.|その名前はもう使われてるよ。別のにしてね。|这个名字已经有人用了，换一个吧。|이미 있는 이름이에요. 다른 걸로 해요.',
+ cad_nome_feio:'Esse nome não pode. Escolha outro.|That username isn’t allowed. Pick another.|Ese nombre no está permitido. Elige otro.|Questo nome non è consentito. Scegline un altro.|Ce nom n’est pas autorisé. Choisis-en un autre.|Dieser Name ist nicht erlaubt. Wähl einen anderen.|Die naam mag niet. Kies een andere.|その名前は使えないよ。別のにしてね。|这个名字不能用，换一个吧。|그 이름은 쓸 수 없어요. 다른 걸로 해요.',
+ cad_nome_formato:'Use de 3 a 20 letras ou números, sem espaço nem acento.|Use 3 to 20 letters or numbers, with no spaces.|Usa de 3 a 20 letras o números, sin espacios ni tildes.|Usa da 3 a 20 lettere o numeri, senza spazi né accenti.|Utilise 3 à 20 lettres ou chiffres, sans espace ni accent.|Nimm 3 bis 20 Buchstaben oder Zahlen, ohne Leerzeichen und Umlaute.|Gebruik 3 tot 20 letters of cijfers, zonder spaties.|英数字3〜20文字で、スペースなしにしてね。|用3到20个字母或数字，不要空格。|공백 없이 영문·숫자 3~20자로 해요.',
+ cad_senha:'Senha|Password|Contraseña|Password|Mot de passe|Passwort|Wachtwoord|パスワード|密码|비밀번호',
+ cad_senha_dica:'Pelo menos 6 letras ou números. Não conte pra ninguém.|At least 6 characters. Don’t tell anyone.|Al menos 6 caracteres. No se la digas a nadie.|Almeno 6 caratteri. Non dirla a nessuno.|Au moins 6 caractères. Ne le dis à personne.|Mindestens 6 Zeichen. Verrate es niemandem.|Minstens 6 tekens. Vertel het aan niemand.|6文字以上。だれにも教えないでね。|至少6个字符。不要告诉任何人。|6자 이상. 아무에게도 알려주지 마세요.',
+ cad_senha_nome:'A senha não pode ser igual ao nome de usuário.|The password can’t be the same as the username.|La contraseña no puede ser igual al nombre de usuario.|La password non può essere uguale al nome utente.|Le mot de passe ne peut pas être ton nom d’utilisateur.|Das Passwort darf nicht der Benutzername sein.|Het wachtwoord mag niet je gebruikersnaam zijn.|パスワードをユーザー名と同じにはできないよ。|密码不能和用户名一样。|비밀번호는 사용자 이름과 같으면 안 돼요.',
+ cad_ver:'Mostrar senha|Show password|Mostrar contraseña|Mostra password|Afficher le mot de passe|Passwort zeigen|Wachtwoord tonen|パスワードを見る|显示密码|비밀번호 보기',
+ cad_genero:'Você é...|You are...|Eres...|Sei...|Tu es...|Du bist...|Je bent...|あなたは…|你是…|당신은…',
+ cad_falta_nasc:'Escolha o dia em que você nasceu.|Pick your birthday.|Elige tu fecha de nacimiento.|Scegli la tua data di nascita.|Choisis ta date de naissance.|Wähle dein Geburtsdatum.|Kies je geboortedatum.|生年月日をえらんでね。|选择你的出生日期。|생년월일을 골라요.',
+ cad_falta_genero:'Escolha menino ou menina.|Pick boy or girl.|Elige niño o niña.|Scegli bambino o bambina.|Choisis garçon ou fille.|Wähle Junge oder Mädchen.|Kies jongen of meisje.|男の子か女の子をえらんでね。|选择男孩或女孩。|남자아이나 여자아이를 골라요.',
+ cad_ja_tem:'Já tem conta?|Already have an account?|¿Ya tienes cuenta?|Hai già un account?|Tu as déjà un compte ?|Schon ein Konto?|Heb je al een account?|アカウントを持ってる？|已经有账号了？|이미 계정이 있나요?',
+ cad_nao_tem:'Não tem conta?|No account yet?|¿No tienes cuenta?|Non hai un account?|Pas encore de compte ?|Noch kein Konto?|Nog geen account?|アカウントがない？|还没有账号？|계정이 없나요?',
+ ent_user_ph:'Nome de usuário ou e-mail|Username or email|Nombre de usuario o correo|Nome utente o email|Nom d’utilisateur ou e-mail|Benutzername oder E-Mail|Gebruikersnaam of e-mail|ユーザー名かメール|用户名或邮箱|사용자 이름 또는 이메일',
+ ent_erro:'Nome de usuário ou senha errados.|Wrong username or password.|Nombre de usuario o contraseña incorrectos.|Nome utente o password sbagliati.|Nom d’utilisateur ou mot de passe incorrect.|Benutzername oder Passwort falsch.|Gebruikersnaam of wachtwoord klopt niet.|ユーザー名かパスワードがちがうよ。|用户名或密码不对。|사용자 이름이나 비밀번호가 틀렸어요.',
+ ent_esqueci:'Esqueci minha senha|Forgot my password|Olvidé mi contraseña|Ho dimenticato la password|J’ai oublié mon mot de passe|Passwort vergessen|Wachtwoord vergeten|パスワードを忘れた|忘记密码了|비밀번호를 잊었어요',
+ rec_titulo:'Recuperar conta|Recover account|Recuperar cuenta|Recupera account|Récupérer le compte|Konto wiederherstellen|Account herstellen|アカウントを取りもどす|找回账号|계정 찾기',
+ rec_texto:'Digite seu nome de usuário. A gente manda um código pro e-mail de segurança da conta.|Type your username. We’ll send a code to the account’s security email.|Escribe tu nombre de usuario. Enviaremos un código al correo de seguridad de la cuenta.|Scrivi il tuo nome utente. Invieremo un codice all’email di sicurezza dell’account.|Écris ton nom d’utilisateur. On envoie un code à l’e-mail de sécurité du compte.|Gib deinen Benutzernamen ein. Wir schicken einen Code an die Sicherheits-E-Mail des Kontos.|Typ je gebruikersnaam. We sturen een code naar het beveiligingsmailadres van het account.|ユーザー名を入れてね。アカウントのセキュリティ用メールにコードを送るよ。|输入你的用户名。我们会把验证码发到账号的安全邮箱。|사용자 이름을 입력해요. 계정의 보안 이메일로 코드를 보내 줄게요.',
+ rec_pedir:'Mandar código|Send code|Enviar código|Invia codice|Envoyer le code|Code senden|Code sturen|コードを送る|发送验证码|코드 보내기',
+ rec_enviado:'Mandamos um código para {email}. Ele vale por 15 minutos.|We sent a code to {email}. It’s valid for 15 minutes.|Enviamos un código a {email}. Vale 15 minutos.|Abbiamo inviato un codice a {email}. Vale 15 minuti.|On a envoyé un code à {email}. Il est valable 15 minutes.|Wir haben einen Code an {email} geschickt. Er gilt 15 Minuten.|We hebben een code naar {email} gestuurd. Hij is 15 minuten geldig.|{email} にコードを送ったよ。15分間使えるよ。|验证码已发送到 {email}，15分钟内有效。|{email}(으)로 코드를 보냈어요. 15분 동안 쓸 수 있어요.',
+ rec_codigo_ph:'Código de 6 números|6-digit code|Código de 6 números|Codice di 6 cifre|Code à 6 chiffres|6-stelliger Code|Code van 6 cijfers|6けたのコード|6位验证码|6자리 코드',
+ rec_nova_ph:'Nova senha|New password|Nueva contraseña|Nuova password|Nouveau mot de passe|Neues Passwort|Nieuw wachtwoord|新しいパスワード|新密码|새 비밀번호',
+ rec_trocar:'Trocar senha|Change password|Cambiar contraseña|Cambia password|Changer le mot de passe|Passwort ändern|Wachtwoord wijzigen|パスワードを変える|修改密码|비밀번호 바꾸기',
+ rec_outro:'Mandar outro código|Send another code|Enviar otro código|Invia un altro codice|Envoyer un autre code|Neuen Code senden|Nieuwe code sturen|コードをもう一度送る|再发一个验证码|코드 다시 보내기',
+ rec_voltar:'Voltar|Back|Volver|Indietro|Retour|Zurück|Terug|もどる|返回|돌아가기',
+ rec_sem_email:'Essa conta não tem e-mail de segurança, então não dá pra recuperar por código.|This account has no security email, so it can’t be recovered with a code.|Esta cuenta no tiene correo de seguridad, así que no se puede recuperar con un código.|Questo account non ha un’email di sicurezza, quindi non si può recuperare con un codice.|Ce compte n’a pas d’e-mail de sécurité, donc impossible de le récupérer avec un code.|Dieses Konto hat keine Sicherheits-E-Mail, deshalb geht es nicht mit einem Code.|Dit account heeft geen beveiligingsmailadres, dus herstellen met een code kan niet.|このアカウントにはセキュリティ用メールがないから、コードでは取りもどせないよ。|这个账号没有安全邮箱，没法用验证码找回。|이 계정에는 보안 이메일이 없어서 코드로 찾을 수 없어요.',
+ rec_sem_conta:'Não achamos uma conta com esse nome.|We couldn’t find an account with that username.|No encontramos una cuenta con ese nombre.|Non abbiamo trovato un account con questo nome.|On n’a trouvé aucun compte avec ce nom.|Wir haben kein Konto mit diesem Namen gefunden.|We vonden geen account met die naam.|その名前のアカウントは見つからなかったよ。|没找到这个名字的账号。|그 이름의 계정을 찾지 못했어요.',
+ rec_link_email:'Se esse e-mail tiver conta, chega um link nele pra trocar a senha.|If that email has an account, a link to change the password is on its way.|Si ese correo tiene cuenta, llegará un enlace para cambiar la contraseña.|Se questa email ha un account, arriverà un link per cambiare la password.|Si cet e-mail a un compte, un lien pour changer le mot de passe va arriver.|Wenn es zu der E-Mail ein Konto gibt, kommt ein Link zum Ändern des Passworts.|Als dit e-mailadres een account heeft, komt er een link om het wachtwoord te wijzigen.|そのメールにアカウントがあれば、パスワードを変えるリンクが届くよ。|如果这个邮箱有账号，会收到修改密码的链接。|그 이메일에 계정이 있으면 비밀번호를 바꾸는 링크가 갈 거예요.',
+ rec_ok:'Senha trocada! Entrando…|Password changed! Logging in…|¡Contraseña cambiada! Entrando…|Password cambiata! Accesso in corso…|Mot de passe changé ! Connexion…|Passwort geändert! Du wirst eingeloggt…|Wachtwoord gewijzigd! Je wordt ingelogd…|パスワードを変えたよ！ログイン中…|密码已修改！正在登录…|비밀번호를 바꿨어요! 로그인 중…',
+ cod_errado:'Código errado. Faltam {n} tentativas.|Wrong code. {n} tries left.|Código incorrecto. Quedan {n} intentos.|Codice sbagliato. Restano {n} tentativi.|Code incorrect. Il reste {n} essais.|Falscher Code. Noch {n} Versuche.|Verkeerde code. Nog {n} pogingen.|コードがちがうよ。あと{n}回。|验证码不对，还剩{n}次。|코드가 틀렸어요. {n}번 남았어요.',
+ cod_expirou:'Esse código venceu. Peça outro.|That code expired. Ask for a new one.|Ese código venció. Pide otro.|Questo codice è scaduto. Chiedine un altro.|Ce code a expiré. Demandes-en un autre.|Der Code ist abgelaufen. Fordere einen neuen an.|Die code is verlopen. Vraag een nieuwe aan.|そのコードは期限切れだよ。新しいのを送ってね。|验证码过期了，再要一个吧。|코드가 만료됐어요. 새로 받아요.',
+ cod_tentativas:'Muitas tentativas erradas. Peça outro código.|Too many wrong tries. Ask for a new code.|Demasiados intentos fallidos. Pide otro código.|Troppi tentativi sbagliati. Chiedi un altro codice.|Trop d’essais ratés. Demande un autre code.|Zu viele falsche Versuche. Fordere einen neuen Code an.|Te veel foute pogingen. Vraag een nieuwe code aan.|まちがいが多すぎるよ。新しいコードを送ってね。|错误次数太多，再要一个验证码吧。|너무 많이 틀렸어요. 새 코드를 받아요.',
+ cod_espere:'Espere {s} segundos pra pedir outro código.|Wait {s} seconds to ask for another code.|Espera {s} segundos para pedir otro código.|Aspetta {s} secondi per chiedere un altro codice.|Attends {s} secondes pour demander un autre code.|Warte {s} Sekunden, bevor du einen neuen Code anforderst.|Wacht {s} seconden voor je een nieuwe code vraagt.|あと{s}秒待ってから、もう一度送ってね。|请等{s}秒再要一个验证码。|{s}초 뒤에 다시 받을 수 있어요.',
+ cod_muitos:'Você já pediu muitos códigos hoje. Tente amanhã.|You asked for too many codes today. Try tomorrow.|Pediste demasiados códigos hoy. Prueba mañana.|Hai chiesto troppi codici oggi. Riprova domani.|Tu as demandé trop de codes aujourd’hui. Réessaie demain.|Du hast heute zu viele Codes angefordert. Versuch es morgen.|Je hebt vandaag te veel codes gevraagd. Probeer het morgen.|今日はコードをたくさん送りすぎたよ。明日またやってね。|你今天要的验证码太多了，明天再试吧。|오늘은 코드를 너무 많이 받았어요. 내일 다시 해요.',
+ cod_indisponivel:'Ainda não dá pra mandar códigos. Tente mais tarde.|Codes can’t be sent right now. Try again later.|Todavía no se pueden enviar códigos. Prueba más tarde.|Per ora non si possono inviare codici. Riprova più tardi.|Impossible d’envoyer des codes pour l’instant. Réessaie plus tard.|Codes können gerade nicht verschickt werden. Versuch es später.|Codes versturen lukt nu nog niet. Probeer het later.|今はコードを送れないよ。あとでもう一度やってね。|现在还不能发送验证码，请稍后再试。|지금은 코드를 보낼 수 없어요. 나중에 다시 해요.',
+ seg_titulo:'Proteja sua conta|Protect your account|Protege tu cuenta|Proteggi il tuo account|Protège ton compte|Schütze dein Konto|Bescherm je account|アカウントを守ろう|保护你的账号|계정을 지켜요',
+ seg_texto:'Coloque um e-mail (pode ser o do seu pai ou da sua mãe). Se um dia esquecer a senha, a gente manda um código pra ele. É opcional.|Add an email (it can be a parent’s). If you ever forget your password, we’ll send a code to it. It’s optional.|Pon un correo (puede ser el de tu papá o tu mamá). Si algún día olvidas la contraseña, te enviaremos un código. Es opcional.|Aggiungi un’email (anche di mamma o papà). Se dimentichi la password, ti mandiamo un codice lì. È facoltativo.|Ajoute un e-mail (ça peut être celui d’un parent). Si tu oublies ton mot de passe, on y enverra un code. C’est facultatif.|Gib eine E-Mail an (auch die deiner Eltern). Wenn du dein Passwort vergisst, schicken wir dorthin einen Code. Freiwillig.|Voeg een e-mailadres toe (mag van je ouders zijn). Vergeet je je wachtwoord, dan sturen we daar een code heen. Het is niet verplicht.|メールを入れてね（おうちの人のでもOK）。パスワードを忘れたら、そこにコードを送るよ。入れなくてもだいじょうぶ。|填一个邮箱（可以是爸爸妈妈的）。如果忘了密码，我们会把验证码发到这里。可以不填。|이메일을 넣어 줘요(부모님 것도 돼요). 비밀번호를 잊으면 거기로 코드를 보내 줄게요. 안 넣어도 돼요.',
+ seg_email_ph:'E-mail|Email|Correo electrónico|Email|E-mail|E-Mail|E-mail|メールアドレス|邮箱|이메일',
+ seg_agora_nao:'Agora não|Not now|Ahora no|Non ora|Pas maintenant|Jetzt nicht|Nu niet|あとで|以后再说|나중에',
+ seg_conf_texto:'Digite o código que chegou em {email}.|Type the code we sent to {email}.|Escribe el código que llegó a {email}.|Scrivi il codice arrivato a {email}.|Écris le code envoyé à {email}.|Gib den Code ein, der an {email} ging.|Typ de code die naar {email} is gestuurd.|{email} に届いたコードを入れてね。|输入发到 {email} 的验证码。|{email}(으)로 온 코드를 입력해요.',
+ seg_confirmar:'Confirmar|Confirm|Confirmar|Conferma|Confirmer|Bestätigen|Bevestigen|確認する|确认|확인',
+ seg_trocar_email:'Usar outro e-mail|Use another email|Usar otro correo|Usa un’altra email|Utiliser un autre e-mail|Andere E-Mail nehmen|Ander e-mailadres|別のメールにする|换一个邮箱|다른 이메일 쓰기',
+ seg_ok:'Conta protegida!|Account protected!|¡Cuenta protegida!|Account protetto!|Compte protégé !|Konto geschützt!|Account beschermd!|アカウントを守れたよ！|账号已保护！|계정을 지켰어요!',
+ seg_email_invalido:'Esse e-mail não parece certo.|That email doesn’t look right.|Ese correo no parece correcto.|Questa email non sembra giusta.|Cet e-mail n’a pas l’air correct.|Diese E-Mail sieht nicht richtig aus.|Dat e-mailadres lijkt niet te kloppen.|そのメールアドレスはちがうみたい。|这个邮箱好像不对。|이메일이 이상해요.',
+ seg_menu:'Proteger conta|Protect account|Proteger cuenta|Proteggi account|Protéger le compte|Konto schützen|Account beschermen|アカウントを守る|保护账号|계정 보호',
+ cad_bloqueado:'Criar conta com nome de usuário ainda não está ligado. Por enquanto, entre com o Google.|Creating an account with a username isn’t turned on yet. For now, sign in with Google.|Crear cuenta con nombre de usuario aún no está activado. Por ahora, entra con Google.|La creazione di account con nome utente non è ancora attiva. Per ora entra con Google.|La création de compte avec nom d’utilisateur n’est pas encore activée. Pour l’instant, connecte-toi avec Google.|Konten mit Benutzernamen sind noch nicht eingeschaltet. Melde dich vorerst mit Google an.|Een account maken met gebruikersnaam staat nog niet aan. Log voorlopig in met Google.|ユーザー名でのアカウント作成はまだ使えないよ。今はGoogleでログインしてね。|还不能用用户名创建账号。现在请先用 Google 登录。|사용자 이름으로 계정 만들기는 아직 꺼져 있어요. 지금은 Google로 로그인해요.',
+ cad_menino:'Menino|Boy|Niño|Bambino|Garçon|Junge|Jongen|男の子|男孩|남자아이',
+ cad_menina:'Menina|Girl|Niña|Bambina|Fille|Mädchen|Meisje|女の子|女孩|여자아이',
+ seg_menu_ok:'Conta protegida: {email}|Account protected: {email}|Cuenta protegida: {email}|Account protetto: {email}|Compte protégé : {email}|Konto geschützt: {email}|Account beschermd: {email}|アカウント保護中: {email}|账号已保护：{email}|계정 보호 중: {email}'
+};
+(function(){
+  const ling = ['pt', 'en', 'es', 'it', 'fr', 'de', 'nl', 'ja', 'zh', 'ko'];
+  Object.keys(CONTA_TXT).forEach(k=>{
+    const v = CONTA_TXT[k].split('|');
+    ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; });
+  });
+})();
 function tTexto(key, vars){
   let s = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || (I18N.pt && I18N.pt[key])
     || (key.indexOf('cosm_pers_estilo_') === 0 && typeof pzNomeEstilo === 'function' && pzNomeEstilo(key.slice(17))) || key;
@@ -11759,6 +11856,8 @@ function resetLocalAccountData(){
   localStorage.removeItem(SHOW_SAVED_PUBLIC_KEY);
   localStorage.removeItem(SHOW_LIKED_PUBLIC_KEY);
   localStorage.removeItem(SHOW_PUBLISHED_PUBLIC_KEY);
+  localStorage.removeItem('koda_nascimento');
+  localStorage.removeItem('koda_seguranca');
 }
 function collectLocalData(){
   let customGames=[], drafts=[], hiddenGames=[], likedGames=[], savedGames=[], contactNicknames={}, chatWallpapers={}, contactPhotos={};
@@ -11814,6 +11913,9 @@ function collectLocalData(){
   try{ const tv = tutLer(); if(Object.keys(tv).length) dados.tutoriais = tv; }catch(e){}
   /* rotina (nível, sequência, baú grátis, roleta, oferta relâmpago): só de quem já mexeu */
   try{ if(localStorage.getItem('koda_rotina') !== null) dados.rotina = rotLer(); }catch(e){}
+  /* conta com nome de usuário: data de nascimento e o e-mail de segurança já escondido (a***@...) — só de quem tem */
+  try{ const n = localStorage.getItem('koda_nascimento'); if(n) dados.nascimento = n; }catch(e){}
+  try{ const sg = localStorage.getItem('koda_seguranca'); if(sg) dados.seguranca = sg; }catch(e){}
   return dados;
 }
 function applyRemoteData(data){
@@ -11880,6 +11982,8 @@ function applyRemoteData(data){
     try{ agAtualizar(); }catch(e){}
   }
   if(data.banca && typeof data.banca === 'object') localStorage.setItem('jogodromo_banca', JSON.stringify(data.banca));
+  if(typeof data.nascimento === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data.nascimento)) localStorage.setItem('koda_nascimento', data.nascimento);
+  if(typeof data.seguranca === 'string' && data.seguranca.length < 140) localStorage.setItem('koda_seguranca', data.seguranca);
   /* o contador de compartilhamentos só sobe: nunca volta pra um número menor (não dá pra ganhar de novo) */
   if(typeof data.compartilhou === 'number'){
     const doServidor = Math.min(COMPARTILHAR_MAX, Math.max(0, Math.floor(data.compartilhou)));
@@ -13420,7 +13524,7 @@ function openSwitchAccountMenu(){
           ${pzAv(a.avatar, a.email, 'switch-account-avatar')}
           <span class="switch-account-text">
             <span class="switch-account-name">${chatListEscape(a.name||a.email)}</span>
-            <span class="switch-account-email">${chatListEscape(a.email)}</span>
+            <span class="switch-account-email">${chatListEscape(rotuloDaConta(a.email))}</span>
           </span>
           ${a.email===currentEmail ? `<span class="switch-account-check">${ICONS.checkCircle||'✓'}</span>` : ''}
         </button>
@@ -13455,7 +13559,7 @@ function openSwitchAccountMenu(){
           toast(firebaseErrorMessage(e));
         }
       } else {
-        showPasswordPrompt(t('switch_account_password_prompt',{email}), async (password)=>{
+        showPasswordPrompt(t('switch_account_password_prompt',{email: rotuloDaConta(email)}), async (password)=>{
           try{
             await fbAuth().signInWithEmailAndPassword(email, password);
             location.reload();
@@ -14434,6 +14538,7 @@ function openProfileModal(){
         <button class="confirm-cancel" id="profileClose">${t('menu_cancel')}</button>
         <button class="confirm-ok" id="profileSave">${t('profile_save')}</button>
       </div>
+      ${ehContaDeNome(user.email) ? `<button class="profile-seguro-btn" id="profileSeguro" type="button">${ICONE_ESCUDO}<span>${chatListEscape(localStorage.getItem('koda_seguranca') ? t('seg_menu_ok', {email: localStorage.getItem('koda_seguranca')}) : t('seg_menu'))}</span></button>` : ''}
       <button class="profile-logout-btn" id="profileLogout">${t('auth_logout_btn')}</button>
     </div>
   `;
@@ -14441,6 +14546,8 @@ function openProfileModal(){
   function close(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
   bg.addEventListener('click', e=>{ if(e.target===bg) close(); });
   bg.querySelector('#profileClose').addEventListener('click', close);
+  const segBtn = bg.querySelector('#profileSeguro');
+  if(segBtn) segBtn.addEventListener('click', ()=>{ close(); abrirProtecao(user); });
   bg.querySelector('#profileLogout').addEventListener('click', ()=>{
     close();
     showConfirm(t('auth_logout_confirm',{name:chatListEscape(name)}), t('auth_logout_btn'), async ()=>{
@@ -14705,39 +14812,327 @@ function firebaseErrorMessage(err){
   };
   return map[err.code] || err.message || t('auth_error_generic');
 }
+/* ============================================================
+   ENTRADA "TIPO ROBLOX": criar conta com nome de usuário
+   - Criar conta: data de nascimento, nome de usuário, senha e menino/menina. Sem e-mail.
+     Por trás, a conta do Firebase usa um e-mail de mentirinha: <nome>@contas.koda.invalid
+     (".invalid" não existe de verdade: nenhum e-mail vai pra lá, e o nome fica único porque o e-mail é único).
+   - Entrar: nome de usuário (ou o e-mail, pra quem já tinha conta) e senha. O Google continua embaixo.
+   - Proteger a conta (opcional): um e-mail de segurança, confirmado com um código. Ele fica guardado só
+     no servidor do Koda; no site aparece escondido (a***@gmail.com).
+   - Esqueci a senha: o servidor manda um código pro e-mail de segurança e, com ele, troca a senha.
+     Conta com e-mail de verdade (as antigas) recebe o link do próprio Firebase.
+============================================================ */
+const CONTA_DOMINIO = 'contas.koda.invalid';
+const CADASTRO_KEY = 'koda_cadastro', PROTEGER_KEY = 'koda_proteger';
+const ICONE_ESCUDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 4.5 5.5v6c0 4.6 3.1 8.4 7.5 10 4.4-1.6 7.5-5.4 7.5-10v-6z"/><path d="m8.6 12 2.4 2.4 4.4-4.6"/></svg>';
+const ICONE_OLHO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>';
+function nomeUsuarioValido(n){ return /^[a-z0-9][a-z0-9_]{1,18}[a-z0-9]$/i.test(String(n || '')); }
+function emailDeUsuario(n){ return String(n || '').trim().toLowerCase() + '@' + CONTA_DOMINIO; }
+function ehContaDeNome(email){ return String(email || '').toLowerCase().endsWith('@' + CONTA_DOMINIO); }
+/* o que aparece no lugar do e-mail (na lista de trocar de conta, por exemplo) */
+function rotuloDaConta(email){ return ehContaDeNome(email) ? '@' + String(email).split('@')[0] : String(email || ''); }
+/* fala com o servidor do Koda (o mesmo da análise de jogos) */
+async function contaPedir(rota, corpo, token){
+  try{
+    const h = {'Content-Type': 'application/json'};
+    if(token) h.Authorization = 'Bearer ' + token;
+    const r = await fetch(SERVER_URL + rota, {method: 'POST', headers: h, body: JSON.stringify(corpo || {})});
+    const j = await r.json().catch(()=>null);
+    return (j && typeof j === 'object') ? j : {erro: 'falha'};
+  }catch(e){ return {erro: 'rede'}; }
+}
+function msgDeConta(j){
+  const e = j && j.erro;
+  if(e === 'sem_conta') return t('rec_sem_conta');
+  if(e === 'sem_email') return t('rec_sem_email');
+  if(e === 'codigo_errado') return t('cod_errado', {n: Math.max(0, Number(j.restam) || 0)});
+  if(e === 'expirou') return t('cod_expirou');
+  if(e === 'tentativas') return t('cod_tentativas');
+  if(e === 'espere') return t('cod_espere', {s: Math.max(1, Number(j.segundos) || 60)});
+  if(e === 'muitos_codigos') return t('cod_muitos');
+  if(e === 'email_invalido') return t('seg_email_invalido');
+  if(e === 'senha_fraca') return t('auth_error_weak_password');
+  if(e === 'rede') return t('auth_error_network');
+  return t('cod_indisponivel');   // servidor ainda sem a parte das contas, sem o Brevo configurado etc.
+}
+/* as 3 telas: criar conta, entrar e recuperar */
+function portaoHtml(){
+  const esc = chatListEscape;
+  const ordem = ({en: 'mda', ja: 'amd', zh: 'amd', ko: 'amd'})[currentLang] || 'dma';
+  let meses = [];
+  try{ const f = new Intl.DateTimeFormat(currentLang, {month: 'long'}); meses = Array.from({length: 12}, (_, i)=>f.format(new Date(2020, i, 15))); }
+  catch(e){ meses = Array.from({length: 12}, (_, i)=>String(i + 1)); }
+  const ano = new Date().getFullYear();
+  const opc = (rot, itens)=>`<option value="">${esc(rot)}</option>` + itens.map(([v, txt])=>`<option value="${v}">${esc(String(txt))}</option>`).join('');
+  const sel = {
+    d: `<select class="auth-input cad-d" id="cadDia" aria-label="${esc(t('cad_dia'))}">${opc(t('cad_dia'), Array.from({length: 31}, (_, i)=>[i + 1, i + 1]))}</select>`,
+    m: `<select class="auth-input cad-m" id="cadMes" aria-label="${esc(t('cad_mes'))}">${opc(t('cad_mes'), meses.map((m, i)=>[i + 1, m]))}</select>`,
+    a: `<select class="auth-input cad-a" id="cadAno" aria-label="${esc(t('cad_ano'))}">${opc(t('cad_ano'), Array.from({length: 100}, (_, i)=>[ano - i, ano - i]))}</select>`
+  };
+  const olho = id=>`<button type="button" class="auth-olho" data-olho="${id}" aria-pressed="false" aria-label="${esc(t('cad_ver'))}" title="${esc(t('cad_ver'))}">${ICONE_OLHO}</button>`;
+  const semCorrecao = 'autocapitalize="none" autocorrect="off" spellcheck="false"';
+  return `
+  <section class="auth-painel" data-painel="criar">
+    <div class="auth-title">${esc(t('cad_titulo'))}</div>
+    <p class="auth-error" role="alert"></p>
+    <span class="auth-rot" id="cadNascRot">${esc(t('cad_nasc'))}</span>
+    <div class="auth-nasc" role="group" aria-labelledby="cadNascRot">${ordem.split('').map(k=>sel[k]).join('')}</div>
+    <label class="auth-rot" for="cadNome">${esc(t('cad_nome'))}</label>
+    <input class="auth-input" id="cadNome" type="text" maxlength="20" autocomplete="username" ${semCorrecao} aria-describedby="cadNomeDica">
+    <p class="auth-dica" id="cadNomeDica" aria-live="polite">${esc(t('cad_nome_dica'))}</p>
+    <label class="auth-rot" for="cadSenha">${esc(t('cad_senha'))}</label>
+    <div class="auth-senha"><input class="auth-input" id="cadSenha" type="password" maxlength="100" autocomplete="new-password" aria-describedby="cadSenhaDica">${olho('cadSenha')}</div>
+    <p class="auth-dica" id="cadSenhaDica">${esc(t('cad_senha_dica'))}</p>
+    <span class="auth-rot" id="cadGenRot">${esc(t('cad_genero'))}</span>
+    <div class="auth-gen" id="cadGen" role="group" aria-labelledby="cadGenRot">${['menino', 'menina'].map(g=>`<button type="button" data-g="${g}" aria-pressed="false"><i class="auth-gen-boneco"></i><span>${esc(t('cad_' + g))}</span></button>`).join('')}</div>
+    <button class="auth-go" id="cadGo" type="button">${esc(t('cad_titulo'))}</button>
+    <p class="auth-troca">${esc(t('cad_ja_tem'))} <button type="button" class="auth-link" data-ir="entrar">${esc(t('auth_login_tab'))}</button></p>
+  </section>
+  <section class="auth-painel" data-painel="entrar" hidden>
+    <div class="auth-title">${esc(t('auth_login_tab'))}</div>
+    <p class="auth-error" id="authError" role="alert"></p>
+    <input class="auth-input" id="authUser" type="text" autocomplete="username" ${semCorrecao} placeholder="${esc(t('ent_user_ph'))}" aria-label="${esc(t('ent_user_ph'))}">
+    <div class="auth-senha"><input class="auth-input" id="authPass" type="password" autocomplete="current-password" placeholder="${esc(t('auth_password_ph'))}" aria-label="${esc(t('auth_password_ph'))}">${olho('authPass')}</div>
+    <button class="auth-go" id="authGo" type="button">${esc(t('auth_login_tab'))}</button>
+    <button type="button" class="auth-link auth-esqueci" data-ir="esqueci">${esc(t('ent_esqueci'))}</button>
+    <p class="auth-troca">${esc(t('cad_nao_tem'))} <button type="button" class="auth-link" data-ir="criar">${esc(t('cad_titulo'))}</button></p>
+  </section>
+  <section class="auth-painel" data-painel="esqueci" hidden>
+    <div class="auth-title">${esc(t('rec_titulo'))}</div>
+    <p class="auth-error" role="alert"></p>
+    <div data-rec="1">
+      <p class="auth-texto">${esc(t('rec_texto'))}</p>
+      <input class="auth-input" id="recNome" type="text" autocomplete="username" ${semCorrecao} placeholder="${esc(t('ent_user_ph'))}" aria-label="${esc(t('ent_user_ph'))}">
+      <button class="auth-go" id="recPedir" type="button">${esc(t('rec_pedir'))}</button>
+    </div>
+    <div data-rec="2" hidden>
+      <p class="auth-ok" id="recEnviado" aria-live="polite"></p>
+      <input class="auth-input auth-codigo" id="recCodigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="${esc(t('rec_codigo_ph'))}" aria-label="${esc(t('rec_codigo_ph'))}">
+      <div class="auth-senha"><input class="auth-input" id="recSenha" type="password" maxlength="100" autocomplete="new-password" placeholder="${esc(t('rec_nova_ph'))}" aria-label="${esc(t('rec_nova_ph'))}">${olho('recSenha')}</div>
+      <button class="auth-go" id="recTrocar" type="button">${esc(t('rec_trocar'))}</button>
+      <button type="button" class="auth-link auth-esqueci" id="recOutro">${esc(t('rec_outro'))}</button>
+    </div>
+    <button type="button" class="auth-link auth-voltar" data-ir="entrar">${esc(t('rec_voltar'))}</button>
+  </section>`;
+}
+function authPainel(nome){
+  const gate = document.getElementById('authGate');
+  if(!gate) return;
+  gate.querySelectorAll('.auth-painel').forEach(p=>{ p.hidden = p.dataset.painel !== nome; });
+  const extra = document.getElementById('authExtra');
+  if(extra) extra.hidden = nome === 'esqueci';
+  gate.querySelectorAll('.auth-painel .auth-error').forEach(e=>{ e.textContent = ''; });
+  if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)){
+    const primeiro = gate.querySelector('.auth-painel:not([hidden]) input:not([hidden])');
+    if(primeiro && !gate.classList.contains('hidden')) setTimeout(()=>{ try{ primeiro.focus(); }catch(e){} }, 60);
+  }
+}
+/* a mensagem de erro (ou de aviso) da tela que está aberta */
+function erroPortao(msg){
+  const el = document.querySelector('#authGate .auth-painel:not([hidden]) .auth-error');
+  if(el) el.textContent = msg || '';
+}
+/* depois de entrar: recarrega a página do jeito que o Koda sempre fez */
+async function entrouPorSenha(email){
+  recarregandoPorLogin = true;
+  visitanteLigar(false);
+  await pullFromServer();
+  rememberAccount(email, getDisplayName(fbAuth().currentUser), getDisplayAvatar(fbAuth().currentUser), 'password');
+  try{ sessionStorage.setItem('jogodromo_synced', '1'); }catch(e){}
+  location.reload();
+}
+/* a conta acabou de ser criada pelo nome de usuário: o que a pessoa escolheu vira o perfil dela.
+   Fica guardado antes de criar porque, ao entrar numa conta nova, o Koda limpa os dados da conta anterior. */
+async function aplicarCadastroPendente(user){
+  let p = null;
+  try{ p = JSON.parse(localStorage.getItem(CADASTRO_KEY)); }catch(e){}
+  if(!p || !p.nome || !user || String(user.email || '').toLowerCase() !== emailDeUsuario(p.nome)) return false;
+  try{
+    const cfg = Object.assign(pzNorm(PZ_PADRAO), {genero: p.genero === 'menina' ? 'menina' : 'menino'});
+    localStorage.setItem(PROFILE_NICK_KEY, String(p.nome).slice(0, 24));
+    pzSalvarHeroi(cfg);
+    pzSalvarAgente({cfg: Object.assign({}, cfg), nome: '', balao: 'branco', oculto: false});
+    if(/^\d{4}-\d{2}-\d{2}$/.test(p.nasc || '')) localStorage.setItem('koda_nascimento', p.nasc);
+    localStorage.setItem(PROTEGER_KEY, user.uid);
+    localStorage.removeItem(CADASTRO_KEY);
+    sessionStorage.setItem('jogodromo_synced', '1');   // conta novinha: não tem nada no servidor pra baixar
+  }catch(e){}
+  try{ agAtualizar(); }catch(e){}
+  try{ await syncToServer(); }catch(e){}
+  return true;
+}
 let authMode = 'login';
 function renderAuthForm(){
-  const goBtn = document.getElementById('authGo');
+  const gate = document.getElementById('authGate');
+  const box = document.getElementById('authPaineis');
   const googleBtn = document.getElementById('authGoogle');
-  const errEl = document.getElementById('authError');
-  goBtn.addEventListener('click', async ()=>{
-    const email = document.getElementById('authUser').value.trim();
-    const password = document.getElementById('authPass').value;
-    errEl.textContent = '';
-    if(!email || !password){ errEl.textContent = t('auth_fill_both'); return; }
-    goBtn.disabled = true;
+  box.innerHTML = portaoHtml();
+  const $ = id=>document.getElementById(id);
+  const enter = (id, fn)=>$(id).addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); fn(); } });
+  gate.querySelectorAll('[data-ir]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); authPainel(b.dataset.ir); }));
+  gate.querySelectorAll('[data-olho]').forEach(b=>b.addEventListener('click', ()=>{
+    const inp = $(b.dataset.olho), ver = inp.type === 'password';
+    inp.type = ver ? 'text' : 'password';
+    b.setAttribute('aria-pressed', String(ver));
+  }));
+  authPainel(loadKnownAccounts().length ? 'entrar' : 'criar');
+  /* o bonequinho de cada um (o desenho do personagem só fica pronto depois que a página inteira carrega) */
+  setTimeout(()=>{ try{ box.querySelectorAll('#cadGen button').forEach(b=>{ b.querySelector('.auth-gen-boneco').outerHTML = pzCorpo(pzCodigo(Object.assign(pzNorm(PZ_PADRAO), {genero: b.dataset.g}))); }); }catch(e){} }, 0);
+
+  /* ---------- criar conta ---------- */
+  const cad = {genero: null, livre: null, seq: 0, timer: null};
+  const dica = $('cadNomeDica');
+  const pintarDica = (txt, tipo)=>{ dica.textContent = txt; dica.className = 'auth-dica' + (tipo ? ' ' + tipo : ''); };
+  $('cadNome').addEventListener('input', ()=>{
+    const nome = $('cadNome').value.trim();
+    clearTimeout(cad.timer);
+    cad.livre = null; cad.seq++;
+    if(!nome){ pintarDica(t('cad_nome_dica')); return; }
+    if(!nomeUsuarioValido(nome)){ pintarDica(nome.length >= 3 || /[^a-z0-9_]/i.test(nome) ? t('cad_nome_formato') : t('cad_nome_dica'), nome.length >= 3 || /[^a-z0-9_]/i.test(nome) ? 'ruim' : ''); return; }
+    pintarDica(t('cad_nome_dica'));
+    const seq = cad.seq;
+    cad.timer = setTimeout(async ()=>{
+      const j = await contaPedir('/conta/livre', {usuario: nome});
+      if(seq !== cad.seq || typeof j.livre !== 'boolean') return;   // servidor sem essa parte ainda: a checagem fica pra hora de criar
+      cad.livre = j.livre ? true : (j.motivo === 'palavra' ? 'palavra' : false);
+      if(j.livre) pintarDica(t('cad_nome_ok'), 'ok');
+      else pintarDica(t(j.motivo === 'palavra' ? 'cad_nome_feio' : j.motivo === 'formato' ? 'cad_nome_formato' : 'cad_nome_usado'), 'ruim');
+    }, 450);
+  });
+  $('cadGen').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-g]'); if(!b) return;
+    cad.genero = b.dataset.g;
+    $('cadGen').querySelectorAll('button').forEach(x=>{ x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    playSound('click');
+  });
+  const criar = async ()=>{
+    erroPortao('');
+    const d = +$('cadDia').value, m = +$('cadMes').value, a = +$('cadAno').value;
+    const nasc = new Date(a, m - 1, d);
+    if(!d || !m || !a || nasc.getMonth() !== m - 1 || nasc > new Date()){ erroPortao(t('cad_falta_nasc')); return; }
+    const nome = $('cadNome').value.trim();
+    if(!nomeUsuarioValido(nome)){ erroPortao(t('cad_nome_formato')); $('cadNome').focus(); return; }
+    if(cad.livre === false){ erroPortao(t('cad_nome_usado')); return; }
+    if(cad.livre === 'palavra'){ erroPortao(t('cad_nome_feio')); return; }
+    const senha = $('cadSenha').value;
+    if(senha.length < 6){ erroPortao(t('auth_error_weak_password')); return; }
+    if(senha.trim().toLowerCase() === nome.toLowerCase()){ erroPortao(t('cad_senha_nome')); return; }
+    if(!cad.genero){ erroPortao(t('cad_falta_genero')); return; }
+    const btn = $('cadGo');
+    btn.disabled = true;
+    const pad = n=>String(n).padStart(2, '0');
+    try{ localStorage.setItem(CADASTRO_KEY, JSON.stringify({nome, genero: cad.genero, nasc: a + '-' + pad(m) + '-' + pad(d)})); }catch(e){}
     try{
-      await fbAuth().signInWithEmailAndPassword(email, password);
-      recarregandoPorLogin = true;
-      visitanteLigar(false);
-      await pullFromServer();
-      rememberAccount(email, getDisplayName(fbAuth().currentUser), getDisplayAvatar(fbAuth().currentUser), 'password');
-      try{ sessionStorage.setItem('jogodromo_synced','1'); }catch(e){}
-      location.reload();
+      /* daqui pra frente quem cuida é a entrada da conta (initAuth): ela aplica o que foi escolhido e fecha esta tela */
+      await fbAuth().createUserWithEmailAndPassword(emailDeUsuario(nome), senha);
+      rememberAccount(emailDeUsuario(nome), nome, null, 'password');
+    }catch(e){
+      try{ localStorage.removeItem(CADASTRO_KEY); }catch(_){}
+      btn.disabled = false;
+      const cod = e && e.code;
+      erroPortao(cod === 'auth/email-already-in-use' ? t('cad_nome_usado')
+        : (cod === 'auth/operation-not-allowed' || cod === 'auth/admin-restricted-operation') ? t('cad_bloqueado')
+        : firebaseErrorMessage(e));
+    }
+  };
+  $('cadGo').addEventListener('click', criar);
+  enter('cadSenha', criar);
+
+  /* ---------- entrar (nome de usuário ou e-mail) ---------- */
+  const entrar = async ()=>{
+    const bruto = $('authUser').value.trim(), senha = $('authPass').value;
+    erroPortao('');
+    if(!bruto || !senha){ erroPortao(t('auth_fill_both')); return; }
+    const porNome = bruto.indexOf('@') < 0;
+    if(porNome && !nomeUsuarioValido(bruto)){ erroPortao(t('ent_erro')); return; }
+    const email = porNome ? emailDeUsuario(bruto) : bruto;
+    const btn = $('authGo');
+    btn.disabled = true;
+    try{
+      await fbAuth().signInWithEmailAndPassword(email, senha);
+      await entrouPorSenha(email);
     }catch(e){
       recarregandoPorLogin = false;
-      errEl.textContent = firebaseErrorMessage(e);
-      goBtn.disabled = false;
+      erroPortao(porNome && e && /wrong-password|invalid-credential|user-not-found|invalid-login/.test(e.code || '') ? t('ent_erro') : firebaseErrorMessage(e));
+      btn.disabled = false;
     }
+  };
+  $('authGo').addEventListener('click', entrar);
+  enter('authUser', ()=>$('authPass').focus());
+  enter('authPass', entrar);
+
+  /* ---------- esqueci a senha ---------- */
+  const rec = {nome: ''};
+  const pedirCodigo = async ()=>{
+    const bruto = ($('recNome').value || rec.nome).trim();
+    erroPortao('');
+    if(!bruto){ erroPortao(t('rec_sem_conta')); return; }
+    const btn = $('recPedir');
+    btn.disabled = true;
+    try{
+      if(bruto.indexOf('@') >= 0){
+        /* conta com e-mail de verdade: o próprio Firebase manda o link de trocar a senha */
+        try{ fbAuth().languageCode = currentLang; await fbAuth().sendPasswordResetEmail(bruto); }catch(e){ if(e && e.code === 'auth/invalid-email'){ erroPortao(firebaseErrorMessage(e)); return; } }
+        $('recEnviado').textContent = t('rec_link_email');
+        gate.querySelector('[data-rec="1"]').hidden = true;
+        gate.querySelector('[data-rec="2"]').hidden = false;
+        ['recCodigo', 'recSenha', 'recTrocar', 'recOutro'].forEach(id=>{ const el = $(id); (el.closest('.auth-senha') || el).hidden = true; });
+        return;
+      }
+      if(!nomeUsuarioValido(bruto)){ erroPortao(t('rec_sem_conta')); return; }
+      const j = await contaPedir('/conta/codigo', {usuario: bruto, lang: currentLang});
+      if(!j.ok){ erroPortao(msgDeConta(j)); return; }
+      rec.nome = bruto;
+      $('recEnviado').textContent = t('rec_enviado', {email: j.mascara || ''});
+      gate.querySelector('[data-rec="1"]').hidden = true;
+      gate.querySelector('[data-rec="2"]').hidden = false;
+      ['recCodigo', 'recSenha', 'recTrocar', 'recOutro'].forEach(id=>{ const el = $(id); (el.closest('.auth-senha') || el).hidden = false; });
+      setTimeout(()=>{ try{ $('recCodigo').focus(); }catch(e){} }, 60);
+    }finally{ btn.disabled = false; }
+  };
+  $('recPedir').addEventListener('click', pedirCodigo);
+  enter('recNome', pedirCodigo);
+  $('recOutro').addEventListener('click', async ()=>{
+    erroPortao('');
+    const j = await contaPedir('/conta/codigo', {usuario: rec.nome, lang: currentLang});
+    if(j.ok){ $('recEnviado').textContent = t('rec_enviado', {email: j.mascara || ''}); $('recCodigo').value = ''; }
+    else erroPortao(msgDeConta(j));
   });
+  $('recCodigo').addEventListener('input', ()=>{ const v = $('recCodigo').value.replace(/\D/g, '').slice(0, 6); if(v !== $('recCodigo').value) $('recCodigo').value = v; });
+  const trocar = async ()=>{
+    const codigo = $('recCodigo').value.replace(/\D/g, ''), senha = $('recSenha').value;
+    erroPortao('');
+    if(codigo.length !== 6){ erroPortao(t('rec_codigo_ph')); $('recCodigo').focus(); return; }
+    if(senha.length < 6){ erroPortao(t('auth_error_weak_password')); return; }
+    if(senha.trim().toLowerCase() === rec.nome.toLowerCase()){ erroPortao(t('cad_senha_nome')); return; }
+    const btn = $('recTrocar');
+    btn.disabled = true;
+    const j = await contaPedir('/conta/nova-senha', {usuario: rec.nome, codigo, senha});
+    if(!j.ok){ btn.disabled = false; erroPortao(msgDeConta(j)); return; }
+    $('recEnviado').textContent = t('rec_ok');
+    try{
+      const email = emailDeUsuario(rec.nome);
+      await fbAuth().signInWithEmailAndPassword(email, senha);
+      await entrouPorSenha(email);
+    }catch(e){
+      recarregandoPorLogin = false;
+      btn.disabled = false;
+      $('authUser').value = rec.nome;
+      authPainel('entrar');
+    }
+  };
+  $('recTrocar').addEventListener('click', trocar);
+  enter('recSenha', trocar);
+
+  /* ---------- visitante e Google (embaixo das telas de criar e de entrar) ---------- */
   const visBtn = document.getElementById('authVisit');
   if(visBtn) visBtn.addEventListener('click', ()=>{
-    const gate = document.getElementById('authGate');
     if(gate && gate.dataset.pedido === '1') fecharPortaoDeConta();   // veio de um "precisa de conta": volta pra onde estava
     else entrarVisitante();
   });
   googleBtn.addEventListener('click', async ()=>{
-    errEl.textContent = '';
+    erroPortao('');
     googleBtn.disabled = true;
     try{
       const result = await fbAuth().signInWithPopup(googleProvider());
@@ -14751,10 +15146,100 @@ function renderAuthForm(){
       location.reload();
     }catch(e){
       recarregandoPorLogin = false;
-      errEl.textContent = isStandaloneMode() ? t('google_standalone_error') : firebaseErrorMessage(e);
+      erroPortao(isStandaloneMode() ? t('google_standalone_error') : firebaseErrorMessage(e));
       googleBtn.disabled = false;
     }
   });
+}
+/* ---------- proteger a conta: e-mail de segurança, confirmado com um código ---------- */
+function iniciarProtecao(user){
+  let pend = null;
+  try{ pend = localStorage.getItem(PROTEGER_KEY); }catch(e){}
+  if(!pend || !user || pend !== user.uid) return;
+  try{ localStorage.removeItem(PROTEGER_KEY); }catch(e){}
+  if(!ehContaDeNome(user.email)) return;
+  /* espera as outras janelas que aparecem ao entrar (prêmio do dia, aulas...) fecharem */
+  let vezes = 0;
+  const tentar = ()=>{
+    if(document.querySelector('.rot-bg.show, .onb-bg, #kodaSplash, .tut-bg, .kbs-dlg-bg') && ++vezes < 90){ setTimeout(tentar, 800); return; }
+    abrirProtecao(user);
+  };
+  quandoAIntroSair(()=>setTimeout(tentar, 900));
+}
+function abrirProtecao(user){
+  if(!user || document.getElementById('segBg')) return;
+  const esc = chatListEscape;
+  const bg = document.createElement('div');
+  bg.id = 'segBg';
+  bg.className = 'confirm-bg';
+  bg.innerHTML = `
+    <div class="confirm-card seg-card" role="dialog" aria-modal="true" aria-labelledby="segTit">
+      <div class="seg-ic">${ICONE_ESCUDO}</div>
+      <h3 id="segTit">${esc(t('seg_titulo'))}</h3>
+      <div data-seg="1">
+        <p class="seg-txt">${esc(t('seg_texto'))}</p>
+        <input class="auth-input" id="segEmail" type="email" inputmode="email" autocomplete="email" maxlength="120" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="${esc(t('seg_email_ph'))}" aria-label="${esc(t('seg_email_ph'))}">
+        <p class="auth-error" role="alert"></p>
+        <div class="confirm-actions">
+          <button type="button" class="confirm-cancel" data-seg-fechar>${esc(t('seg_agora_nao'))}</button>
+          <button type="button" class="confirm-ok" id="segMandar">${esc(t('rec_pedir'))}</button>
+        </div>
+      </div>
+      <div data-seg="2" hidden>
+        <p class="seg-txt" id="segConfTxt" aria-live="polite"></p>
+        <input class="auth-input auth-codigo" id="segCodigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="${esc(t('rec_codigo_ph'))}" aria-label="${esc(t('rec_codigo_ph'))}">
+        <p class="auth-error" role="alert"></p>
+        <div class="confirm-actions">
+          <button type="button" class="confirm-cancel" id="segOutro">${esc(t('seg_trocar_email'))}</button>
+          <button type="button" class="confirm-ok" id="segConfirmar">${esc(t('seg_confirmar'))}</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+  const $ = sel=>bg.querySelector(sel);
+  const passo = n=>{ bg.querySelectorAll('[data-seg]').forEach(el=>{ el.hidden = el.dataset.seg !== String(n); }); bg.querySelectorAll('.auth-error').forEach(e=>{ e.textContent = ''; }); };
+  const erro = msg=>{ const el = bg.querySelector('[data-seg]:not([hidden]) .auth-error'); if(el) el.textContent = msg || ''; };
+  const fechar = ()=>{ if(bg.parentNode) bg.parentNode.removeChild(bg); };
+  $('[data-seg-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+  const mandar = async ()=>{
+    const email = $('#segEmail').value.trim();
+    erro('');
+    if(!/^[^\s@<>"']{1,64}@[^\s@<>"']+\.[a-z]{2,24}$/i.test(email)){ erro(t('seg_email_invalido')); return; }
+    const btn = $('#segMandar');
+    btn.disabled = true;
+    let token = '';
+    try{ token = await user.getIdToken(); }catch(e){}
+    const j = await contaPedir('/conta/seguranca', {email, lang: currentLang}, token);
+    btn.disabled = false;
+    if(!j.ok){ erro(msgDeConta(j)); return; }
+    passo(2);
+    $('#segConfTxt').textContent = t('seg_conf_texto', {email: j.mascara || ''});
+    setTimeout(()=>{ try{ $('#segCodigo').focus(); }catch(e){} }, 60);
+  };
+  const confirmar = async ()=>{
+    const codigo = $('#segCodigo').value.replace(/\D/g, '');
+    erro('');
+    if(codigo.length !== 6){ erro(t('rec_codigo_ph')); return; }
+    const btn = $('#segConfirmar');
+    btn.disabled = true;
+    let token = '';
+    try{ token = await user.getIdToken(); }catch(e){}
+    const j = await contaPedir('/conta/seguranca-confirma', {codigo}, token);
+    btn.disabled = false;
+    if(!j.ok){ erro(msgDeConta(j)); return; }
+    try{ localStorage.setItem('koda_seguranca', String(j.mascara || '').slice(0, 130)); }catch(e){}
+    try{ syncToServer(); }catch(e){}
+    playSound('buy');
+    toast(t('seg_ok'));
+    fechar();
+  };
+  $('#segMandar').addEventListener('click', mandar);
+  $('#segEmail').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); mandar(); } });
+  $('#segConfirmar').addEventListener('click', confirmar);
+  $('#segCodigo').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); confirmar(); } });
+  $('#segCodigo').addEventListener('input', ()=>{ const el = $('#segCodigo'), v = el.value.replace(/\D/g, '').slice(0, 6); if(v !== el.value) el.value = v; });
+  $('#segOutro').addEventListener('click', ()=>{ passo(1); setTimeout(()=>{ try{ $('#segEmail').focus(); }catch(e){} }, 60); });
+  if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) setTimeout(()=>{ try{ $('#segEmail').focus(); }catch(e){} }, 120);
 }
 /* ============================================================
    DIFICULTAR COPIAR O CÓDIGO
@@ -15094,6 +15579,7 @@ async function initAuth(){
       try{ sessionStorage.removeItem('jogodromo_synced'); }catch(e){}
       if(lastUid !== null){ location.reload(); return; }
     }
+    await aplicarCadastroPendente(user);   // acabou de criar a conta pelo nome de usuário: apelido, menino/menina e nascimento
     const banInfo = await checkBanStatus();
     if(banInfo){
       peopleBtn.classList.add('hidden');
@@ -15147,6 +15633,7 @@ async function initAuth(){
     conferirConvites(); // algum amigo diferente entrou pelo meu link? (só depois de baixar os dados da conta, senão as moedas se perdem)
     abrirJogoDoLink(); // veio por um link de jogo compartilhado? entra direto nele
     iniciarBoasVindas(user); // conta nova? apelido e foto antes de tudo
+    iniciarProtecao(user);   // conta nova pelo nome de usuário? oferece o e-mail de segurança (opcional)
   });
 }
 /* avisa a intro do Koda que o site terminou de carregar (seguro chamar várias vezes) */
@@ -28438,6 +28925,7 @@ var PZ_TXT = {
  onb_gen_d:'Depois é só montar o visual na {loja}: cabelo, roupas e milhares de acessórios.|Then build your look in the {loja}: hair, clothes and thousands of accessories.|Después arma tu estilo en la {loja}: pelo, ropa y miles de accesorios.|Poi crea il tuo look nel {loja}: capelli, vestiti e migliaia di accessori.|Ensuite, crée ton style dans la {loja} : cheveux, vêtements et des milliers d’accessoires.|Danach gestaltest du deinen Look im {loja}: Haare, Kleidung und tausende Accessoires.|Daarna maak je je look in de {loja}: haar, kleding en duizenden accessoires.|あとは{loja}で髪型、服、たくさんのアクセサリーで見た目を作ろう。|之后在{loja}里打造造型：发型、衣服和成千上万的配饰。|그다음 {loja}에서 머리, 옷, 수많은 액세서리로 꾸며요.'
 };
 
+
 var PZ_PARTES = {
  cab:[
  {id:'careca', px:[]},
@@ -29910,7 +30398,7 @@ function agVisivel(){
   if(h.contains('ov-aberto') || h.contains('folha-cheia') || h.contains('entrada')) return false;
   const gate = document.getElementById('authGate');
   if(gate && !gate.classList.contains('hidden')) return false;
-  if(document.querySelector('.onb-bg, .rot-bg.show, .kbs-dlg-bg, .game-menu-bg')) return false;
+  if(document.querySelector('.onb-bg, .rot-bg.show, .kbs-dlg-bg, .game-menu-bg, .confirm-bg')) return false;
   return true;
 }
 /* ---------- arrastar, jogar e tocar ---------- */

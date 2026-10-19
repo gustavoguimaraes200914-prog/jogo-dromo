@@ -5,7 +5,7 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco';
+const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta';
 const temp = path.join(os.tmpdir(), 'koda-worker-teste-' + process.pid + '.mjs');
 fs.writeFileSync(temp, fs.readFileSync(path.join(aqui, 'jogodromo-agent-worker.js'), 'utf8') + '\nexport { ' + exportados + ' };\n');
 const W = await import(pathToFileURL(temp).href);
@@ -294,6 +294,66 @@ console.log('== 17. Firebase respondendo 429: tenta de novo sozinho e mostra o m
   globalThis.fetch = async () => { n++; return new Response('nao existe', { status: 404 }); };
   t('404 não é repetido e vira "não existe"', (await banco.ler('x/y')) === null && n === 1, n);
   globalThis.fetch = antesFetch; globalThis.setTimeout = antesTimeout;
+}
+
+console.log('== 18. contas com nome de usuário: nome livre, e-mail de segurança e recuperar com código');
+{
+  t('nome: minúsculo e com _ no meio', W.nomeDeUsuario(' Joao_123 ') === 'joao_123');
+  t('nome: curto, comprido, _ na ponta ou acento não', [ 'ab', 'a'.repeat(21), '_ana', 'ana_', 'joão', 'a b c' ].every(n => W.nomeDeUsuario(n) === null));
+  t('e-mail escondido', W.mascararEmail('maria@gmail.com') === 'm***@gmail.com');
+  const f1 = W.freioDeEnvio([]); const f2 = W.freioDeEnvio([Date.now() - 1000]); const f3 = W.freioDeEnvio([1,2,3,4,5,6].map(i => Date.now() - i * 120000));
+  t('freio: 1 por minuto e 6 por dia', f1.envios && f1.envios.length === 1 && f2.erro === 'espere' && f2.segundos > 0 && f3.erro === 'muitos_codigos', [f1, f2, f3]);
+  const em = W.emailDoCodigo('ja', 'rec', 'pedro', '012345');
+  t('e-mail do código no idioma, com o código', /012345/.test(em.assunto) && /pedro/.test(em.texto) && /012345/.test(em.html) && /15/.test(em.texto), em.assunto);
+  t('e-mail em idioma desconhecido cai no inglês', /Koda code/.test(W.emailDoCodigo('xx', 'conf', 'a', '1').assunto) || /Koda code/.test(W.emailDoCodigo('en', 'conf', 'a', '1').assunto));
+
+  const contas = { pedro: 'uid-pedro', ana: 'uid-ana' }, senhas = {}, emails = [];
+  const fx = { db: bancoFalso(), async uidDe(n){ return contas[n] || null; }, async trocarSenha(uid, s){ senhas[uid] = s; }, async email(para, msg){ emails.push({ para, msg }); } };
+  t('livre: formato', (await W.contaLivre(fx, { usuario: 'a' })).motivo === 'formato');
+  t('livre: já existe', (await W.contaLivre(fx, { usuario: 'Pedro' })).livre === false);
+  t('livre: nome novo', (await W.contaLivre(fx, { usuario: 'luna_77' })).livre === true);
+  t('livre: palavra feia (mesmo com número)', (await W.contaLivre(fx, { usuario: 'retardado123' })).motivo === 'palavra');
+
+  const codigoDe = () => /\b(\d{6})\b/.exec(emails[emails.length - 1].msg.texto)[1];
+  const pedro = { uid: 'uid-pedro', email: 'pedro@contas.koda.invalid' };
+  t('segurança: conta do Google não precisa', (await W.contaSeguranca(fx, { uid: 'g', email: 'x@gmail.com' }, { email: 'a@b.com' })).erro === 'nao_precisa');
+  t('segurança: e-mail inválido', (await W.contaSeguranca(fx, pedro, { email: 'nao-e-email' })).erro === 'email_invalido');
+  const s1 = await W.contaSeguranca(fx, pedro, { email: 'Pai.Do.Pedro@Gmail.com', lang: 'pt' });
+  t('segurança: código vai pro e-mail novo', s1.ok && s1.mascara === 'p***@gmail.com' && emails[0].para === 'pai.do.pedro@gmail.com', s1);
+  t('segurança: o banco guarda só o resumo do código', !JSON.stringify(fx.db.docs.get('contaSegura/uid-pedro')).includes(codigoDe()));
+  t('segurança: pedir de novo logo em seguida espera', (await W.contaSeguranca(fx, pedro, { email: 'pai.do.pedro@gmail.com' })).erro === 'espere');
+  const e1 = await W.contaSegurancaConfirma(fx, pedro, { codigo: '000000' === codigoDe() ? '111111' : '000000' });
+  t('segurança: código errado conta tentativa', e1.erro === 'codigo_errado' && e1.restam === 4, e1);
+  t('segurança: ainda sem e-mail antes de confirmar', (await W.contaCodigo(fx, { usuario: 'pedro' })).erro === 'sem_email');
+  const c1 = await W.contaSegurancaConfirma(fx, pedro, { codigo: codigoDe() });
+  t('segurança: código certo guarda o e-mail', c1.ok && fx.db.docs.get('contaSegura/uid-pedro').dados.email === 'pai.do.pedro@gmail.com', c1);
+  t('segurança: o mesmo código não serve 2 vezes', (await W.contaSegurancaConfirma(fx, pedro, { codigo: codigoDe() })).erro === 'expirou');
+
+  t('recuperar: conta que não existe', (await W.contaCodigo(fx, { usuario: 'ninguem' })).erro === 'sem_conta');
+  t('recuperar: conta sem e-mail de segurança', (await W.contaCodigo(fx, { usuario: 'ana' })).erro === 'sem_email');
+  const r1 = await W.contaCodigo(fx, { usuario: 'Pedro', lang: 'en' });
+  t('recuperar: código vai pro e-mail de segurança', r1.ok && emails[emails.length - 1].para === 'pai.do.pedro@gmail.com' && /Koda code/.test(emails[emails.length - 1].msg.assunto), r1);
+  t('recuperar: senha curta não', (await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: codigoDe(), senha: '123' })).erro === 'senha_fraca');
+  const cod = codigoDe(), errado = cod === '999999' ? '888888' : '999999';
+  for(let i = 0; i < 5; i++) await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: errado, senha: 'novaSenha1' });
+  t('recuperar: depois de 5 erros nem o certo serve', (await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: cod, senha: 'novaSenha1' })).erro === 'tentativas' && !senhas['uid-pedro']);
+  fx.db.docs.get('recuperacao/uid-pedro').dados.envios = [];   // passou um tempo: pode pedir outro
+  await W.contaCodigo(fx, { usuario: 'pedro' });
+  const ok1 = await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: codigoDe(), senha: 'novaSenha1' });
+  t('recuperar: código certo troca a senha', ok1.ok && senhas['uid-pedro'] === 'novaSenha1', ok1);
+  t('recuperar: o código não serve de novo', (await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: codigoDe(), senha: 'outra123' })).erro === 'expirou' && senhas['uid-pedro'] === 'novaSenha1');
+
+  const req = (rota, corpo, h) => new Request('https://w.dev' + rota, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, h || {}), body: JSON.stringify(corpo) });
+  const rr = await W.rotaDeConta(req('/conta/livre', { usuario: 'luna' }), { sa: {}, projeto: 'jogodromo' }, '/conta/livre', fx);
+  t('rota: /conta/livre responde', rr.status === 200 && (await rr.json()).livre === true);
+  const rs = await W.rotaDeConta(req('/conta/seguranca', { email: 'a@b.com' }), { sa: {}, projeto: 'jogodromo' }, '/conta/seguranca', fx);
+  t('rota: segurança sem crachá = 401', rs.status === 401);
+  const rn = await W.rotaDeConta(req('/conta/livre', { usuario: 'luna' }), { sa: null, projeto: 'jogodromo' }, '/conta/livre', fx);
+  t('rota: sem conta de serviço = 503', rn.status === 503);
+  const fxSemEmail = Object.assign({}, fx, { async email(){ throw new Error('email_nao_configurado'); } });
+  fx.db.docs.get('recuperacao/uid-pedro').dados.envios = [];
+  const re = await W.rotaDeConta(req('/conta/codigo', { usuario: 'pedro' }), { sa: {}, projeto: 'jogodromo' }, '/conta/codigo', fxSemEmail);
+  t('rota: sem Brevo configurado avisa', re.status === 502 && (await re.json()).erro === 'email_nao_configurado');
 }
 
 try{ fs.unlinkSync(temp); }catch(e){}

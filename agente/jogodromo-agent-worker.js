@@ -27,6 +27,10 @@
  *                               Firebase (Configurações do projeto -> Contas de
  *                               serviço -> Gerar nova chave privada). Cole o
  *                               conteúdo do arquivo como "Secret". Nunca no código.
+ *  PARA RECUPERAR CONTA COM CÓDIGO (entrada com nome de usuário):
+ *    BREVO_API_KEY ............ a chave da API do Brevo (brevo.com, grátis: 300 e-mails por dia). Secret.
+ *    EMAIL_REMETENTE .......... o e-mail que aparece como remetente (o mesmo que foi confirmado
+ *                               no Brevo; use um e-mail só do Koda, nunca o pessoal). Variável comum.
  *  OPCIONAIS (variáveis comuns):
  *    MODELO_MODERACAO ......... modelo da IA (padrão: claude-sonnet-4-6)
  *    ADMIN_EMAIL .............. e-mail do admin (padrão: o do site)
@@ -39,7 +43,7 @@
 /* ---------------------------------------------------------------------------
    CONFIGURAÇÃO
 --------------------------------------------------------------------------- */
-const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-16b-retentativa';
+const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-19-contas-com-nome';
 const PROJETO_PADRAO   = 'jogodromo';
 const ADMIN_PADRAO     = 'gustavoguimaraes200914@gmail.com';
 const MODELO_PADRAO    = 'claude-sonnet-4-6';
@@ -182,6 +186,8 @@ function lerConfig(env){
     projeto: (sa && sa.project_id) || env.FIREBASE_PROJECT_ID || PROJETO_PADRAO,
     admin: (env.ADMIN_EMAIL || ADMIN_PADRAO).toLowerCase(),
     modelo: env.MODELO_MODERACAO || MODELO_PADRAO,
+    brevo: env.BREVO_API_KEY || '',
+    remetente: String(env.EMAIL_REMETENTE || '').trim(),
   };
 }
 
@@ -236,7 +242,7 @@ async function verificarCracha(token, projeto){
 /* ---------------------------------------------------------------------------
    CONTA DE SERVIÇO: é ela que deixa o servidor gravar no catálogo.
 --------------------------------------------------------------------------- */
-let cacheTokenServico = { token: null, ate: 0, email: null };
+let cacheTokenServico = {};   // escopo -> { token, ate, email }
 
 function pemParaBytes(pem){
   const limpo = String(pem).replace(/-----[^-]+-----/g, '').replace(/\\n/g, '').replace(/\s+/g, '');
@@ -245,9 +251,11 @@ function pemParaBytes(pem){
   for(let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 }
-async function tokenDeServico(sa){
-  if(cacheTokenServico.token && cacheTokenServico.email === sa.client_email && cacheTokenServico.ate > agora() + 60000){
-    return cacheTokenServico.token;
+async function tokenDeServico(sa, escopo){
+  escopo = escopo || 'https://www.googleapis.com/auth/datastore';
+  const cache = cacheTokenServico[escopo];
+  if(cache && cache.token && cache.email === sa.client_email && cache.ate > agora() + 60000){
+    return cache.token;
   }
   const seg = Math.floor(agora() / 1000);
   const cab = { alg: 'RS256', typ: 'JWT' };
@@ -255,7 +263,7 @@ async function tokenDeServico(sa){
   const dados = {
     iss: sa.client_email, sub: sa.client_email,
     aud: 'https://oauth2.googleapis.com/token',
-    scope: 'https://www.googleapis.com/auth/datastore',
+    scope: escopo,
     iat: seg, exp: seg + 3600,
   };
   const assinado = b64urlDeTexto(JSON.stringify(cab)) + '.' + b64urlDeTexto(JSON.stringify(dados));
@@ -270,7 +278,7 @@ async function tokenDeServico(sa){
   });
   const r = await res.json().catch(() => ({}));
   if(!res.ok || !r.access_token) throw new Error('o Google recusou a conta de serviço' + (r.error ? ' (' + r.error + ')' : ''));
-  cacheTokenServico = { token: r.access_token, ate: agora() + (r.expires_in || 3600) * 1000, email: sa.client_email };
+  cacheTokenServico[escopo] = { token: r.access_token, ate: agora() + (r.expires_in || 3600) * 1000, email: sa.client_email };
   return r.access_token;
 }
 
@@ -1811,6 +1819,192 @@ async function quemEsta(request, cfg){
   if(!m) throw new Error('sem crachá');
   return verificarCracha(m[1].trim(), cfg.projeto);
 }
+/* ---------------------------------------------------------------------------
+   CONTAS COM NOME DE USUÁRIO (a entrada "tipo Roblox")
+   - A conta é criada no próprio site (Firebase) com um e-mail de mentirinha: <nome>@contas.koda.invalid
+     (".invalid" não existe de verdade: nenhum e-mail vai pra lá). O nome é único porque o e-mail é único.
+   - E-mail de segurança (opcional): fica guardado só aqui no servidor (contaSegura/{uid}); o site nunca lê.
+     Pra guardar, a pessoa confirma com um código que chega nesse e-mail.
+   - Esqueceu a senha: um código vai pro e-mail de segurança; com ele, o servidor troca a senha.
+   - Os códigos valem 15 minutos, aceitam 5 tentativas e só saem 1 por minuto (6 por dia) por conta.
+     No banco fica só o "resumo" (hash) do código, nunca o código.
+--------------------------------------------------------------------------- */
+const DOMINIO_CONTAS = 'contas.koda.invalid';
+const RE_USUARIO = /^[a-z0-9][a-z0-9_]{1,18}[a-z0-9]$/;
+const RE_EMAIL = /^[^\s@<>"']{1,64}@[a-z0-9.-]{1,190}\.[a-z]{2,24}$/i;
+const ESCOPO_CONTAS = 'https://www.googleapis.com/auth/identitytoolkit';
+const CODIGO_VALE_MS = 15 * 60 * 1000;
+const CODIGO_TENTATIVAS = 5;
+const CODIGO_INTERVALO_MS = 60 * 1000;
+const CODIGO_POR_DIA = 6;
+const TXT_EMAIL = {
+  pt: { assunto: 'Seu código do Koda: {c}', conf: 'Use este código para confirmar o e-mail de segurança da conta {u}:', rec: 'Pediram para trocar a senha da conta {u}. O código é:', fim: 'O código vale por 15 minutos. Se não foi você, é só ignorar este e-mail.' },
+  en: { assunto: 'Your Koda code: {c}', conf: 'Use this code to confirm the security email for the account {u}:', rec: 'Someone asked to change the password of the account {u}. The code is:', fim: 'The code is valid for 15 minutes. If it wasn’t you, just ignore this email.' },
+  es: { assunto: 'Tu código de Koda: {c}', conf: 'Usa este código para confirmar el correo de seguridad de la cuenta {u}:', rec: 'Pidieron cambiar la contraseña de la cuenta {u}. El código es:', fim: 'El código vale 15 minutos. Si no fuiste tú, ignora este correo.' },
+  it: { assunto: 'Il tuo codice Koda: {c}', conf: 'Usa questo codice per confermare l’email di sicurezza dell’account {u}:', rec: 'È stato chiesto di cambiare la password dell’account {u}. Il codice è:', fim: 'Il codice vale 15 minuti. Se non sei stato tu, ignora questa email.' },
+  fr: { assunto: 'Ton code Koda : {c}', conf: 'Utilise ce code pour confirmer l’e-mail de sécurité du compte {u} :', rec: 'Quelqu’un a demandé à changer le mot de passe du compte {u}. Le code est :', fim: 'Le code est valable 15 minutes. Si ce n’était pas toi, ignore cet e-mail.' },
+  de: { assunto: 'Dein Koda-Code: {c}', conf: 'Mit diesem Code bestätigst du die Sicherheits-E-Mail des Kontos {u}:', rec: 'Jemand möchte das Passwort des Kontos {u} ändern. Der Code lautet:', fim: 'Der Code gilt 15 Minuten. Wenn du das nicht warst, ignoriere diese E-Mail.' },
+  nl: { assunto: 'Je Koda-code: {c}', conf: 'Gebruik deze code om het beveiligingsmailadres van account {u} te bevestigen:', rec: 'Er is gevraagd het wachtwoord van account {u} te wijzigen. De code is:', fim: 'De code is 15 minuten geldig. Was jij dit niet? Negeer dan deze e-mail.' },
+  ja: { assunto: 'Kodaのコード: {c}', conf: 'アカウント {u} のセキュリティ用メールを確認するコードです:', rec: 'アカウント {u} のパスワード変更が申請されました。コードは:', fim: 'コードの有効期限は15分です。心当たりがなければ、このメールは無視してください。' },
+  zh: { assunto: '你的 Koda 验证码：{c}', conf: '用这个验证码确认账号 {u} 的安全邮箱：', rec: '有人申请修改账号 {u} 的密码。验证码是：', fim: '验证码15分钟内有效。如果不是你本人操作，请忽略这封邮件。' },
+  ko: { assunto: 'Koda 코드: {c}', conf: '계정 {u}의 보안 이메일을 확인하는 코드예요:', rec: '계정 {u}의 비밀번호 변경 요청이 있었어요. 코드는:', fim: '코드는 15분 동안 유효해요. 본인이 아니라면 이 이메일은 무시하세요.' },
+};
+function nomeDeUsuario(v){ const n = String(v || '').trim().toLowerCase(); return RE_USUARIO.test(n) ? n : null; }
+function emailDoUsuario(nome){ return nome + '@' + DOMINIO_CONTAS; }
+function mascararEmail(e){ const [a, d] = String(e).split('@'); return (a || '').charAt(0) + '***@' + (d || ''); }
+function codigoNovo(){ return String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, '0'); }
+function resumoCodigo(uid, tipo, codigo){ return sha256Hex(uid + ':' + tipo + ':' + String(codigo || '').replace(/\D/g, '')); }
+/* 1 por minuto e 6 por dia: devolve a lista nova de envios, ou um erro com quanto falta */
+function freioDeEnvio(envios){
+  const t = agora(), dia = (Array.isArray(envios) ? envios : []).filter(x => typeof x === 'number' && t - x < 86400000);
+  if(dia.length >= CODIGO_POR_DIA) return { erro: 'muitos_codigos' };
+  const ult = dia.length ? Math.max.apply(null, dia) : 0;
+  if(t - ult < CODIGO_INTERVALO_MS) return { erro: 'espere', segundos: Math.ceil((CODIGO_INTERVALO_MS - (t - ult)) / 1000) };
+  return { envios: dia.concat([t]) };
+}
+/* as contas do Firebase pela API de administrador (com a conta de serviço) */
+async function contasApi(cfg, acao, corpo){
+  const tk = await tokenDeServico(cfg.sa, ESCOPO_CONTAS);
+  const res = await pedirComRetentativa('https://identitytoolkit.googleapis.com/v1/projects/' + cfg.projeto + '/accounts:' + acao, {
+    method: 'POST', headers: { 'Authorization': 'Bearer ' + tk, 'Content-Type': 'application/json' }, body: JSON.stringify(corpo),
+  });
+  if(!res.ok) throw await falhaHttp('contas: ' + acao, res);
+  return res.json();
+}
+async function mandarEmail(cfg, para, assunto, texto, html){
+  if(!cfg.brevo || !cfg.remetente) throw new Error('email_nao_configurado');
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': cfg.brevo, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ sender: { name: 'Koda', email: cfg.remetente }, to: [{ email: para }], subject: assunto, textContent: texto, htmlContent: html }),
+  });
+  if(!res.ok) throw await falhaHttp('o e-mail não saiu', res);
+}
+function emailDoCodigo(lang, tipo, usuario, codigo){
+  const T = TXT_EMAIL[lang] || TXT_EMAIL.en;
+  const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const linha = T[tipo].replace('{u}', usuario);
+  return {
+    assunto: T.assunto.replace('{c}', codigo),
+    texto: linha + '\n\n' + codigo + '\n\n' + T.fim,
+    html: '<div style="font-family:Arial,sans-serif;max-width:420px;margin:0 auto;padding:24px;color:#13312A">'
+      + '<p style="font-size:22px;font-weight:bold;margin:0 0 12px">Koda</p>'
+      + '<p style="font-size:15px;margin:0 0 16px">' + esc(linha) + '</p>'
+      + '<p style="font-size:34px;font-weight:bold;letter-spacing:8px;background:#E6FBF4;border-radius:12px;padding:14px;text-align:center;margin:0 0 16px">' + esc(codigo) + '</p>'
+      + '<p style="font-size:13px;color:#4b6b62;margin:0">' + esc(T.fim) + '</p></div>',
+  };
+}
+/* o que as rotas usam de fora (os testes trocam por de mentira) */
+function ferramentasDeConta(cfg){
+  return {
+    db: new Banco(cfg),
+    async uidDe(nome){ const r = await contasApi(cfg, 'lookup', { email: [emailDoUsuario(nome)] }); const u = r.users && r.users[0]; return u ? u.localId : null; },
+    async trocarSenha(uid, senha){ await contasApi(cfg, 'update', { localId: uid, password: senha }); },
+    async email(para, msg){ await mandarEmail(cfg, para, msg.assunto, msg.texto, msg.html); },
+  };
+}
+function langDe(v){ const l = String(v || '').slice(0, 2).toLowerCase(); return TXT_EMAIL[l] ? l : 'pt'; }
+
+/* o nome está livre? (formato, palavra feia e se já existe) */
+async function contaLivre(fx, corpo){
+  const nome = nomeDeUsuario(corpo.usuario);
+  if(!nome) return { livre: false, motivo: 'formato' };
+  const feio = buscarNoLexico(nome.replace(/_/g, ' ')).concat(buscarNoLexico(nome.replace(/[_0-9]+/g, '')));
+  if(feio.some(e => e.nivel === 'grave')) return { livre: false, motivo: 'palavra' };
+  return { livre: !(await fx.uidDe(nome)) };
+}
+/* guardar o e-mail de segurança: 1º manda o código pra ele */
+async function contaSeguranca(fx, quem, corpo){
+  if(!quem.email.endsWith('@' + DOMINIO_CONTAS)) return { erro: 'nao_precisa' };
+  const email = String(corpo.email || '').trim().toLowerCase();
+  if(!RE_EMAIL.test(email) || email.length > 120 || email.endsWith('.invalid')) return { erro: 'email_invalido' };
+  const p = 'contaSegura/' + quem.uid;
+  const doc = await fx.db.ler(p), d = (doc && doc.dados) || {};
+  const freio = freioDeEnvio(d.envios);
+  if(freio.erro) return freio;
+  const codigo = codigoNovo();
+  await fx.db.gravar(p, { pendente: email, pendHash: await resumoCodigo(quem.uid, 'conf', codigo), pendAte: agora() + CODIGO_VALE_MS, pendTent: 0, envios: freio.envios },
+    { campos: ['pendente', 'pendHash', 'pendAte', 'pendTent', 'envios'] });
+  await fx.email(email, emailDoCodigo(langDe(corpo.lang), 'conf', quem.email.split('@')[0], codigo));
+  return { ok: true, mascara: mascararEmail(email) };
+}
+/* ... e 2º confere o código que chegou */
+async function contaSegurancaConfirma(fx, quem, corpo){
+  const p = 'contaSegura/' + quem.uid;
+  const doc = await fx.db.ler(p), d = (doc && doc.dados) || {};
+  if(!d.pendente || !d.pendHash || !(d.pendAte > agora())) return { erro: 'expirou' };
+  if((d.pendTent || 0) >= CODIGO_TENTATIVAS) return { erro: 'tentativas' };
+  if(await resumoCodigo(quem.uid, 'conf', corpo.codigo) !== d.pendHash){
+    await fx.db.gravar(p, { pendTent: (d.pendTent || 0) + 1 }, { campos: ['pendTent'] });
+    return { erro: 'codigo_errado', restam: CODIGO_TENTATIVAS - (d.pendTent || 0) - 1 };
+  }
+  await fx.db.gravar(p, { email: d.pendente, confirmadoEm: agora() }, { campos: ['email', 'confirmadoEm', 'pendente', 'pendHash', 'pendAte', 'pendTent'] });
+  return { ok: true, mascara: mascararEmail(d.pendente) };
+}
+/* esqueceu a senha: manda o código pro e-mail de segurança */
+async function contaCodigo(fx, corpo){
+  const nome = nomeDeUsuario(corpo.usuario);
+  if(!nome) return { erro: 'sem_conta' };
+  const uid = await fx.uidDe(nome);
+  if(!uid) return { erro: 'sem_conta' };
+  const seg = await fx.db.ler('contaSegura/' + uid);
+  const email = seg && seg.dados && seg.dados.email;
+  if(!email) return { erro: 'sem_email' };
+  const p = 'recuperacao/' + uid;
+  const doc = await fx.db.ler(p), d = (doc && doc.dados) || {};
+  const freio = freioDeEnvio(d.envios);
+  if(freio.erro) return freio;
+  const codigo = codigoNovo();
+  await fx.db.gravar(p, { hash: await resumoCodigo(uid, 'rec', codigo), ate: agora() + CODIGO_VALE_MS, tent: 0, envios: freio.envios });
+  await fx.email(email, emailDoCodigo(langDe(corpo.lang), 'rec', nome, codigo));
+  return { ok: true, mascara: mascararEmail(email) };
+}
+/* ... e com o código certo, troca a senha */
+async function contaNovaSenha(fx, corpo){
+  const nome = nomeDeUsuario(corpo.usuario);
+  const senha = String(corpo.senha || '');
+  if(senha.length < 6 || senha.length > 100) return { erro: 'senha_fraca' };
+  const uid = nome ? await fx.uidDe(nome) : null;
+  if(!uid) return { erro: 'sem_conta' };
+  const p = 'recuperacao/' + uid;
+  const doc = await fx.db.ler(p), d = (doc && doc.dados) || {};
+  if(!d.hash || !(d.ate > agora())) return { erro: 'expirou' };
+  if((d.tent || 0) >= CODIGO_TENTATIVAS) return { erro: 'tentativas' };
+  if(await resumoCodigo(uid, 'rec', corpo.codigo) !== d.hash){
+    await fx.db.gravar(p, { tent: (d.tent || 0) + 1 }, { campos: ['tent'] });
+    return { erro: 'codigo_errado', restam: CODIGO_TENTATIVAS - (d.tent || 0) - 1 };
+  }
+  await fx.trocarSenha(uid, senha);
+  await fx.db.gravar(p, { usadoEm: agora(), envios: d.envios || [] });   // o código não serve de novo (o freio de envios continua)
+  return { ok: true };
+}
+const usoDasContas = new Map();   // IP -> pedidos do último minuto (freio simples por instância)
+async function rotaDeConta(request, cfg, rota, fx){
+  if(!cfg.sa) return respJSON({ erro: 'nao_configurado' }, 503);
+  const ip = request.headers.get('CF-Connecting-IP') || 'x', t0 = agora();
+  const uso = (usoDasContas.get(ip) || []).filter(x => t0 - x < 60000);
+  if(uso.length >= 40) return respJSON({ erro: 'muitos_pedidos' }, 429);
+  uso.push(t0); usoDasContas.set(ip, uso);
+  if(usoDasContas.size > 5000) usoDasContas.clear();
+  let corpo;
+  try{ corpo = await lerCorpo(request, 4096); }
+  catch(e){ return respJSON({ erro: 'pedido_invalido' }, 400); }
+  fx = fx || ferramentasDeConta(cfg);
+  try{
+    if(rota === '/conta/livre') return respJSON(await contaLivre(fx, corpo));
+    if(rota === '/conta/codigo') return respJSON(await contaCodigo(fx, corpo));
+    if(rota === '/conta/nova-senha') return respJSON(await contaNovaSenha(fx, corpo));
+    let quem;
+    try{ quem = await quemEsta(request, cfg); }
+    catch(e){ return respJSON({ erro: 'nao_autorizado' }, 401); }
+    if(rota === '/conta/seguranca') return respJSON(await contaSeguranca(fx, quem, corpo));
+    if(rota === '/conta/seguranca-confirma') return respJSON(await contaSegurancaConfirma(fx, quem, corpo));
+    return respJSON({ erro: 'rota_desconhecida' }, 404);
+  }catch(e){
+    const msg = String(e && e.message || e);
+    return respJSON({ erro: msg === 'email_nao_configurado' ? 'email_nao_configurado' : 'falha', detalhe: msg.slice(0, 160) }, 502);
+  }
+}
 async function diagnostico(cfg, testar){
   const info = {
     chave_anthropic: !!cfg.anthropic,
@@ -1820,6 +2014,7 @@ async function diagnostico(cfg, testar){
     versao_da_politica: POLITICA_VERSAO,
     versao_do_codigo: VERSAO_DO_CODIGO,
     resultado: 'so_sim_ou_nao (sem revisao por pessoa; na duvida, nao publica)',
+    email_de_recuperacao: cfg.brevo && cfg.remetente ? 'configurado' : 'falta ' + [!cfg.brevo && 'BREVO_API_KEY', !cfg.remetente && 'EMAIL_REMETENTE'].filter(Boolean).join(' e '),
   };
   if(testar && cfg.sa){
     try{
@@ -1827,6 +2022,10 @@ async function diagnostico(cfg, testar){
       await db.listar('publicGames', ['name'], null, 1);
       info.banco = 'ok: o servidor consegue ler o catálogo';
     }catch(e){ info.banco = 'falhou: ' + e.message; }
+    try{
+      await contasApi(cfg, 'lookup', { email: [emailDoUsuario('teste_diagnostico')] });
+      info.contas = 'ok: o servidor consegue achar as contas (nome de usuário)';
+    }catch(e){ info.contas = 'falhou: ' + e.message; }
   }
   info.tudo_certo = !!cfg.anthropic && !!cfg.sa && (!testar || /^ok/.test(info.banco || ''));
   return info;
@@ -1878,6 +2077,8 @@ export default {
       return respJSON(await diagnostico(cfg, url.searchParams.has('testar')));
     }
     if(request.method !== 'POST') return respJSON({ error: 'Metodo nao permitido' }, 405);
+
+    if(rota.indexOf('/conta/') === 0) return rotaDeConta(request, cfg, rota);
 
     if(rota === '/moderar' || rota === '/decidir' || rota === '/moderar-antigos'){
       /* não existe mais decisão "na mão": o resultado é sempre o da análise */
