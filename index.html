@@ -451,6 +451,20 @@
   .card-quick-btn:active{background:rgba(255,255,255,.32);}
   .card.soon{cursor:default;filter:grayscale(.15);}
   .card.soon .cardname{opacity:.9;}
+  .mp-selo{position:absolute;top:8px;right:8px;z-index:3;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 16px);
+    padding:3px 9px 3px 7px;border-radius:999px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.68rem;line-height:1.3;
+    color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mp-selo svg{width:13px !important;height:13px !important;vertical-align:0 !important;flex:none;}
+  .mp-selo.mp-online{background:#7b3fe4;}
+  .mp-selo.mp-local{background:#0b7a5a;}
+  .pres-jogo{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 14px;padding:10px 12px;border-radius:14px;background:rgba(8,50,43,.09);font-size:1rem;overflow-wrap:anywhere;}
+  .pres-jogo svg{width:20px !important;height:20px !important;flex:none;}
+  .pres-wrap[data-st="playing"]{cursor:pointer;}
+  .mp-aviso{display:flex;gap:8px;align-items:flex-start;text-align:left;margin:12px auto 0;max-width:420px;padding:10px 12px;border-radius:14px;
+    font-size:.86rem;line-height:1.4;background:rgba(8,50,43,.07);color:inherit;}
+  .mp-aviso svg{width:18px !important;height:18px !important;flex:none;margin-top:1px;}
+  .mp-aviso-online{background:rgba(123,63,228,.12);}
+  .mp-aviso-local{background:rgba(11,122,90,.12);}
   .card .badge{
     position:absolute;top:10px;right:10px;z-index:3;
     background:rgba(255,255,255,.92);
@@ -11642,12 +11656,24 @@ var CONTA_TXT = {
  cad_menina:'Menina|Girl|Niña|Bambina|Fille|Mädchen|Meisje|女の子|女孩|여자아이',
  seg_menu_ok:'Conta protegida: {email}|Account protected: {email}|Cuenta protegida: {email}|Account protetto: {email}|Compte protégé : {email}|Konto geschützt: {email}|Account beschermd: {email}|アカウント保護中: {email}|账号已保护：{email}|계정 보호 중: {email}'
 };
+/* textos do selo de multiplayer: 'pt|en|es|it|fr|de|nl|ja|zh|ko' */
+var MP_TXT = {
+ pres_dlg_t:'{nome} está jogando agora|{nome} is playing right now|{nome} está jugando ahora|{nome} sta giocando adesso|{nome} joue en ce moment|{nome} spielt gerade|{nome} speelt nu|{nome}がいまプレイ中|{nome}正在玩游戏|{nome} 님이 지금 게임 중이에요',
+ pres_dlg_alguem:'Essa pessoa|This person|Esta persona|Questa persona|Cette personne|Diese Person|Deze persoon|この人|这个人|이 사람',
+ pres_entrar:'Jogar também|Play too|Jugar también|Gioca anche tu|Jouer aussi|Mitspielen|Meespelen|いっしょに遊ぶ|一起玩|같이 하기',
+ pres_ver_perfil:'Ver perfil|View profile|Ver perfil|Vedi profilo|Voir le profil|Profil ansehen|Profiel bekijken|プロフィールを見る|查看主页|프로필 보기',
+ mp_online:'Online|Online|En línea|Online|En ligne|Online|Online|オンライン|在线|온라인',
+ mp_local:'2 jogadores|2 players|2 jugadores|2 giocatori|2 joueurs|2 Spieler|2 spelers|2人用|双人|2인용',
+ mp_pub_online:'Multiplayer: dá pra jogar online com outras pessoas. O jogo ganhou o selo "Online".|Multiplayer: it can be played online with other people. The game got the "Online" badge.|Multijugador: se puede jugar en línea con otras personas. El juego ganó la insignia "En línea".|Multigiocatore: si può giocare online con altre persone. Il gioco ha ricevuto il badge "Online".|Multijoueur : on peut jouer en ligne avec d’autres personnes. Le jeu a reçu le badge « En ligne ».|Mehrspieler: Man kann online mit anderen spielen. Das Spiel hat das Abzeichen „Online“ bekommen.|Multiplayer: je kunt online met anderen spelen. De game kreeg het label "Online".|マルチプレイ：ほかの人とオンラインで遊べるよ。「オンライン」マークがついたよ。|多人游戏：可以和其他人在线一起玩。游戏获得了“在线”标签。|멀티플레이: 다른 사람들과 온라인으로 할 수 있어요. 게임에 "온라인" 표시가 붙었어요.',
+ mp_pub_local:'Multiplayer: dá pra jogar em 2 no mesmo aparelho. O jogo ganhou o selo "2 jogadores".|Multiplayer: 2 people can play on the same device. The game got the "2 players" badge.|Multijugador: pueden jugar 2 en el mismo dispositivo. El juego ganó la insignia "2 jugadores".|Multigiocatore: si gioca in 2 sullo stesso dispositivo. Il gioco ha ricevuto il badge "2 giocatori".|Multijoueur : on peut jouer à 2 sur le même appareil. Le jeu a reçu le badge « 2 joueurs ».|Mehrspieler: Zu zweit auf demselben Gerät spielbar. Das Spiel hat das Abzeichen „2 Spieler“ bekommen.|Multiplayer: met 2 op hetzelfde apparaat spelen kan. De game kreeg het label "2 spelers".|マルチプレイ：同じ端末で2人で遊べるよ。「2人用」マークがついたよ。|多人游戏：可以两个人在同一台设备上玩。游戏获得了“双人”标签。|멀티플레이: 같은 기기에서 2명이 할 수 있어요. 게임에 "2인용" 표시가 붙었어요.',
+ mp_pub_solo:'Multiplayer: não achamos jeito de jogar com outras pessoas, então o jogo é para 1 pessoa. Pra virar online, peça no Koda Studio: "coloca modo online pra jogar com outras pessoas".|Multiplayer: we found no way to play with other people, so the game is for 1 person. To make it online, ask in Koda Studio: "add an online mode to play with other people".|Multijugador: no encontramos forma de jugar con otras personas, así que el juego es para 1 persona. Para hacerlo en línea, pide en Koda Studio: "pon un modo en línea para jugar con otras personas".|Multigiocatore: non abbiamo trovato modo di giocare con altre persone, quindi il gioco è per 1 persona. Per renderlo online, chiedi in Koda Studio: "aggiungi una modalità online per giocare con altre persone".|Multijoueur : on n’a trouvé aucun moyen de jouer avec d’autres personnes, le jeu est donc pour 1 personne. Pour le mettre en ligne, demande dans Koda Studio : « ajoute un mode en ligne pour jouer avec d’autres personnes ».|Mehrspieler: Wir haben keinen Weg gefunden, mit anderen zu spielen – das Spiel ist für 1 Person. Für online frag im Koda Studio: „Füge einen Online-Modus hinzu, um mit anderen zu spielen“.|Multiplayer: we vonden geen manier om met anderen te spelen, dus de game is voor 1 persoon. Om hem online te maken, vraag in Koda Studio: "voeg een online modus toe om met anderen te spelen".|マルチプレイ：ほかの人と遊ぶ方法が見つからなかったので、このゲームは1人用だよ。オンラインにするなら、Koda Studioで「ほかの人と遊べるオンラインモードをつけて」と頼んでね。|多人游戏：没找到和别人一起玩的方式，所以这是单人游戏。想变成在线游戏，可以在 Koda Studio 里说：“加一个可以和别人一起玩的在线模式”。|멀티플레이: 다른 사람과 같이 하는 방법을 찾지 못해서 1인용 게임이에요. 온라인으로 하려면 Koda Studio에서 "다른 사람들과 하는 온라인 모드를 넣어 줘"라고 해요.'
+};
 (function(){
   const ling = ['pt', 'en', 'es', 'it', 'fr', 'de', 'nl', 'ja', 'zh', 'ko'];
-  Object.keys(CONTA_TXT).forEach(k=>{
-    const v = CONTA_TXT[k].split('|');
+  [CONTA_TXT, MP_TXT].forEach(tab=>Object.keys(tab).forEach(k=>{
+    const v = tab[k].split('|');
     ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; });
-  });
+  }));
 })();
 function tTexto(key, vars){
   let s = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || (I18N.pt && I18N.pt[key])
@@ -12349,6 +12375,46 @@ function pintarPresenca(){
     else { el.removeAttribute('title'); el.removeAttribute('aria-label'); }
   });
 }
+/* clicou na foto de quem está JOGANDO: mostra o jogo (e dá pra entrar). O nome continua levando ao perfil.
+   Quem não está jogando segue o caminho de sempre (a foto abre o perfil). Roda antes dos cliques das listas. */
+document.addEventListener('click', e=>{
+  const wrap = e.target && e.target.closest && e.target.closest('.pres-wrap[data-pres]');
+  if(!wrap || wrap.dataset.st !== 'playing') return;
+  const email = String(wrap.dataset.pres || '').toLowerCase();
+  let eu = '';
+  try{ eu = String((fbAuth().currentUser || {}).email || '').toLowerCase(); }catch(err){}
+  if(!email || email === eu) return;                    // a própria foto não abre isso
+  const p = presenceByUser[email];
+  if(!p || p.st !== 'playing' || !p.gameId) return;     // sem o jogo anotado: cai no perfil
+  e.preventDefault(); e.stopPropagation();
+  mostrarQuemJoga(email, p, wrap);
+}, true);
+function mostrarQuemJoga(email, p, wrap){
+  const linha = wrap.closest('.people-result-item, .conv-row, .profile-page');
+  const nomeEl = linha && linha.querySelector('.people-result-name, .conv-name, .profile-page-name');
+  let nome = nomeEl ? String(nomeEl.firstChild && nomeEl.firstChild.nodeType === 3 ? nomeEl.firstChild.textContent : nomeEl.textContent).trim() : '';
+  if(!nome) nome = t('pres_dlg_alguem');
+  const jogo = GAMES.find(g=>g.id === p.gameId);
+  const nomeJogo = (jogo && jogo.name) || p.game || '';
+  const esc = chatListEscape;
+  kbsDialogo(`<h3 class="kbs-dlg-tit">${esc(t('pres_dlg_t', {nome}))}</h3>
+    <div class="pres-jogo">${ICONS.gamepad}<b>${esc(nomeJogo)}</b></div>
+    <div class="kbs-dlg-btns col">
+      ${jogo ? `<button type="button" class="kbs-btn" data-entrar>${esc(t('pres_entrar'))}</button>` : `<p class="kbs-dlg-dica">${esc(t('shared_game_missing'))}</p>`}
+      <button type="button" class="kbs-btn sec" data-perfil>${esc(t('pres_ver_perfil'))}</button>
+    </div>
+    <button type="button" class="kbs-dlg-x" data-no>${esc(t('menu_cancel'))}</button>`,
+    (bg, fechar)=>{
+      bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+      bg.querySelector('[data-perfil]').addEventListener('click', ()=>{ playSound('click'); fechar(); openOtherProfilePage(email); });
+      const ent = bg.querySelector('[data-entrar]');
+      if(ent) ent.addEventListener('click', ()=>{
+        playSound('click'); fechar();
+        try{ closeModal(); }catch(err){}
+        setTimeout(()=>{ try{ openGame(jogo.id, jogo.name); }catch(err){} }, 60);
+      });
+    });
+}
 async function refreshPresencaVisivel(){
   if(!FIREBASE_ENABLED) return;
   const user = fbAuth().currentUser;
@@ -12362,7 +12428,7 @@ async function refreshPresencaVisivel(){
       const d = await fbDb().collection('gamePresence').doc(e).get();
       const v = d.exists ? d.data() : null;
       presenceByUser[e.toLowerCase()] = (v && v.lastSeen)
-        ? {st: v.gameId ? 'playing' : 'active', game: v.gameId ? (v.gameName || null) : null, lastSeen: v.lastSeen}
+        ? {st: v.gameId ? 'playing' : 'active', game: v.gameId ? (v.gameName || null) : null, gameId: v.gameId || null, lastSeen: v.lastSeen}
         : null;
     }catch(err){}
   }));
@@ -15843,6 +15909,44 @@ function corDeFundoEscura(css){
     const n = parseInt(h, 16); return 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255); });
   return lum.reduce((a, b)=>a + b, 0) / lum.length < 0.06;
 }
+/* ============================================================
+   DÁ PRA SER MULTIPLAYER?
+   Lido do próprio código do jogo (vale pra quem publica agora e pros que já estavam publicados):
+   - 'online': o jogo usa as salas online do Koda (KODA.online.entrar + enviar/aoReceber);
+   - 'local': 2 pessoas no mesmo aparelho (o jogo fala em "2 jogadores", "player 2"...);
+   - null: 1 pessoa.
+   Os jogos do site já vêm marcados.
+============================================================ */
+const MP_SITE = {ttt: 'local', memoria: 'local', wam: 'local', xadrez: 'local'};
+const mpCache = new Map();
+function mpDoCodigo(cod){
+  const s = String(cod || '');
+  if(/KODA\s*\.\s*online\s*\.\s*entrar\s*\(/.test(s) && /\.\s*(enviar|aoReceber)\s*\(/.test(s)) return 'online';
+  if(/\b(2|dois|duas|two|deux|zwei|twee)\s+(jogadores|jugadores|players|giocatori|joueurs|spieler|spelers|pessoas|personas)\b|\b(jogador|jugador|player|joueur|spieler|speler|giocatore)\s*2\b|\b(multijogador|multijugador|pvp|2p)\b|2人用|双人|2인용/i.test(s)) return 'local';
+  return null;
+}
+function modoMultiplayer(g){
+  if(!g) return null;
+  if(!g.custom) return MP_SITE[g.id] || null;
+  const chave = g.id + '|' + (g.codeB64 ? g.codeB64.length : 0);
+  if(mpCache.has(chave)) return mpCache.get(chave);
+  let cod = '';
+  try{ cod = b64ToUtf8(g.codeB64 || ''); }catch(e){}
+  const r = mpDoCodigo(cod);
+  mpCache.set(chave, r);
+  return r;
+}
+function seloMultiplayer(g){
+  const m = g && g.playable ? modoMultiplayer(g) : null;
+  if(!m) return '';
+  return `<span class="mp-selo mp-${m}">${ICONS.people}<span>${chatListEscape(t(m === 'online' ? 'mp_online' : 'mp_local'))}</span></span>`;
+}
+/* o aviso na tela de publicar */
+function avisoMultiplayer(g){
+  if(!g || !g.codeB64) return '';
+  const m = modoMultiplayer(Object.assign({custom: true}, g));
+  return `<p class="mp-aviso mp-aviso-${m || 'solo'}">${ICONS.people}<span>${chatListEscape(t(m === 'online' ? 'mp_pub_online' : m === 'local' ? 'mp_pub_local' : 'mp_pub_solo'))}</span></p>`;
+}
 function createGameCardEl(g, i){
   const el = document.createElement('div');
   el.className = 'card ' + g.span + (g.playable? '' : ' soon');
@@ -15866,6 +15970,7 @@ function createGameCardEl(g, i){
     <div class="art">${artHtml}</div>
     ${g.playable ? '' : `<span class="badge">${t('soon_badge')}</span>`}
     ${seloDeAnalise(g)}
+    ${seloMultiplayer(g)}
     <div class="cardname">${chatListEscape(g.name)}</div>
   `;
   if(g.playable){
@@ -16517,6 +16622,9 @@ function paratiTags(g){
     Object.entries(PARATI_PALAVRAS).forEach(([tag, re])=>{ if(re.test(texto)) tags.add(tag); });
     if(Array.isArray(g.multiplayerCounts) && g.multiplayerCounts.some(n=>n > 1)) tags.add('duo');
   }
+  const mp = modoMultiplayer(g);
+  if(mp === 'online') tags.add('online');
+  if(mp) tags.add('duo');
   const lista = [...tags];
   parTagsCache.set(chave, lista);
   return lista;
@@ -18525,13 +18633,14 @@ function textoDosDetalhes(detalhes){
   }).filter(Boolean);
 }
 /* compacto = a tela que aparece logo depois de "Publicar": só o SIM ou o NÃO (o motivo fica em "Ver análise") */
-function htmlDoResultado(r, compacto){
+function htmlDoResultado(r, compacto, jogo){
   const st = r && r.status;
   const icone = st === 'aprovado' ? '✓' : st === 'recusado' ? '✕' : st === 'revisao' || st === 'recurso' ? '…' : '⟳';
   let titulo, msg, extra = '';
   if(st === 'aprovado'){
     titulo = t('mod_ok_title'); msg = compacto ? '' : t('mod_ok_msg');
     if(!compacto && r.motivo) extra = `<p class="mod-motivo">${chatListEscape(r.motivo)}</p>`;
+    extra += avisoMultiplayer(jogo);
   }
   else if(st === 'recusado'){
     titulo = t('mod_no_title'); msg = compacto ? '' : t('mod_no_msg');
@@ -18656,7 +18765,7 @@ async function abrirTelaDeAnalise(rec){
   }
   tela.classList.add('pronta');
   const box = tela.querySelector('#modResultado');
-  box.innerHTML = htmlDoResultado(r, true) + botoesDoResultado(r, rec, true);
+  box.innerHTML = htmlDoResultado(r, true, rec) + botoesDoResultado(r, rec, true);
   ligarBotoesDoResultado(box, r, rec);
   if(r.status === 'aprovado'){
     try{ playSound('coin'); }catch(e){}
@@ -18687,7 +18796,7 @@ function abrirResultadoDoJogo(g){
   const a = g.analise || {};
   const r = {status: a.status === 'erro' ? 'erro' : (a.status || 'analise'), categorias: a.categorias, motivo: a.motivo, detalhes: a.detalhes};
   if(r.status === 'analise'){ r.status = 'demorando'; }
-  modalBody.innerHTML = `<div class="mod-tela pronta"><div class="mod-resultado">${htmlDoResultado(r)}${botoesDoResultado(r, g)}</div></div>`;
+  modalBody.innerHTML = `<div class="mod-tela pronta"><div class="mod-resultado">${htmlDoResultado(r, false, g)}${botoesDoResultado(r, g)}</div></div>`;
   ligarBotoesDoResultado(modalBody, r, g);
 }
 function abrirRegrasDePublicar(){
