@@ -31,6 +31,13 @@
  *    BREVO_API_KEY ............ a chave da API do Brevo (brevo.com, grátis: 300 e-mails por dia). Secret.
  *    EMAIL_REMETENTE .......... o e-mail que aparece como remetente (o mesmo que foi confirmado
  *                               no Brevo; use um e-mail só do Koda, nunca o pessoal). Variável comum.
+ *  MODO DA ANÁLISE DE JOGOS (variável comum "MODERACAO"; se não existir vale o padrão do código, abaixo):
+ *    desligada ... o jogo é publicado na hora, sem nenhuma análise (não precisa de chave nem de crédito)
+ *    basica ...... só os bloqueios automáticos e grátis (código de mineração, carregar coisa de outro site...); sem IA
+ *    completa .... a análise inteira, com a IA (precisa da ANTHROPIC_API_KEY com crédito)
+ *    Valor com erro de digitação vira "completa" (na dúvida, o mais rigoroso).
+ *    Jogos publicados em "desligada" ou "basica" ficam marcados; quando o modo voltar pra "completa",
+ *    o botão "Analisar jogos antigos" do painel do admin passa todos eles pela análise de verdade.
  *  OPCIONAIS (variáveis comuns):
  *    MODELO_MODERACAO ......... modelo da IA (padrão: claude-sonnet-4-6)
  *    ADMIN_EMAIL .............. e-mail do admin (padrão: o do site)
@@ -43,8 +50,17 @@
 /* ---------------------------------------------------------------------------
    CONFIGURAÇÃO
 --------------------------------------------------------------------------- */
-const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-19-contas-com-nome';
+const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-20-modo-sem-ia';
 const PROJETO_PADRAO   = 'jogodromo';
+/* modo da análise de jogos quando a variável MODERACAO não existe: 'desligada' | 'basica' | 'completa'.
+   Está 'desligada' enquanto não há chave/crédito da IA. Pra religar: crie a variável MODERACAO = completa no Cloudflare. */
+const MODERACAO_PADRAO = 'desligada';
+const MODOS_DA_MODERACAO = ['desligada', 'basica', 'completa'];
+function modoDaModeracao(env){
+  const bruto = env && env.MODERACAO !== undefined && String(env.MODERACAO).trim() !== '' ? String(env.MODERACAO) : MODERACAO_PADRAO;
+  const m = bruto.trim().toLowerCase();
+  return MODOS_DA_MODERACAO.indexOf(m) >= 0 ? m : 'completa';
+}
 const ADMIN_PADRAO     = 'gustavoguimaraes200914@gmail.com';
 const MODELO_PADRAO    = 'claude-sonnet-4-6';
 /* versão da política: se as regras mudarem, os jogos antigos podem ser
@@ -186,6 +202,7 @@ function lerConfig(env){
     projeto: (sa && sa.project_id) || env.FIREBASE_PROJECT_ID || PROJETO_PADRAO,
     admin: (env.ADMIN_EMAIL || ADMIN_PADRAO).toLowerCase(),
     modelo: env.MODELO_MODERACAO || MODELO_PADRAO,
+    modo: modoDaModeracao(env),
     brevo: env.BREVO_API_KEY || '',
     remetente: String(env.EMAIL_REMETENTE || '').trim(),
   };
@@ -1503,6 +1520,15 @@ function bloqueioEstatico(analise){
   };
 }
 
+/* sem IA (modos "desligada" e "basica"): nada é enviado pra IA. "desligada" aprova tudo; "basica" só aplica os
+   bloqueios automáticos e grátis (os mesmos do começo da análise completa). Politica 0 = "ainda não passou pela análise
+   de verdade": quando a IA voltar, "Analisar jogos antigos" pega esses jogos. */
+function revisarSemIA(jogo, extras, modo){
+  const aprovado = { status: 'aprovado', categorias: [], motivo: '', detalhes: [], idadeMinima: null, confianca: 1, alerta: false, violacoes: [] };
+  if(modo !== 'basica') return { decisao: aprovado, analise: null, votos: {} };
+  const analise = analisarJogo(jogo, extras);
+  return { decisao: bloqueioEstatico(analise) || aprovado, analise, votos: {} };
+}
 /* análise completa de um jogo */
 async function revisarCompleto(cfg, jogo, extras){
   const analise = analisarJogo(jogo, extras);
@@ -1613,7 +1639,7 @@ function soCamposDoJogo(dados){
   else o.multiplayerCounts = o.multiplayerCounts.filter(n => Number.isInteger(n) && n >= 1 && n <= 8).slice(0, 8);
   return o;
 }
-function moderacaoParaGuardar(decisao, versao, por){
+function moderacaoParaGuardar(decisao, versao, por, politica){
   return {
     status: decisao.status,
     categorias: decisao.categorias || [],
@@ -1623,15 +1649,15 @@ function moderacaoParaGuardar(decisao, versao, por){
     soTraducao: !!decisao.soTraducao,
     em: agora(),
     versao,
-    politica: POLITICA_VERSAO,
+    politica: politica === undefined ? POLITICA_VERSAO : politica,
     por: por || 'ia',
   };
 }
-async function publicarNoCatalogo(db, id, jogo, decisao, versao, por, eraNovo){
+async function publicarNoCatalogo(db, id, jogo, decisao, versao, por, eraNovo, politica){
   const doc = soCamposDoJogo(jogo);
   doc.id = id;
   doc.updatedAt = agora();
-  doc.moderacao = { status: 'aprovado', em: agora(), versao, politica: POLITICA_VERSAO, por: por || 'ia', idadeMinima: decisao.idadeMinima === undefined ? null : decisao.idadeMinima };
+  doc.moderacao = { status: 'aprovado', em: agora(), versao, politica: politica === undefined ? POLITICA_VERSAO : politica, por: por || 'ia', idadeMinima: decisao.idadeMinima === undefined ? null : decisao.idadeMinima };
   await db.gravar('publicGames/' + id, doc);
   if(eraNovo){
     /* vira novidade para quem segue a pessoa — só agora, depois de aprovado */
@@ -1713,10 +1739,14 @@ async function moderarEnvio(db, cfg, id, quem, extras){
   }
   const versao = await carimboCompleto(sub);
   const m = sub.moderacao || {};
-  /* já decidido para esta mesma versão do jogo: devolve o que já foi decidido (sem gastar IA de novo).
+  const modo = cfg.modo || 'completa';
+  /* já decidido PELA IA para esta mesma versão do jogo: devolve o que já foi decidido (sem gastar IA de novo).
      Se foi aprovado mas por algum motivo não está no catálogo, publica agora (mesmo conteúdo, já aprovado).
-     (Os estados antigos "revisao" e "recurso" não contam: esses jogos são analisados de novo.) */
-  if(m.versao === versao && (m.status === 'aprovado' || m.status === 'recusado')){
+     (Os estados antigos "revisao" e "recurso" não contam: esses jogos são analisados de novo.)
+     Decisão tomada sem IA (por "sem-analise" ou "basica") não vale como análise de verdade, e fora do modo
+     "completa" nenhuma decisão antiga segura o jogo: quem manda é o modo de agora. */
+  const decididoPelaIA = !m.por || m.por === 'ia';
+  if(modo === 'completa' && decididoPelaIA && m.versao === versao && (m.status === 'aprovado' || m.status === 'recusado')){
     if(m.status === 'aprovado'){
       const noCatalogo = await db.ler('publicGames/' + id);
       const ok = noCatalogo && noCatalogo.dados && noCatalogo.dados.moderacao && noCatalogo.dados.moderacao.status === 'aprovado' && noCatalogo.dados.moderacao.versao === versao;
@@ -1740,14 +1770,17 @@ async function moderarEnvio(db, cfg, id, quem, extras){
       if(!lim.ok){ await liberar(); return { erro: 'limite', tenteEm: lim.tenteEm, status: 'analise', httpStatus: 429 }; }
     }
     const lang = NOME_IDIOMA[extras.lang] ? extras.lang : 'pt';
-    const r = soTraducao ? await revisarTraducoes(cfg, sub, pub, lang) : await revisarCompleto(cfg, sub, extras);
+    const comIA = modo === 'completa';
+    const por = comIA ? 'ia' : (modo === 'basica' ? 'basica' : 'sem-analise');
+    const politica = comIA ? POLITICA_VERSAO : 0;
+    const r = !comIA ? revisarSemIA(sub, extras, modo) : soTraducao ? await revisarTraducoes(cfg, sub, pub, lang) : await revisarCompleto(cfg, sub, extras);
     const decisao = r.decisao;
-    if(decisao.status === 'aprovado') await publicarNoCatalogo(db, id, sub, decisao, versao, 'ia', !pub);
-    const mod = moderacaoParaGuardar(decisao, versao, 'ia');
+    if(decisao.status === 'aprovado') await publicarNoCatalogo(db, id, sub, decisao, versao, por, !pub, politica);
+    const mod = moderacaoParaGuardar(decisao, versao, por, politica);
     const gravou = await db.gravar(caminho, { status: decisao.status, moderacao: mod }, { campos: ['status', 'moderacao', 'moderando'], seAtualizadoEm: trava.atualizadoEm });
     await registrarLog(db, Object.assign({
       gameId: id, nome: String(sub.name || '').slice(0, 120), criador: sub.creatorEmail || '', quemPediu: quem.email,
-      tipo: soTraducao ? 'traducao' : 'completo', status: decisao.status, categorias: decisao.categorias || [], alerta: !!decisao.alerta,
+      tipo: !comIA ? modo : soTraducao ? 'traducao' : 'completo', status: decisao.status, categorias: decisao.categorias || [], alerta: !!decisao.alerta,
       idadeMinima: decisao.idadeMinima === undefined ? null : decisao.idadeMinima, versao, politica: POLITICA_VERSAO, em: agora(), ms: agora() - t0,
       versaoMudouNoMeio: gravou === false,
     }, resumoParaLog(r)));
@@ -2013,6 +2046,7 @@ async function diagnostico(cfg, testar){
     modelo: cfg.modelo,
     versao_da_politica: POLITICA_VERSAO,
     versao_do_codigo: VERSAO_DO_CODIGO,
+    modo_da_analise: cfg.modo + (cfg.modo === 'desligada' ? ' (os jogos são publicados na hora, sem análise)' : cfg.modo === 'basica' ? ' (só os bloqueios automáticos, sem IA)' : ' (análise completa com IA)'),
     resultado: 'so_sim_ou_nao (sem revisao por pessoa; na duvida, nao publica)',
     email_de_recuperacao: cfg.brevo && cfg.remetente ? 'configurado' : 'falta ' + [!cfg.brevo && 'BREVO_API_KEY', !cfg.remetente && 'EMAIL_REMETENTE'].filter(Boolean).join(' e '),
   };
@@ -2027,7 +2061,7 @@ async function diagnostico(cfg, testar){
       info.contas = 'ok: o servidor consegue achar as contas (nome de usuário)';
     }catch(e){ info.contas = 'falhou: ' + e.message; }
   }
-  info.tudo_certo = !!cfg.anthropic && !!cfg.sa && (!testar || /^ok/.test(info.banco || ''));
+  info.tudo_certo = (cfg.modo !== 'completa' || !!cfg.anthropic) && !!cfg.sa && (!testar || /^ok/.test(info.banco || ''));
   return info;
 }
 const MODELOS_DO_AGENTE = ['claude-sonnet-4-6', 'claude-sonnet-4-5', 'claude-haiku-4-5'];
@@ -2083,7 +2117,9 @@ export default {
     if(rota === '/moderar' || rota === '/decidir' || rota === '/moderar-antigos'){
       /* não existe mais decisão "na mão": o resultado é sempre o da análise */
       if(rota === '/decidir') return respJSON({ erro: 'desativado', detalhe: 'o Koda não tem revisão por pessoa: o resultado é sempre o da análise' }, 410);
-      if(!cfg.sa || !cfg.anthropic) return respJSON({ erro: 'nao_configurado', detalhe: cfg.saErro || (!cfg.anthropic ? 'falta ANTHROPIC_API_KEY' : 'falta FIREBASE_SERVICE_ACCOUNT') }, 503);
+      const precisaDaIA = cfg.modo === 'completa' || rota === '/moderar-antigos';
+      if(!cfg.sa || (precisaDaIA && !cfg.anthropic)) return respJSON({ erro: 'nao_configurado', detalhe: cfg.saErro || (!cfg.sa ? 'falta FIREBASE_SERVICE_ACCOUNT' : 'falta ANTHROPIC_API_KEY') }, 503);
+      if(rota === '/moderar-antigos' && cfg.modo !== 'completa') return respJSON({ erro: 'ia_desligada', detalhe: 'a análise com IA está desligada (modo "' + cfg.modo + '"): ligue com a variável MODERACAO = completa' }, 409);
       let quem;
       try{ quem = await quemEsta(request, cfg); }
       catch(e){ return respJSON({ erro: 'nao_autorizado', detalhe: e.message }, 401); }
