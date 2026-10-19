@@ -5,7 +5,29 @@ Esta pasta **não vai para o ar com o site** (está no `.assetsignore`): a lista
 - `jogodromo-agent-worker.js` — o código do worker. É o que fica publicado no Cloudflare como **jogodromo-agente**.
 - `teste-moderacao.mjs` — testes (sem internet e sem gastar IA). Rodar: `node agente/teste-moderacao.mjs`.
 
-## Como o resultado funciona
+## Modo da análise de jogos (ligar e desligar a segurança)
+Uma variável do Cloudflare decide: **Workers & Pages → jogodromo-agente → Settings → Variables and Secrets → `MODERACAO`** (tipo **Text**).
+
+| Valor | O que acontece |
+|---|---|
+| `desligada` | O jogo é publicado **na hora**, sem nenhuma análise. Não usa a IA, então não precisa de chave nem de crédito. **É o padrão do código agora.** |
+| `basica` | Só os bloqueios automáticos e grátis (código de mineração de criptomoeda, carregar coisa de outro site...). Sem IA. |
+| `completa` | A análise inteira com a IA, como era antes. Precisa da `ANTHROPIC_API_KEY` com crédito. |
+
+Sem a variável vale o `desligada`. Valor com erro de digitação vira `completa` (na dúvida, o mais rigoroso).
+Dá pra conferir em `https://jogodromo-agente.gamersite.workers.dev/` (campo `modo_da_analise`).
+
+**Pra religar a análise quando tiver a chave da API com crédito:**
+1. Confira a `ANTHROPIC_API_KEY` (Secret) no mesmo lugar.
+2. Crie (ou troque) a variável `MODERACAO` com o valor `completa` e salve. Não precisa colar o código de novo.
+3. No Koda, abra o painel do admin (análise de jogos) e toque em **Analisar jogos antigos**. Isso passa pela análise de verdade
+   todos os jogos que foram publicados enquanto estava desligada (eles ficam marcados como `sem-analise`/`basica`);
+   os que não passarem saem do catálogo e o criador vê o motivo.
+
+O que continua mesmo com a análise desligada: o limite de envios por pessoa (15 por hora e 40 por dia, contra spam) e a
+checagem de conteúdo ilegal que o próprio site faz antes de enviar o jogo.
+
+## Como o resultado funciona (modo `completa`)
 Só existem dois fins: **✔ aprovado** (o jogo é publicado na hora) ou **✖ recusado** (não é publicado).
 Não existe revisão por pessoa nem "pedir revisão": na dúvida, recusa; o criador conserta e envia de novo.
 Se a análise não conseguir rodar (IA fora do ar etc.), nada é publicado e o site tenta de novo sozinho.

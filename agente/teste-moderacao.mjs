@@ -5,7 +5,7 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta';
+const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta, modoDaModeracao';
 const temp = path.join(os.tmpdir(), 'koda-worker-teste-' + process.pid + '.mjs');
 fs.writeFileSync(temp, fs.readFileSync(path.join(aqui, 'jogodromo-agent-worker.js'), 'utf8') + '\nexport { ' + exportados + ' };\n');
 const W = await import(pathToFileURL(temp).href);
@@ -354,6 +354,62 @@ console.log('== 18. contas com nome de usuário: nome livre, e-mail de seguranç
   fx.db.docs.get('recuperacao/uid-pedro').dados.envios = [];
   const re = await W.rotaDeConta(req('/conta/codigo', { usuario: 'pedro' }), { sa: {}, projeto: 'jogodromo' }, '/conta/codigo', fxSemEmail);
   t('rota: sem Brevo configurado avisa', re.status === 502 && (await re.json()).erro === 'email_nao_configurado');
+}
+
+console.log('== 19. modos da análise: desligada, basica e completa');
+{
+  t('modo: sem variável vale o padrão do código (desligada)', W.modoDaModeracao({}) === 'desligada' && W.modoDaModeracao(undefined) === 'desligada' && W.modoDaModeracao({ MODERACAO: '  ' }) === 'desligada');
+  t('modo: completa e basica, com espaço e maiúscula', W.modoDaModeracao({ MODERACAO: ' Completa ' }) === 'completa' && W.modoDaModeracao({ MODERACAO: 'BASICA' }) === 'basica');
+  t('modo: erro de digitação vira completa (o mais rigoroso)', W.modoDaModeracao({ MODERACAO: 'completo' }) === 'completa');
+  t('lerConfig traz o modo', W.lerConfig({}).modo === 'desligada' && W.lerConfig({ MODERACAO: 'completa' }).modo === 'completa');
+
+  const ruim = html('<h1>Mineiro</h1><script>var m = new CoinHive.Anonymous("x"); m.start();</script>');
+  const cfgDeslig = Object.assign({}, cfg, { modo: 'desligada', anthropic: '' }), cfgBasica = Object.assign({}, cfg, { modo: 'basica', anthropic: '' });
+  async function enviaModo(c, codigo){
+    const db = bancoFalso();
+    await db.gravar('gameSubmissions/g1', { id: 'g1', name: 'Jogo', category: null, codeB64: b64(codigo), creatorEmail: quem.email, creatorUid: 'u1', creatorName: 'Criança', status: 'analise', updatedAt: 1, hasDifficulty: false, multiplayerCounts: [] });
+    chamadas = [];
+    const r = await W.moderarEnvio(db, c, 'g1', quem, { lang: 'pt', capturas: [], textosExecucao: [] });
+    return { r, db, pub: await db.ler('publicGames/g1'), fin: await db.ler('gameSubmissions/g1'), chamadas: chamadas.slice() };
+  }
+  roteiro = {};
+  let m1 = await enviaModo(cfgDeslig, limpo);
+  t('desligada: publica na hora, sem chamar a IA', m1.r.status === 'aprovado' && !!m1.pub && m1.chamadas.length === 0, [m1.r, m1.chamadas]);
+  t('desligada: fica marcado como "sem-analise" e política 0 (pra reanalisar depois)', m1.pub.dados.moderacao.por === 'sem-analise' && m1.pub.dados.moderacao.politica === 0 && m1.fin.dados.moderacao.politica === 0, m1.pub.dados.moderacao);
+  t('desligada: o jogo vira novidade pra quem segue', m1.db.adicionados.some(a => a.c === 'activities'));
+  t('desligada: o registro mostra o tipo', m1.db.adicionados.some(a => a.c === 'moderacaoLog' && a.dados.tipo === 'desligada'));
+  let m2 = await enviaModo(cfgDeslig, ruim);
+  t('desligada: publica até o que a análise completa recusaria', m2.r.status === 'aprovado' && !!m2.pub);
+  let m3 = await enviaModo(cfgBasica, ruim);
+  t('basica: ainda barra mineração de criptomoeda, sem IA', m3.r.status === 'recusado' && !m3.pub && m3.chamadas.length === 0, m3.r);
+  let m4 = await enviaModo(cfgBasica, limpo);
+  t('basica: jogo normal passa, marcado como "basica"', m4.r.status === 'aprovado' && m4.pub.dados.moderacao.por === 'basica' && m4.pub.dados.moderacao.politica === 0);
+  /* a decisão sem IA não segura o jogo quando a IA volta */
+  roteiro = { A: { decisao: 'recusar', confianca: 0.95, violacoes: [{ categoria: 'odio', gravidade: 'grave', trecho: 'bando de macacos', explicacao: 'x' }] }, B: { decisao: 'recusar', confianca: 0.95, violacoes: [{ categoria: 'odio', gravidade: 'grave', trecho: 'bando de macacos', explicacao: 'x' }] } };
+  const feio = html('<h1>Jogo</h1><p>Vote em fulano para presidente 2030, bando de macacos</p>');
+  const dbV = m1.db;
+  await dbV.gravar('gameSubmissions/g1', Object.assign({}, m1.fin.dados, { codeB64: b64(feio) }));
+  const sub2 = (await dbV.ler('gameSubmissions/g1')).dados;
+  sub2.moderacao = { status: 'aprovado', versao: await W.carimboCompleto(sub2), politica: 0, por: 'sem-analise', em: 1 };
+  await dbV.gravar('gameSubmissions/g1', sub2);
+  chamadas = [];
+  const rC = await W.moderarEnvio(dbV, Object.assign({}, cfg, { modo: 'completa' }), 'g1', quem, { lang: 'pt', capturas: [], textosExecucao: [] });
+  t('completa: aprovação sem IA do mesmo jogo NÃO vale, a IA analisa de verdade', chamadas.length >= 2 && rC.status === 'recusado', [rC.status, chamadas]);
+  const dbD = bancoFalso();
+  await dbD.gravar('gameSubmissions/g1', { id: 'g1', name: 'J', codeB64: b64(feio), creatorEmail: quem.email, creatorUid: 'u1', status: 'recusado', updatedAt: 1, moderacao: { status: 'recusado', politica: 1, por: 'ia', versao: 'qualquer' } });
+  const rD = await W.moderarEnvio(dbD, cfgDeslig, 'g1', quem, { lang: 'pt', capturas: [], textosExecucao: [] });
+  t('desligada: um jogo recusado antes pela IA pode ser publicado de novo', rD.status === 'aprovado' && !!(await dbD.ler('publicGames/g1')));
+
+  const rotaMod = (rota, c) => worker.fetch(new Request('https://w.dev' + rota, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer x' }, body: '{}' }), c);
+  const r1 = await worker.fetch(new Request('https://w.dev/?testar'), { MODERACAO: 'desligada' });
+  const j1 = await r1.json();
+  t('diagnóstico: mostra o modo e não exige a chave da IA', /^desligada/.test(j1.modo_da_analise) && j1.chave_anthropic === false, j1);
+  const j2 = await (await worker.fetch(new Request('https://w.dev/'), { MODERACAO: 'completa', FIREBASE_SERVICE_ACCOUNT: '{"client_email":"a@b","private_key":"x"}' })).json();
+  t('diagnóstico: completa sem chave da IA não está tudo certo', /^completa/.test(j2.modo_da_analise) && j2.tudo_certo === false, j2);
+  const ra = await rotaMod('/moderar-antigos', { MODERACAO: 'desligada', FIREBASE_SERVICE_ACCOUNT: '{"client_email":"a@b","private_key":"x"}', ANTHROPIC_API_KEY: 'k' });
+  t('moderar-antigos: com a IA desligada avisa e não faz nada', ra.status === 409 && (await ra.json()).erro === 'ia_desligada');
+  const rn = await rotaMod('/moderar', { MODERACAO: 'desligada' });
+  t('moderar: sem conta de serviço continua dando erro de configuração', rn.status === 503 && (await rn.json()).detalhe === 'falta FIREBASE_SERVICE_ACCOUNT');
 }
 
 try{ fs.unlinkSync(temp); }catch(e){}
