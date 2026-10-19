@@ -12,6 +12,8 @@ const MSG_POR_SEG = 20;       // por jogador (o site já limita a 10; aqui é a 
 const RESERVA_MS = 20000;     // vaga reservada que ninguém ocupou volta sozinha
 
 const limpa = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
+/* o personagem de quem entra: só um texto curto "kp1:..." (o site confere e desenha; aqui só repassa) */
+const personagem = s => { s = String(s || ''); return /^kp1:[a-z0-9.]{1,400}$/.test(s) ? s : ''; };
 const idJogo = s => { s = String(s || ''); return /^[A-Za-z0-9_-]{1,100}$/.test(s) ? s : null; };
 
 function origemOk(req, env) {
@@ -44,7 +46,8 @@ export default {
     const { sala } = await r.json();
 
     const stub = env.SALA.get(env.SALA.idFromName(jogo + ':' + sala));
-    const h = new Request('https://sala/entrar?jogo=' + encodeURIComponent(jogo) + '&sala=' + sala + '&cap=' + cap + '&nome=' + encodeURIComponent(nome), req);
+    const av = personagem(url.searchParams.get('av'));
+    const h = new Request('https://sala/entrar?jogo=' + encodeURIComponent(jogo) + '&sala=' + sala + '&cap=' + cap + '&nome=' + encodeURIComponent(nome) + (av ? '&av=' + encodeURIComponent(av) : ''), req);
     return stub.fetch(h);
   }
 };
@@ -111,7 +114,7 @@ export class Sala {
     this.env = env;
   }
   jogadores() {
-    return this.state.getWebSockets().map(ws => ws.deserializeAttachment()).filter(Boolean).map(a => ({ id: a.id, nome: a.nome }));
+    return this.state.getWebSockets().map(ws => ws.deserializeAttachment()).filter(Boolean).map(a => ({ id: a.id, nome: a.nome, av: a.av || '' }));
   }
   avisarDiretorio(jogo, sala, entrou) {
     const n = this.state.getWebSockets().length;
@@ -131,6 +134,7 @@ export class Sala {
     const sala = parseInt(url.searchParams.get('sala'), 10);
     const cap = Math.max(MIN_SALA, Math.min(MAX_SALA, parseInt(url.searchParams.get('cap'), 10) || PADRAO_SALA));
     const nome = limpa(url.searchParams.get('nome'), 24) || 'Jogador';
+    const av = personagem(url.searchParams.get('av'));
 
     const par = new WebSocketPair();
     const [cliente, servidor] = Object.values(par);
@@ -142,9 +146,9 @@ export class Sala {
     }
     const id = crypto.randomUUID().slice(0, 8);
     this.state.acceptWebSocket(servidor);
-    servidor.serializeAttachment({ id, nome, jogo, sala, t: Date.now(), c: 0 });
+    servidor.serializeAttachment({ id, nome, av, jogo, sala, t: Date.now(), c: 0 });
     servidor.send(JSON.stringify({ t: 'oi', eu: id, sala, cap, jogadores: this.jogadores() }));
-    this.transmitir({ t: 'entrou', id, nome }, servidor);
+    this.transmitir({ t: 'entrou', id, nome, av }, servidor);
     await this.avisarDiretorio(jogo, sala, true);
     return new Response(null, { status: 101, webSocket: cliente });
   }

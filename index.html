@@ -19519,13 +19519,22 @@ O criador quer que os jogadores possam comprar coisas dentro do jogo com Koda Co
 - \`window.KODA.loja.comprar(id)\` — abre direto a janela de compra daquele item (devolve uma Promise que vale true se a compra foi feita).
 Nunca invente outro jeito de cobrar e nunca peça dinheiro de verdade: só Koda Coins e Koda Diamonds, só por essa API. O jogo precisa continuar funcionando se \`window.KODA.loja\` não existir (use \`if(window.KODA && window.KODA.loja)\`).` : ''}
 
+## O personagem de quem joga (use sempre que fizer sentido!)
+
+Cada criança no Koda tem um personagem em pixel art. Use ele como o herói/jogador do jogo: a criança joga como ela mesma, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
+- \`KODA.jogador.aoPronto(function(){ ... })\` — chamada quando o personagem já pode ser desenhado (na hora, se já pode). \`KODA.jogador.pronto()\` diz se já dá.
+- \`KODA.jogador.desenhar(ctx, x, y, altura)\` — desenha o personagem no canvas (x,y = canto de cima à esquerda; a largura é calculada, cerca de 0,76 x a altura). Devolve false se ainda não dá. Use no lugar de um quadrado/bolinha que seria o jogador, com altura de uns 48 a 96 pixels. Para virar pro outro lado: \`ctx.save(); ctx.translate(x+largura, y); ctx.scale(-1,1); KODA.jogador.desenhar(ctx, 0, 0, altura); ctx.restore();\`
+- \`KODA.jogador.nome()\` — o apelido da pessoa (nunca é e-mail). Dá pra escrever "Bem-vindo, <nome>!" ou pôr no placar.
+- \`KODA.jogador.personagem()\` — a imagem pronta (Image), se você precisar dela de outro jeito (por exemplo, em CSS/HTML use \`.src\` dela).
+Em jogos com HTML comum (não canvas), use \`<img>\` com \`image-rendering: pixelated\` e \`.src = KODA.jogador.personagem().src\`. Nunca desenhe o personagem esticado: mantenha a proporção (largura = altura x 22/29).
+
 ## Jogo ONLINE (só se o pedido for um jogo para várias pessoas jogarem juntas pela internet)
 
 O Koda tem salas online de graça: cada sala tem até 16 pessoas e, quando enche, o Koda abre outra sozinho. Use \`window.KODA.online\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.online)\` e, se não existir, deixe o jogo funcionar sozinho/offline):
-- \`window.KODA.online.entrar({max:16}).then(function(info){ ... })\` — entra numa sala. \`info\` = {eu: 'seuId', sala: 1, jogadores: [{id, nome}, ...]} (a lista já inclui você). Use \`.catch\` pra mostrar "não consegui entrar" e deixar jogar offline. max = pessoas por sala (de 2 a 20).
+- \`window.KODA.online.entrar({max:16}).then(function(info){ ... })\` — entra numa sala. \`info\` = {eu: 'seuId', sala: 1, jogadores: [{id, nome, img}, ...]} (a lista já inclui você). Use \`.catch\` pra mostrar "não consegui entrar" e deixar jogar offline. max = pessoas por sala (de 2 a 20).
 - \`window.KODA.online.enviar(dados)\` — manda \`dados\` (qualquer objeto simples, até ~1500 caracteres em JSON) para TODOS os outros da sala. \`enviar(dados, idDoJogador)\` manda só para uma pessoa. No máximo 10 envios por segundo: mande a posição do jogador umas 8 a 10 vezes por segundo (não a cada frame!) e as ações importantes (tiro, jogada, ponto) na hora. Devolve false se mandou rápido demais.
 - \`window.KODA.online.aoReceber(function(dados, deId){ ... })\` — chega o que alguém mandou. Nunca confie cegamente: confira os tipos e os limites dos números antes de usar.
-- \`aoEntrar(function(j){})\` e \`aoSair(function(j){})\` — alguém entrou/saiu da sala (j = {id, nome}). Crie e apague o personagem dessa pessoa aí.
+- \`aoEntrar(function(j){})\` e \`aoSair(function(j){})\` — alguém entrou/saiu da sala (j = {id, nome, img}). Crie e apague o personagem dessa pessoa aí. Cada pessoa da sala tem o personagem dela: desenhe com \`KODA.online.desenhar(ctx, idDaPessoa, x, y, altura)\` (devolve false se ainda não chegou; aí desenhe um bonequinho seu) e use \`KODA.jogador.desenhar(...)\` para você mesmo. Assim cada um vê o visual dos outros.
 - \`aoConectar(function(info){})\` — chamada na entrada e também se a conexão cair e voltar (nesse caso recomece enviando o seu estado). \`aoDesconectar(function(){})\` — a conexão caiu (o Koda tenta voltar sozinho; mostre "reconectando…").
 - \`jogadores()\` (lista), \`eu()\` (seu id), \`sala()\` (número da sala).
 Regras: não existe servidor que decide nada — cada jogador roda o jogo no próprio aparelho e os outros recebem o que ele manda, então faça o jogo funcionar assim (cada um manda a própria posição; para jogos de vez, como velha ou damas, o primeiro da lista \`jogadores()\` com menor id começa). NÃO faça bate-papo de texto livre entre jogadores (o Koda é para crianças); se quiser comunicação, use só mensagens prontas (botões de emoji ou frases fixas). Mostre os nomes dos jogadores como vêm em \`nome\`, sem pedir mais nada.`;
@@ -20825,19 +20834,25 @@ const ONLINE_POR_SEG = 10;        // mensagens por segundo que um jogo pode mand
 
 /* esta função é copiada pra DENTRO do quadro do jogo (por isso não pode usar nada de fora) */
 function kodaOnlineNoJogo(manda){
-  var eu = null, sala = 0, lista = [], pend = null, balde = 20, bt = Date.now();
+  var eu = null, sala = 0, lista = [], pend = null, balde = 20, bt = Date.now(), figuras = {};
+  function figura(j){
+    if(!j || !j.id || !j.img) return;
+    if(figuras[j.id] && figuras[j.id].__src === j.img) return;
+    var im = new Image(); im.__src = j.img; im.src = j.img; figuras[j.id] = im;
+  }
   var oC = [], oR = [], oE = [], oS = [], oD = [];
   function cada(a, x, y){ a.forEach(function(f){ try{ f(x, y); }catch(e){} }); }
   window.addEventListener('message', function(ev){
     var d = ev && ev.data;
     if(ev.source !== parent || !d || d.__kodaOnline !== 1) return;
     if(d.tipo === 'oi'){
-      eu = d.eu; sala = d.sala; lista = d.jogadores || [];
+      eu = d.eu; sala = d.sala; lista = d.jogadores || []; lista.forEach(figura);
       var info = {eu: eu, sala: sala, jogadores: lista.slice()};
       if(pend){ var p = pend; pend = null; p(info); }
       cada(oC, info);
     } else if(d.tipo === 'entrou'){
-      lista.push({id: d.id, nome: d.nome}); cada(oE, {id: d.id, nome: d.nome});
+      var novo = {id: d.id, nome: d.nome, img: d.img || null};
+      figura(novo); lista.push(novo); cada(oE, novo);
     } else if(d.tipo === 'saiu'){
       var quem = null;
       lista = lista.filter(function(j){ if(j.id === d.id){ quem = j; return false; } return true; });
@@ -20876,7 +20891,11 @@ function kodaOnlineNoJogo(manda){
     aoSair: function(f){ if(typeof f === 'function') oS.push(f); },          // f({id, nome})
     aoConectar: function(f){ if(typeof f === 'function') oC.push(f); },      // f({eu, sala, jogadores}) na entrada e ao reconectar
     aoDesconectar: function(f){ if(typeof f === 'function') oD.push(f); },   // a conexão caiu (o Koda tenta voltar sozinho)
-    jogadores: function(){ return lista.slice(); },                          // [{id, nome}] (inclui você)
+    jogadores: function(){ return lista.slice(); },                          // [{id, nome, img}] (inclui você); img = o personagem da pessoa
+    /* personagem(id): a imagem (Image) do personagem de um jogador da sala, ou null se ainda não chegou */
+    personagem: function(id){ var im = figuras[id]; return (im && im.complete && im.naturalWidth) ? im : null; },
+    /* desenhar(ctx, id, x, y, altura): desenha o personagem de um jogador da sala (x,y = canto de cima à esquerda). Devolve false se ainda não dá. */
+    desenhar: function(ctx, id, x, y, altura){ return window.KODA.jogador ? window.KODA.jogador.desenharImagem(ctx, window.KODA.online.personagem(id), x, y, altura) : false; },
     eu: function(){ return eu; },
     sala: function(){ return sala; },
     sair: function(){ manda('onlineSair', 1); eu = null; lista = []; }
@@ -20914,6 +20933,8 @@ function onlineDesligar(){
   try{ if(O.ws) O.ws.close(); }catch(e){}
   if(O.pill && O.pill.parentNode) O.pill.parentNode.removeChild(O.pill);
 }
+/* a pessoa da sala como o jogo recebe: {id, nome, img} (img = o personagem dela, ou null se o servidor ainda não manda) */
+function onlinePessoa(j){ return {id: String(j.id), nome: String(j.nome || ''), img: pzImagemDe(j.av)}; }
 function onlineParaJogo(O, obj){
   try{ O.frame.contentWindow.postMessage(Object.assign({__kodaOnline: 1}, obj), '*'); }catch(e){}
 }
@@ -20945,7 +20966,8 @@ function onlineMostrarSala(O){
 }
 function onlineConectar(O){
   if(O.ws || O.fechado || onlineAtivo !== O) return;
-  const q = 'jogo=' + encodeURIComponent(O.jogo) + '&cap=' + O.max + '&nome=' + encodeURIComponent(onlineNome()) + (O.sala ? '&sala=' + O.sala : '');
+  let av = ''; try{ av = souVisitante() ? pzCodigo(pzNorm(PZ_PADRAO)) : meuCodigo(); }catch(e){}
+  const q = 'jogo=' + encodeURIComponent(O.jogo) + '&cap=' + O.max + '&nome=' + encodeURIComponent(onlineNome()) + (av ? '&av=' + encodeURIComponent(av) : '') + (O.sala ? '&sala=' + O.sala : '') ;
   let ws;
   try{ ws = new WebSocket(ONLINE_URL + '/jogar?' + q); }catch(e){ onlineFalhou(O); return; }
   O.ws = ws;
@@ -20960,11 +20982,11 @@ function onlineConectar(O){
       O.eu = m.eu; O.sala = m.sala; O.max = m.cap || O.max; O.lista = Array.isArray(m.jogadores) ? m.jogadores : [];
       O.tentativas = 0; O.jaEntrou = true;
       onlineCriarPill(O); onlinePintarPill(O);
-      onlineParaJogo(O, {tipo: 'oi', eu: O.eu, sala: O.sala, jogadores: O.lista});
+      onlineParaJogo(O, {tipo: 'oi', eu: O.eu, sala: O.sala, jogadores: O.lista.map(onlinePessoa)});
     } else if(m.t === 'entrou'){
-      if(!O.lista.some(j=>j.id === m.id)) O.lista.push({id: String(m.id), nome: String(m.nome || '')});
+      if(!O.lista.some(j=>j.id === m.id)) O.lista.push({id: String(m.id), nome: String(m.nome || ''), av: String(m.av || '')});
       onlinePintarPill(O);
-      onlineParaJogo(O, {tipo: 'entrou', id: m.id, nome: m.nome});
+      onlineParaJogo(O, Object.assign({tipo: 'entrou'}, onlinePessoa(O.lista.find(j=>j.id === m.id))));
     } else if(m.t === 'saiu'){
       O.lista = O.lista.filter(j=>j.id !== m.id);
       onlinePintarPill(O);
@@ -21051,6 +21073,22 @@ const KODA_BRIDGE = '<script>(function(){'
   +   'score:function(n){ window.KODA.pontuar(n); },'
   +   'gameOver:function(n){ window.KODA.pontuar(n); }'
   + '};'
+  /* o jogador (nome e personagem de quem está jogando): o Koda manda quando o jogo pede */
+  + 'var JOG={nome:"",personagem:"",img:null}, jogOuv=[];'
+  + 'window.addEventListener("message",function(ev){'
+  +   'var d=ev&&ev.data; if(ev.source!==parent||!d||d.__kodaJogador!==1) return;'
+  +   'JOG.nome=String(d.nome||""); JOG.personagem=String(d.personagem||"");'
+  +   'if(d.img){ var im=new Image(); im.onload=function(){ JOG.img=im; var l=jogOuv.slice(); jogOuv=[]; l.forEach(function(f){ try{ f(); }catch(e){} }); }; im.src=d.img; }'
+  + '});'
+  + 'window.KODA.jogador={'
+  +   'nome:function(){ return JOG.nome; },'
+  +   'personagem:function(){ return JOG.img; },'
+  +   'pronto:function(){ return !!JOG.img; },'
+  +   'aoPronto:function(f){ if(typeof f!=="function") return; if(JOG.img) f(); else jogOuv.push(f); },'
+  +   'desenharImagem:function(ctx,im,x,y,h){ if(!ctx||!im||!(im.naturalWidth>0)) return false; h=Number(h)||64; ctx.save(); ctx.imageSmoothingEnabled=false; ctx.drawImage(im,x,y,h*22/29,h); ctx.restore(); return true; },'
+  +   'desenhar:function(ctx,x,y,h){ return window.KODA.jogador.desenharImagem(ctx,JOG.img,x,y,h); }'
+  + '};'
+  + 'manda("jogadorPedir",1);'
   + '(' + kodaOnlineNoJogo.toString() + ')(manda);'
   /* loja de moedas e diamantes dentro do jogo (só funciona se o criador ligou; quem cobra é o Koda) */
   + 'var INI=window.__KODA_LOJA_INI||{}, lojaCompras=INI.compras||{}, lojaItens=[], lojaOuv=[], lojaPend={}, lojaSeq=0;'
@@ -30229,6 +30267,38 @@ function pzSvg(c, modo, variante){
   PZ_CACHE.set(chave, s);
   return s;
 }
+
+/* o personagem como IMAGEM pronta pro jogo desenhar (data URI de SVG). O código vem de fora (de outra pessoa na sala):
+   só vira imagem se for um código "kp1:" válido, e quem desenha é o Koda, nunca o texto de fora. */
+const PZ_IMG_CACHE = new Map();
+function pzImagemDe(codigo){
+  const cfg = pzDeCodigo(codigo);
+  if(!cfg) return null;
+  const chave = pzCodigo(cfg);
+  let u = PZ_IMG_CACHE.get(chave);
+  if(!u){
+    const svg = pzSvg(cfg, 'corpo').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="290" ');
+    u = 'data:image/svg+xml;base64,' + btoa(svg);
+    if(PZ_IMG_CACHE.size > 80) PZ_IMG_CACHE.clear();
+    PZ_IMG_CACHE.set(chave, u);
+  }
+  return u;
+}
+/* quem está jogando agora (nome nunca é e-mail): o jogo recebe só isso */
+function jogadorParaJogo(){
+  let cod = '';
+  try{ cod = souVisitante() ? pzCodigo(pzNorm(PZ_PADRAO)) : meuCodigo(); }catch(e){ cod = pzCodigo(pzNorm(PZ_PADRAO)); }
+  return {nome: onlineNome(), personagem: cod, img: pzImagemDe(cod)};
+}
+window.addEventListener('message', function(ev){
+  const d = ev.data;
+  if(!d || d.__koda !== 1 || d.tipo !== 'jogadorPedir') return;
+  /* só responde pra quadro de jogo do Koda */
+  let ehJogo = false;
+  document.querySelectorAll('iframe').forEach(f=>{ try{ if(f.contentWindow === ev.source) ehJogo = true; }catch(e){} });
+  if(!ehJogo) return;
+  try{ ev.source.postMessage(Object.assign({__kodaJogador: 1}, jogadorParaJogo()), '*'); }catch(e){}
+});
 
 /* ---------- no lugar da foto ---------- */
 /* 'valor' é o que vem no campo avatar (código 'kp1:...'; foto antiga ou nada viram o personagem sorteado da pessoa) */
