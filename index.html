@@ -457,6 +457,9 @@
   .mp-selo svg{width:13px !important;height:13px !important;vertical-align:0 !important;flex:none;}
   .mp-selo.mp-online{background:#7b3fe4;}
   .mp-selo.mp-local{background:#0b7a5a;}
+  .pres-jogo{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 14px;padding:10px 12px;border-radius:14px;background:rgba(8,50,43,.09);font-size:1rem;overflow-wrap:anywhere;}
+  .pres-jogo svg{width:20px !important;height:20px !important;flex:none;}
+  .pres-wrap[data-st="playing"]{cursor:pointer;}
   .mp-aviso{display:flex;gap:8px;align-items:flex-start;text-align:left;margin:12px auto 0;max-width:420px;padding:10px 12px;border-radius:14px;
     font-size:.86rem;line-height:1.4;background:rgba(8,50,43,.07);color:inherit;}
   .mp-aviso svg{width:18px !important;height:18px !important;flex:none;margin-top:1px;}
@@ -11655,6 +11658,10 @@ var CONTA_TXT = {
 };
 /* textos do selo de multiplayer: 'pt|en|es|it|fr|de|nl|ja|zh|ko' */
 var MP_TXT = {
+ pres_dlg_t:'{nome} está jogando agora|{nome} is playing right now|{nome} está jugando ahora|{nome} sta giocando adesso|{nome} joue en ce moment|{nome} spielt gerade|{nome} speelt nu|{nome}がいまプレイ中|{nome}正在玩游戏|{nome} 님이 지금 게임 중이에요',
+ pres_dlg_alguem:'Essa pessoa|This person|Esta persona|Questa persona|Cette personne|Diese Person|Deze persoon|この人|这个人|이 사람',
+ pres_entrar:'Jogar também|Play too|Jugar también|Gioca anche tu|Jouer aussi|Mitspielen|Meespelen|いっしょに遊ぶ|一起玩|같이 하기',
+ pres_ver_perfil:'Ver perfil|View profile|Ver perfil|Vedi profilo|Voir le profil|Profil ansehen|Profiel bekijken|プロフィールを見る|查看主页|프로필 보기',
  mp_online:'Online|Online|En línea|Online|En ligne|Online|Online|オンライン|在线|온라인',
  mp_local:'2 jogadores|2 players|2 jugadores|2 giocatori|2 joueurs|2 Spieler|2 spelers|2人用|双人|2인용',
  mp_pub_online:'Multiplayer: dá pra jogar online com outras pessoas. O jogo ganhou o selo "Online".|Multiplayer: it can be played online with other people. The game got the "Online" badge.|Multijugador: se puede jugar en línea con otras personas. El juego ganó la insignia "En línea".|Multigiocatore: si può giocare online con altre persone. Il gioco ha ricevuto il badge "Online".|Multijoueur : on peut jouer en ligne avec d’autres personnes. Le jeu a reçu le badge « En ligne ».|Mehrspieler: Man kann online mit anderen spielen. Das Spiel hat das Abzeichen „Online“ bekommen.|Multiplayer: je kunt online met anderen spelen. De game kreeg het label "Online".|マルチプレイ：ほかの人とオンラインで遊べるよ。「オンライン」マークがついたよ。|多人游戏：可以和其他人在线一起玩。游戏获得了“在线”标签。|멀티플레이: 다른 사람들과 온라인으로 할 수 있어요. 게임에 "온라인" 표시가 붙었어요.',
@@ -12368,6 +12375,46 @@ function pintarPresenca(){
     else { el.removeAttribute('title'); el.removeAttribute('aria-label'); }
   });
 }
+/* clicou na foto de quem está JOGANDO: mostra o jogo (e dá pra entrar). O nome continua levando ao perfil.
+   Quem não está jogando segue o caminho de sempre (a foto abre o perfil). Roda antes dos cliques das listas. */
+document.addEventListener('click', e=>{
+  const wrap = e.target && e.target.closest && e.target.closest('.pres-wrap[data-pres]');
+  if(!wrap || wrap.dataset.st !== 'playing') return;
+  const email = String(wrap.dataset.pres || '').toLowerCase();
+  let eu = '';
+  try{ eu = String((fbAuth().currentUser || {}).email || '').toLowerCase(); }catch(err){}
+  if(!email || email === eu) return;                    // a própria foto não abre isso
+  const p = presenceByUser[email];
+  if(!p || p.st !== 'playing' || !p.gameId) return;     // sem o jogo anotado: cai no perfil
+  e.preventDefault(); e.stopPropagation();
+  mostrarQuemJoga(email, p, wrap);
+}, true);
+function mostrarQuemJoga(email, p, wrap){
+  const linha = wrap.closest('.people-result-item, .conv-row, .profile-page');
+  const nomeEl = linha && linha.querySelector('.people-result-name, .conv-name, .profile-page-name');
+  let nome = nomeEl ? String(nomeEl.firstChild && nomeEl.firstChild.nodeType === 3 ? nomeEl.firstChild.textContent : nomeEl.textContent).trim() : '';
+  if(!nome) nome = t('pres_dlg_alguem');
+  const jogo = GAMES.find(g=>g.id === p.gameId);
+  const nomeJogo = (jogo && jogo.name) || p.game || '';
+  const esc = chatListEscape;
+  kbsDialogo(`<h3 class="kbs-dlg-tit">${esc(t('pres_dlg_t', {nome}))}</h3>
+    <div class="pres-jogo">${ICONS.gamepad}<b>${esc(nomeJogo)}</b></div>
+    <div class="kbs-dlg-btns col">
+      ${jogo ? `<button type="button" class="kbs-btn" data-entrar>${esc(t('pres_entrar'))}</button>` : `<p class="kbs-dlg-dica">${esc(t('shared_game_missing'))}</p>`}
+      <button type="button" class="kbs-btn sec" data-perfil>${esc(t('pres_ver_perfil'))}</button>
+    </div>
+    <button type="button" class="kbs-dlg-x" data-no>${esc(t('menu_cancel'))}</button>`,
+    (bg, fechar)=>{
+      bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+      bg.querySelector('[data-perfil]').addEventListener('click', ()=>{ playSound('click'); fechar(); openOtherProfilePage(email); });
+      const ent = bg.querySelector('[data-entrar]');
+      if(ent) ent.addEventListener('click', ()=>{
+        playSound('click'); fechar();
+        try{ closeModal(); }catch(err){}
+        setTimeout(()=>{ try{ openGame(jogo.id, jogo.name); }catch(err){} }, 60);
+      });
+    });
+}
 async function refreshPresencaVisivel(){
   if(!FIREBASE_ENABLED) return;
   const user = fbAuth().currentUser;
@@ -12381,7 +12428,7 @@ async function refreshPresencaVisivel(){
       const d = await fbDb().collection('gamePresence').doc(e).get();
       const v = d.exists ? d.data() : null;
       presenceByUser[e.toLowerCase()] = (v && v.lastSeen)
-        ? {st: v.gameId ? 'playing' : 'active', game: v.gameId ? (v.gameName || null) : null, lastSeen: v.lastSeen}
+        ? {st: v.gameId ? 'playing' : 'active', game: v.gameId ? (v.gameName || null) : null, gameId: v.gameId || null, lastSeen: v.lastSeen}
         : null;
     }catch(err){}
   }));
