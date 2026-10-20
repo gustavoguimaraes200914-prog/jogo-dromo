@@ -2846,6 +2846,9 @@
     background:var(--mint);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1.05rem;
     box-shadow:0 4px 0 rgba(4,40,33,.22), 0 5px 12px rgba(0,0,0,.12);
   }
+  .go-btn.setup-online{display:inline-flex;align-items:center;justify-content:center;gap:10px;color:#fff;background:linear-gradient(135deg,#7c4dff,#3d5afe);font-size:1.15rem;padding:14px 30px;margin-bottom:4px;}
+  .go-btn.setup-online svg{width:1.3em !important;height:1.3em !important;}
+  .setup-online-dica{max-width:360px;margin:6px auto 14px !important;font-size:.85rem;}
   .diff-tag{
     display:inline-flex;align-items:center;gap:6px;
     border:none;cursor:pointer;background:rgba(255,255,255,.75);
@@ -2979,7 +2982,8 @@
     flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
     display:flex;flex-direction:column;
   }
-  .modal.app-embed.center-content .modal-body{justify-content:center;}
+  .modal.app-embed.center-content .modal-body{justify-content:center;justify-content:safe center;}   /* safe: se não couber, rola desde o começo (o topo não some) */
+  @media (max-height:500px){ .setup-online-dica{display:none;} .go-btn.setup-online{padding:10px 24px;margin-bottom:10px;} }
   .modal.app-embed .modal-body>*{flex-shrink:0;}
   .modal.app-embed.iframe-fill .modal-body{
     padding:0;overflow:hidden;display:block;
@@ -11776,9 +11780,38 @@ var PRACA_TXT = {
  praca_f11:'Que legal!|So cool!|¡Qué genial!|Che bello!|Trop cool !|Wie cool!|Wat gaaf!|すごい！|好酷！|멋지다!',
  banco_ficar:'Ficar|Stay|Quedarme|Resta|Rester|Bleiben|Blijven|すわってる|留下|계속 앉기'
 };
+/* textos dos jogos online do Koda e da fonte da praça: 'pt|en|es|it|fr|de|nl|ja|zh|ko' */
+var ONLINE_TXT = {
+ on_jogadores:'{n} na sala|{n} in the room|{n} en la sala|{n} nella stanza|{n} dans la salle|{n} im Raum|{n} in de kamer|部屋に{n}人|房间里{n}人|방에 {n}명',
+ on_conectando:'Conectando…|Connecting…|Conectando…|Connessione…|Connexion…|Verbinde…|Verbinden…|接続中…|连接中…|연결 중…',
+ on_esperando:'Esperando jogadores…|Waiting for players…|Esperando jugadores…|In attesa di giocatori…|En attente de joueurs…|Warte auf Spieler…|Wachten op spelers…|プレイヤーを待っています…|等待玩家…|플레이어를 기다리는 중…',
+ on_toque_solo:'Toque na tela pra jogar sozinho|Tap the screen to play alone|Toca la pantalla para jugar solo|Tocca lo schermo per giocare da solo|Touche l’écran pour jouer seul|Tippe auf den Bildschirm, um allein zu spielen|Tik op het scherm om alleen te spelen|画面をタップするとひとりで遊べるよ|点屏幕可以一个人玩|화면을 누르면 혼자 할 수 있어요',
+ on_comeca_logo:'A rodada já vai começar!|The round starts soon!|¡La ronda empieza pronto!|Il round sta per iniziare!|La manche va bientôt commencer !|Die Runde beginnt gleich!|De ronde begint zo!|もうすぐラウンド開始！|回合马上开始！|곧 라운드가 시작돼요!',
+ on_assistindo:'Rodada em andamento. Você entra na próxima!|Round in progress. You’ll join the next one!|Ronda en curso. ¡Entras en la próxima!|Round in corso. Entri nel prossimo!|Manche en cours. Tu joues à la prochaine !|Runde läuft. Du bist in der nächsten dabei!|Ronde bezig. Je doet mee in de volgende!|ラウンド中。次から参加できるよ！|回合进行中，下一回合就能加入！|라운드 진행 중. 다음 라운드에 들어가요!',
+ on_lugar:'Você chegou em {n}º!|You finished #{n}!|¡Llegaste en {n}º lugar!|Sei arrivato {n}º!|Tu es arrivé {n}e !|Du bist {n}. geworden!|Je bent {n}e geworden!|{n}位でゴール！|你第{n}名到达！|{n}등으로 도착했어요!',
+ on_ache_saida:'Ache a saída ★|Find the exit ★|Encuentra la salida ★|Trova l’uscita ★|Trouve la sortie ★|Finde den Ausgang ★|Vind de uitgang ★|出口★をさがそう|找到出口★|출구★를 찾아요',
+ on_tempo:'{n}s|{n}s|{n}s|{n}s|{n}s|{n}s|{n}s|{n}秒|{n}秒|{n}초',
+ on_voce_venceu:'Você venceu!|You won!|¡Ganaste!|Hai vinto!|Tu as gagné !|Du hast gewonnen!|Je hebt gewonnen!|きみの勝ち！|你赢了！|이겼어요!',
+ on_venceu:'{nome} venceu!|{nome} won!|¡{nome} ganó!|{nome} ha vinto!|{nome} a gagné !|{nome} hat gewonnen!|{nome} heeft gewonnen!|{nome}の勝ち！|{nome}赢了！|{nome} 님이 이겼어요!',
+ on_ninguem:'Ninguém chegou!|Nobody made it!|¡Nadie llegó!|Nessuno ce l’ha fatta!|Personne n’est arrivé !|Keiner hat es geschafft!|Niemand heeft het gehaald!|だれもゴールしなかった！|没有人到达！|아무도 도착하지 못했어요!',
+ on_proxima:'Próxima rodada em {n}…|Next round in {n}…|Próxima ronda en {n}…|Prossimo round tra {n}…|Prochaine manche dans {n}…|Nächste Runde in {n}…|Volgende ronde over {n}…|次のラウンドまで{n}…|{n}秒后下一回合…|{n}초 뒤 다음 라운드…',
+ on_tamanho:'Tamanho: {n}|Length: {n}|Tamaño: {n}|Lunghezza: {n}|Taille : {n}|Länge: {n}|Lengte: {n}|長さ: {n}|长度：{n}|길이: {n}',
+ on_bateu:'Você bateu! Espere a próxima rodada|You crashed! Wait for the next round|¡Chocaste! Espera la próxima ronda|Ti sei schiantato! Aspetta il prossimo round|Tu t’es cogné ! Attends la prochaine manche|Du bist gecrasht! Warte auf die nächste Runde|Je bent gebotst! Wacht op de volgende ronde|ぶつかった！次のラウンドを待ってね|撞到了！等下一回合吧|부딪혔어요! 다음 라운드를 기다려요',
+ on_sem_net:'Sem conexão. Tente de novo daqui a pouco.|No connection. Try again in a moment.|Sin conexión. Inténtalo de nuevo en un rato.|Nessuna connessione. Riprova tra poco.|Pas de connexion. Réessaie dans un instant.|Keine Verbindung. Versuch es gleich noch mal.|Geen verbinding. Probeer het zo opnieuw.|接続できません。少ししてからためしてね。|没有连接，请稍后再试。|연결이 안 돼요. 잠시 후 다시 해 봐요.',
+ on_esperando_alguem:'Esperando alguém pra jogar…|Waiting for someone to play…|Esperando a alguien para jugar…|In attesa di qualcuno con cui giocare…|En attente d’un adversaire…|Warte auf einen Mitspieler…|Wachten op een tegenstander…|対戦相手を待っています…|等待对手…|상대를 기다리는 중…',
+ on_empate:'Empate!|Draw!|¡Empate!|Pareggio!|Match nul !|Unentschieden!|Gelijkspel!|引き分け！|平局！|무승부!',
+ on_sua_vez:'Sua vez!|Your turn!|¡Tu turno!|Tocca a te!|À toi !|Du bist dran!|Jij bent!|きみの番！|轮到你了！|내 차례!',
+ on_vez_de:'Vez de {nome}|{nome}’s turn|Turno de {nome}|Tocca a {nome}|Au tour de {nome}|{nome} ist dran|{nome} is aan de beurt|{nome}の番|轮到{nome}|{nome} 님 차례',
+ on_assistindo_fila:'Você está na fila: falta(m) {n} antes de você|You’re in line: {n} before you|Estás en la fila: faltan {n} antes que tú|Sei in fila: {n} prima di te|Tu es dans la file : {n} avant toi|Du stehst an: {n} vor dir|Je staat in de rij: {n} voor jou|順番待ち：あと{n}人|排队中：你前面还有{n}人|대기 중: 앞에 {n}명',
+ on_vitorias:'Vitórias: {n}|Wins: {n}|Victorias: {n}|Vittorie: {n}|Victoires : {n}|Siege: {n}|Overwinningen: {n}|勝ち: {n}|胜利：{n}|승리: {n}',
+ mp_jogar_online:'Jogar online|Play online|Jugar en línea|Gioca online|Jouer en ligne|Online spielen|Online spelen|オンラインで遊ぶ|在线玩|온라인으로 하기',
+ mp_online_dica:'Com quem estiver jogando agora. Na Praça do Koda dá pra sentar num banco e ir junto com os amigos!|With whoever is playing right now. In Koda Plaza you can sit on a bench and go with friends!|Con quien esté jugando ahora. ¡En la Plaza de Koda puedes sentarte en un banco e ir con amigos!|Con chi sta giocando adesso. Nella Piazza di Koda puoi sederti su una panchina e andare con gli amici!|Avec ceux qui jouent en ce moment. Sur la Place de Koda, assieds-toi sur un banc pour y aller avec tes amis !|Mit allen, die gerade spielen. Auf dem Koda-Platz kannst du dich auf eine Bank setzen und mit Freunden gehen!|Met wie er nu speelt. Op het Koda-plein kun je op een bankje gaan zitten en samen met vrienden gaan!|いま遊んでいる人といっしょに。Koda広場のベンチにすわれば友だちといっしょに行けるよ！|和正在玩的人一起。在Koda广场坐上长椅，就能和朋友一起去！|지금 하고 있는 사람들과 함께. Koda 광장 벤치에 앉으면 친구들과 같이 갈 수 있어요!',
+ fonte_moeda:'Moeda da fonte da praça|Plaza fountain coin|Moneda de la fuente de la plaza|Moneta della fontana della piazza|Pièce de la fontaine de la place|Münze aus dem Platzbrunnen|Munt uit de pleinfontein|広場の噴水のコイン|广场喷泉的硬币|광장 분수의 동전',
+ fonte_limite:'A fonte já deu todas as moedas de hoje. Volte amanhã!|The fountain gave all its coins today. Come back tomorrow!|La fuente ya dio todas las monedas de hoy. ¡Vuelve mañana!|La fontana ha già dato tutte le monete di oggi. Torna domani!|La fontaine a donné toutes ses pièces aujourd’hui. Reviens demain !|Der Brunnen hat heute alle Münzen verteilt. Komm morgen wieder!|De fontein heeft vandaag al zijn munten gegeven. Kom morgen terug!|今日の噴水のコインはもう終わり。また明日ね！|喷泉今天的硬币已经发完了，明天再来吧！|오늘 분수 동전은 다 나왔어요. 내일 또 와요!'
+};
 (function(){
   const ling = ['pt', 'en', 'es', 'it', 'fr', 'de', 'nl', 'ja', 'zh', 'ko'];
-  [CONTA_TXT, MP_TXT, PRACA_TXT].forEach(tab=>Object.keys(tab).forEach(k=>{
+  [CONTA_TXT, MP_TXT, PRACA_TXT, ONLINE_TXT].forEach(tab=>Object.keys(tab).forEach(k=>{
     const v = tab[k].split('|');
     ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; });
   }));
@@ -16025,7 +16058,7 @@ function corDeFundoEscura(css){
    - null: 1 pessoa.
    Os jogos do site já vêm marcados.
 ============================================================ */
-const MP_SITE = {ttt: 'local', memoria: 'local', wam: 'local', xadrez: 'local'};
+const MP_SITE = {ttt: 'online', snake: 'online', labirinto: 'online', memoria: 'local', wam: 'local', xadrez: 'local'};   // os 3 online também têm modo pra 1 pessoa
 const mpCache = new Map();
 function mpDoCodigo(cod){
   const s = String(cod || '');
@@ -17208,6 +17241,11 @@ async function openGame(id, name){
   if(customGame){
     /* jogo de outra pessoa abre direto: sem tela de "quantos jogadores" nem de nível */
     activeCleanup = initCustomGame(modalBody, customGame);
+    return;
+  }
+  /* veio de um banco da Praça: o jogo do Koda abre direto no modo online (todo mundo do banco na mesma sala) */
+  if(JOGOS_ONLINE[id] && pracaGrupo && pracaGrupo.jogo === id && Date.now() < pracaGrupo.ate){
+    activeCleanup = iniciarJogoOnline(modalBody, id);
     return;
   }
   const inits = {snake:initSnake, '2048':init2048, memoria:initMemory, ttt:initTTT, wam:initWAM, corrida:initRace, quebra:initBreakout, labirinto:initMaze, carreira:initCareerSim, xadrez:initChess};
@@ -19906,6 +19944,9 @@ function renderSetup(root, cfg, launch){
     const duo = mode==='duo';
     root.innerHTML = `
       <div class="setup">
+        ${cfg.online ? `
+          <button class="go-btn setup-online" id="setupOnline">${ICONS.people}<span>${t('mp_jogar_online')}</span></button>
+          <p class="sub setup-online-dica">${t('mp_online_dica')}</p>` : ''}
         ${cfg.modes ? `
           <h3>${t('setup_players_q')}</h3>
           <div class="seg" id="setupModes">
@@ -19941,6 +19982,8 @@ function renderSetup(root, cfg, launch){
     });
     const go = root.querySelector('#setupGo');
     if(go) go.addEventListener('click', ()=>launch({diff:'medio', mode, color:pieceColor}));
+    const onl = root.querySelector('#setupOnline');
+    if(onl) onl.addEventListener('click', ()=>{ playSound('click'); launch({online: true}); });
     const diffsEl = root.querySelector('#setupDiffs');
     if(diffsEl) diffsEl.addEventListener('click', e=>{
       const b = e.target.closest('.diff-btn'); if(!b) return;
@@ -19960,6 +20003,7 @@ function withSetup(cfg, runner){
     }
     function launch(opts){
       if(inner){ inner(); inner = null; }
+      if(opts.online){ inner = iniciarJogoOnline(root, cfg.online); return; }   // o modo online (jogos com cfg.online)
       opts.back = back;
       marcarPartida(opts.diff, false);   // a partir daqui as moedas seguem esse nível
       inner = runner(root, opts) || (()=>{});
@@ -21462,7 +21506,7 @@ function pracaAbrir(num){
   el.querySelector('[data-chatbtn]').classList.remove('on');
   document.documentElement.classList.add('praca-aberta');
   const P = pracaAtiva = {el, cv: el.querySelector('canvas'), ws: null, num: 0, quer: Math.max(0, Math.floor(num) || 0), eu: null, gente: new Map(), bancos: [null, null, null, null],
-    dif: 0, fechado: false, tentativas: 0, raf: 0, ultimo: performance.now(), cam: {x: PRACA_FONTE.x, y: 700}, ultEnvio: 0, anterior: 0};
+    dif: 0, fechado: false, tentativas: 0, raf: 0, ultimo: performance.now(), cam: {x: PRACA_FONTE.x, y: 700}, ultEnvio: 0, anterior: 0, efeitos: []};
   pracaPintarTopo(P);
   pracaMsg(P, t('praca_conectando'));
   pracaConectar(P);
@@ -21586,6 +21630,9 @@ function pracaReceber(P, m){
     const n = Number(m.t === 'emo' ? m.e : m.f);
     const ok = m.t === 'emo' ? !!PRACA_EMOS[n] : (n >= 0 && n < PRACA_FRASES && Math.floor(n) === n);
     if(p && ok){ p.fala = {tipo: m.t, n}; p.falaAte = performance.now() + (m.t === 'emo' ? 2600 : 3800); }
+  } else if(m.t === 'moeda'){
+    const p = P.gente.get(String(m.id));
+    if(p && m.id !== P.eu) pracaEfeitoMoeda(P, p, {x: Math.max(0, Math.min(PRACA_W, Number(m.x) || 0)), y: Math.max(0, Math.min(PRACA_H, Number(m.y) || 0))});
   } else if(m.t === 'bancos'){
     pracaBancos(P, m.bancos, m.agora);
   } else if(m.t === 'lotado'){
@@ -21748,6 +21795,9 @@ function pracaToque(ev){
   if(!P || !P.eu) return;
   const r = P.cv.getBoundingClientRect(), v = P.vista || pracaVista(P);
   const wx = (ev.clientX - r.left - v.ox) / v.s, wy = (ev.clientY - r.top - v.oy) / v.s;
+  P.jogarAoChegar = false;
+  /* tocou na fonte? joga uma moedinha */
+  if(((wx - PRACA_FONTE.x) / 150) ** 2 + ((wy - PRACA_FONTE.y + 20) / 135) ** 2 < 1){ pracaTocouFonte(P); return; }
   /* tocou num banco? */
   for(let i = 0; i < 4; i++){
     const b = PRACA_BANCOS[i];
@@ -21770,6 +21820,131 @@ function pracaToque(ev){
   const agora = performance.now();
   if(agora - P.ultEnvio > 120){ P.ultEnvio = agora; pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }
   else { clearTimeout(P.tPos); P.tPos = setTimeout(()=>{ P.ultEnvio = performance.now(); pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }, 130); }
+}
+/* ---------- a fonte dos desejos: toque nela e o personagem joga uma moedinha; a cada 10, a fonte devolve 1 moeda do Koda ---------- */
+const FONTE_KEY = 'koda_fonte_moedas';
+const FONTE_POR_DIA = 10;          // no máximo 10 moedas por dia (100 moedinhas jogadas)
+function fonteLer(){
+  const hoje = new Date().toDateString();
+  let o = null;
+  try{ o = JSON.parse(localStorage.getItem(FONTE_KEY)); }catch(e){}
+  if(!o || o.dia !== hoje) o = {dia: hoje, n: 0, ganhas: 0, avisou: false};
+  return o;
+}
+function fonteSalvar(o){ try{ localStorage.setItem(FONTE_KEY, JSON.stringify(o)); }catch(e){} }
+function pracaTocouFonte(P){
+  const eu = P.gente.get(P.eu);
+  if(!eu) return;
+  const d = Math.hypot(eu.x - PRACA_FONTE.x, (eu.y - PRACA_FONTE.y) * 1.2);
+  if(d > 380 && pracaBancoDe(P.eu) < 0){
+    /* longe: anda até a beirada da fonte e joga quando chegar */
+    const ang = Math.atan2(eu.y - PRACA_FONTE.y, eu.x - PRACA_FONTE.x);
+    eu.tx = PRACA_FONTE.x + Math.cos(ang) * 235; eu.ty = PRACA_FONTE.y + 6 + Math.sin(ang) * 200;
+    pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)});
+    P.jogarAoChegar = true;
+    return;
+  }
+  pracaJogarMoeda(P);
+}
+function pracaJogarMoeda(P){
+  const agora = performance.now(), eu = P.gente.get(P.eu);
+  if(!eu || agora - (P.ultMoeda || 0) < 380) return;
+  P.ultMoeda = agora;
+  const a = Math.random() * Math.PI * 2, r = Math.random() * 62;
+  const alvo = {x: PRACA_FONTE.x + Math.cos(a) * r, y: PRACA_FONTE.y + Math.sin(a) * r * .8};
+  pracaEfeitoMoeda(P, eu, alvo);
+  pracaEnviar(P, {t: 'moeda', x: Math.round(alvo.x), y: Math.round(alvo.y)});
+  playSound('click');
+  const o = fonteLer();
+  o.n++;
+  if(o.n % 10 === 0 && !souVisitante()){
+    if(o.ganhas < FONTE_POR_DIA){
+      o.ganhas++;
+      setTimeout(()=>{ if(pracaAtiva === P) P.efeitos.push({k: 'premio', t0: performance.now()}); }, 650);
+      setTimeout(()=>{ try{ addCoins(1, t('fonte_moeda')); }catch(e){} }, 2200);   // paga mesmo se a pessoa sair da praça no meio da animação
+    }
+    else if(!o.avisou){ o.avisou = true; toast(t('fonte_limite')); }
+  }
+  fonteSalvar(o);
+}
+/* a moedinha saindo da mão de alguém e caindo na água */
+function pracaEfeitoMoeda(P, p, alvo){
+  const agora = performance.now();
+  p.joga = agora;
+  if(pracaBancoDe(p.id) < 0){
+    if(Math.abs(alvo.y - p.y) > Math.abs(alvo.x - p.x) * .8) p.dir = alvo.y < p.y ? 'cima' : 'baixo';
+    else { p.dir = 'lado'; p.vira = alvo.x < p.x; }
+  }
+  const lado = alvo.x < p.x ? -1 : 1;
+  P.efeitos.push({k: 'moeda', x0: p.x + lado * 22, y0: p.y - 50, x1: alvo.x, y1: alvo.y, t0: agora + 120, dur: 720});
+  if(P.efeitos.length > 40) P.efeitos.splice(0, P.efeitos.length - 40);
+}
+function pracaDesenharMoeda(x, sx, sy, raio, giro){
+  const w = Math.max(1, raio * Math.abs(Math.cos(giro)));
+  x.fillStyle = '#b8860b'; x.beginPath(); x.ellipse(sx, sy + raio * .12, w, raio, 0, 0, Math.PI * 2); x.fill();
+  x.fillStyle = '#ffd23f'; x.beginPath(); x.ellipse(sx, sy, w, raio, 0, 0, Math.PI * 2); x.fill();
+  if(w > raio * .45){ x.fillStyle = '#fff3b0'; x.beginPath(); x.ellipse(sx - w * .3, sy - raio * .3, w * .22, raio * .3, 0, 0, Math.PI * 2); x.fill(); }
+}
+function pracaDesenharEfeitos(P, x, tela, v, tm){
+  const ef = P.efeitos;
+  for(let i = ef.length - 1; i >= 0; i--){
+    const e = ef[i], f = (tm - e.t0) / (e.dur || 1);
+    if(e.k === 'moeda'){
+      if(f < 0) continue;
+      if(f >= 1){ ef.splice(i, 1); ef.push({k: 'splash', x: e.x1, y: e.y1, t0: tm, dur: 650}); continue; }
+      const wx = e.x0 + (e.x1 - e.x0) * f, wy = e.y0 + (e.y1 - e.y0) * f - Math.sin(f * Math.PI) * 170;
+      const [sx, sy] = tela(wx, wy);
+      pracaDesenharMoeda(x, sx, sy, Math.max(4, 11 * v.s), tm / 55);
+      /* rastrinho brilhante */
+      x.fillStyle = 'rgba(255,240,150,.6)';
+      for(let k = 1; k <= 3; k++){ const g = Math.max(0, f - k * .05); const [tx, ty] = tela(e.x0 + (e.x1 - e.x0) * g, e.y0 + (e.y1 - e.y0) * g - Math.sin(g * Math.PI) * 170); x.fillRect(Math.round(tx - 1.5), Math.round(ty - 1.5), 3, 3); }
+    } else if(e.k === 'splash'){
+      if(f >= 1){ ef.splice(i, 1); continue; }
+      const [sx, sy] = tela(e.x, e.y);
+      x.strokeStyle = 'rgba(255,255,255,' + (1 - f).toFixed(2) + ')'; x.lineWidth = Math.max(2, 3 * v.s);
+      x.beginPath(); x.ellipse(sx, sy, (8 + f * 34) * v.s, (5 + f * 20) * v.s, 0, 0, Math.PI * 2); x.stroke();
+      x.fillStyle = 'rgba(200,238,255,' + (1 - f).toFixed(2) + ')';
+      for(let k = 0; k < 6; k++){
+        const ang = k / 6 * Math.PI * 2, d = f * 30, alt = Math.sin(f * Math.PI) * 34;
+        const [dx, dy] = tela(e.x + Math.cos(ang) * d, e.y + Math.sin(ang) * d * .6 - alt);
+        x.fillRect(Math.round(dx - 2), Math.round(dy - 2), 4, 4);
+      }
+    } else if(e.k === 'premio'){
+      /* a fonte devolve uma moeda: ela pula da água, gira brilhando e voa pra você */
+      const dt = tm - e.t0, eu = P.gente.get(P.eu);
+      if(!eu){ ef.splice(i, 1); continue; }
+      const raio = Math.max(8, 26 * v.s);
+      let wx, wy;
+      if(dt < 950){
+        const g = dt / 950;
+        wx = PRACA_FONTE.x; wy = PRACA_FONTE.y - 30 - Math.sin(Math.min(1, g * 1.4) * Math.PI / 2) * 200 + Math.sin(g * 18) * 6 * (1 - g);
+        const [sx, sy] = tela(wx, wy);
+        /* raios de luz atrás */
+        x.save(); x.translate(sx, sy); x.rotate(dt / 400);
+        x.fillStyle = 'rgba(255,230,120,' + (.35 * Math.min(1, g * 3)).toFixed(2) + ')';
+        for(let k = 0; k < 8; k++){ x.rotate(Math.PI / 4); x.beginPath(); x.moveTo(0, 0); x.lineTo(raio * 3.2, -raio * .45); x.lineTo(raio * 3.2, raio * .45); x.closePath(); x.fill(); }
+        x.restore();
+        pracaDesenharMoeda(x, sx, sy, raio * (.5 + Math.min(1, g * 2) * .5), dt / 90);
+        x.fillStyle = '#fffbe0';
+        for(let k = 0; k < 6; k++){ const ang = dt / 300 + k * 1.05, d = raio * (1.6 + Math.sin(dt / 120 + k) * .3); const pisca = Math.sin(dt / 80 + k * 2) > 0 ? 3 : 2; x.fillRect(Math.round(sx + Math.cos(ang) * d - pisca / 2), Math.round(sy + Math.sin(ang) * d - pisca / 2), pisca, pisca); }
+      } else if(dt < 1550){
+        const g = (dt - 950) / 600, q = g * g;
+        const ax = PRACA_FONTE.x, ay = PRACA_FONTE.y - 230, bx = eu.x, by = eu.y - PRACA_ALT - 20;
+        wx = ax + (bx - ax) * q; wy = ay + (by - ay) * q - Math.sin(g * Math.PI) * 60;
+        const [sx, sy] = tela(wx, wy);
+        pracaDesenharMoeda(x, sx, sy, raio * (1 - g * .45), dt / 60);
+      } else if(dt < 2600){
+        if(!e.som){ e.som = true; playSound('coin'); }
+        const g = (dt - 1550) / 1050;
+        const [sx, sy] = tela(eu.x, eu.y - PRACA_ALT - 30 - g * 60);
+        x.globalAlpha = Math.max(0, 1 - g);
+        pracaDesenharMoeda(x, sx - 22 * Math.max(.6, v.s), sy, Math.max(6, 12 * v.s), 0);
+        x.font = '900 ' + Math.max(16, Math.round(32 * v.s)) + 'px "Baloo 2",sans-serif'; x.textAlign = 'left'; x.textBaseline = 'middle';
+        x.lineWidth = 4; x.strokeStyle = 'rgba(80,50,0,.8)'; x.strokeText('+1', sx - 6, sy); x.fillStyle = '#ffe066'; x.fillText('+1', sx - 6, sy);
+        x.globalAlpha = 1; x.textAlign = 'center';
+      } else ef.splice(i, 1);
+    }
+  }
 }
 function pracaTocouBanco(P, i){
   const b = P.bancos[i];
@@ -21871,6 +22046,7 @@ function pracaQuadro(P, tm){
     } else pracaPasso(p, dt);
   });
   const euP = P.gente.get(P.eu);
+  if(euP && P.jogarAoChegar && !euP.anda){ P.jogarAoChegar = false; pracaJogarMoeda(P); }
   if(euP && P.eu && !P.trocando && pracaBancoDe(P.eu) < 0){
     if(euP.x <= 14) pracaVizinha(P, -1);
     else if(euP.x >= PRACA_W - 14) pracaVizinha(P, 1);
@@ -21943,7 +22119,8 @@ function pracaQuadro(P, tm){
     const eu = p.id === P.eu;
     x.fillStyle = eu ? 'rgba(255,214,0,.6)' : 'rgba(0,0,0,.24)';
     x.beginPath(); x.ellipse(sx, sy, larg * .42, larg * .15, 0, 0, Math.PI * 2); x.fill();
-    const pulo = p.anda ? Math.abs(Math.sin(seg * 12 + p.x * .01)) * 5 * v.s : 0;
+    const jogando = p.joga ? (tm - p.joga) / 340 : 1;     // o pulinho de quem joga a moeda
+    const pulo = p.anda ? Math.abs(Math.sin(seg * 12 + p.x * .01)) * 5 * v.s : (jogando < 1 ? Math.sin(jogando * Math.PI) * 12 * v.s : 0);
     const im = p.dir === 'cima' ? p.imC : p.im;
     if(im.complete && im.naturalWidth){
       x.save();
@@ -21983,6 +22160,7 @@ function pracaQuadro(P, tm){
     if(P.num > 1) placa(75, '← nº ' + (P.num - 1));
     if(P.num < PRACA_ULTIMA) placa(PRACA_W - 75, 'nº ' + (P.num + 1) + ' →');
   }
+  pracaDesenharEfeitos(P, x, tela, v, tm);
   /* nomes, balões de fala e figurinhas por cima de tudo */
   const fNome = Math.max(11, Math.round(22 * v.s));
   x.textAlign = 'center'; x.textBaseline = 'bottom';
@@ -22052,6 +22230,532 @@ function pracaQuadro(P, tm){
   const vg = x.createRadialGradient(v.w / 2, v.h / 2, Math.min(v.w, v.h) * .45, v.w / 2, v.h / 2, Math.max(v.w, v.h) * .75);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,20,10,.22)');
   x.fillStyle = vg; x.fillRect(0, 0, v.w, v.h);
+}
+
+/* ============================================================
+   JOGOS DO KODA COM MODO ONLINE (Jogo da Velha, Labirinto, Cobrinha)
+   O modo online roda num quadro isolado, igual aos jogos das pessoas, e usa
+   KODA.online (as salas do koda-online) e KODA.jogador (o personagem de cada um).
+   Por isso eles aparecem nos bancos da Praça: quem senta e o banco sai, entra
+   junto na mesma sala. O código de cada um está nas funções abaixo: só o miolo
+   delas vai pro quadro (por isso não podem usar nada de fora).
+============================================================ */
+function jogoOnlineBase(){
+  /* base dos jogos online do Koda (roda dentro do quadro do jogo) */
+  var T = window.KODA_TXT || {};
+  function tx(k, v){ var s = T[k] || k; if(v) for(var n in v) s = s.split('{' + n + '}').join(v[n]); return s; }
+  var ON = (window.KODA && window.KODA.online) || null;
+  var NET = {eu: 'eu', ok: false};
+  function gente(){
+    if(NET.ok) return ON.jogadores();
+    return [{id: 'eu', nome: (window.KODA && KODA.jogador) ? KODA.jogador.nome() : ''}];
+  }
+  function ids(){ return gente().map(function(j){ return j.id; }).sort(); }
+  function souHost(){ return ids()[0] === NET.eu; }
+  function nomeDe(id){ var l = gente(); for(var i = 0; i < l.length; i++) if(l[i].id === id) return l[i].nome || '?'; return '?'; }
+  function estaNaSala(id){ return ids().indexOf(id) >= 0; }
+  function enviar(o, para){ if(NET.ok) return ON.enviar(o, para); return false; }
+  function corDe(id){ var h = 0; id = String(id); for(var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360; return 'hsl(' + h + ',75%,55%)'; }
+  function desenharPessoa(ctx, id, x, y, h){
+    if(id === NET.eu && window.KODA && KODA.jogador && KODA.jogador.desenhar(ctx, x, y, h)) return;
+    if(NET.ok && ON.desenhar(ctx, id, x, y, h)) return;
+    ctx.fillStyle = corDe(id); ctx.fillRect(x + h * .12, y + h * .1, h * .52, h * .85);
+    ctx.fillStyle = '#ffd9b3'; ctx.fillRect(x + h * .18, y, h * .4, h * .34);
+  }
+  /* tela */
+  var cv = document.createElement('canvas'), ctx = cv.getContext('2d'), W = 300, H = 300;
+  document.body.appendChild(cv);
+  document.body.style.cssText = 'margin:0;overflow:hidden;background:#10213a;touch-action:none;-webkit-user-select:none;user-select:none;font-family:sans-serif';
+  cv.style.cssText = 'display:block;width:100vw;height:100vh;touch-action:none';
+  function tamanho(){ var d = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); ctx.imageSmoothingEnabled = false; }
+  tamanho(); addEventListener('resize', tamanho);
+  function texto(s, x, y, tam, cor, al){
+    ctx.font = 'bold ' + tam + 'px sans-serif'; ctx.textAlign = al || 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = Math.max(3, tam / 5); ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.strokeText(s, x, y);
+    ctx.fillStyle = cor || '#fff'; ctx.fillText(s, x, y);
+  }
+  function caixa(x, y, w, h, r, cor){ ctx.fillStyle = cor; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); ctx.fill(); }
+  /* setinhas na tela + deslizar o dedo + teclado */
+  function controles(aoDir){
+    var pad = document.createElement('div');
+    pad.style.cssText = 'position:fixed;right:12px;bottom:12px;display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:4px;z-index:5';
+    [['', ''], ['cima', '▲'], ['', ''], ['esq', '◀'], ['', ''], ['dir', '▶'], ['', ''], ['baixo', '▼'], ['', '']].forEach(function(b){
+      var e = document.createElement(b[0] ? 'button' : 'span');
+      if(b[0]){
+        e.textContent = b[1];
+        e.style.cssText = 'border:none;border-radius:14px;background:rgba(255,255,255,.22);color:#fff;font-size:22px;touch-action:none';
+        e.addEventListener('pointerdown', function(ev){ ev.preventDefault(); aoDir(b[0]); });
+      }
+      pad.appendChild(e);
+    });
+    document.body.appendChild(pad);
+    var x0 = null, y0 = null;
+    cv.addEventListener('pointerdown', function(e){ x0 = e.clientX; y0 = e.clientY; });
+    cv.addEventListener('pointerup', function(e){
+      if(x0 === null) return;
+      var dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+      if(Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+      aoDir(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'dir' : 'esq') : (dy > 0 ? 'baixo' : 'cima'));
+    });
+    addEventListener('keydown', function(e){
+      var m = {ArrowUp: 'cima', ArrowDown: 'baixo', ArrowLeft: 'esq', ArrowRight: 'dir', w: 'cima', s: 'baixo', a: 'esq', d: 'dir'}[e.key];
+      if(m){ e.preventDefault(); aoDir(m); }
+    });
+    return pad;
+  }
+  /* sorteio que dá igual em todo mundo (a mesma semente = o mesmo labirinto/comida) */
+  function sorteador(semente){ var s = (semente >>> 0) || 1; return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  /* entra na sala (o Koda põe todo mundo do banco da praça junto). Sem internet: joga sozinho. */
+  function conectar(pronto){
+    var feito = false;
+    function fim(ok){ if(feito) return; feito = true; NET.ok = ok; pronto(ok); }
+    if(!ON){ fim(false); return; }
+    setTimeout(function(){ fim(false); }, 9000);
+    ON.aoConectar(function(i){ if(i && i.eu) NET.eu = i.eu; });
+    ON.entrar({max: 20}).then(function(info){ NET.eu = info.eu; fim(true); }).catch(function(){ fim(false); });
+  }
+  function pontuar(n){ try{ if(window.KODA) KODA.pontuar(n); }catch(e){} }
+}
+function jogoOnlineLabirinto(){
+  /* LABIRINTO ONLINE: todo mundo no mesmo labirinto; quem chegar primeiro na saída ganha */
+  var N = 11, fase = 'conectando', semente = 1, paredes = [], pos = {}, ordem = [], inicioEm = 0, fimEm = 0, esperaDesde = Date.now(), meuLugar = 0, pagou = false, soloPedido = false, rodadas = 0;
+  function gerar(seed){
+    var rnd = sorteador(seed), vis = [], st = [[0, 0]];
+    paredes = [];
+    for(var i = 0; i < N * N; i++){ paredes.push(15); vis.push(false); }   // 1 cima, 2 direita, 4 baixo, 8 esquerda
+    vis[0] = true;
+    while(st.length){
+      var c = st[st.length - 1], x = c[0], y = c[1], viz = [];
+      if(y > 0 && !vis[(y - 1) * N + x]) viz.push([x, y - 1, 1, 4]);
+      if(x < N - 1 && !vis[y * N + x + 1]) viz.push([x + 1, y, 2, 8]);
+      if(y < N - 1 && !vis[(y + 1) * N + x]) viz.push([x, y + 1, 4, 1]);
+      if(x > 0 && !vis[y * N + x - 1]) viz.push([x - 1, y, 8, 2]);
+      if(!viz.length){ st.pop(); continue; }
+      var v = viz[Math.floor(rnd() * viz.length)];
+      paredes[y * N + x] &= ~v[2]; paredes[v[1] * N + v[0]] &= ~v[3];
+      vis[v[1] * N + v[0]] = true; st.push([v[0], v[1]]);
+    }
+  }
+  function comecar(seed){
+    semente = seed; gerar(seed); fase = 'jogo'; ordem = []; meuLugar = 0; pagou = false; rodadas++;
+    pos = {}; ids().forEach(function(id){ pos[id] = {x: 0, y: 0}; });
+    inicioEm = Date.now() + 3000; fimEm = 0;
+  }
+  function andar(d){
+    if(fase !== 'jogo' || Date.now() < inicioEm || meuLugar) return;
+    var p = pos[NET.eu] || (pos[NET.eu] = {x: 0, y: 0}), w = paredes[p.y * N + p.x];
+    var m = {cima: [0, -1, 1], dir: [1, 0, 2], baixo: [0, 1, 4], esq: [-1, 0, 8]}[d];
+    if(!m || (w & m[2])) return;
+    p.x += m[0]; p.y += m[1];
+    enviar({k: 'p', x: p.x, y: p.y, s: semente});
+    if(p.x === N - 1 && p.y === N - 1){ enviar({k: 'cheguei', s: semente}); chegou(NET.eu); }
+  }
+  function chegou(id){
+    if(ordem.indexOf(id) >= 0) return;
+    ordem.push(id);
+    if(!fimEm) fimEm = Date.now() + 25000;          // depois do primeiro, os outros têm 25 s
+    if(id === NET.eu){
+      meuLugar = ordem.length;
+      if(!pagou){ pagou = true; pontuar(Math.max(10, 70 - (meuLugar - 1) * 15)); }
+    }
+  }
+  function terminar(){ fase = 'fim'; fimEm = Date.now() + 5000; }
+  controles(andar);
+  conectar(function(){
+    fase = 'espera'; esperaDesde = Date.now();
+    if(!ON) return;
+    ON.aoReceber(function(d, de){
+      if(!d || typeof d !== 'object') return;
+      if(d.k === 'ini' && typeof d.s === 'number'){ comecar(d.s); }
+      else if(d.k === 'agora' && d.fase === 'jogo' && fase !== 'jogo'){ semente = d.s; gerar(d.s); fase = 'assistindo'; }
+      else if(d.k === 'p' && d.s === semente && pos[de]){ pos[de].x = Math.max(0, Math.min(N - 1, d.x | 0)); pos[de].y = Math.max(0, Math.min(N - 1, d.y | 0)); }
+      else if(d.k === 'cheguei' && d.s === semente && fase === 'jogo'){ if(pos[de]){ pos[de].x = N - 1; pos[de].y = N - 1; } chegou(de); }
+      else if(d.k === 'fim' && d.s === semente && fase === 'jogo'){ terminar(); }
+    });
+    ON.aoEntrar(function(j){ esperaDesde = Date.now(); if(souHost() && (fase === 'jogo' || fase === 'fim')) enviar({k: 'agora', fase: 'jogo', s: semente}, j.id); });
+    ON.aoSair(function(j){ delete pos[j.id]; });
+  });
+  /* quem manda na rodada é o primeiro da lista (se ele sair, o próximo assume) */
+  setInterval(function(){
+    if(!souHost()) return;
+    var n = ids().length, agora = Date.now();
+    if(fase === 'espera' && ((n >= 2 && agora - esperaDesde > 4000) || (n === 1 && soloPedido))){
+      soloPedido = false;
+      var s = Math.floor(Math.random() * 1e9) + 1;
+      enviar({k: 'ini', s: s}); comecar(s);
+    } else if(fase === 'jogo' && agora > inicioEm){
+      var vivos = ids().filter(function(id){ return pos[id]; });
+      var todos = vivos.length && vivos.every(function(id){ return ordem.indexOf(id) >= 0; });
+      if(todos || (fimEm && agora > fimEm) || agora - inicioEm > 150000){ enviar({k: 'fim', s: semente}); terminar(); }
+    }
+  }, 400);
+  cv.addEventListener('click', function(){ if(fase === 'espera' && ids().length === 1){ soloPedido = true; } });
+  function quadro(){
+    requestAnimationFrame(quadro);
+    var agora = Date.now();
+    if(fase === 'fim' && agora > fimEm){ fase = 'espera'; esperaDesde = agora; }
+    ctx.fillStyle = '#10213a'; ctx.fillRect(0, 0, W, H);
+    var paisagem = W > H * 1.15;
+    var cs = Math.floor(Math.min((paisagem ? W - 200 : W - 20) / N, (H - (paisagem ? 70 : 230)) / N));
+    var ox = Math.floor(paisagem ? Math.max(10, (W - 190 - cs * N) / 2) : (W - cs * N) / 2), oy = 54;
+    /* o labirinto */
+    ctx.fillStyle = '#1b3a5c'; ctx.fillRect(ox, oy, cs * N, cs * N);
+    if(paredes.length){
+      ctx.fillStyle = '#ffd23f'; ctx.fillRect(ox + (N - 1) * cs + 3, oy + (N - 1) * cs + 3, cs - 6, cs - 6);
+      texto('★', ox + (N - .5) * cs, oy + (N - .5) * cs, cs * .6, '#c62828');
+      ctx.strokeStyle = '#8fd3ff'; ctx.lineWidth = Math.max(2, cs / 9); ctx.lineCap = 'round';
+      ctx.beginPath();
+      for(var y = 0; y < N; y++) for(var x = 0; x < N; x++){
+        var w = paredes[y * N + x], X = ox + x * cs, Y = oy + y * cs;
+        if(w & 1){ ctx.moveTo(X, Y); ctx.lineTo(X + cs, Y); }
+        if(w & 8){ ctx.moveTo(X, Y); ctx.lineTo(X, Y + cs); }
+        if(x === N - 1 && (w & 2)){ ctx.moveTo(X + cs, Y); ctx.lineTo(X + cs, Y + cs); }
+        if(y === N - 1 && (w & 4)){ ctx.moveTo(X, Y + cs); ctx.lineTo(X + cs, Y + cs); }
+      }
+      ctx.stroke();
+    }
+    /* as pessoas */
+    if(fase === 'jogo' || fase === 'fim'){
+      Object.keys(pos).forEach(function(id){
+        if(id === NET.eu) return;
+        var p = pos[id]; ctx.globalAlpha = .75;
+        desenharPessoa(ctx, id, ox + p.x * cs + cs * .14, oy + p.y * cs + cs * .02, cs * .96); ctx.globalAlpha = 1;
+      });
+      var e = pos[NET.eu];
+      if(e){
+        ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 3; ctx.strokeRect(ox + e.x * cs + 2, oy + e.y * cs + 2, cs - 4, cs - 4);
+        desenharPessoa(ctx, NET.eu, ox + e.x * cs + cs * .14, oy + e.y * cs + cs * .02, cs * .96);
+      }
+    }
+    /* o que está acontecendo */
+    var n = ids().length;
+    texto(tx('on_jogadores', {n: n}), 12, 26, 16, '#b9d7ff', 'left');
+    if(fase === 'conectando') texto(tx('on_conectando'), W / 2, H / 2, 22);
+    else if(fase === 'espera'){
+      texto(tx('on_esperando'), W / 2, oy + cs * N / 2 - 20, 22);
+      texto(n === 1 ? tx('on_toque_solo') : tx('on_comeca_logo'), W / 2, oy + cs * N / 2 + 14, 16, '#ffe066');
+    } else if(fase === 'assistindo'){
+      texto(tx('on_assistindo'), W / 2, oy + cs * N / 2, 18, '#ffe066');
+    } else if(fase === 'jogo'){
+      if(agora < inicioEm) texto(String(Math.ceil((inicioEm - agora) / 1000)), W / 2, oy + cs * N / 2, 64, '#ffe066');
+      else if(meuLugar) texto(tx('on_lugar', {n: meuLugar}), W / 2, 26, 20, '#ffe066');
+      else texto(tx('on_ache_saida'), W / 2, 26, 18);
+      if(fimEm && !meuLugar) texto(tx('on_tempo', {n: Math.max(0, Math.ceil((fimEm - agora) / 1000))}), W - 12, 26, 16, '#ff8a80', 'right');
+    } else if(fase === 'fim'){
+      caixa(W / 2 - 150, oy + cs * N / 2 - 70, 300, 140, 18, 'rgba(0,0,0,.72)');
+      texto(ordem.length ? (ordem[0] === NET.eu ? tx('on_voce_venceu') : tx('on_venceu', {nome: nomeDe(ordem[0])})) : tx('on_ninguem'), W / 2, oy + cs * N / 2 - 28, 22, '#ffe066');
+      texto(tx('on_proxima', {n: Math.max(0, Math.ceil((fimEm - agora) / 1000))}), W / 2, oy + cs * N / 2 + 20, 16);
+    }
+  }
+  quadro();
+}
+function jogoOnlineCobrinha(){
+  /* COBRINHA ONLINE: arena com todo mundo; bateu no muro, em você ou em outra cobra, saiu. O último vivo (ou a maior) ganha */
+  var G = 28, fase = 'conectando', semente = 1, cobras = {}, comidas = [], eu = null, dir = 'dir', prox = 'dir', vivo = false, inicioEm = 0, fimEm = 0, esperaDesde = Date.now(), soloPedido = false, vencedor = null, pagou = false, ultTick = 0, TICK = 140, DUR = 90000;
+  var DIRS = {cima: [0, -1], baixo: [0, 1], esq: [-1, 0], dir: [1, 0]}, OPOSTO = {cima: 'baixo', baixo: 'cima', esq: 'dir', dir: 'esq'};
+  function cantos(i){
+    var L = [[3, 3, 'dir'], [G - 4, G - 4, 'esq'], [G - 4, 3, 'baixo'], [3, G - 4, 'cima'], [Math.floor(G / 2), 3, 'baixo'], [Math.floor(G / 2), G - 4, 'cima'], [3, Math.floor(G / 2), 'dir'], [G - 4, Math.floor(G / 2), 'esq']];
+    var c = L[i % L.length], d = DIRS[c[2]], corpo = [];
+    for(var k = 0; k < 3; k++) corpo.push([c[0] - d[0] * k + (i >= 8 ? 1 : 0), c[1] - d[1] * k]);
+    return {corpo: corpo, dir: c[2]};
+  }
+  function novaComida(rnd){
+    for(var t = 0; t < 60; t++){
+      var x = Math.floor(rnd() * G), y = Math.floor(rnd() * G);
+      if(!ocupado(x, y)) return [x, y];
+    }
+    return [Math.floor(rnd() * G), Math.floor(rnd() * G)];
+  }
+  function ocupado(x, y){
+    for(var id in cobras){ var c = cobras[id].corpo; for(var k = 0; k < c.length; k++) if(c[k][0] === x && c[k][1] === y) return true; }
+    return false;
+  }
+  function comecar(seed){
+    semente = seed; fase = 'jogo'; vencedor = null; pagou = false;
+    var lista = ids(), rnd = sorteador(seed);
+    cobras = {};
+    lista.forEach(function(id, i){ var c = cantos(i); cobras[id] = {corpo: c.corpo, vivo: true}; if(id === NET.eu){ dir = prox = c.dir; } });
+    vivo = !!cobras[NET.eu];
+    comidas = []; for(var k = 0; k < 6; k++) comidas.push(novaComida(rnd));
+    inicioEm = Date.now() + 3000; fimEm = inicioEm + DUR; ultTick = inicioEm;
+  }
+  function virar(d){ if(fase === 'jogo' && vivo && d !== OPOSTO[dir]) prox = d; }
+  function morrer(){
+    if(!vivo) return;
+    vivo = false; cobras[NET.eu].vivo = false;
+    enviar({k: 'morri', s: semente});
+    if(!pagou){ pagou = true; pontuar(cobras[NET.eu].corpo.length * 5); }
+  }
+  function passo(){
+    var me = cobras[NET.eu];
+    if(!me || !vivo) return;
+    dir = prox;
+    var d = DIRS[dir], cab = me.corpo[0], nx = cab[0] + d[0], ny = cab[1] + d[1];
+    if(nx < 0 || ny < 0 || nx >= G || ny >= G){ morrer(); return; }
+    for(var id in cobras){
+      var c = cobras[id];
+      if(!c.vivo && id !== NET.eu) continue;
+      for(var k = 0; k < c.corpo.length - (id === NET.eu ? 1 : 0); k++) if(c.corpo[k][0] === nx && c.corpo[k][1] === ny){ morrer(); return; }
+    }
+    me.corpo.unshift([nx, ny]);
+    var comeu = -1;
+    for(var i = 0; i < comidas.length; i++) if(comidas[i] && comidas[i][0] === nx && comidas[i][1] === ny) comeu = i;
+    if(comeu >= 0){
+      comidas[comeu] = null;
+      enviar({k: 'comi', i: comeu, s: semente});
+      if(souHost()) repor(comeu);
+    } else me.corpo.pop();
+    if(me.corpo.length > 60) me.corpo.length = 60;
+    enviar({k: 'c', b: me.corpo, s: semente});
+  }
+  function repor(i){
+    var f = novaComida(Math.random);
+    comidas[i] = f;
+    enviar({k: 'f', i: i, x: f[0], y: f[1], s: semente});
+  }
+  function terminar(){
+    var lista = Object.keys(cobras).filter(function(id){ return estaNaSala(id) || id === NET.eu; });
+    var vivos = lista.filter(function(id){ return cobras[id].vivo; });
+    var cand = vivos.length ? vivos : lista;
+    cand.sort(function(a, b){ return cobras[b].corpo.length - cobras[a].corpo.length; });
+    vencedor = cand[0] || null;
+    if(vivo && !pagou){ pagou = true; pontuar(cobras[NET.eu].corpo.length * 5 + (vencedor === NET.eu ? 30 : 0)); }
+    vivo = false; fase = 'fim'; fimEm = Date.now() + 5000;
+  }
+  controles(virar);
+  conectar(function(){
+    fase = 'espera'; esperaDesde = Date.now();
+    if(!ON) return;
+    ON.aoReceber(function(d, de){
+      if(!d || typeof d !== 'object') return;
+      if(d.k === 'ini' && typeof d.s === 'number') comecar(d.s);
+      else if(d.k === 'agora' && fase !== 'jogo') fase = 'assistindo';
+      else if(d.s !== semente) return;
+      else if(d.k === 'c' && cobras[de] && Array.isArray(d.b)){
+        var b = d.b.slice(0, 60).filter(function(p){ return Array.isArray(p) && p.length === 2; }).map(function(p){ return [Math.max(0, Math.min(G - 1, p[0] | 0)), Math.max(0, Math.min(G - 1, p[1] | 0))]; });
+        if(b.length) cobras[de].corpo = b;
+      }
+      else if(d.k === 'morri' && cobras[de]) cobras[de].vivo = false;
+      else if(d.k === 'comi'){ var i = d.i | 0; if(i >= 0 && i < comidas.length){ comidas[i] = null; if(souHost()) repor(i); } }
+      else if(d.k === 'f'){ var j = d.i | 0; if(j >= 0 && j < 6) comidas[j] = [Math.max(0, Math.min(G - 1, d.x | 0)), Math.max(0, Math.min(G - 1, d.y | 0))]; }
+      else if(d.k === 'fim' && fase === 'jogo') terminar();
+    });
+    ON.aoEntrar(function(j){ esperaDesde = Date.now(); if(souHost() && fase === 'jogo') enviar({k: 'agora'}, j.id); });
+    ON.aoSair(function(j){ if(cobras[j.id]) cobras[j.id].vivo = false; });
+  });
+  setInterval(function(){
+    if(!souHost()) return;
+    var n = ids().length, agora = Date.now();
+    if(fase === 'espera' && ((n >= 2 && agora - esperaDesde > 4000) || (n === 1 && soloPedido))){
+      soloPedido = false;
+      var s = Math.floor(Math.random() * 1e9) + 1;
+      enviar({k: 'ini', s: s}); comecar(s);
+    } else if(fase === 'jogo' && agora > inicioEm){
+      var vivos = Object.keys(cobras).filter(function(id){ return cobras[id].vivo && (estaNaSala(id) || id === NET.eu); });
+      var total = Object.keys(cobras).length;
+      if(agora > fimEm || vivos.length === 0 || (total > 1 && vivos.length <= 1)){ enviar({k: 'fim', s: semente}); terminar(); }
+    }
+  }, 300);
+  cv.addEventListener('click', function(){ if(fase === 'espera' && ids().length === 1) soloPedido = true; });
+  function quadro(){
+    requestAnimationFrame(quadro);
+    var agora = Date.now();
+    if(fase === 'jogo' && agora >= inicioEm) while(agora - ultTick >= TICK){ ultTick += TICK; passo(); }
+    if(fase === 'fim' && agora > fimEm){ fase = 'espera'; esperaDesde = agora; }
+    ctx.fillStyle = '#0e2a1f'; ctx.fillRect(0, 0, W, H);
+    var paisagem = W > H * 1.15;
+    var cs = Math.floor(Math.min((paisagem ? W - 200 : W - 16) / G, (H - (paisagem ? 66 : 226)) / G));
+    var ox = Math.floor(paisagem ? Math.max(8, (W - 190 - cs * G) / 2) : (W - cs * G) / 2), oy = 52;
+    for(var y = 0; y < G; y++) for(var x = 0; x < G; x++){ ctx.fillStyle = (x + y) % 2 ? '#2e7d32' : '#338a37'; ctx.fillRect(ox + x * cs, oy + y * cs, cs, cs); }
+    ctx.strokeStyle = '#1b4a1f'; ctx.lineWidth = 3; ctx.strokeRect(ox - 1.5, oy - 1.5, cs * G + 3, cs * G + 3);
+    comidas.forEach(function(f){ if(!f) return; ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(ox + (f[0] + .5) * cs, oy + (f[1] + .5) * cs, cs * .4, 0, 7); ctx.fill(); ctx.fillStyle = '#7cb342'; ctx.fillRect(ox + (f[0] + .45) * cs, oy + f[1] * cs, cs * .15, cs * .25); });
+    Object.keys(cobras).forEach(function(id){
+      var c = cobras[id], cor = id === NET.eu ? '#ffd23f' : corDe(id);
+      ctx.globalAlpha = c.vivo ? 1 : .3;
+      c.corpo.forEach(function(p, k){ ctx.fillStyle = k ? cor : '#ffffff'; ctx.fillRect(ox + p[0] * cs + 1, oy + p[1] * cs + 1, cs - 2, cs - 2); if(!k){ ctx.fillStyle = cor; ctx.fillRect(ox + p[0] * cs + 3, oy + p[1] * cs + 3, cs - 6, cs - 6); } });
+      ctx.globalAlpha = 1;
+      /* o personagem da pessoa em cima da cabeça da cobra dela */
+      if(c.vivo && c.corpo[0]) desenharPessoa(ctx, id, ox + c.corpo[0][0] * cs - cs * .35, oy + c.corpo[0][1] * cs - cs * 1.6, cs * 1.7);
+    });
+    var n = ids().length, meio = oy + cs * G / 2;
+    texto(tx('on_jogadores', {n: n}), 12, 24, 16, '#c8f7c5', 'left');
+    if(fase === 'conectando') texto(tx('on_conectando'), W / 2, H / 2, 22);
+    else if(fase === 'espera'){ texto(tx('on_esperando'), W / 2, meio - 20, 22); texto(n === 1 ? tx('on_toque_solo') : tx('on_comeca_logo'), W / 2, meio + 14, 16, '#ffe066'); }
+    else if(fase === 'assistindo') texto(tx('on_assistindo'), W / 2, meio, 18, '#ffe066');
+    else if(fase === 'jogo'){
+      if(agora < inicioEm) texto(String(Math.ceil((inicioEm - agora) / 1000)), W / 2, meio, 64, '#ffe066');
+      var me = cobras[NET.eu];
+      texto(tx('on_tamanho', {n: me ? me.corpo.length : 0}), W / 2, 24, 16);
+      texto(tx('on_tempo', {n: Math.max(0, Math.ceil((fimEm - Math.max(agora, inicioEm)) / 1000))}), W - 12, 24, 16, '#ffe066', 'right');
+      if(!vivo && me) texto(tx('on_bateu'), W / 2, meio, 18, '#ff8a80');
+    } else if(fase === 'fim'){
+      caixa(W / 2 - 150, meio - 70, 300, 140, 18, 'rgba(0,0,0,.72)');
+      texto(vencedor === NET.eu ? tx('on_voce_venceu') : vencedor ? tx('on_venceu', {nome: nomeDe(vencedor)}) : tx('on_ninguem'), W / 2, meio - 28, 22, '#ffe066');
+      texto(tx('on_proxima', {n: Math.max(0, Math.ceil((fimEm - agora) / 1000))}), W / 2, meio + 20, 16);
+    }
+  }
+  quadro();
+}
+function jogoOnlineVelha(){
+  /* JOGO DA VELHA ONLINE: os 2 primeiros da fila jogam; quem ganha fica, quem perde vai pro fim da fila */
+  var fase = 'conectando', E = null, vitorias = 0, cliqueAreas = [];
+  /* E (o estado) é cuidado pelo primeiro da lista (o "host") e mandado pra todo mundo */
+  function novoEstado(fila){ return {n: 0, tab: [0, 0, 0, 0, 0, 0, 0, 0, 0], vez: 1, fila: fila, fim: 0, ganhou: 0, linha: null, ate: 0}; }
+  var LINHAS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  function checar(t){
+    for(var i = 0; i < 8; i++){ var l = LINHAS[i]; if(t[l[0]] && t[l[0]] === t[l[1]] && t[l[1]] === t[l[2]]) return {g: t[l[0]], l: l}; }
+    return t.every(function(v){ return v; }) ? {g: 3, l: null} : null;
+  }
+  function jogadorDe(marca){ return E && E.fila[marca - 1]; }
+  function minhaMarca(){ if(!E) return 0; return E.fila[0] === NET.eu ? 1 : E.fila[1] === NET.eu ? 2 : 0; }
+  function publicar(){ E.n++; enviar({k: 'E', e: E}); }
+  /* host: arruma a fila com quem está na sala */
+  function hostArrumar(){
+    var lista = ids();
+    if(!E){ E = novoEstado(lista.slice()); publicar(); return; }
+    var fila = E.fila.filter(function(id){ return lista.indexOf(id) >= 0; });
+    lista.forEach(function(id){ if(fila.indexOf(id) < 0) fila.push(id); });
+    var saiuJogador = !E.fim && E.fila.slice(0, 2).some(function(id){ return lista.indexOf(id) < 0; }) && E.fila.length >= 2;
+    if(saiuJogador){
+      /* um dos dois saiu no meio: o outro ganha */
+      var fica = E.fila.slice(0, 2).filter(function(id){ return lista.indexOf(id) >= 0; })[0];
+      E.fim = 1; E.ganhou = fica ? (E.fila[0] === fica ? 1 : 2) : 3; E.ate = Date.now() + 3000;
+      fimDaPartida(); publicar();
+    }
+    if(fila.join() !== E.fila.join()){ E.fila = fila; publicar(); }
+  }
+  function hostJogada(de, i){
+    if(!E || E.fim || E.fila.length < 2) return;
+    if(jogadorDe(E.vez) !== de || E.tab[i]) return;
+    E.tab[i] = E.vez;
+    var r = checar(E.tab);
+    if(r){ E.fim = 1; E.ganhou = r.g; E.linha = r.l; E.ate = Date.now() + 3200; fimDaPartida(); }
+    else E.vez = E.vez === 1 ? 2 : 1;
+    publicar();
+  }
+  function hostProxima(){
+    /* quem ganhou fica (vira o X); quem perdeu vai pro fim da fila; empate: os dois vão pro fim */
+    var f = E.fila.slice(), a = f[0], b = f[1];
+    if(E.ganhou === 1 && b){ f.splice(1, 1); f.push(b); }
+    else if(E.ganhou === 2 && a){ f.splice(0, 1); f.push(a); }
+    else if(E.ganhou === 3 && f.length > 2){ f.splice(0, 2); f.push(a, b); }
+    else if(E.ganhou === 3 && f.length === 2){ f = [b, a]; }
+    var n = E.n; E = novoEstado(f); E.n = n; publicar();
+  }
+  function receberEstado(e){
+    if(!e || !Array.isArray(e.tab) || e.tab.length !== 9 || !Array.isArray(e.fila)) return;
+    var antes = E;
+    E = {n: e.n | 0, tab: e.tab.map(function(v){ return v === 1 || v === 2 ? v : 0; }), vez: e.vez === 2 ? 2 : 1, fila: e.fila.map(String).slice(0, 20),
+      fim: e.fim ? 1 : 0, ganhou: [1, 2, 3].indexOf(e.ganhou) >= 0 ? e.ganhou : 0, linha: Array.isArray(e.linha) ? e.linha.slice(0, 3) : null, ate: Number(e.ate) || 0};
+    if(E.fim && (!antes || !antes.fim)) fimDaPartida();
+  }
+  function fimDaPartida(){
+    var m = minhaMarca();
+    if(m && E.ganhou === m){ vitorias++; pontuar(vitorias * 10); }
+  }
+  function tocar(i){
+    if(!E || E.fim || E.fila.length < 2) return;
+    var m = minhaMarca();
+    if(!m || m !== E.vez || E.tab[i]) return;
+    if(souHost()) hostJogada(NET.eu, i);
+    else { enviar({k: 'J', i: i}); E.tab[i] = m; }      // mostra na hora; o host confirma
+  }
+  conectar(function(ok){
+    fase = 'jogo';
+    if(!ON || !ok){ fase = 'sozinho'; return; }
+    ON.aoReceber(function(d, de){
+      if(!d || typeof d !== 'object') return;
+      if(d.k === 'E' && de === ids()[0]) receberEstado(d.e);
+      else if(d.k === 'J' && souHost()) hostJogada(de, Math.max(0, Math.min(8, d.i | 0)));
+      else if(d.k === 'pedir' && souHost() && E) enviar({k: 'E', e: E}, de);
+    });
+    ON.aoEntrar(function(){ if(souHost()) hostArrumar(); });
+    ON.aoSair(function(){ if(souHost()) hostArrumar(); });
+    if(souHost()) hostArrumar(); else enviar({k: 'pedir'});
+  });
+  setInterval(function(){
+    if(!NET.ok || !souHost()) return;
+    hostArrumar();
+    if(E && E.fim && Date.now() > E.ate) hostProxima();
+  }, 500);
+  cv.addEventListener('pointerdown', function(e){
+    for(var k = 0; k < cliqueAreas.length; k++){ var a = cliqueAreas[k]; if(e.clientX >= a.x && e.clientX <= a.x + a.s && e.clientY >= a.y && e.clientY <= a.y + a.s){ tocar(a.i); return; } }
+  });
+  function marcaDesenho(v, x, y, s){
+    ctx.lineWidth = Math.max(5, s / 9); ctx.lineCap = 'round';
+    if(v === 1){ ctx.strokeStyle = '#ff5c8a'; ctx.beginPath(); ctx.moveTo(x + s * .25, y + s * .25); ctx.lineTo(x + s * .75, y + s * .75); ctx.moveTo(x + s * .75, y + s * .25); ctx.lineTo(x + s * .25, y + s * .75); ctx.stroke(); }
+    if(v === 2){ ctx.strokeStyle = '#4fc3f7'; ctx.beginPath(); ctx.arc(x + s / 2, y + s / 2, s * .27, 0, 7); ctx.stroke(); }
+  }
+  function quadro(){
+    requestAnimationFrame(quadro);
+    ctx.fillStyle = '#1a2350'; ctx.fillRect(0, 0, W, H);
+    cliqueAreas = [];
+    var n = ids().length;
+    texto(tx('on_jogadores', {n: n}), 12, 24, 16, '#c5cae9', 'left');
+    if(fase === 'conectando'){ texto(tx('on_conectando'), W / 2, H / 2, 22); return; }
+    if(fase === 'sozinho' || !E){ texto(tx('on_sem_net'), W / 2, H / 2, 18); return; }
+    var paisagem = W > H * 1.1;
+    var lado = Math.floor(Math.min(paisagem ? H - 70 : W - 40, paisagem ? W * .55 : H - 260)), cel = lado / 3;
+    var ox = paisagem ? Math.floor(W * .06) : Math.floor((W - lado) / 2), oy = paisagem ? 50 : 150;
+    /* os dois jogadores (com o personagem de cada um) */
+    var a = E.fila[0], b = E.fila[1];
+    var infoX = paisagem ? ox + lado + 30 : 20, infoY = paisagem ? 60 : 44, infoW = paisagem ? W - infoX - 20 : W - 40;
+    [[a, 1], [b, 2]].forEach(function(p, k){
+      var bx = paisagem ? infoX : infoX + k * infoW / 2, by = paisagem ? infoY + k * 90 : infoY, bw = paisagem ? infoW : infoW / 2 - 6;
+      caixa(bx, by, bw, 80, 14, E.vez === p[1] && !E.fim && b ? 'rgba(255,224,102,.25)' : 'rgba(255,255,255,.08)');
+      if(p[0]){ desenharPessoa(ctx, p[0], bx + 8, by + 8, 64); texto((p[0] === NET.eu ? '★ ' : '') + nomeDe(p[0]).slice(0, 10), bx + 60, by + 30, 15, '#fff', 'left'); }
+      else texto(tx('on_esperando'), bx + bw / 2, by + 40, 14, '#c5cae9');
+      marcaDesenho(p[1], bx + bw - 40, by + 44, 34);
+    });
+    /* o tabuleiro */
+    caixa(ox - 6, oy - 6, lado + 12, lado + 12, 18, 'rgba(255,255,255,.08)');
+    ctx.strokeStyle = '#c5cae9'; ctx.lineWidth = 4;
+    for(var k = 1; k < 3; k++){ ctx.beginPath(); ctx.moveTo(ox + k * cel, oy + 8); ctx.lineTo(ox + k * cel, oy + lado - 8); ctx.moveTo(ox + 8, oy + k * cel); ctx.lineTo(ox + lado - 8, oy + k * cel); ctx.stroke(); }
+    for(var i = 0; i < 9; i++){
+      var x = ox + (i % 3) * cel, y = oy + Math.floor(i / 3) * cel;
+      cliqueAreas.push({x: x, y: y, s: cel, i: i});
+      marcaDesenho(E.tab[i], x, y, cel);
+    }
+    if(E.linha){ var l0 = E.linha[0], l2 = E.linha[2]; ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 8; ctx.beginPath();
+      ctx.moveTo(ox + (l0 % 3 + .5) * cel, oy + (Math.floor(l0 / 3) + .5) * cel); ctx.lineTo(ox + (l2 % 3 + .5) * cel, oy + (Math.floor(l2 / 3) + .5) * cel); ctx.stroke(); }
+    /* o recado */
+    var m = minhaMarca(), msgY = paisagem ? infoY + 200 : oy + lado + 34, msgX = paisagem ? infoX + infoW / 2 : W / 2;
+    var msg;
+    if(!b) msg = tx('on_esperando_alguem');
+    else if(E.fim) msg = E.ganhou === 3 ? tx('on_empate') : (jogadorDe(E.ganhou) === NET.eu ? tx('on_voce_venceu') : tx('on_venceu', {nome: nomeDe(jogadorDe(E.ganhou))}));
+    else if(m && m === E.vez) msg = tx('on_sua_vez');
+    else msg = tx('on_vez_de', {nome: nomeDe(jogadorDe(E.vez))});
+    texto(msg, msgX, msgY, 20, '#ffe066');
+    if(!m && E.fila.length > 2){
+      var posFila = E.fila.indexOf(NET.eu) - 1;
+      texto(tx('on_assistindo_fila', {n: posFila}), msgX, msgY + 30, 15, '#c5cae9');
+    }
+    if(vitorias) texto(tx('on_vitorias', {n: vitorias}), msgX, msgY + (m ? 30 : 56), 15, '#a5d6a7');
+  }
+  quadro();
+}
+const JOGOS_ONLINE = {ttt: jogoOnlineVelha, labirinto: jogoOnlineLabirinto, snake: jogoOnlineCobrinha};
+function miolo(fn){ const s = fn.toString(); return s.slice(s.indexOf('{') + 1, s.lastIndexOf('}')); }
+/* abre o modo online de um jogo do Koda (na tela do jogo) e devolve como fechar */
+function iniciarJogoOnline(root, id){
+  const g = GAMES.find(x=>x.id === id) || {id, name: id};
+  root.innerHTML = '';
+  const card = document.getElementById('modalCard');
+  card.classList.add('iframe-fill');
+  const iframe = document.createElement('iframe');
+  iframe.className = 'app-frame';
+  iframe.setAttribute('title', g.name);
+  hardenGameFrame(iframe);
+  const txt = {};
+  Object.keys(ONLINE_TXT).forEach(k=>{ txt[k] = t(k); });
+  iframe.srcdoc = jogoRedeDeSeguranca() + KODA_BRIDGE
+    + '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">'
+    + '<script>window.KODA_TXT=' + JSON.stringify(txt).replace(/</g, '\\u003c') + ';<\/script>'
+    + '<body><script>(function(){' + jogoScriptSeguro(miolo(jogoOnlineBase) + miolo(JOGOS_ONLINE[id])) + '})();<\/script></body>';
+  root.appendChild(iframe);
+  iniciarPontePublicada(iframe, {id}, {diff: 'medio'});   // KODA.pontuar paga as moedas da partida
+  onlineLigar(iframe, g);
+  return ()=>{ encerrarPontePublicada(); onlineDesligar(); root.innerHTML = ''; card.classList.remove('iframe-fill'); };
 }
 
 /* o pedacinho de código que entra dentro do quadro do jogo */
@@ -36471,6 +37175,7 @@ function arrumaComentarios(lista){
    GAME 1: JOGO DA VELHA (dificuldade + 2 jogadores)
 ============================================================ */
 const initTTT = withSetup({
+  online:'ttt',
   modes:[{id:'solo',label:t('setup_1p')},{id:'duo',label:t('setup_2p')}],
   hint:t('ttt_hint'),
   duoHint:t('ttt_duo_hint')
@@ -36750,7 +37455,7 @@ function appleIconSVG(){
   </svg>`;
 }
 
-const initSnake = withSetup({hint:t('snake_hint')}, function(root, opts){
+const initSnake = withSetup({hint:t('snake_hint'), online:'snake'}, function(root, opts){
   const tickMs = SNAKE_SPEED[opts.diff] || 135;
   const T = SNAKE_THEME[opts.diff] || SNAKE_THEME.medio;
   root.innerHTML = `
@@ -38198,7 +38903,7 @@ const initBreakout = withSetup({hint:t('brk_hint')}, function(root, opts){
 ============================================================ */
 const MAZE_SIZE = {facil:7, medio:9, dificil:12, extremo:16};
 const MAZE_VIS = {facil:Infinity, medio:6, dificil:4, extremo:3};
-const initMaze = withSetup({hint:t('maze_hint')}, function(root, opts){
+const initMaze = withSetup({hint:t('maze_hint'), online:'labirinto'}, function(root, opts){
   root.innerHTML = `
     ${diffTagHTML(opts)}
     <div class="g-row"><span class="g-stat" id="mazeTime">${t('maze_time',{n:0})}</span></div>
