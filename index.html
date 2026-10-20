@@ -3966,6 +3966,8 @@
   .praca-msg{top:42%;}
   .praca-dica{bottom:calc(84px + env(safe-area-inset-bottom));font-size:.88rem;}
   .praca-msg.hidden,.praca-dica.hidden{display:none;}
+  .praca-fade{position:absolute;inset:0;background:#0b2a14;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+  .praca-fade.on{opacity:1;}
   .praca-chat-btn{position:absolute;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:56px;height:56px;border:none;border-radius:50%;cursor:pointer;padding:0;
     display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#5ff0d0,#17c79e);color:#08322B;box-shadow:0 4px 0 rgba(0,0,0,.28),0 6px 16px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent;transition:transform .15s;}
   .praca-chat-btn svg{width:30px;height:30px;}
@@ -21182,23 +21184,30 @@ window.addEventListener('message', function(ev){
 ============================================================ */
 const PRACA_JOGO = 'koda-praca';
 const PRACA_MAX = 20;
+const PRACA_ULTIMA = 200;         // a última praça (o servidor tem até 200 por "jogo")
 const PRACA_EMOS = ['👋', '❤️', '😂', '😮', '🔥', '👍', '🎉', '😎'];
 const PRACA_FRASES = 12;          // frases prontas (praca_f0..praca_f11): cada um vê na própria língua
-const PRACA_VEL = 270;            // unidades do mundo (0..1000) por segundo
+const PRACA_VEL = 270;            // unidades do mundo por segundo
 const PRACA_ALT = 92;             // altura do personagem no mundo
-const PRACA_G = 250;              // o chão é desenhado em 250x250 "pixels" (cada um = 4 unidades do mundo)
-const PRACA_PX = 1000 / PRACA_G;
-/* tudo em unidades do mundo (0..1000) */
-const PRACA_BANCOS = [{x: 300, y: 300, cima: true}, {x: 700, y: 300, cima: true}, {x: 300, y: 700, cima: false}, {x: 700, y: 700, cima: false}];
-const PRACA_ARVORES = [[120, 170, 0], [880, 170, 1], [120, 910, 1], [880, 910, 0], [290, 150, 2], [710, 150, 1], [290, 930, 0], [710, 930, 2],
-  [105, 380, 2], [895, 380, 0], [105, 700, 0], [895, 700, 2]];          // x, y do pé do tronco, tipo (0 copa, 1 florida, 2 com frutas)
-const PRACA_POSTES = [[405, 190], [595, 190], [405, 810], [595, 810], [185, 405], [185, 595], [815, 405], [815, 595]];
-const PRACA_CANTEIROS = [[180, 265], [820, 265], [180, 760], [820, 760]];
+/* o mundo tem 1500 x 1002 unidades; o chão é desenhado em 250 x 167 "pixels" (cada um = 6 unidades),
+   copiando a foto da praça (a foto dividida por 8 dá exatamente esses pixels) */
+const PRACA_PX = 6;
+const PRACA_GW = 250, PRACA_GH = 167;
+const PRACA_W = PRACA_GW * PRACA_PX, PRACA_H = PRACA_GH * PRACA_PX;
+const PRACA_FONTE = {x: 750, y: 486};
+/* tudo em unidades do mundo: x e y = o pé (base) da coisa */
+const PRACA_BANCOS = [{x: 564, y: 342}, {x: 936, y: 342}, {x: 564, y: 726}, {x: 936, y: 726}];
+const PRACA_ARVORES = [[288, 252], [1212, 252], [258, 828], [1230, 828]];
+const PRACA_POSTES = [[420, 330], [1080, 330], [420, 774], [1080, 774]];
+const PRACA_LIXOS = [[570, 816], [930, 816]];
+/* o que não dá pra atravessar: jardineiras e moitas [x, y, largura, altura] */
+const PRACA_BLOCOS = [[438, 150, 192, 78], [192, 252, 168, 96], [870, 150, 192, 78], [1140, 252, 168, 96], [348, 774, 180, 60], [966, 774, 156, 60],
+  [198, 366, 48, 36], [1242, 366, 48, 36], [1236, 552, 48, 36]];
 var pracaAtiva = null;
 var pracaGrupo = null;            // {jogo, grupo, ate}: o grupo do banco, usado quando o jogo entrar online
 var pracaVolta = 0;               // número da praça pra voltar quando o jogo do banco fechar
 var pracaChao = null;             // o desenho do chão (feito uma vez)
-var pracaSprites = null;          // árvores, postes, o alto da fonte e o encosto dos bancos de baixo
+var pracaSprites = null;          // árvores, postes, lixeiras, bancos e o jato da fonte
 
 /* ferramentas de pixel art num canvas */
 function pracaPincel(x, semente){
@@ -21206,164 +21215,160 @@ function pracaPincel(x, semente){
   const r = (a, b, w, h, cor)=>{ x.fillStyle = cor; x.fillRect(Math.round(a), Math.round(b), w, h); };
   const disco = (cx, cy, raio, cor)=>{ x.fillStyle = cor; for(let yy = -raio; yy <= raio; yy++){ const w = Math.round(Math.sqrt(raio * raio - yy * yy)); x.fillRect(Math.round(cx - w), Math.round(cy + yy), w * 2, 1); } };
   const elipse = (cx, cy, rx, ry, cor)=>{ x.fillStyle = cor; for(let yy = -ry; yy <= ry; yy++){ const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - yy * yy / (ry * ry)))); x.fillRect(Math.round(cx - w), Math.round(cy + yy), w * 2, 1); } };
-  return {rnd, r, disco, elipse};
+  /* tijolinhos com contorno escuro (como o murinho da foto) */
+  const tijolos = (x0, y0, w, h, deitado)=>{
+    r(x0, y0, w, h, '#4e2d1f');
+    r(x0 + 1, y0 + 1, w - 2, h - 2, '#a3613f');
+    if(deitado){ r(x0 + 1, y0 + 1, w - 2, 1, '#bf7a52'); for(let k = x0 + 6; k < x0 + w - 1; k += 6) r(k, y0 + 1, 1, h - 2, '#7a4430'); }
+    else { r(x0 + 1, y0 + 1, 1, h - 2, '#bf7a52'); for(let k = y0 + 6; k < y0 + h - 1; k += 6) r(x0 + 1, k, w - 2, 1, '#7a4430'); }
+  };
+  /* moita redondinha com florzinhas brancas */
+  const moita = (cx, cy, raio, flores)=>{
+    disco(cx, cy, raio + 1, '#1b4a1f'); disco(cx, cy, raio, '#2c8236'); disco(cx - 1, cy - 1, Math.max(1, raio - 1), '#3a9a42');
+    r(cx - raio + 2, cy - raio + 1, 2, 1, '#5cbb4f');
+    for(let k = 0; k < (flores || 0); k++){
+      const a = rnd() * Math.PI * 2, d = rnd() * (raio - 1), fx = Math.round(cx + Math.cos(a) * d), fy = Math.round(cy + Math.sin(a) * d);
+      r(fx - 1, fy, 3, 1, '#ffffff'); r(fx, fy - 1, 1, 3, '#ffffff'); r(fx, fy, 1, 1, '#ffe27a');
+    }
+  };
+  return {rnd, r, disco, elipse, tijolos, moita};
 }
 function pracaDesenharChao(){
   if(pracaChao) return pracaChao;
-  const G = PRACA_G, c = document.createElement('canvas');
-  c.width = c.height = G;
+  const GW = PRACA_GW, GH = PRACA_GH, c = document.createElement('canvas');
+  c.width = GW; c.height = GH;
   const x = c.getContext('2d');
-  const {rnd, r, disco, elipse} = pracaPincel(x, 11);
+  const {rnd, r, elipse, tijolos, moita} = pracaPincel(x, 11);
   const px = (a, b, cor)=>r(a, b, 1, 1, cor);
-  const M = 125, w4 = v=>v / PRACA_PX;
-  /* grama: três tons, tufinhos e florzinhas */
-  r(0, 0, G, G, '#5fbf57');
-  for(let i = 0; i < 6000; i++){ const q = rnd(); px(rnd() * G | 0, rnd() * G | 0, q < .4 ? '#56b34f' : q < .75 ? '#69c860' : '#76d16b'); }
-  for(let i = 0; i < 460; i++){ const a = rnd() * G | 0, b = rnd() * G | 0; px(a, b, '#47a042'); px(a + 1, b - 1, '#47a042'); px(a + 2, b, '#47a042'); px(a + 1, b - 2, '#8fe07f'); }
-  for(let i = 0; i < 190; i++){ const a = rnd() * G | 0, b = rnd() * G | 0; px(a, b + 1, '#3f8f3a'); px(a, b, ['#ffffff', '#ffe066', '#ff9eb5', '#c3a6ff', '#8fd3ff'][i % 5]); }
-  /* caminhos de pedrinhas pros 4 lados */
-  const caminho = (x0, y0, w, h)=>{
-    r(x0, y0, w, h, '#bfae86');
-    for(let yy = y0; yy < y0 + h; yy += 4){
-      const desl = ((yy - y0) / 4) % 2 ? 3 : 0;
-      for(let xx = x0 - desl; xx < x0 + w; xx += 6){
-        const a = Math.max(x0, xx), b = Math.min(x0 + w, xx + 5);
-        if(b <= a) continue;
-        r(a, yy, b - a, 3, ['#e8d9b2', '#dfcea3', '#efe3c0', '#e3d3a9'][rnd() * 4 | 0]);
-        r(a, yy, b - a, 1, '#f7efd6'); r(a, yy + 2, b - a, 1, '#cdb98c');
-      }
-    }
-  };
-  caminho(110, 0, 30, G); caminho(0, 110, G, 30);
-  r(109, 0, 1, G, '#8f7f60'); r(140, 0, 1, G, '#8f7f60'); r(0, 109, G, 1, '#8f7f60'); r(0, 140, G, 1, '#8f7f60');
-  r(108, 0, 1, G, '#4d9a45'); r(141, 0, 1, G, '#4d9a45'); r(0, 108, G, 1, '#4d9a45'); r(0, 141, G, 1, '#4d9a45');
-  /* a roda do meio: anéis de lajotas e um anel de terracota */
-  disco(M, M, 54, '#8f7f60');
-  for(let yy = -53; yy <= 53; yy++) for(let xx = -53; xx <= 53; xx++){
-    const d = Math.sqrt(xx * xx + yy * yy);
-    if(d > 53) continue;
-    const anel = Math.floor(d / 5), ang = Math.atan2(yy, xx) + Math.PI;
-    const n = Math.max(6, Math.round(anel * 6.3)), fr = ang / (Math.PI * 2) * n, seg = Math.floor(fr);
-    const borda = (d % 5) < 1 || (fr % 1) < 1 / Math.max(1, d * Math.PI * 2 / n);
-    let cor = borda ? '#c4b084' : ((anel + seg) % 2 ? '#ebdfbd' : '#ddcda3');
-    if(anel === 6) cor = borda ? '#8e4f30' : (seg % 2 ? '#cf7d50' : '#bb6a40');
-    if(anel === 10) cor = borda ? '#a6936c' : '#cdbb91';
-    px(M + xx, M + yy, cor);
+  const flor = (a, b)=>{ r(a - 1, b, 3, 1, '#ffffff'); r(a, b - 1, 1, 3, '#ffffff'); px(a, b, '#fff4b8'); };
+  /* grama com tufinhos e florzinhas brancas */
+  r(0, 0, GW, GH, '#5fb94e');
+  for(let i = 0; i < 2600; i++){ const q = rnd(); px(rnd() * GW | 0, rnd() * GH | 0, q < .5 ? '#58b048' : '#66c055'); }
+  for(let i = 0; i < 190; i++){ const a = rnd() * GW | 0, b = rnd() * GH | 0; px(a, b, '#489a3c'); px(a + 1, b - 1, '#489a3c'); px(a + 2, b, '#489a3c'); px(a + 3, b - 1, '#489a3c'); }
+  for(let i = 0; i < 46; i++) flor(2 + rnd() * (GW - 4) | 0, 2 + rnd() * (GH - 4) | 0);
+  /* areia (com lajotas) */
+  const areia = '#e2bd8a';
+  const naAreia = (a, b)=>(a >= 57 && a < 193 && b >= 37 && b < 125) || (a >= 25 && a < 225 && b >= 74 && b < 93) || (a >= 113 && a < 137 && b >= 0 && b < GH) || (b >= 74 && b < 93);
+  for(let b = 0; b < GH; b++) for(let a = 0; a < GW; a++) if(naAreia(a, b)) px(a, b, areia);
+  /* beirada da areia um pouquinho mais escura */
+  for(let b = 1; b < GH - 1; b++) for(let a = 1; a < GW - 1; a++){
+    if(!naAreia(a, b)) continue;
+    if(!naAreia(a - 1, b) || !naAreia(a + 1, b) || !naAreia(a, b - 1) || !naAreia(a, b + 1)) px(a, b, '#d3aa76');
   }
-  /* a fonte: borda de pedra e água (o movimento da água é desenhado a cada quadro) */
-  elipse(M, M + 3, 27, 25, 'rgba(0,0,0,.2)');
-  disco(M, M, 26, '#5f6b77');
-  disco(M, M - 1, 25, '#aeb9c3');
-  for(let k = 0; k < 120; k++){ const a = k / 120 * Math.PI * 2; if(Math.sin(a - 2.3) > .2) px(M + Math.round(Math.cos(a) * 24), M - 1 + Math.round(Math.sin(a) * 24), '#dfe6ec'); }
-  for(let k = 0; k < 40; k++){ const a = k / 40 * Math.PI * 2; px(M + Math.round(Math.cos(a) * 23), M - 1 + Math.round(Math.sin(a) * 23), '#95a1ac'); }
-  disco(M, M, 21, '#6d7a86');
-  disco(M, M + 1, 20, '#2a7cbd');
-  disco(M, M + 2, 17, '#3290d0');
-  disco(M, M + 3, 12, '#40a2dc');
-  /* muro de tijolo com pedra por cima, aberto nos 4 caminhos, com pilares no portão */
-  const muro = (x0, y0, w, h)=>{
-    r(x0, y0, w, h, '#7a3318');
-    for(let yy = y0; yy < y0 + h; yy += 3){
-      const desl = ((yy - y0) / 3) % 2 ? 2 : 0;
-      for(let xx = x0 - desl; xx < x0 + w; xx += 5){
-        const a = Math.max(x0, xx), b = Math.min(x0 + w, xx + 4);
-        if(b <= a) continue;
-        r(a, yy, b - a, 2, ['#b8552f', '#c4633a', '#a94b28', '#bd5b33'][rnd() * 4 | 0]);
-        r(a, yy, b - a, 1, '#d47c52');
-      }
-    }
-  };
-  muro(0, 0, 110, 9); muro(140, 0, 110, 9); muro(0, 241, 110, 9); muro(140, 241, 110, 9);
-  muro(0, 9, 9, 101); muro(0, 141, 9, 100); muro(241, 9, 9, 101); muro(241, 141, 9, 100);
-  const cap = (a, b, w, h)=>{ r(a, b, w, h, '#ddd3bd'); };
-  cap(0, 8, 110, 2); cap(140, 8, 110, 2); cap(0, 240, 110, 2); cap(140, 240, 110, 2);
-  cap(8, 8, 2, 102); cap(8, 140, 2, 102); cap(240, 8, 2, 102); cap(240, 140, 2, 102);
-  r(10, 10, 230, 1, 'rgba(0,0,0,.22)'); r(10, 10, 1, 230, 'rgba(0,0,0,.16)'); r(239, 10, 1, 230, 'rgba(0,0,0,.12)');
-  const pilar = (a, b)=>{ r(a, b, 7, 11, '#a99c86'); r(a, b, 7, 9, '#d9cfb9'); r(a, b, 7, 2, '#efe8d8'); r(a + 1, b + 3, 5, 1, '#c3b8a1'); r(a + 1, b + 6, 5, 1, '#c3b8a1'); };
-  [[103, 0], [140, 0], [103, 240], [140, 240], [0, 103], [0, 140], [240, 103], [240, 140]].forEach(([a, b])=>pilar(a, b));
-  /* cerca viva encostada no muro (com florzinhas) */
-  const moita = (a, b)=>{ disco(a, b + 1, 3, '#1f6b2c'); disco(a, b, 3, '#2a7d35'); px(a - 1, b - 2, '#4caf50'); px(a, b - 2, '#4caf50'); px(a + 1, b - 1, '#3f9e47'); if(rnd() < .45) px(a + (rnd() * 3 | 0) - 1, b + (rnd() * 2 | 0) - 1, ['#ffffff', '#ff9eb5', '#ffe066'][rnd() * 3 | 0]); };
-  for(let i = 14; i <= 236; i += 5){
-    if(i > 96 && i < 154) continue;
-    moita(i, 13); moita(i, 237); moita(13, i); moita(237, i);
+  /* lajotas quadradas nos caminhos */
+  for(let a = 25; a < 225; a += 9){ r(a, 74, 1, 19, '#ecca9b'); r(a + 1, 74, 1, 19, '#d7b07d'); }
+  r(25, 83, 200, 1, '#ecca9b'); r(25, 84, 200, 1, '#d7b07d');
+  for(let b = 2; b < GH; b += 9){ if(b > 72 && b < 94) continue; r(113, b, 24, 1, '#ecca9b'); r(113, b + 1, 24, 1, '#d7b07d'); }
+  r(124, 0, 1, 74, '#ecca9b'); r(125, 0, 1, 74, '#d7b07d'); r(124, 93, 1, GH - 93, '#ecca9b'); r(125, 93, 1, GH - 93, '#d7b07d');
+  for(let k = 0; k < 110; k++){
+    const a = 58 + (rnd() * 130 | 0), b = 38 + (rnd() * 84 | 0);
+    if(!naAreia(a, b) || !naAreia(a + 4, b + 4) || (b > 70 && b < 95) || (a > 110 && a < 140)) continue;
+    r(a, b, 4, 4, rnd() < .5 ? '#e8c595' : '#dab27e');
   }
-  /* canteiros de flores */
-  PRACA_CANTEIROS.forEach(([cx, cy])=>{
-    const a = w4(cx), b = w4(cy);
-    elipse(a, b + 2, 11, 7, 'rgba(0,0,0,.18)');
-    elipse(a, b, 11, 7, '#a8987a'); elipse(a, b - 1, 10, 6, '#7a4b2e');
-    for(let k = 0; k < 26; k++){
-      const ang = rnd() * Math.PI * 2, rr = Math.sqrt(rnd()), fx = Math.round(a + Math.cos(ang) * rr * 8), fy = Math.round(b - 1 + Math.sin(ang) * rr * 4.5);
-      px(fx, fy + 1, '#2e7d32'); px(fx - 1, fy + 1, '#43a047');
-      const cor = ['#ff5a6e', '#ffd23f', '#ff8fc1', '#b388ff', '#ffffff', '#ff9a3c'][k % 6];
-      px(fx, fy, cor); px(fx + 1, fy, cor); px(fx, fy - 1, cor);
-    }
+  /* a fonte octogonal (a água anda: é desenhada a cada quadro) */
+  const oct = (a, b, rx, ry)=>{ const X = Math.abs(a - 125) / rx, Y = Math.abs(b - 80) / ry; return X <= 1 && Y <= 1 && X + Y <= 1.42; };
+  for(let b = 58; b < 103; b++) for(let a = 100; a < 151; a++){
+    if(!oct(a, b, 21.5, 18.5)) continue;
+    let cor = '#353535';
+    if(oct(a, b, 20.5, 17.5)) cor = b < 80 ? '#c4c1b6' : '#a6a398';
+    if(oct(a, b, 17, 14.5)) cor = '#8c897f';
+    if(oct(a, b, 16, 13.5)) cor = '#3a96dc';
+    px(a, b, cor);
+  }
+  elipse(125, 81, 4, 3, '#353535'); elipse(125, 81, 3, 2, '#a6a398'); elipse(125, 81, 2, 1, '#7cc6f5');
+  /* moitas com flores em volta da fonte (nas 4 diagonais) */
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy])=>{
+    [-.42, 0, .42].forEach(d=>{
+      const ang = Math.atan2(sy, sx) + d;
+      moita(Math.round(125 + Math.cos(ang) * 24), Math.round(80 + Math.sin(ang) * 20), 4, 2);
+    });
   });
-  /* sombras das árvores e dos postes no chão */
-  PRACA_ARVORES.forEach(([a, b])=>elipse(w4(a) + 2, w4(b), 15, 5, 'rgba(0,0,0,.2)'));
-  PRACA_POSTES.forEach(([a, b])=>elipse(w4(a) + 1, w4(b), 3, 1, 'rgba(0,0,0,.25)'));
-  /* bancos (o de cima inteiro; o de baixo só o assento, o encosto fica na frente de quem senta) */
-  PRACA_BANCOS.forEach(bc=>{
-    const a = w4(bc.x) - 17, b = w4(bc.y);
-    elipse(a + 17, b + 4, 18, 2, 'rgba(0,0,0,.22)');
-    r(a + 2, b + 1, 2, 4, '#323a42'); r(a + 30, b + 1, 2, 4, '#323a42');
-    if(bc.cima){
-      r(a + 2, b - 8, 2, 8, '#323a42'); r(a + 30, b - 8, 2, 8, '#323a42');
-      r(a, b - 9, 34, 3, '#b8773e'); r(a, b - 9, 34, 1, '#dba064'); r(a, b - 5, 34, 2, '#9d6331'); r(a, b - 5, 34, 1, '#c88a4f');
-    }
-    r(a - 1, b - 2, 36, 3, '#c98a4b'); r(a - 1, b - 2, 36, 1, '#e8ad6c'); r(a - 1, b + 1, 36, 1, '#8f5a2b');
-    for(let k = 5; k < 34; k += 6) r(a + k, b - 2, 1, 3, '#a96f3a');
-  });
+  /* o murinho de tijolo em volta, aberto nos 4 caminhos */
+  tijolos(23, 18, 89, 4, true); tijolos(138, 18, 89, 4, true);
+  tijolos(23, 145, 89, 4, true); tijolos(138, 145, 89, 4, true);
+  tijolos(23, 21, 4, 47, false); tijolos(23, 97, 4, 49, false);
+  tijolos(223, 21, 4, 47, false); tijolos(223, 97, 4, 49, false);
+  /* e as beiradas de tijolo dos caminhos de fora */
+  tijolos(110, 0, 4, 16, false); tijolos(136, 0, 4, 16, false); tijolos(110, 151, 4, 16, false); tijolos(136, 151, 4, 16, false);
+  tijolos(0, 71, 22, 4, true); tijolos(0, 92, 22, 4, true); tijolos(228, 71, 22, 4, true); tijolos(228, 92, 22, 4, true);
+  /* pilares de pedra nas entradas */
+  const pilar = (a, b)=>{ r(a, b, 7, 10, '#2b2b2b'); r(a + 1, b + 1, 5, 8, '#8e9296'); r(a + 1, b + 1, 5, 2, '#c5c8ca'); r(a + 1, b + 8, 5, 1, '#6a6e72'); };
+  [[108, 13], [135, 13], [108, 140], [135, 140], [21, 65], [21, 88], [222, 65], [222, 88]].forEach(([a, b])=>pilar(a, b));
+  /* jardineiras de tijolo cheias de moitas com flores */
+  const jardineira = (a, b, w, h)=>{
+    r(a, b, w, h, '#4e2d1f'); r(a + 1, b + 1, w - 2, h - 2, '#3e7d36');
+    tijolos(a, b + h - 4, w, 4, true);
+    for(let k = a + 4; k <= a + w - 4; k += 6) moita(k, b + h - 7, 4, 2);
+  };
+  jardineira(73, 24, 32, 14); jardineira(32, 41, 28, 17); jardineira(145, 24, 32, 14); jardineira(190, 41, 28, 17);
+  /* moitas soltas e as de baixo */
+  moita(37, 64, 4, 0); moita(211, 64, 4, 0); moita(210, 95, 4, 1);
+  moita(62, 133, 5, 0); moita(72, 134, 5, 2); moita(82, 133, 4, 1);
+  moita(166, 133, 5, 2); moita(176, 134, 5, 1);
+  /* sombrinha embaixo das árvores, dos postes, das lixeiras e dos bancos */
+  PRACA_ARVORES.forEach(([a, b])=>elipse(a / PRACA_PX, b / PRACA_PX - 2, 14, 5, '#4f9f42'));
+  PRACA_POSTES.forEach(([a, b])=>elipse(a / PRACA_PX + 1, b / PRACA_PX, 3, 1, 'rgba(0,0,0,.2)'));
+  PRACA_LIXOS.forEach(([a, b])=>elipse(a / PRACA_PX + 1, b / PRACA_PX, 5, 1, 'rgba(0,0,0,.2)'));
+  PRACA_BANCOS.forEach(bc=>elipse(bc.x / PRACA_PX, bc.y / PRACA_PX, 15, 2, 'rgba(0,0,0,.18)'));
   pracaChao = c;
   return c;
 }
-/* o lado de fora do muro: grama mais escura com moitas (repete em quadrados) */
+/* o lado de fora do mundo: a mesma grama (repete em quadrados) */
 var pracaFora = null;
 function pracaDesenharFora(){
   if(pracaFora) return pracaFora;
   const c = document.createElement('canvas');
-  c.width = c.height = 50;
-  const x = c.getContext('2d'), {rnd, r, disco} = pracaPincel(x, 23);
-  r(0, 0, 50, 50, '#3f9443');
-  for(let i = 0; i < 520; i++){ const q = rnd(); r(rnd() * 50 | 0, rnd() * 50 | 0, 1, 1, q < .5 ? '#378a3c' : '#4aa04b'); }
-  for(let i = 0; i < 40; i++){ const a = rnd() * 50 | 0, b = rnd() * 50 | 0; r(a, b, 1, 1, '#2f7a35'); r(a + 1, b - 1, 1, 1, '#2f7a35'); r(a + 2, b, 1, 1, '#2f7a35'); }
-  [[12, 14], [38, 36]].forEach(([a, b])=>{ disco(a, b + 1, 5, '#1d5e27'); disco(a, b, 5, '#2a7633'); disco(a - 1, b - 2, 2, '#3f9a47'); });
+  c.width = c.height = 40;
+  const x = c.getContext('2d'), {rnd, r} = pracaPincel(x, 23);
+  r(0, 0, 40, 40, '#5fb94e');
+  for(let i = 0; i < 160; i++){ const q = rnd(); r(rnd() * 40 | 0, rnd() * 40 | 0, 1, 1, q < .5 ? '#58b048' : '#66c055'); }
+  for(let i = 0; i < 6; i++){ const a = rnd() * 36 | 0, b = 2 + rnd() * 36 | 0; r(a, b, 1, 1, '#489a3c'); r(a + 1, b - 1, 1, 1, '#489a3c'); r(a + 2, b, 1, 1, '#489a3c'); r(a + 3, b - 1, 1, 1, '#489a3c'); }
+  r(20, 12, 3, 1, '#ffffff'); r(21, 11, 1, 3, '#ffffff');
   pracaFora = c;
   return c;
 }
-/* as coisas em pé que entram na ordem de quem está na frente: árvores, postes, o alto da fonte e o encosto dos bancos de baixo */
+/* as coisas em pé que entram na ordem de quem está na frente */
 function pracaFazerSprites(){
   if(pracaSprites) return pracaSprites;
-  const novo = (w, h, f, semente)=>{ const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); f(pracaPincel(x, semente), x); return c; };
-  const arvore = tipo=>novo(44, 50, ({rnd, r, disco})=>{
-    r(19, 30, 6, 19, '#5b3b25'); r(20, 30, 4, 19, '#7a5236'); r(21, 32, 1, 15, '#94683f'); r(17, 46, 10, 3, '#5b3b25');
-    const escuro = tipo === 1 ? '#2b7a3c' : '#1d6a2b', meio = tipo === 1 ? '#3c9a4b' : '#2e8b3a', claro = tipo === 1 ? '#5ab863' : '#47a84e', brilho = tipo === 1 ? '#7fd085' : '#6cc46a';
-    disco(22, 21, 18, '#174f22'); disco(22, 20, 17, escuro);
-    disco(13, 20, 9, meio); disco(31, 20, 9, meio); disco(22, 13, 11, meio); disco(22, 25, 10, meio);
-    disco(18, 12, 7, claro); disco(28, 16, 6, claro); disco(14, 22, 4, claro);
-    disco(16, 9, 3, brilho); disco(27, 12, 2, brilho);
-    for(let k = 0; k < 70; k++){ const a = rnd() * Math.PI * 2, d = Math.sqrt(rnd()) * 16; r(22 + Math.cos(a) * d, 20 + Math.sin(a) * d, 1, 1, rnd() < .5 ? escuro : claro); }
-    if(tipo === 1) for(let k = 0; k < 26; k++){ const a = rnd() * Math.PI * 2, d = Math.sqrt(rnd()) * 15; const fx = 22 + Math.cos(a) * d, fy = 20 + Math.sin(a) * d; r(fx, fy, 2, 2, k % 3 ? '#ffb3cf' : '#ffffff'); r(fx, fy, 1, 1, '#ff7fae'); }
-    if(tipo === 2) for(let k = 0; k < 11; k++){ const a = rnd() * Math.PI * 2, d = 4 + rnd() * 11; const fx = 22 + Math.cos(a) * d, fy = 21 + Math.sin(a) * d; r(fx, fy, 2, 2, '#ff8c1a'); r(fx, fy, 1, 1, '#ffc266'); }
-  }, 30 + tipo * 7);
-  const poste = novo(12, 38, ({r})=>{
-    r(3, 33, 6, 4, '#262d33'); r(4, 32, 4, 2, '#3a444c');
-    r(5, 10, 2, 23, '#2f3a43'); r(5, 10, 1, 23, '#4a5862');
-    r(2, 1, 8, 2, '#262d33'); r(3, 0, 6, 1, '#3a444c');
-    r(2, 3, 8, 6, '#262d33'); r(3, 3, 6, 5, '#fff1a8'); r(3, 3, 2, 5, '#fffbe0'); r(5, 3, 1, 5, '#e8c96a');
-    r(2, 9, 8, 1, '#262d33');
+  const novo = (w, h, f, semente)=>{ const c = document.createElement('canvas'); c.width = w; c.height = h; f(pracaPincel(c.getContext('2d'), semente)); return c; };
+  const arvore = novo(42, 44, ({rnd, r})=>{
+    /* tronco */
+    r(14, 28, 13, 14, '#1d1d1d'); r(15, 28, 11, 13, '#7a4a2a'); r(16, 29, 3, 11, '#9a6236'); r(22, 29, 2, 11, '#5e3820');
+    r(12, 39, 17, 4, '#1d1d1d'); r(13, 39, 15, 3, '#7a4a2a');
+    /* copa: várias bolotas juntas (redondinha e fofa), com contorno; claro em cima, escuro embaixo */
+    const bolas = [[21, 17, 13], [10, 18, 8], [32, 18, 8], [14, 10, 8], [28, 10, 8], [21, 7, 8], [21, 24, 9], [9, 12, 6], [33, 12, 6]];
+    const dentro = (a, b, folga)=>bolas.some(([cx, cy, rr])=>(a - cx) ** 2 + (b - cy) ** 2 <= (rr - folga) ** 2);
+    for(let b = 0; b < 34; b++) for(let a = 0; a < 42; a++){
+      if(!dentro(a + .5, b + .5, -1)) continue;
+      let cor = '#1c3a1c';
+      if(dentro(a + .5, b + .5, 0)) cor = b > 22 ? '#2b7a33' : '#3a9442';
+      r(a, b, 1, 1, cor);
+    }
+    const mancha = (cx, cy, rr, cor)=>{ for(let yy = cy - rr; yy <= cy + rr; yy++) for(let xx = cx - rr; xx <= cx + rr; xx++) if((xx - cx) ** 2 + (yy - cy) ** 2 <= rr * rr && dentro(xx + .5, yy + .5, 1.5)) r(xx, yy, 1, 1, cor); };
+    mancha(14, 8, 4, '#5dbb4a'); mancha(26, 6, 4, '#5dbb4a'); mancha(9, 15, 3, '#4daa45'); mancha(20, 12, 4, '#4daa45'); mancha(31, 14, 3, '#5dbb4a');
+    mancha(13, 21, 3, '#4daa45'); mancha(27, 22, 4, '#327f39'); mancha(18, 27, 3, '#2b7a33'); mancha(12, 6, 1, '#7fd067'); mancha(24, 4, 1, '#7fd067');
+    for(let k = 0; k < 50; k++){ const a = rnd() * 42 | 0, b = rnd() * 32 | 0; if(dentro(a + .5, b + .5, 2)) r(a, b, 2, 1, rnd() < .5 ? '#6cc24f' : '#2f8538'); }
+  }, 31);
+  const poste = novo(9, 31, ({r})=>{
+    r(2, 0, 5, 1, '#1d1d1d'); r(1, 1, 7, 2, '#1d1d1d');
+    r(1, 3, 7, 7, '#1d1d1d'); r(2, 4, 5, 5, '#f2c46b'); r(3, 4, 3, 4, '#fff0b5');
+    r(1, 10, 7, 1, '#1d1d1d');
+    r(3, 11, 3, 15, '#1d1d1d'); r(4, 11, 1, 15, '#3c3c3c');
+    r(2, 26, 5, 2, '#1d1d1d'); r(1, 28, 7, 3, '#1d1d1d'); r(2, 28, 5, 1, '#3c3c3c');
   }, 3);
-  const fonte = novo(28, 34, ({r, elipse})=>{
-    r(11, 16, 6, 16, '#7f8b96'); r(12, 16, 3, 16, '#b9c3cc'); r(11, 30, 6, 2, '#5f6b77');
-    elipse(14, 15, 11, 3, '#5f6b77'); elipse(14, 14, 11, 3, '#c9d2da'); elipse(14, 14, 9, 2, '#3290d0'); elipse(13, 14, 5, 1, '#5cb6ea');
-    r(12, 6, 4, 8, '#8e9aa6'); r(13, 6, 2, 8, '#c9d2da');
-    elipse(14, 6, 4, 1, '#c9d2da'); r(13, 2, 2, 4, '#bfe9ff'); r(13, 1, 2, 1, '#ffffff');
+  const lixo = novo(10, 13, ({r})=>{
+    r(0, 0, 10, 13, '#151719');
+    r(1, 1, 8, 2, '#5a6066'); r(1, 1, 8, 1, '#6e757b');
+    r(1, 3, 8, 9, '#3a3f44'); r(2, 4, 1, 7, '#565c62'); r(4, 4, 1, 7, '#565c62'); r(6, 4, 1, 7, '#565c62');
   }, 5);
-  const encosto = novo(36, 7, ({r})=>{
-    r(2, 0, 2, 4, '#323a42'); r(32, 0, 2, 4, '#323a42');
-    r(0, 2, 36, 3, '#b8773e'); r(0, 2, 36, 1, '#dba064'); r(0, 5, 36, 1, '#8f5a2b');
+  const banco = novo(28, 15, ({r})=>{
+    r(0, 0, 28, 11, '#2a1a10');
+    r(1, 1, 26, 2, '#a5633b'); r(1, 1, 26, 1, '#bd7a4c'); r(1, 3, 26, 1, '#5f3720');
+    r(1, 4, 26, 2, '#b36c41'); r(1, 4, 26, 1, '#c98552'); r(1, 6, 26, 1, '#5f3720');
+    r(1, 7, 26, 3, '#c88550'); r(1, 7, 26, 1, '#dea06a'); r(1, 9, 26, 1, '#9c6034');
+    r(2, 11, 3, 4, '#1d1d1d'); r(23, 11, 3, 4, '#1d1d1d');
   }, 1);
-  pracaSprites = {arvores: [0, 1, 2].map(arvore), poste, fonte, encosto};
+  pracaSprites = {arvore, poste, lixo, banco};
   return pracaSprites;
 }
 /* a entrada da praça na tela de início (aparece com a lista de jogos, sem busca) */
@@ -21392,13 +21397,18 @@ function pracaMiniSvg(){
   px.forEach((linha, y)=>[...linha].forEach((c, x)=>{ if(cor[c]) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${cor[c]}"/>`; }));
   return `<svg viewBox="0 0 12 9" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${r}</svg>`;
 }
-/* as coisas que não dá pra atravessar (no mundo 0..1000) */
+/* as coisas que não dá pra atravessar (no mundo) */
 function pracaLivre(x, y){
-  if(x < 62 || x > 938 || y < 78 || y > 944) return false;                               // muro e cerca viva
-  if((x - 500) ** 2 + (y - 500) ** 2 < 112 * 112) return false;                          // a fonte
-  for(const [a, b] of PRACA_ARVORES){ if((x - a) ** 2 + ((y - b + 6) * 1.6) ** 2 < 30 * 30) return false; }
-  for(const [a, b] of PRACA_POSTES){ if((x - a) ** 2 + ((y - b) * 1.6) ** 2 < 14 * 14) return false; }
-  for(const [a, b] of PRACA_CANTEIROS){ if(((x - a) / 46) ** 2 + ((y - b) / 30) ** 2 < 1) return false; }
+  const P = pracaAtiva, num = P ? P.num : 0;
+  const dentro = x >= 162 && x <= 1338 && y >= 134 && y <= 874;                          // dentro do murinho
+  const caminhoLado = y >= 456 && y <= 552 && x >= (num <= 1 ? 42 : 0) && x <= (num >= PRACA_ULTIMA ? 1458 : PRACA_W);   // esquerda/direita (vão pra outra praça)
+  const caminhoMeio = x >= 696 && x <= 804 && y >= 30 && y <= PRACA_H - 20;             // cima/baixo
+  if(!dentro && !caminhoLado && !caminhoMeio) return false;
+  if(((x - PRACA_FONTE.x) / 168) ** 2 + ((y - PRACA_FONTE.y - 6) / 148) ** 2 < 1) return false;   // a fonte e as moitas dela
+  for(const [a, b] of PRACA_ARVORES){ if((x - a) ** 2 + ((y - b + 8) * 1.6) ** 2 < 36 * 36) return false; }
+  for(const [a, b] of PRACA_POSTES){ if((x - a) ** 2 + ((y - b) * 1.6) ** 2 < 15 * 15) return false; }
+  for(const [a, b] of PRACA_LIXOS){ if(Math.abs(x - a) < 30 && y > b - 20 && y < b + 6) return false; }
+  for(const [a, b, w, h] of PRACA_BLOCOS){ if(x > a && x < a + w && y > b && y < b + h) return false; }
   return true;
 }
 /* anda um passo em direção ao alvo, escorregando nas coisas; guarda pra onde está virado */
@@ -21417,13 +21427,13 @@ function pracaPasso(p, dt){
   if(Math.abs(my) > Math.abs(mx) * 1.1) p.dir = my < 0 ? 'cima' : 'baixo';
   else if(Math.abs(mx) > .01){ p.dir = 'lado'; p.vira = mx < 0; }
 }
-/* onde a k-ésima pessoa senta (os pés) */
+/* onde a k-ésima pessoa senta (os pés): no assento, na frente do encosto */
 function pracaAssento(i, k, n){
-  const b = PRACA_BANCOS[i], larg = 124;
-  return {x: b.x - larg / 2 + (k + .5) * larg / Math.max(1, n), y: b.y + (b.cima ? 14 : 2)};
+  const b = PRACA_BANCOS[i], larg = 132;
+  return {x: b.x - larg / 2 + (k + .5) * larg / Math.max(1, n), y: b.y - 4};
 }
-/* de pé, do ladinho do banco (na frente dele) */
-function pracaLadoDoBanco(i){ const b = PRACA_BANCOS[i]; return b.y + (b.cima ? 70 : -58); }
+/* de pé, na frente do banco */
+function pracaLadoDoBanco(i){ return PRACA_BANCOS[i].y + 40; }
 function pracaBancoDe(id){
   const P = pracaAtiva;
   if(!P) return -1;
@@ -21436,7 +21446,7 @@ function pracaFigura(av, variante){
   return im;
 }
 function pracaPessoa(j){
-  const x = Number(j.x) || 500, y = Number(j.y) || 920;
+  const x = Number(j.x) || PRACA_FONTE.x, y = Number(j.y) || 860;
   return {id: String(j.id), nome: String(j.nome || ''), im: pracaFigura(j.av), imC: pracaFigura(j.av, 'costas'), x, y, tx: x, ty: y,
     anda: false, vira: false, dir: 'baixo', fala: null, falaAte: 0};
 }
@@ -21452,7 +21462,7 @@ function pracaAbrir(num){
   el.querySelector('[data-chatbtn]').classList.remove('on');
   document.documentElement.classList.add('praca-aberta');
   const P = pracaAtiva = {el, cv: el.querySelector('canvas'), ws: null, num: 0, quer: Math.max(0, Math.floor(num) || 0), eu: null, gente: new Map(), bancos: [null, null, null, null],
-    dif: 0, fechado: false, tentativas: 0, raf: 0, ultimo: performance.now(), cam: {x: 500, y: 700}, ultEnvio: 0, anterior: 0};
+    dif: 0, fechado: false, tentativas: 0, raf: 0, ultimo: performance.now(), cam: {x: PRACA_FONTE.x, y: 700}, ultEnvio: 0, anterior: 0};
   pracaPintarTopo(P);
   pracaMsg(P, t('praca_conectando'));
   pracaConectar(P);
@@ -21468,6 +21478,16 @@ function pracaFechar(){
   try{ if(P.ws) P.ws.close(); }catch(e){}
   P.el.classList.add('hidden');
   document.documentElement.classList.remove('praca-aberta');
+}
+/* andou até o fim do caminho do lado: vai pra praça vizinha (direita = próxima, esquerda = anterior) */
+function pracaVizinha(P, d){
+  const n = P.num + d;
+  if(P.trocando || !P.num || n < 1 || n > PRACA_ULTIMA) return;
+  P.trocando = true;
+  P.entrada = d > 0 ? 'esq' : 'dir';
+  playSound('click');
+  P.el.querySelector('[data-fade]').classList.add('on');
+  setTimeout(()=>{ if(pracaAtiva === P) pracaTrocar(n); }, 220);
 }
 /* ir pra outra praça pelo número (se estiver cheia, volta pra que estava) */
 function pracaTrocar(num){
@@ -21509,6 +21529,8 @@ function pracaConectar(P){
     if(P.fechado || pracaAtiva !== P) return;
     if(cheia){
       toast(t('praca_cheia'));
+      /* a do lado lotou: volta pra que estava, aparecendo no caminho por onde saiu */
+      if(P.entrada) P.entrada = P.entrada === 'esq' ? 'dir' : 'esq';
       if(P.anterior && P.anterior !== P.quer){ P.quer = P.anterior; P.anterior = 0; P.tentativas = 0; pracaConectar(P); }
       else if(P.quer){ P.quer = 0; pracaConectar(P); }       // a praça digitada lotou: vai pra uma com vaga
       return;
@@ -21537,10 +21559,19 @@ function pracaReceber(P, m){
     (m.jogadores || []).forEach(j=>P.gente.set(String(j.id), pracaPessoa(j)));
     pracaBancos(P, m.bancos, m.agora);
     const eu = P.gente.get(P.eu);
+    if(eu && P.entrada){
+      /* chegou andando pelo caminho do lado: aparece na entrada e já dá uns passos pra dentro */
+      const esq = P.entrada === 'esq';
+      eu.x = esq ? 30 : PRACA_W - 30; eu.y = 504; eu.tx = esq ? 230 : PRACA_W - 230; eu.ty = 504; eu.dir = 'lado'; eu.vira = !esq;
+      pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)});
+    }
     if(eu){ P.cam.x = eu.x; P.cam.y = eu.y; }
+    const veio = !!P.entrada;
+    P.entrada = ''; P.trocando = false;
+    P.el.querySelector('[data-fade]').classList.remove('on');
     pracaPintarTopo(P);
     pracaMsg(P, '');
-    pracaDica(P);
+    if(!veio) pracaDica(P);
   } else if(m.t === 'entrou'){
     P.gente.set(String(m.id), pracaPessoa(m));
     pracaPintarTopo(P);
@@ -21549,7 +21580,7 @@ function pracaReceber(P, m){
     pracaPintarTopo(P);
   } else if(m.t === 'pos'){
     const p = P.gente.get(String(m.id));
-    if(p){ p.tx = Math.max(0, Math.min(1000, Number(m.x) || 0)); p.ty = Math.max(0, Math.min(1000, Number(m.y) || 0)); }
+    if(p){ p.tx = Math.max(0, Math.min(PRACA_W, Number(m.x) || 0)); p.ty = Math.max(0, Math.min(PRACA_H, Number(m.y) || 0)); }
   } else if(m.t === 'emo' || m.t === 'frase'){
     const p = P.gente.get(String(m.id));
     const n = Number(m.t === 'emo' ? m.e : m.f);
@@ -21617,7 +21648,7 @@ function pracaMontarTela(){
       <span class="praca-gente" data-gente></span>
       <button type="button" class="praca-ir" data-ir>${chatListEscape(t('praca_ir'))}</button>
     </div>
-    <div class="praca-palco"><canvas></canvas><div class="praca-msg hidden" data-msg></div><div class="praca-dica hidden" data-dica></div>
+    <div class="praca-palco"><canvas></canvas><div class="praca-msg hidden" data-msg></div><div class="praca-dica hidden" data-dica></div><div class="praca-fade" data-fade></div>
       <div class="praca-chat hidden" data-chat role="dialog" aria-label="${chatListEscape(t('praca_chat'))}">
         <div class="praca-frases" data-frases></div>
         <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
@@ -21706,12 +21737,11 @@ function pracaPerguntarNumero(){
 /* o tamanho da tela e a câmera: mostra boa parte da praça e segue você */
 function pracaVista(P){
   const cv = P.cv, w = cv.clientWidth || 1, h = cv.clientHeight || 1;
-  const s = Math.max(Math.min(w, h) / 1000, Math.max(w, h) / 1000 * .75);
+  const s = Math.max(Math.min(w / PRACA_W, h / PRACA_H), Math.max(w, h) / 1000 * .75);
   const eu = P.gente.get(P.eu);
   if(eu){ P.cam.x += (eu.x - P.cam.x) * .12; P.cam.y += (eu.y - PRACA_ALT / 2 - P.cam.y) * .12; }
-  const eixo = (tam, c)=>1000 * s <= tam ? (tam - 1000 * s) / 2 : Math.min(0, Math.max(tam - 1000 * s, tam / 2 - c * s));
-  const ox = eixo(w, P.cam.x), oy = eixo(h, P.cam.y);
-  return {w, h, s, ox, oy};
+  const eixo = (tam, c, total)=>total * s <= tam ? (tam - total * s) / 2 : Math.min(0, Math.max(tam - total * s, tam / 2 - c * s));
+  return {w, h, s, ox: eixo(w, P.cam.x, PRACA_W), oy: eixo(h, P.cam.y, PRACA_H)};
 }
 function pracaToque(ev){
   const P = pracaAtiva;
@@ -21721,7 +21751,7 @@ function pracaToque(ev){
   /* tocou num banco? */
   for(let i = 0; i < 4; i++){
     const b = PRACA_BANCOS[i];
-    if(Math.abs(wx - b.x) < 85 && wy > b.y - 80 && wy < b.y + 45){ pracaTocouBanco(P, i); return; }
+    if(Math.abs(wx - b.x) < 92 && wy > b.y - 105 && wy < b.y + 25){ pracaTocouBanco(P, i); return; }
   }
   const eu = P.gente.get(P.eu);
   if(!eu) return;
@@ -21736,7 +21766,7 @@ function pracaToque(ev){
     eu.y = pracaLadoDoBanco(bi);
     eu.dir = 'baixo';
   }
-  eu.tx = Math.max(62, Math.min(938, wx)); eu.ty = Math.max(78, Math.min(944, wy));
+  eu.tx = Math.max(0, Math.min(PRACA_W, wx)); eu.ty = Math.max(0, Math.min(PRACA_H, wy));
   const agora = performance.now();
   if(agora - P.ultEnvio > 120){ P.ultEnvio = agora; pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }
   else { clearTimeout(P.tPos); P.tPos = setTimeout(()=>{ P.ultEnvio = performance.now(); pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }, 130); }
@@ -21831,29 +21861,29 @@ function pracaQuadro(P, tm){
   const cv = P.cv, dpr = Math.min(2, window.devicePixelRatio || 1);
   const cw = Math.round((cv.clientWidth || 1) * dpr), ch = Math.round((cv.clientHeight || 1) * dpr);
   if(cv.width !== cw || cv.height !== ch){ cv.width = cw; cv.height = ch; }
-  /* quem está sentado vai pro assento (no banco de baixo fica de costas, olhando pra fonte); os outros andam */
+  /* quem está sentado vai pro assento; os outros andam */
   P.gente.forEach((p, id)=>{
     const bi = pracaBancoDe(id);
     if(bi >= 0){
       const b = P.bancos[bi], a = pracaAssento(bi, b.membros.indexOf(id), b.membros.length);
       p.x = p.tx = a.x; p.y = p.ty = a.y; p.anda = false; p.sentado = bi;
-      p.dir = PRACA_BANCOS[bi].cima ? 'baixo' : 'cima';
+      p.dir = 'baixo';
     } else pracaPasso(p, dt);
   });
+  const euP = P.gente.get(P.eu);
+  if(euP && P.eu && !P.trocando && pracaBancoDe(P.eu) < 0){
+    if(euP.x <= 14) pracaVizinha(P, -1);
+    else if(euP.x >= PRACA_W - 14) pracaVizinha(P, 1);
+  }
   const v = P.vista = pracaVista(P);
   const x = cv.getContext('2d');
   x.setTransform(dpr, 0, 0, dpr, 0, 0);
   x.imageSmoothingEnabled = false;
-  x.fillStyle = '#3f9443';
-  x.fillRect(0, 0, v.w, v.h);
-  if(v.ox > 0 || v.oy > 0 || v.ox + 1000 * v.s < v.w || v.oy + 1000 * v.s < v.h){
-    const fora = pracaDesenharFora(), q = 200 * v.s;
-    for(let ty = Math.floor(-v.oy / q) - 1; ty * q + v.oy < v.h; ty++) for(let tx = Math.floor(-v.ox / q) - 1; tx * q + v.ox < v.w; tx++){
-      if(tx >= 0 && tx < 5 && ty >= 0 && ty < 5) continue;
-      x.drawImage(fora, Math.round(v.ox + tx * q), Math.round(v.oy + ty * q), Math.ceil(q), Math.ceil(q));
-    }
-  }
-  x.drawImage(pracaDesenharChao(), v.ox, v.oy, 1000 * v.s, 1000 * v.s);
+  /* a grama de fora em toda a tela e a praça por cima */
+  const fora = pracaDesenharFora(), q = 40 * PRACA_PX * v.s;
+  for(let ty = Math.floor(-v.oy / q) - 1; ty * q + v.oy < v.h; ty++) for(let tx = Math.floor(-v.ox / q) - 1; tx * q + v.ox < v.w; tx++)
+    x.drawImage(fora, Math.round(v.ox + tx * q), Math.round(v.oy + ty * q), Math.ceil(q) + 1, Math.ceil(q) + 1);
+  x.drawImage(pracaDesenharChao(), Math.round(v.ox), Math.round(v.oy), Math.round(PRACA_W * v.s), Math.round(PRACA_H * v.s));
   const SP = pracaFazerSprites();
   const tela = (wx, wy)=>[v.ox + wx * v.s, v.oy + wy * v.s];
   const px = PRACA_PX * v.s;                      // 1 "pixel" do desenho na tela
@@ -21861,22 +21891,22 @@ function pracaQuadro(P, tm){
   const seg = tm / 1000;
   /* a água: ondinhas que abrem do meio, brilhinhos e os jatos caindo */
   for(let o = 0; o < 3; o++){
-    const f = ((seg * .45 + o / 3) % 1), raio = (7 + f * 12) * PRACA_PX;
+    const f = ((seg * .45 + o / 3) % 1), raio = (4 + f * 10) * PRACA_PX;
     const alfa = (1 - f) * .45;
     for(let k = 0; k < 28; k++){
       const a = k / 28 * Math.PI * 2;
-      pixel(500 + Math.cos(a) * raio, 508 + Math.sin(a) * raio * .92, 'rgba(255,255,255,' + alfa.toFixed(2) + ')', 1.5, 1);
+      pixel(PRACA_FONTE.x + Math.cos(a) * raio, PRACA_FONTE.y + Math.sin(a) * raio * .84, 'rgba(255,255,255,' + alfa.toFixed(2) + ')', 1, 1);
     }
   }
   for(let k = 0; k < 7; k++){
     const fase = (seg * 1.3 + k * .37) % 1;
     if(fase > .5) continue;
-    const a = k * 2.39 + Math.floor(seg * 1.3 + k * .37) * 1.7, d = (6 + (k * 5) % 12) * PRACA_PX;
-    pixel(500 + Math.cos(a) * d, 506 + Math.sin(a) * d * .9, 'rgba(255,255,255,' + (1 - fase * 2).toFixed(2) + ')');
+    const a = k * 2.39 + Math.floor(seg * 1.3 + k * .37) * 1.7, d = (4 + (k * 5) % 10) * PRACA_PX;
+    pixel(PRACA_FONTE.x + Math.cos(a) * d, PRACA_FONTE.y + Math.sin(a) * d * .84, 'rgba(255,255,255,' + (1 - fase * 2).toFixed(2) + ')');
   }
   /* brilho dos postes */
   PRACA_POSTES.forEach(([a, b], i)=>{
-    const [sx, sy] = tela(a, b - 120);
+    const [sx, sy] = tela(a, b - 150);
     const raio = 70 * v.s, gr = x.createRadialGradient(sx, sy, 0, sx, sy, raio);
     gr.addColorStop(0, 'rgba(255,236,160,' + (.26 + .05 * Math.sin(seg * 2.5 + i)).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(255,236,160,0)');
     x.fillStyle = gr; x.fillRect(sx - raio, sy - raio, raio * 2, raio * 2);
@@ -21884,19 +21914,28 @@ function pracaQuadro(P, tm){
   /* tudo que fica em pé, na ordem de quem está mais pra trás */
   const itens = [];
   const sprite = (img, wx, wy, ax, ay)=>{ const [sx, sy] = tela(wx, wy); x.drawImage(img, Math.round(sx - ax * px), Math.round(sy - ay * px), Math.round(img.width * px), Math.round(img.height * px)); };
-  PRACA_ARVORES.forEach(([a, b, tipo])=>itens.push({y: b, f: ()=>sprite(SP.arvores[tipo], a, b, 22, 48)}));
-  PRACA_POSTES.forEach(([a, b])=>itens.push({y: b, f: ()=>sprite(SP.poste, a, b, 6, 36)}));
-  itens.push({y: 512, f: ()=>{
-    sprite(SP.fonte, 500, 512, 14, 31);
-    /* os jatos que saem da tigela de cima e caem na água */
-    for(let k = 0; k < 12; k++){
-      const ang = k / 12 * Math.PI * 2, f = ((seg * .9 + k * .13) % 1);
-      const d = (9 + f * 8) * PRACA_PX, yy = 444 + 60 * f * f - 14 * Math.sin(f * Math.PI);
-      pixel(500 + Math.cos(ang) * d, yy + Math.sin(ang) * d * .35, 'rgba(190,235,255,' + (.95 - f * .5).toFixed(2) + ')');
+  PRACA_ARVORES.forEach(([a, b])=>itens.push({y: b, f: ()=>sprite(SP.arvore, a, b, 21, 42)}));
+  PRACA_POSTES.forEach(([a, b])=>itens.push({y: b, f: ()=>sprite(SP.poste, a, b, 4.5, 30)}));
+  PRACA_LIXOS.forEach(([a, b])=>itens.push({y: b, f: ()=>sprite(SP.lixo, a, b, 5, 13)}));
+  PRACA_BANCOS.forEach(b=>itens.push({y: b.y - 10, f: ()=>sprite(SP.banco, b.x, b.y, 14, 15)}));
+  /* o jato da fonte: sobe do meio e cai em gotinhas */
+  itens.push({y: PRACA_FONTE.y + 8, f: ()=>{
+    const fx = PRACA_FONTE.x, fy = PRACA_FONTE.y - 2;
+    pixel(fx - PRACA_PX, fy - 7 * PRACA_PX, '#9fd8fb', 2, 7);
+    pixel(fx - PRACA_PX, fy - 7 * PRACA_PX, '#e6f6ff', 1, 6);
+    pixel(fx - 2 * PRACA_PX, fy - 8 * PRACA_PX, '#bfe6ff', 4, 1);
+    for(let k = 0; k < 10; k++){
+      const ang = k / 10 * Math.PI * 2, f = ((seg * .9 + k * .13) % 1);
+      const d = (1 + f * 6) * PRACA_PX, yy = fy - 8 * PRACA_PX + (60 * f * f - 18 * Math.sin(f * Math.PI));
+      pixel(fx + Math.cos(ang) * d, yy + Math.sin(ang) * d * .4, 'rgba(200,238,255,' + (.95 - f * .5).toFixed(2) + ')');
     }
-    for(let k = 0; k < 5; k++){ const f = ((seg * 2 + k / 5) % 1); pixel(500 - PRACA_PX / 2 + Math.sin(k * 3) * 2, 396 - f * 30, 'rgba(220,245,255,' + (1 - f).toFixed(2) + ')'); }
   }});
-  PRACA_BANCOS.forEach(b=>{ if(!b.cima) itens.push({y: b.y + 30, f: ()=>sprite(SP.encosto, b.x, b.y + 12, 18, 0)}); });
+  /* a muretinha no fim do caminho (na primeira praça não dá pra ir pra esquerda; na última, pra direita) */
+  const mureta = wx=>{ const [sx, sy] = tela(wx, 438); x.fillStyle = '#4e2d1f'; x.fillRect(Math.round(sx), Math.round(sy), Math.round(5 * px), Math.round(19 * px));
+    x.fillStyle = '#a3613f'; x.fillRect(Math.round(sx + px), Math.round(sy + px), Math.round(3 * px), Math.round(17 * px));
+    x.fillStyle = '#7a4430'; for(let k = 5; k < 18; k += 5) x.fillRect(Math.round(sx + px), Math.round(sy + k * px), Math.round(3 * px), Math.max(1, Math.round(px / 2))); };
+  if(P.num <= 1) itens.push({y: 552, f: ()=>mureta(12)});
+  if(P.num >= PRACA_ULTIMA) itens.push({y: 552, f: ()=>mureta(PRACA_W - 42)});
   const alt = PRACA_ALT * v.s, larg = alt * 22 / 29;
   const lista = Array.from(P.gente.values());
   lista.forEach(p=>itens.push({y: p.y, f: ()=>{
@@ -21916,26 +21955,33 @@ function pracaQuadro(P, tm){
   itens.sort((a, b)=>a.y - b.y).forEach(it=>it.f());
   /* borboletas e pétalas voando */
   for(let k = 0; k < 5; k++){
-    const bx = 500 + Math.sin(seg * .23 + k * 1.9) * 380 + Math.sin(seg * 1.1 + k) * 40, by = 500 + Math.cos(seg * .19 + k * 2.7) * 360 + Math.sin(seg * 1.7 + k * 2) * 30;
+    const bx = 750 + Math.sin(seg * .23 + k * 1.9) * 520 + Math.sin(seg * 1.1 + k) * 40, by = 500 + Math.cos(seg * .19 + k * 2.7) * 330 + Math.sin(seg * 1.7 + k * 2) * 30;
     const asa = Math.sin(seg * 14 + k) > 0, cor = ['#ffd23f', '#ff8fc1', '#8fd3ff', '#ffffff', '#c3a6ff'][k];
     pixel(bx, by, '#3b2a1a', 1, 1);
     if(asa){ pixel(bx - PRACA_PX, by - PRACA_PX, cor); pixel(bx + PRACA_PX, by - PRACA_PX, cor); }
     else { pixel(bx - PRACA_PX, by, cor); pixel(bx + PRACA_PX, by, cor); }
   }
-  PRACA_ARVORES.forEach(([a, b, tipo], i)=>{
-    if(tipo !== 1) return;
-    for(let k = 0; k < 2; k++){
-      const f = ((seg * .16 + i * .29 + k * .5) % 1);
-      pixel(a - 40 + k * 50 + Math.sin(seg * 2 + i + k) * 18 + f * 40, b - 150 + f * 170, k ? '#ffffff' : '#ffb3cf');
-    }
-  });
   /* sombra de nuvem passando devagar */
   for(let k = 0; k < 2; k++){
-    const nx = ((seg * 14 + k * 700) % 1900) - 450, ny = 260 + k * 420;
+    const nx = ((seg * 14 + k * 900) % 2400) - 450, ny = 260 + k * 420;
     const [sx, sy] = tela(nx, ny), raio = 230 * v.s;
     const gr = x.createRadialGradient(sx, sy, 0, sx, sy, raio);
     gr.addColorStop(0, 'rgba(10,40,30,.10)'); gr.addColorStop(1, 'rgba(10,40,30,0)');
     x.fillStyle = gr; x.fillRect(sx - raio, sy - raio, raio * 2, raio * 2);
+  }
+  /* plaquinhas nos caminhos do lado: pra qual praça cada um leva */
+  if(P.num){
+    const f = Math.max(11, Math.round(20 * v.s));
+    x.font = '800 ' + f + 'px "Baloo 2",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const placa = (wx, txt)=>{
+      const [sx, sy] = tela(wx, 405), w = x.measureText(txt).width + f * 1.2, h = f * 1.6;
+      x.fillStyle = '#5a3412'; x.fillRect(Math.round(sx - 2), Math.round(sy + h / 2), 4, Math.round(30 * v.s));
+      x.fillStyle = '#f6cf8c'; x.strokeStyle = '#5a3412'; x.lineWidth = Math.max(2, 3 * v.s);
+      x.beginPath(); if(x.roundRect) x.roundRect(sx - w / 2, sy - h / 2, w, h, f * .35); else x.rect(sx - w / 2, sy - h / 2, w, h); x.fill(); x.stroke();
+      x.fillStyle = '#3b1f08'; x.fillText(txt, sx, sy + 1);
+    };
+    if(P.num > 1) placa(75, '← nº ' + (P.num - 1));
+    if(P.num < PRACA_ULTIMA) placa(PRACA_W - 75, 'nº ' + (P.num + 1) + ' →');
   }
   /* nomes, balões de fala e figurinhas por cima de tudo */
   const fNome = Math.max(11, Math.round(22 * v.s));
@@ -21965,7 +22011,7 @@ function pracaQuadro(P, tm){
     x.font = '800 ' + f + 'px "Baloo 2",sans-serif';
     x.textBaseline = 'middle';
     /* a placa fica acima da cabeça (e do nome) de quem senta */
-    const [sx, by] = tela(pb.x, pb.y + (pb.cima ? 14 : 2));
+    const [sx, by] = tela(pb.x, pb.y - 4);
     const sy = by - alt - fNome * 1.3 - 10 - (b ? f * 1.35 : f * .8) - 4;
     if(!b){
       const txt = '+ ' + t('banco_livre');

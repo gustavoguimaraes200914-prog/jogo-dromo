@@ -26,7 +26,8 @@ const limpa = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g,
 const personagem = s => { s = String(s || ''); return /^kp1:[a-z0-9.]{1,400}$/.test(s) ? s : ''; };
 const idJogo = s => { s = String(s || ''); return /^[A-Za-z0-9_-]{1,100}$/.test(s) ? s : null; };
 const idGrupo = s => { s = String(s || ''); return /^[a-z0-9]{8,20}$/.test(s) ? s : null; };
-const coord = v => Math.max(0, Math.min(1000, Math.round(Number(v) || 0)));
+const coord = (v, max) => Math.max(0, Math.min(max, Math.round(Number(v) || 0)));
+const PRACA_W = 1500, PRACA_H = 1002;   // o tamanho do mundo da praça
 const novoGrupo = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
 
 /* responde "cheia" pelo próprio WebSocket (o navegador não vê o código de erro de um WebSocket recusado) */
@@ -191,7 +192,7 @@ export class Sala {
     this.state.acceptWebSocket(servidor);
     const praca = jogo === PRACA;
     const a = { id, nome, av, jogo, sala, t: Date.now(), c: 0 };
-    if (praca) { a.x = 440 + Math.floor(Math.random() * 120); a.y = 900 + Math.floor(Math.random() * 50); }   // chega pelo caminho de baixo
+    if (praca) { a.x = 710 + Math.floor(Math.random() * 80); a.y = 830 + Math.floor(Math.random() * 40); }   // chega pelo caminho de baixo
     servidor.serializeAttachment(a);
     const oi = { t: 'oi', eu: id, sala, cap, jogadores: this.jogadores() };
     if (praca) { await this.carregarBancos(); oi.bancos = this.bancos; oi.agora = Date.now(); }
@@ -285,7 +286,7 @@ export class Sala {
   }
   async naPraca(ws, a, m) {
     if (m.t === 'pos') {
-      a.x = coord(m.x); a.y = coord(m.y);
+      a.x = coord(m.x, PRACA_W); a.y = coord(m.y, PRACA_H);
       ws.serializeAttachment(a);
       this.transmitir({ t: 'pos', id: a.id, x: a.x, y: a.y }, ws);
       return;
