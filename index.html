@@ -3934,6 +3934,67 @@
      ROTINA: cartões do dia, nível, sequência, roleta, oferta relâmpago, próximo jogo
   ============================================================ */
   /* ---------- os 3 cartões do dia (tela de início) ---------- */
+  /* ---------- a Praça do Koda ---------- */
+  .praca-entrada{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;margin:0 0 12px;padding:10px 14px;border:none;border-radius:18px;cursor:pointer;color:#fff;text-align:left;
+    font-family:'Baloo 2',sans-serif;background:linear-gradient(135deg,#6fcf6f 0%,#3f9e47 55%,#2c7a3a 100%);box-shadow:0 4px 0 rgba(0,0,0,.22),var(--shadow);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+  .praca-entrada::before{content:'';position:absolute;inset:auto 0 0 0;height:9px;background:repeating-linear-gradient(90deg,#b5532f 0 14px,#8a3b20 14px 16px);opacity:.85;}
+  .praca-entrada.hidden{display:none;}
+  .praca-entrada:active{transform:translateY(2px) scale(.99);}
+  .praca-entrada:focus-visible{outline:3px solid #FFE082;outline-offset:2px;}
+  .praca-entrada-arte{flex:0 0 auto;width:58px;height:44px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25));}
+  .praca-entrada-arte svg{width:58px;height:auto;}
+  .praca-entrada-txt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15;}
+  .praca-entrada-txt b{font-size:1.05rem;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .praca-entrada-txt small{font-size:.8rem;font-weight:700;opacity:.95;}
+  .praca-entrada-btn{flex:0 0 auto;padding:6px 14px;border-radius:999px;background:#fff;color:#2c7a3a;font-weight:800;font-size:.9rem;box-shadow:0 2px 0 rgba(0,0,0,.2);}
+  html.praca-aberta, html.praca-aberta body{overflow:hidden;}
+  .praca{position:fixed;inset:0;z-index:96;display:flex;flex-direction:column;background:#2c7a3a;font-family:'Baloo 2',sans-serif;color:#fff;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);}
+  .praca.hidden{display:none;}
+  .praca-topo{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(180deg,#2f8a3e,#1f5e2b);box-shadow:0 3px 0 rgba(0,0,0,.22);position:relative;z-index:1;}
+  .praca-topo button{border:none;cursor:pointer;font-family:inherit;font-weight:800;-webkit-tap-highlight-color:transparent;}
+  .praca-voltar{flex:0 0 auto;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;padding:0;}
+  .praca-voltar svg{width:22px;height:22px;}
+  .praca-num{flex:1 1 auto;min-width:0;background:none;color:#fff;font-size:1.05rem;text-align:left;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .praca-num b{color:#ffe066;}
+  .praca-gente{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:.92rem;font-variant-numeric:tabular-nums;}
+  .praca-ir{flex:0 0 auto;padding:7px 12px;border-radius:999px;background:#ffe066;color:#3b2a00;font-size:.88rem;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.25);}
+  .praca-palco{position:relative;flex:1 1 auto;min-height:0;}
+  .praca-palco canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;cursor:pointer;}
+  .praca-msg,.praca-dica{position:absolute;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);box-sizing:border-box;padding:8px 16px;border-radius:14px;
+    background:rgba(8,40,20,.78);font-weight:800;font-size:.95rem;text-align:center;pointer-events:none;}
+  .praca-msg{top:42%;}
+  .praca-dica{bottom:calc(84px + env(safe-area-inset-bottom));font-size:.88rem;}
+  .praca-msg.hidden,.praca-dica.hidden{display:none;}
+  .praca-fade{position:absolute;inset:0;background:#0b2a14;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+  .praca-fade.on{opacity:1;}
+  .praca-chat-btn{position:absolute;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:56px;height:56px;border:none;border-radius:50%;cursor:pointer;padding:0;
+    display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#5ff0d0,#17c79e);color:#08322B;box-shadow:0 4px 0 rgba(0,0,0,.28),0 6px 16px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent;transition:transform .15s;}
+  .praca-chat-btn svg{width:30px;height:30px;}
+  .praca-chat-btn:active{transform:translateY(2px) scale(.96);}
+  .praca-chat-btn.on{background:#fff;}
+  .praca-chat{position:absolute;right:12px;bottom:calc(80px + env(safe-area-inset-bottom));width:min(330px,calc(100% - 24px));box-sizing:border-box;padding:10px;border-radius:20px;
+    background:#eafff8;color:#08322B;box-shadow:0 0 0 3px #0b1650,0 14px 30px rgba(0,0,0,.4);transform-origin:100% 100%;animation:pracaChat .18s cubic-bezier(.2,1.4,.4,1);}
+  .praca-chat.hidden{display:none;}
+  @keyframes pracaChat{from{transform:scale(.6);opacity:0;}to{transform:none;opacity:1;}}
+  .praca-frases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:min(46vh,300px);overflow-y:auto;}
+  .praca-frases button{border:none;border-radius:12px;padding:8px 6px;background:#fff;color:#08322B;cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.9rem;line-height:1.15;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);}
+  .praca-frases button:active{background:#dffcf3;transform:scale(.97);}
+  .praca-emos{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin-top:8px;}
+  .praca-emos button{height:38px;border:none;border-radius:10px;background:#fff;font-size:1.25rem;line-height:1;cursor:pointer;padding:0;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);-webkit-tap-highlight-color:transparent;}
+  .praca-emos button:active{transform:scale(.9);background:#dffcf3;}
+  @media (max-width:360px){ .praca-num{font-size:.95rem;} .praca-emos button{height:34px;font-size:1.05rem;} .praca-frases button{font-size:.84rem;} }
+  @media (max-height:430px) and (orientation:landscape){ .praca-topo{padding:4px 10px;} .praca-voltar{width:32px;height:32px;} .praca-chat-btn{width:48px;height:48px;bottom:10px;} .praca-chat{bottom:66px;} .praca-frases{grid-template-columns:repeat(3,minmax(0,1fr));max-height:calc(100vh - 190px);} }
+  .praca-campo{width:100%;box-sizing:border-box;margin:0 0 12px;padding:12px;border-radius:14px;border:2px solid rgba(8,50,43,.25);font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;text-align:center;color:#08322B;background:#fff;}
+  .banco-rot{margin:4px 0 6px;font-weight:800;font-size:.92rem;text-align:left;}
+  .banco-jogos{display:flex;flex-direction:column;gap:6px;max-height:min(34vh,220px);overflow-y:auto;margin-bottom:8px;padding:2px;}
+  .banco-jogo{display:flex;align-items:center;gap:10px;padding:8px 10px;border:none;border-radius:12px;background:#fff;color:#08322B;cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.95rem;text-align:left;box-shadow:inset 0 0 0 2px rgba(8,50,43,.15);}
+  .banco-jogo i{flex:0 0 22px;height:22px;border-radius:7px;}
+  .banco-jogo span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .banco-jogo.on{box-shadow:inset 0 0 0 3px #17c79e;background:#dffcf3;}
+  .banco-qtds{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:8px;}
+  .banco-qtds button{min-width:0;padding:8px 0;border:none;border-radius:10px;background:#fff;color:#08322B;cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1rem;box-shadow:inset 0 0 0 2px rgba(8,50,43,.15);}
+  .banco-qtds button.on{background:#17c79e;color:#fff;box-shadow:none;}
   .diarios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 14px;}
   .diarios.hidden{display:none;}
   .diario{
@@ -5076,6 +5137,7 @@
     </div>
   </div>
   <div class="destaques hidden" id="destaques"></div>
+  <button type="button" class="praca-entrada hidden" id="pracaEntrada"></button>
   <div class="diarios hidden" id="diarios"></div>
   <div class="grid" id="grid"></div>
   <div class="rank-list hidden" id="rankList"></div>
@@ -11668,9 +11730,55 @@ var MP_TXT = {
  mp_pub_local:'Multiplayer: dá pra jogar em 2 no mesmo aparelho. O jogo ganhou o selo "2 jogadores".|Multiplayer: 2 people can play on the same device. The game got the "2 players" badge.|Multijugador: pueden jugar 2 en el mismo dispositivo. El juego ganó la insignia "2 jugadores".|Multigiocatore: si gioca in 2 sullo stesso dispositivo. Il gioco ha ricevuto il badge "2 giocatori".|Multijoueur : on peut jouer à 2 sur le même appareil. Le jeu a reçu le badge « 2 joueurs ».|Mehrspieler: Zu zweit auf demselben Gerät spielbar. Das Spiel hat das Abzeichen „2 Spieler“ bekommen.|Multiplayer: met 2 op hetzelfde apparaat spelen kan. De game kreeg het label "2 spelers".|マルチプレイ：同じ端末で2人で遊べるよ。「2人用」マークがついたよ。|多人游戏：可以两个人在同一台设备上玩。游戏获得了“双人”标签。|멀티플레이: 같은 기기에서 2명이 할 수 있어요. 게임에 "2인용" 표시가 붙었어요.',
  mp_pub_solo:'Multiplayer: não achamos jeito de jogar com outras pessoas, então o jogo é para 1 pessoa. Pra virar online, peça no Koda Studio: "coloca modo online pra jogar com outras pessoas".|Multiplayer: we found no way to play with other people, so the game is for 1 person. To make it online, ask in Koda Studio: "add an online mode to play with other people".|Multijugador: no encontramos forma de jugar con otras personas, así que el juego es para 1 persona. Para hacerlo en línea, pide en Koda Studio: "pon un modo en línea para jugar con otras personas".|Multigiocatore: non abbiamo trovato modo di giocare con altre persone, quindi il gioco è per 1 persona. Per renderlo online, chiedi in Koda Studio: "aggiungi una modalità online per giocare con altre persone".|Multijoueur : on n’a trouvé aucun moyen de jouer avec d’autres personnes, le jeu est donc pour 1 personne. Pour le mettre en ligne, demande dans Koda Studio : « ajoute un mode en ligne pour jouer avec d’autres personnes ».|Mehrspieler: Wir haben keinen Weg gefunden, mit anderen zu spielen – das Spiel ist für 1 Person. Für online frag im Koda Studio: „Füge einen Online-Modus hinzu, um mit anderen zu spielen“.|Multiplayer: we vonden geen manier om met anderen te spelen, dus de game is voor 1 persoon. Om hem online te maken, vraag in Koda Studio: "voeg een online modus toe om met anderen te spelen".|マルチプレイ：ほかの人と遊ぶ方法が見つからなかったので、このゲームは1人用だよ。オンラインにするなら、Koda Studioで「ほかの人と遊べるオンラインモードをつけて」と頼んでね。|多人游戏：没找到和别人一起玩的方式，所以这是单人游戏。想变成在线游戏，可以在 Koda Studio 里说：“加一个可以和别人一起玩的在线模式”。|멀티플레이: 다른 사람과 같이 하는 방법을 찾지 못해서 1인용 게임이에요. 온라인으로 하려면 Koda Studio에서 "다른 사람들과 하는 온라인 모드를 넣어 줘"라고 해요.'
 };
+/* textos da praça e dos bancos: 'pt|en|es|it|fr|de|nl|ja|zh|ko' */
+var PRACA_TXT = {
+ praca_nome:'Praça|Plaza|Plaza|Piazza|Place|Platz|Plein|広場|广场|광장',
+ praca_tit:'Praça nº {n}|Plaza #{n}|Plaza n.º {n}|Piazza n. {n}|Place nº {n}|Platz Nr. {n}|Plein nr. {n}|広場 No.{n}|{n}号广场|{n}번 광장',
+ praca_tile:'Praça do Koda|Koda Plaza|Plaza de Koda|Piazza di Koda|Place de Koda|Koda-Platz|Koda-plein|Koda広場|Koda广场|Koda 광장',
+ praca_tile_sub:'Ache gente pra jogar junto|Find people to play with|Encuentra gente para jugar juntos|Trova gente con cui giocare|Trouve des gens pour jouer ensemble|Finde Leute zum Zusammenspielen|Vind mensen om samen te spelen|いっしょに遊ぶ仲間を見つけよう|找人一起玩|같이 놀 친구를 찾아요',
+ praca_tile_btn:'Entrar|Enter|Entrar|Entra|Entrer|Betreten|Naar binnen|入る|进入|들어가기',
+ praca_sair:'Sair da praça|Leave the plaza|Salir de la plaza|Esci dalla piazza|Quitter la place|Platz verlassen|Plein verlaten|広場を出る|离开广场|광장 나가기',
+ praca_ir:'Ir pra nº|Go to #|Ir a n.º|Vai al n.|Aller au nº|Zu Nr.|Naar nr.|番号へ|去几号|번호로',
+ praca_ir_tit:'Ir para outra praça|Go to another plaza|Ir a otra plaza|Vai in un’altra piazza|Aller sur une autre place|Zu einem anderen Platz|Naar een ander plein|ほかの広場へ行く|去别的广场|다른 광장으로 가기',
+ praca_ir_dica:'Número da praça|Plaza number|Número de la plaza|Numero della piazza|Numéro de la place|Nummer des Platzes|Nummer van het plein|広場の番号|广场号码|광장 번호',
+ praca_entrar:'Entrar|Enter|Entrar|Entra|Entrer|Betreten|Naar binnen|入る|进入|들어가기',
+ praca_num_invalido:'Digite um número de 1 a 200|Type a number from 1 to 200|Escribe un número del 1 al 200|Scrivi un numero da 1 a 200|Tape un nombre de 1 à 200|Gib eine Zahl von 1 bis 200 ein|Typ een getal van 1 tot 200|1から200までの数字を入れてね|请输入1到200的数字|1부터 200까지 숫자를 입력해요',
+ praca_cheia:'Essa praça está cheia (20 pessoas)|This plaza is full (20 people)|Esta plaza está llena (20 personas)|Questa piazza è piena (20 persone)|Cette place est pleine (20 personnes)|Dieser Platz ist voll (20 Personen)|Dit plein is vol (20 mensen)|この広場はいっぱいだよ（20人）|这个广场满了（20人）|이 광장은 꽉 찼어요 (20명)',
+ praca_erro:'Não deu pra entrar na praça. Tente de novo.|Couldn’t enter the plaza. Try again.|No se pudo entrar en la plaza. Inténtalo de nuevo.|Non è stato possibile entrare nella piazza. Riprova.|Impossible d’entrer sur la place. Réessaie.|Der Platz konnte nicht betreten werden. Versuch es noch mal.|Kon het plein niet in. Probeer het opnieuw.|広場に入れなかったよ。もう一度ためしてね。|进不了广场，请再试一次。|광장에 들어가지 못했어요. 다시 해 봐요.',
+ praca_conectando:'Entrando na praça…|Entering the plaza…|Entrando en la plaza…|Sto entrando nella piazza…|Entrée sur la place…|Platz wird betreten…|Plein wordt geopend…|広場に入っています…|正在进入广场…|광장에 들어가는 중…',
+ praca_copiado:'Número da praça copiado!|Plaza number copied!|¡Número de la plaza copiado!|Numero della piazza copiato!|Numéro de la place copié !|Platznummer kopiert!|Pleinnummer gekopieerd!|広場の番号をコピーしたよ！|广场号码已复制！|광장 번호를 복사했어요!',
+ praca_dica:'Toque no chão pra andar. Sente num banco pra jogar junto!|Tap the ground to walk. Sit on a bench to play together!|Toca el suelo para caminar. ¡Siéntate en un banco para jugar juntos!|Tocca il terreno per camminare. Siediti su una panchina per giocare insieme!|Touche le sol pour marcher. Assieds-toi sur un banc pour jouer ensemble !|Tippe auf den Boden zum Laufen. Setz dich auf eine Bank, um zusammen zu spielen!|Tik op de grond om te lopen. Ga op een bankje zitten om samen te spelen!|地面をタップして歩こう。ベンチにすわるといっしょに遊べるよ！|点地面走路。坐到长椅上就能一起玩！|땅을 눌러서 걸어요. 벤치에 앉으면 같이 놀 수 있어요!',
+ praca_sem_jogo:'Não achei esse jogo aqui. Atualize a página.|Couldn’t find that game here. Reload the page.|No encontré ese juego aquí. Recarga la página.|Non ho trovato quel gioco qui. Ricarica la pagina.|Je n’ai pas trouvé ce jeu ici. Recharge la page.|Das Spiel wurde hier nicht gefunden. Lade die Seite neu.|Die game is hier niet gevonden. Vernieuw de pagina.|そのゲームが見つからないよ。ページを再読み込みしてね。|这里找不到那个游戏，请刷新页面。|그 게임을 찾지 못했어요. 페이지를 새로고침해요.',
+ banco_livre:'Banco livre|Free bench|Banco libre|Panchina libera|Banc libre|Freie Bank|Vrij bankje|空きベンチ|空长椅|빈 벤치',
+ banco_criar_tit:'Criar um banco|Create a bench|Crear un banco|Crea una panchina|Créer un banc|Bank erstellen|Bankje maken|ベンチを作る|创建长椅|벤치 만들기',
+ banco_jogo:'Qual jogo?|Which game?|¿Qué juego?|Quale gioco?|Quel jeu ?|Welches Spiel?|Welke game?|どのゲーム？|玩哪个游戏？|어떤 게임?',
+ banco_qtd:'Quantas pessoas?|How many people?|¿Cuántas personas?|Quante persone?|Combien de personnes ?|Wie viele Personen?|Hoeveel mensen?|何人？|几个人？|몇 명?',
+ banco_criar:'Sentar e criar|Sit and create|Sentarse y crear|Siediti e crea|S’asseoir et créer|Hinsetzen und erstellen|Gaan zitten en maken|すわって作る|坐下并创建|앉아서 만들기',
+ banco_sem_jogos:'Ainda não tem nenhum jogo online. Crie um no Koda Studio pedindo "jogo online pra jogar com outras pessoas"!|There are no online games yet. Make one in Koda Studio by asking for "an online game to play with other people"!|Todavía no hay juegos en línea. ¡Crea uno en Koda Studio pidiendo "un juego en línea para jugar con otras personas"!|Non ci sono ancora giochi online. Creane uno in Koda Studio chiedendo "un gioco online per giocare con altre persone"!|Il n’y a pas encore de jeu en ligne. Crées-en un dans Koda Studio en demandant « un jeu en ligne pour jouer avec d’autres personnes » !|Es gibt noch keine Online-Spiele. Bau eins im Koda Studio und frag nach „einem Online-Spiel, um mit anderen zu spielen“!|Er zijn nog geen online games. Maak er een in Koda Studio door te vragen om "een online game om met anderen te spelen"!|まだオンラインゲームがないよ。Koda Studioで「ほかの人と遊べるオンラインゲーム」を作ってね！|还没有在线游戏。去 Koda Studio 说“做一个能和别人一起玩的在线游戏”吧！|아직 온라인 게임이 없어요. Koda Studio에서 "다른 사람들과 하는 온라인 게임"을 만들어 봐요!',
+ banco_dica:'Em 30 segundos (ou quando lotar) todo mundo do banco vai junto pro jogo.|In 30 seconds (or when it fills up) everyone on the bench goes to the game together.|En 30 segundos (o cuando se llene) todos los del banco van juntos al juego.|Tra 30 secondi (o quando si riempie) tutti quelli della panchina vanno insieme al gioco.|Dans 30 secondes (ou quand il est plein) tout le monde du banc part ensemble dans le jeu.|In 30 Sekunden (oder wenn sie voll ist) gehen alle von der Bank zusammen ins Spiel.|Over 30 seconden (of als het vol is) gaat iedereen op het bankje samen naar de game.|30秒たつか、いっぱいになったら、ベンチのみんなでいっしょにゲームへ行くよ。|30秒后（或坐满时）长椅上的人会一起进入游戏。|30초 뒤에 (또는 꽉 차면) 벤치에 있는 모두가 같이 게임으로 가요.',
+ banco_lotado:'Esse banco já está cheio|This bench is already full|Este banco ya está lleno|Questa panchina è già piena|Ce banc est déjà plein|Diese Bank ist schon voll|Dit bankje is al vol|このベンチはもういっぱいだよ|这张长椅已经满了|이 벤치는 이미 꽉 찼어요',
+ banco_sentou:'Você sentou no banco de {jogo}!|You sat on the {jogo} bench!|¡Te sentaste en el banco de {jogo}!|Ti sei seduto sulla panchina di {jogo}!|Tu t’es assis sur le banc de {jogo} !|Du sitzt auf der Bank für {jogo}!|Je zit op het bankje van {jogo}!|{jogo}のベンチにすわったよ！|你坐上了{jogo}的长椅！|{jogo} 벤치에 앉았어요!',
+ banco_partiu:'Bora! Indo pro jogo…|Let’s go! Heading to the game…|¡Vamos! Yendo al juego…|Andiamo! Si va al gioco…|C’est parti ! Direction le jeu…|Los geht’s! Ab ins Spiel…|Daar gaan we! Naar de game…|行こう！ゲームへ移動中…|出发！正在进入游戏…|가자! 게임으로 가는 중…',
+ banco_de:'Banco de {jogo}|{jogo} bench|Banco de {jogo}|Panchina di {jogo}|Banc de {jogo}|Bank für {jogo}|Bankje van {jogo}|{jogo}のベンチ|{jogo}的长椅|{jogo} 벤치',
+ banco_levantar:'Levantar|Stand up|Levantarse|Alzati|Se lever|Aufstehen|Opstaan|立つ|起身|일어나기',
+ praca_chat:'Chat|Chat|Chat|Chat|Chat|Chat|Chat|チャット|聊天|채팅',
+ praca_f0:'Oi!|Hi!|¡Hola!|Ciao!|Salut !|Hallo!|Hoi!|やあ！|你好！|안녕!',
+ praca_f1:'Bora jogar?|Wanna play?|¿Jugamos?|Giochiamo?|On joue ?|Spielen wir?|Zullen we spelen?|遊ぼう？|一起玩吗？|같이 할래?',
+ praca_f2:'Vem pro meu banco!|Come to my bench!|¡Ven a mi banco!|Vieni sulla mia panchina!|Viens sur mon banc !|Komm zu meiner Bank!|Kom naar mijn bankje!|わたしのベンチに来て！|来我的长椅！|내 벤치로 와!',
+ praca_f3:'Senta aqui!|Sit here!|¡Siéntate aquí!|Siediti qui!|Assieds-toi ici !|Setz dich hierher!|Kom hier zitten!|ここにすわって！|坐这里！|여기 앉아!',
+ praca_f4:'Espera aí!|Wait!|¡Espera!|Aspetta!|Attends !|Warte!|Wacht even!|ちょっと待って！|等一下！|잠깐만!',
+ praca_f5:'Boa!|Nice!|¡Bien!|Grande!|Bien joué !|Super!|Goed zo!|ナイス！|太棒了！|좋아!',
+ praca_f6:'GG!|GG!|¡GG!|GG!|GG !|GG!|GG!|GG！|GG！|GG!',
+ praca_f7:'Valeu!|Thanks!|¡Gracias!|Grazie!|Merci !|Danke!|Bedankt!|ありがとう！|谢谢！|고마워!',
+ praca_f8:'Tchau!|Bye!|¡Adiós!|Ciao ciao!|Salut, à plus !|Tschüss!|Doei!|バイバイ！|拜拜！|안녕, 잘 가!',
+ praca_f9:'Sou novo aqui!|I’m new here!|¡Soy nuevo aquí!|Sono nuovo qui!|Je suis nouveau ici !|Ich bin neu hier!|Ik ben nieuw hier!|ここ初めてだよ！|我是新来的！|여기 처음이야!',
+ praca_f10:'Me segue!|Follow me!|¡Sígueme!|Seguimi!|Suis-moi !|Folg mir!|Volg mij!|ついてきて！|跟我来！|따라와!',
+ praca_f11:'Que legal!|So cool!|¡Qué genial!|Che bello!|Trop cool !|Wie cool!|Wat gaaf!|すごい！|好酷！|멋지다!',
+ banco_ficar:'Ficar|Stay|Quedarme|Resta|Rester|Bleiben|Blijven|すわってる|留下|계속 앉기'
+};
 (function(){
   const ling = ['pt', 'en', 'es', 'it', 'fr', 'de', 'nl', 'ja', 'zh', 'ko'];
-  [CONTA_TXT, MP_TXT].forEach(tab=>Object.keys(tab).forEach(k=>{
+  [CONTA_TXT, MP_TXT, PRACA_TXT].forEach(tab=>Object.keys(tab).forEach(k=>{
     const v = tab[k].split('|');
     ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; });
   }));
@@ -17071,6 +17179,8 @@ function applyGameFullscreen(){
 let jogoDoToqueDuplo = null;
 async function openGame(id, name){
   try{ proxCancelar(); }catch(e){}
+  pracaVolta = 0;
+  if(pracaAtiva) pracaFechar();
   jogoDoToqueDuplo = id;
   try{ histJogoEntrou(id); }catch(e){}   // "jogos que você poderia gostar" aprende com o que você joga
   try{ msEntrarNoJogo(id); }catch(e){}   // missões: começa a contar o tempo deste jogo (e vê se é a primeira vez nele)
@@ -18065,6 +18175,7 @@ function closeModal(){
   activeCleanup = null;
   modalBody.innerHTML = '';
   setTimeout(refreshOnlineCounter, 400);
+  try{ pracaDepoisDoJogo(); }catch(e){}
 }
 document.getElementById('modalClose').addEventListener('click', ()=>{
   if(modalBackAction){ const action = modalBackAction; modalBackAction = null; action(); }
@@ -19519,13 +19630,27 @@ O criador quer que os jogadores possam comprar coisas dentro do jogo com Koda Co
 - \`window.KODA.loja.comprar(id)\` — abre direto a janela de compra daquele item (devolve uma Promise que vale true se a compra foi feita).
 Nunca invente outro jeito de cobrar e nunca peça dinheiro de verdade: só Koda Coins e Koda Diamonds, só por essa API. O jogo precisa continuar funcionando se \`window.KODA.loja\` não existir (use \`if(window.KODA && window.KODA.loja)\`).` : ''}
 
-## Jogo ONLINE (só se o pedido for um jogo para várias pessoas jogarem juntas pela internet)
+## O personagem de quem joga (use sempre que fizer sentido!)
+
+Cada criança no Koda tem um personagem em pixel art. Use ele como o herói/jogador do jogo: a criança joga como ela mesma, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
+- \`KODA.jogador.aoPronto(function(){ ... })\` — chamada quando o personagem já pode ser desenhado (na hora, se já pode). \`KODA.jogador.pronto()\` diz se já dá.
+- \`KODA.jogador.desenhar(ctx, x, y, altura)\` — desenha o personagem no canvas (x,y = canto de cima à esquerda; a largura é calculada, cerca de 0,76 x a altura). Devolve false se ainda não dá. Use no lugar de um quadrado/bolinha que seria o jogador, com altura de uns 48 a 96 pixels. Para virar pro outro lado: \`ctx.save(); ctx.translate(x+largura, y); ctx.scale(-1,1); KODA.jogador.desenhar(ctx, 0, 0, altura); ctx.restore();\`
+- \`KODA.jogador.nome()\` — o apelido da pessoa (nunca é e-mail). Dá pra escrever "Bem-vindo, <nome>!" ou pôr no placar.
+- \`KODA.jogador.personagem()\` — a imagem pronta (Image), se você precisar dela de outro jeito (por exemplo, em CSS/HTML use \`.src\` dela).
+Em jogos com HTML comum (não canvas), use \`<img>\` com \`image-rendering: pixelated\` e \`.src = KODA.jogador.personagem().src\`. Nunca desenhe o personagem esticado: mantenha a proporção (largura = altura x 22/29).
+
+## Jogo ONLINE: decida você se o jogo combina com várias pessoas
+
+Antes de escrever, pense: esse jogo fica melhor com outras pessoas jogando junto? 
+- SIM (faça online, com \`KODA.online\`): quando pedirem pra jogar com amigos/outras pessoas/multiplayer, ou quando o tipo de jogo é naturalmente de grupo — sobreviver juntos (noites, zumbis, monstros), explorar um lugar, fugir/escapar em equipe, corrida entre jogadores, pega-pega, esconde-esconde, batalha/PvP, arena, futebol, jogos de rodada estilo "todo mundo entra, a rodada começa, o último vivo ganha".
+- NÃO (faça para 1 pessoa, sem \`KODA.online\`): jogos simples de uma pessoa só, de reflexo ou recorde — tipo pássaro que voa entre canos, clicker, quebra-cabeça, jogo da memória sozinho, desenhar, quiz pessoal. Não force online onde não faz sentido.
+Jogos online aparecem na Praça do Koda: lá as pessoas sentam num banco, escolhem o jogo e, quando o banco sai, entram TODAS juntas na mesma sala. Então faça o jogo online em RODADAS: uma tela de espera "Esperando jogadores… (3)" que mostra o personagem de cada um, a rodada começa quando todos da sala apertam "Pronto" ou depois de uns 10 segundos com 2 ou mais pessoas (quem decide a hora de começar é o primeiro da lista \`jogadores()\` ordenada por id, e ele avisa todo mundo com \`enviar\`), e no fim mostra quem ganhou e volta pra espera da próxima rodada. Se só tiver 1 pessoa, deixe jogar sozinho mesmo (com inimigos do computador, se fizer sentido). Em todo jogo online, cada pessoa aparece com o personagem dela (veja abaixo).
 
 O Koda tem salas online de graça: cada sala tem até 16 pessoas e, quando enche, o Koda abre outra sozinho. Use \`window.KODA.online\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.online)\` e, se não existir, deixe o jogo funcionar sozinho/offline):
-- \`window.KODA.online.entrar({max:16}).then(function(info){ ... })\` — entra numa sala. \`info\` = {eu: 'seuId', sala: 1, jogadores: [{id, nome}, ...]} (a lista já inclui você). Use \`.catch\` pra mostrar "não consegui entrar" e deixar jogar offline. max = pessoas por sala (de 2 a 20).
+- \`window.KODA.online.entrar({max:16}).then(function(info){ ... })\` — entra numa sala. \`info\` = {eu: 'seuId', sala: 1, jogadores: [{id, nome, img}, ...]} (a lista já inclui você). Use \`.catch\` pra mostrar "não consegui entrar" e deixar jogar offline. max = pessoas por sala (de 2 a 20).
 - \`window.KODA.online.enviar(dados)\` — manda \`dados\` (qualquer objeto simples, até ~1500 caracteres em JSON) para TODOS os outros da sala. \`enviar(dados, idDoJogador)\` manda só para uma pessoa. No máximo 10 envios por segundo: mande a posição do jogador umas 8 a 10 vezes por segundo (não a cada frame!) e as ações importantes (tiro, jogada, ponto) na hora. Devolve false se mandou rápido demais.
 - \`window.KODA.online.aoReceber(function(dados, deId){ ... })\` — chega o que alguém mandou. Nunca confie cegamente: confira os tipos e os limites dos números antes de usar.
-- \`aoEntrar(function(j){})\` e \`aoSair(function(j){})\` — alguém entrou/saiu da sala (j = {id, nome}). Crie e apague o personagem dessa pessoa aí.
+- \`aoEntrar(function(j){})\` e \`aoSair(function(j){})\` — alguém entrou/saiu da sala (j = {id, nome, img}). Crie e apague o personagem dessa pessoa aí. Cada pessoa da sala tem o personagem dela: desenhe com \`KODA.online.desenhar(ctx, idDaPessoa, x, y, altura)\` (devolve false se ainda não chegou; aí desenhe um bonequinho seu) e use \`KODA.jogador.desenhar(...)\` para você mesmo. Assim cada um vê o visual dos outros.
 - \`aoConectar(function(info){})\` — chamada na entrada e também se a conexão cair e voltar (nesse caso recomece enviando o seu estado). \`aoDesconectar(function(){})\` — a conexão caiu (o Koda tenta voltar sozinho; mostre "reconectando…").
 - \`jogadores()\` (lista), \`eu()\` (seu id), \`sala()\` (número da sala).
 Regras: não existe servidor que decide nada — cada jogador roda o jogo no próprio aparelho e os outros recebem o que ele manda, então faça o jogo funcionar assim (cada um manda a própria posição; para jogos de vez, como velha ou damas, o primeiro da lista \`jogadores()\` com menor id começa). NÃO faça bate-papo de texto livre entre jogadores (o Koda é para crianças); se quiser comunicação, use só mensagens prontas (botões de emoji ou frases fixas). Mostre os nomes dos jogadores como vêm em \`nome\`, sem pedir mais nada.`;
@@ -20825,19 +20950,25 @@ const ONLINE_POR_SEG = 10;        // mensagens por segundo que um jogo pode mand
 
 /* esta função é copiada pra DENTRO do quadro do jogo (por isso não pode usar nada de fora) */
 function kodaOnlineNoJogo(manda){
-  var eu = null, sala = 0, lista = [], pend = null, balde = 20, bt = Date.now();
+  var eu = null, sala = 0, lista = [], pend = null, balde = 20, bt = Date.now(), figuras = {};
+  function figura(j){
+    if(!j || !j.id || !j.img) return;
+    if(figuras[j.id] && figuras[j.id].__src === j.img) return;
+    var im = new Image(); im.__src = j.img; im.src = j.img; figuras[j.id] = im;
+  }
   var oC = [], oR = [], oE = [], oS = [], oD = [];
   function cada(a, x, y){ a.forEach(function(f){ try{ f(x, y); }catch(e){} }); }
   window.addEventListener('message', function(ev){
     var d = ev && ev.data;
     if(ev.source !== parent || !d || d.__kodaOnline !== 1) return;
     if(d.tipo === 'oi'){
-      eu = d.eu; sala = d.sala; lista = d.jogadores || [];
+      eu = d.eu; sala = d.sala; lista = d.jogadores || []; lista.forEach(figura);
       var info = {eu: eu, sala: sala, jogadores: lista.slice()};
       if(pend){ var p = pend; pend = null; p(info); }
       cada(oC, info);
     } else if(d.tipo === 'entrou'){
-      lista.push({id: d.id, nome: d.nome}); cada(oE, {id: d.id, nome: d.nome});
+      var novo = {id: d.id, nome: d.nome, img: d.img || null};
+      figura(novo); lista.push(novo); cada(oE, novo);
     } else if(d.tipo === 'saiu'){
       var quem = null;
       lista = lista.filter(function(j){ if(j.id === d.id){ quem = j; return false; } return true; });
@@ -20876,7 +21007,11 @@ function kodaOnlineNoJogo(manda){
     aoSair: function(f){ if(typeof f === 'function') oS.push(f); },          // f({id, nome})
     aoConectar: function(f){ if(typeof f === 'function') oC.push(f); },      // f({eu, sala, jogadores}) na entrada e ao reconectar
     aoDesconectar: function(f){ if(typeof f === 'function') oD.push(f); },   // a conexão caiu (o Koda tenta voltar sozinho)
-    jogadores: function(){ return lista.slice(); },                          // [{id, nome}] (inclui você)
+    jogadores: function(){ return lista.slice(); },                          // [{id, nome, img}] (inclui você); img = o personagem da pessoa
+    /* personagem(id): a imagem (Image) do personagem de um jogador da sala, ou null se ainda não chegou */
+    personagem: function(id){ var im = figuras[id]; return (im && im.complete && im.naturalWidth) ? im : null; },
+    /* desenhar(ctx, id, x, y, altura): desenha o personagem de um jogador da sala (x,y = canto de cima à esquerda). Devolve false se ainda não dá. */
+    desenhar: function(ctx, id, x, y, altura){ return window.KODA.jogador ? window.KODA.jogador.desenharImagem(ctx, window.KODA.online.personagem(id), x, y, altura) : false; },
     eu: function(){ return eu; },
     sala: function(){ return sala; },
     sair: function(){ manda('onlineSair', 1); eu = null; lista = []; }
@@ -20903,7 +21038,10 @@ function onlineLigar(iframe, game){
   onlineDesligar();
   if(!ONLINE_LIGADO) return;
   onlineAtivo = {frame: iframe, jogo: String(game.id), quer: false, max: 16, ws: null, sala: 0, lista: [], eu: null,
-    tentativas: 0, jaEntrou: false, fechado: false, balde: ONLINE_POR_SEG * 2, bt: Date.now(), pill: null, timer: null, tCon: null};
+    tentativas: 0, jaEntrou: false, fechado: false, balde: ONLINE_POR_SEG * 2, bt: Date.now(), pill: null, timer: null, tCon: null, grupo: ''};
+  /* veio de um banco da praça: entra na mesma sala do grupo (todo mundo do banco junto) */
+  if(pracaGrupo && pracaGrupo.jogo === onlineAtivo.jogo && Date.now() < pracaGrupo.ate) onlineAtivo.grupo = pracaGrupo.grupo;
+  pracaGrupo = null;
 }
 function onlineDesligar(){
   const O = onlineAtivo;
@@ -20914,6 +21052,8 @@ function onlineDesligar(){
   try{ if(O.ws) O.ws.close(); }catch(e){}
   if(O.pill && O.pill.parentNode) O.pill.parentNode.removeChild(O.pill);
 }
+/* a pessoa da sala como o jogo recebe: {id, nome, img} (img = o personagem dela, ou null se o servidor ainda não manda) */
+function onlinePessoa(j){ return {id: String(j.id), nome: String(j.nome || ''), img: pzImagemDe(j.av)}; }
 function onlineParaJogo(O, obj){
   try{ O.frame.contentWindow.postMessage(Object.assign({__kodaOnline: 1}, obj), '*'); }catch(e){}
 }
@@ -20945,7 +21085,8 @@ function onlineMostrarSala(O){
 }
 function onlineConectar(O){
   if(O.ws || O.fechado || onlineAtivo !== O) return;
-  const q = 'jogo=' + encodeURIComponent(O.jogo) + '&cap=' + O.max + '&nome=' + encodeURIComponent(onlineNome()) + (O.sala ? '&sala=' + O.sala : '');
+  let av = ''; try{ av = souVisitante() ? pzCodigo(pzNorm(PZ_PADRAO)) : meuCodigo(); }catch(e){}
+  const q = 'jogo=' + encodeURIComponent(O.jogo) + '&cap=' + O.max + '&nome=' + encodeURIComponent(onlineNome()) + (av ? '&av=' + encodeURIComponent(av) : '') + (O.grupo ? '&grupo=' + encodeURIComponent(O.grupo) : (O.sala ? '&sala=' + O.sala : ''));
   let ws;
   try{ ws = new WebSocket(ONLINE_URL + '/jogar?' + q); }catch(e){ onlineFalhou(O); return; }
   O.ws = ws;
@@ -20960,11 +21101,11 @@ function onlineConectar(O){
       O.eu = m.eu; O.sala = m.sala; O.max = m.cap || O.max; O.lista = Array.isArray(m.jogadores) ? m.jogadores : [];
       O.tentativas = 0; O.jaEntrou = true;
       onlineCriarPill(O); onlinePintarPill(O);
-      onlineParaJogo(O, {tipo: 'oi', eu: O.eu, sala: O.sala, jogadores: O.lista});
+      onlineParaJogo(O, {tipo: 'oi', eu: O.eu, sala: O.sala || 1, jogadores: O.lista.map(onlinePessoa)});
     } else if(m.t === 'entrou'){
-      if(!O.lista.some(j=>j.id === m.id)) O.lista.push({id: String(m.id), nome: String(m.nome || '')});
+      if(!O.lista.some(j=>j.id === m.id)) O.lista.push({id: String(m.id), nome: String(m.nome || ''), av: String(m.av || '')});
       onlinePintarPill(O);
-      onlineParaJogo(O, {tipo: 'entrou', id: m.id, nome: m.nome});
+      onlineParaJogo(O, Object.assign({tipo: 'entrou'}, onlinePessoa(O.lista.find(j=>j.id === m.id))));
     } else if(m.t === 'saiu'){
       O.lista = O.lista.filter(j=>j.id !== m.id);
       onlinePintarPill(O);
@@ -21033,6 +21174,886 @@ window.addEventListener('message', function(ev){
   }
 });
 
+/* ============================================================
+   PRAÇA DO KODA: todo mundo anda com o próprio personagem, ao vivo.
+   - Cada praça tem um número (até 20 pessoas). Digitando o número, você entra nela.
+   - 4 bancos: quem senta num banco vazio escolhe o jogo (só os online) e quantas pessoas.
+     30 s depois de criado (ou na hora que lota) todo mundo do banco vai junto pro jogo,
+     na mesma sala (o servidor manda um "grupo" e o Koda usa ele ao entrar no jogo).
+   O servidor é o mesmo das salas online (koda-online), com a sala especial "koda-praca".
+============================================================ */
+const PRACA_JOGO = 'koda-praca';
+const PRACA_MAX = 20;
+const PRACA_ULTIMA = 200;         // a última praça (o servidor tem até 200 por "jogo")
+const PRACA_EMOS = ['👋', '❤️', '😂', '😮', '🔥', '👍', '🎉', '😎'];
+const PRACA_FRASES = 12;          // frases prontas (praca_f0..praca_f11): cada um vê na própria língua
+const PRACA_VEL = 270;            // unidades do mundo por segundo
+const PRACA_ALT = 92;             // altura do personagem no mundo
+/* o mundo tem 1500 x 1002 unidades; o chão é desenhado em 250 x 167 "pixels" (cada um = 6 unidades),
+   copiando a foto da praça (a foto dividida por 8 dá exatamente esses pixels) */
+const PRACA_PX = 6;
+const PRACA_GW = 250, PRACA_GH = 167;
+const PRACA_W = PRACA_GW * PRACA_PX, PRACA_H = PRACA_GH * PRACA_PX;
+const PRACA_FONTE = {x: 750, y: 486};
+/* tudo em unidades do mundo: x e y = o pé (base) da coisa */
+const PRACA_BANCOS = [{x: 564, y: 342}, {x: 936, y: 342}, {x: 564, y: 726}, {x: 936, y: 726}];
+const PRACA_ARVORES = [[288, 252], [1212, 252], [258, 828], [1230, 828]];
+const PRACA_POSTES = [[420, 330], [1080, 330], [420, 774], [1080, 774]];
+const PRACA_LIXOS = [[570, 816], [930, 816]];
+/* o que não dá pra atravessar: jardineiras e moitas [x, y, largura, altura] */
+const PRACA_BLOCOS = [[438, 150, 192, 78], [192, 252, 168, 96], [870, 150, 192, 78], [1140, 252, 168, 96], [348, 774, 180, 60], [966, 774, 156, 60],
+  [198, 366, 48, 36], [1242, 366, 48, 36], [1236, 552, 48, 36]];
+var pracaAtiva = null;
+var pracaGrupo = null;            // {jogo, grupo, ate}: o grupo do banco, usado quando o jogo entrar online
+var pracaVolta = 0;               // número da praça pra voltar quando o jogo do banco fechar
+var pracaChao = null;             // o desenho do chão (feito uma vez)
+var pracaSprites = null;          // árvores, postes, lixeiras, bancos e o jato da fonte
+
+/* ferramentas de pixel art num canvas */
+function pracaPincel(x, semente){
+  const rnd = ()=>{ semente = (semente * 16807) % 2147483647; return semente / 2147483647; };
+  const r = (a, b, w, h, cor)=>{ x.fillStyle = cor; x.fillRect(Math.round(a), Math.round(b), w, h); };
+  const disco = (cx, cy, raio, cor)=>{ x.fillStyle = cor; for(let yy = -raio; yy <= raio; yy++){ const w = Math.round(Math.sqrt(raio * raio - yy * yy)); x.fillRect(Math.round(cx - w), Math.round(cy + yy), w * 2, 1); } };
+  const elipse = (cx, cy, rx, ry, cor)=>{ x.fillStyle = cor; for(let yy = -ry; yy <= ry; yy++){ const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - yy * yy / (ry * ry)))); x.fillRect(Math.round(cx - w), Math.round(cy + yy), w * 2, 1); } };
+  /* tijolinhos com contorno escuro (como o murinho da foto) */
+  const tijolos = (x0, y0, w, h, deitado)=>{
+    r(x0, y0, w, h, '#4e2d1f');
+    r(x0 + 1, y0 + 1, w - 2, h - 2, '#a3613f');
+    if(deitado){ r(x0 + 1, y0 + 1, w - 2, 1, '#bf7a52'); for(let k = x0 + 6; k < x0 + w - 1; k += 6) r(k, y0 + 1, 1, h - 2, '#7a4430'); }
+    else { r(x0 + 1, y0 + 1, 1, h - 2, '#bf7a52'); for(let k = y0 + 6; k < y0 + h - 1; k += 6) r(x0 + 1, k, w - 2, 1, '#7a4430'); }
+  };
+  /* moita redondinha com florzinhas brancas */
+  const moita = (cx, cy, raio, flores)=>{
+    disco(cx, cy, raio + 1, '#1b4a1f'); disco(cx, cy, raio, '#2c8236'); disco(cx - 1, cy - 1, Math.max(1, raio - 1), '#3a9a42');
+    r(cx - raio + 2, cy - raio + 1, 2, 1, '#5cbb4f');
+    for(let k = 0; k < (flores || 0); k++){
+      const a = rnd() * Math.PI * 2, d = rnd() * (raio - 1), fx = Math.round(cx + Math.cos(a) * d), fy = Math.round(cy + Math.sin(a) * d);
+      r(fx - 1, fy, 3, 1, '#ffffff'); r(fx, fy - 1, 1, 3, '#ffffff'); r(fx, fy, 1, 1, '#ffe27a');
+    }
+  };
+  return {rnd, r, disco, elipse, tijolos, moita};
+}
+function pracaDesenharChao(){
+  if(pracaChao) return pracaChao;
+  const GW = PRACA_GW, GH = PRACA_GH, c = document.createElement('canvas');
+  c.width = GW; c.height = GH;
+  const x = c.getContext('2d');
+  const {rnd, r, elipse, tijolos, moita} = pracaPincel(x, 11);
+  const px = (a, b, cor)=>r(a, b, 1, 1, cor);
+  const flor = (a, b)=>{ r(a - 1, b, 3, 1, '#ffffff'); r(a, b - 1, 1, 3, '#ffffff'); px(a, b, '#fff4b8'); };
+  /* grama com tufinhos e florzinhas brancas */
+  r(0, 0, GW, GH, '#5fb94e');
+  for(let i = 0; i < 2600; i++){ const q = rnd(); px(rnd() * GW | 0, rnd() * GH | 0, q < .5 ? '#58b048' : '#66c055'); }
+  for(let i = 0; i < 190; i++){ const a = rnd() * GW | 0, b = rnd() * GH | 0; px(a, b, '#489a3c'); px(a + 1, b - 1, '#489a3c'); px(a + 2, b, '#489a3c'); px(a + 3, b - 1, '#489a3c'); }
+  for(let i = 0; i < 46; i++) flor(2 + rnd() * (GW - 4) | 0, 2 + rnd() * (GH - 4) | 0);
+  /* areia (com lajotas) */
+  const areia = '#e2bd8a';
+  const naAreia = (a, b)=>(a >= 57 && a < 193 && b >= 37 && b < 125) || (a >= 25 && a < 225 && b >= 74 && b < 93) || (a >= 113 && a < 137 && b >= 0 && b < GH) || (b >= 74 && b < 93);
+  for(let b = 0; b < GH; b++) for(let a = 0; a < GW; a++) if(naAreia(a, b)) px(a, b, areia);
+  /* beirada da areia um pouquinho mais escura */
+  for(let b = 1; b < GH - 1; b++) for(let a = 1; a < GW - 1; a++){
+    if(!naAreia(a, b)) continue;
+    if(!naAreia(a - 1, b) || !naAreia(a + 1, b) || !naAreia(a, b - 1) || !naAreia(a, b + 1)) px(a, b, '#d3aa76');
+  }
+  /* lajotas quadradas nos caminhos */
+  for(let a = 25; a < 225; a += 9){ r(a, 74, 1, 19, '#ecca9b'); r(a + 1, 74, 1, 19, '#d7b07d'); }
+  r(25, 83, 200, 1, '#ecca9b'); r(25, 84, 200, 1, '#d7b07d');
+  for(let b = 2; b < GH; b += 9){ if(b > 72 && b < 94) continue; r(113, b, 24, 1, '#ecca9b'); r(113, b + 1, 24, 1, '#d7b07d'); }
+  r(124, 0, 1, 74, '#ecca9b'); r(125, 0, 1, 74, '#d7b07d'); r(124, 93, 1, GH - 93, '#ecca9b'); r(125, 93, 1, GH - 93, '#d7b07d');
+  for(let k = 0; k < 110; k++){
+    const a = 58 + (rnd() * 130 | 0), b = 38 + (rnd() * 84 | 0);
+    if(!naAreia(a, b) || !naAreia(a + 4, b + 4) || (b > 70 && b < 95) || (a > 110 && a < 140)) continue;
+    r(a, b, 4, 4, rnd() < .5 ? '#e8c595' : '#dab27e');
+  }
+  /* a fonte octogonal (a água anda: é desenhada a cada quadro) */
+  const oct = (a, b, rx, ry)=>{ const X = Math.abs(a - 125) / rx, Y = Math.abs(b - 80) / ry; return X <= 1 && Y <= 1 && X + Y <= 1.42; };
+  for(let b = 58; b < 103; b++) for(let a = 100; a < 151; a++){
+    if(!oct(a, b, 21.5, 18.5)) continue;
+    let cor = '#353535';
+    if(oct(a, b, 20.5, 17.5)) cor = b < 80 ? '#c4c1b6' : '#a6a398';
+    if(oct(a, b, 17, 14.5)) cor = '#8c897f';
+    if(oct(a, b, 16, 13.5)) cor = '#3a96dc';
+    px(a, b, cor);
+  }
+  elipse(125, 81, 4, 3, '#353535'); elipse(125, 81, 3, 2, '#a6a398'); elipse(125, 81, 2, 1, '#7cc6f5');
+  /* moitas com flores em volta da fonte (nas 4 diagonais) */
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy])=>{
+    [-.42, 0, .42].forEach(d=>{
+      const ang = Math.atan2(sy, sx) + d;
+      moita(Math.round(125 + Math.cos(ang) * 24), Math.round(80 + Math.sin(ang) * 20), 4, 2);
+    });
+  });
+  /* o murinho de tijolo em volta, aberto nos 4 caminhos */
+  tijolos(23, 18, 89, 4, true); tijolos(138, 18, 89, 4, true);
+  tijolos(23, 145, 89, 4, true); tijolos(138, 145, 89, 4, true);
+  tijolos(23, 21, 4, 47, false); tijolos(23, 97, 4, 49, false);
+  tijolos(223, 21, 4, 47, false); tijolos(223, 97, 4, 49, false);
+  /* e as beiradas de tijolo dos caminhos de fora */
+  tijolos(110, 0, 4, 16, false); tijolos(136, 0, 4, 16, false); tijolos(110, 151, 4, 16, false); tijolos(136, 151, 4, 16, false);
+  tijolos(0, 71, 22, 4, true); tijolos(0, 92, 22, 4, true); tijolos(228, 71, 22, 4, true); tijolos(228, 92, 22, 4, true);
+  /* pilares de pedra nas entradas */
+  const pilar = (a, b)=>{ r(a, b, 7, 10, '#2b2b2b'); r(a + 1, b + 1, 5, 8, '#8e9296'); r(a + 1, b + 1, 5, 2, '#c5c8ca'); r(a + 1, b + 8, 5, 1, '#6a6e72'); };
+  [[108, 13], [135, 13], [108, 140], [135, 140], [21, 65], [21, 88], [222, 65], [222, 88]].forEach(([a, b])=>pilar(a, b));
+  /* jardineiras de tijolo cheias de moitas com flores */
+  const jardineira = (a, b, w, h)=>{
+    r(a, b, w, h, '#4e2d1f'); r(a + 1, b + 1, w - 2, h - 2, '#3e7d36');
+    tijolos(a, b + h - 4, w, 4, true);
+    for(let k = a + 4; k <= a + w - 4; k += 6) moita(k, b + h - 7, 4, 2);
+  };
+  jardineira(73, 24, 32, 14); jardineira(32, 41, 28, 17); jardineira(145, 24, 32, 14); jardineira(190, 41, 28, 17);
+  /* moitas soltas e as de baixo */
+  moita(37, 64, 4, 0); moita(211, 64, 4, 0); moita(210, 95, 4, 1);
+  moita(62, 133, 5, 0); moita(72, 134, 5, 2); moita(82, 133, 4, 1);
+  moita(166, 133, 5, 2); moita(176, 134, 5, 1);
+  /* sombrinha embaixo das árvores, dos postes, das lixeiras e dos bancos */
+  PRACA_ARVORES.forEach(([a, b])=>elipse(a / PRACA_PX, b / PRACA_PX - 2, 14, 5, '#4f9f42'));
+  PRACA_POSTES.forEach(([a, b])=>elipse(a / PRACA_PX + 1, b / PRACA_PX, 3, 1, 'rgba(0,0,0,.2)'));
+  PRACA_LIXOS.forEach(([a, b])=>elipse(a / PRACA_PX + 1, b / PRACA_PX, 5, 1, 'rgba(0,0,0,.2)'));
+  PRACA_BANCOS.forEach(bc=>elipse(bc.x / PRACA_PX, bc.y / PRACA_PX, 15, 2, 'rgba(0,0,0,.18)'));
+  pracaChao = c;
+  return c;
+}
+/* o lado de fora do mundo: a mesma grama (repete em quadrados) */
+var pracaFora = null;
+function pracaDesenharFora(){
+  if(pracaFora) return pracaFora;
+  const c = document.createElement('canvas');
+  c.width = c.height = 40;
+  const x = c.getContext('2d'), {rnd, r} = pracaPincel(x, 23);
+  r(0, 0, 40, 40, '#5fb94e');
+  for(let i = 0; i < 160; i++){ const q = rnd(); r(rnd() * 40 | 0, rnd() * 40 | 0, 1, 1, q < .5 ? '#58b048' : '#66c055'); }
+  for(let i = 0; i < 6; i++){ const a = rnd() * 36 | 0, b = 2 + rnd() * 36 | 0; r(a, b, 1, 1, '#489a3c'); r(a + 1, b - 1, 1, 1, '#489a3c'); r(a + 2, b, 1, 1, '#489a3c'); r(a + 3, b - 1, 1, 1, '#489a3c'); }
+  r(20, 12, 3, 1, '#ffffff'); r(21, 11, 1, 3, '#ffffff');
+  pracaFora = c;
+  return c;
+}
+/* as coisas em pé que entram na ordem de quem está na frente */
+function pracaFazerSprites(){
+  if(pracaSprites) return pracaSprites;
+  const novo = (w, h, f, semente)=>{ const c = document.createElement('canvas'); c.width = w; c.height = h; f(pracaPincel(c.getContext('2d'), semente)); return c; };
+  const arvore = novo(42, 44, ({rnd, r})=>{
+    /* tronco */
+    r(14, 28, 13, 14, '#1d1d1d'); r(15, 28, 11, 13, '#7a4a2a'); r(16, 29, 3, 11, '#9a6236'); r(22, 29, 2, 11, '#5e3820');
+    r(12, 39, 17, 4, '#1d1d1d'); r(13, 39, 15, 3, '#7a4a2a');
+    /* copa: várias bolotas juntas (redondinha e fofa), com contorno; claro em cima, escuro embaixo */
+    const bolas = [[21, 17, 13], [10, 18, 8], [32, 18, 8], [14, 10, 8], [28, 10, 8], [21, 7, 8], [21, 24, 9], [9, 12, 6], [33, 12, 6]];
+    const dentro = (a, b, folga)=>bolas.some(([cx, cy, rr])=>(a - cx) ** 2 + (b - cy) ** 2 <= (rr - folga) ** 2);
+    for(let b = 0; b < 34; b++) for(let a = 0; a < 42; a++){
+      if(!dentro(a + .5, b + .5, -1)) continue;
+      let cor = '#1c3a1c';
+      if(dentro(a + .5, b + .5, 0)) cor = b > 22 ? '#2b7a33' : '#3a9442';
+      r(a, b, 1, 1, cor);
+    }
+    const mancha = (cx, cy, rr, cor)=>{ for(let yy = cy - rr; yy <= cy + rr; yy++) for(let xx = cx - rr; xx <= cx + rr; xx++) if((xx - cx) ** 2 + (yy - cy) ** 2 <= rr * rr && dentro(xx + .5, yy + .5, 1.5)) r(xx, yy, 1, 1, cor); };
+    mancha(14, 8, 4, '#5dbb4a'); mancha(26, 6, 4, '#5dbb4a'); mancha(9, 15, 3, '#4daa45'); mancha(20, 12, 4, '#4daa45'); mancha(31, 14, 3, '#5dbb4a');
+    mancha(13, 21, 3, '#4daa45'); mancha(27, 22, 4, '#327f39'); mancha(18, 27, 3, '#2b7a33'); mancha(12, 6, 1, '#7fd067'); mancha(24, 4, 1, '#7fd067');
+    for(let k = 0; k < 50; k++){ const a = rnd() * 42 | 0, b = rnd() * 32 | 0; if(dentro(a + .5, b + .5, 2)) r(a, b, 2, 1, rnd() < .5 ? '#6cc24f' : '#2f8538'); }
+  }, 31);
+  const poste = novo(9, 31, ({r})=>{
+    r(2, 0, 5, 1, '#1d1d1d'); r(1, 1, 7, 2, '#1d1d1d');
+    r(1, 3, 7, 7, '#1d1d1d'); r(2, 4, 5, 5, '#f2c46b'); r(3, 4, 3, 4, '#fff0b5');
+    r(1, 10, 7, 1, '#1d1d1d');
+    r(3, 11, 3, 15, '#1d1d1d'); r(4, 11, 1, 15, '#3c3c3c');
+    r(2, 26, 5, 2, '#1d1d1d'); r(1, 28, 7, 3, '#1d1d1d'); r(2, 28, 5, 1, '#3c3c3c');
+  }, 3);
+  const lixo = novo(10, 13, ({r})=>{
+    r(0, 0, 10, 13, '#151719');
+    r(1, 1, 8, 2, '#5a6066'); r(1, 1, 8, 1, '#6e757b');
+    r(1, 3, 8, 9, '#3a3f44'); r(2, 4, 1, 7, '#565c62'); r(4, 4, 1, 7, '#565c62'); r(6, 4, 1, 7, '#565c62');
+  }, 5);
+  const banco = novo(28, 15, ({r})=>{
+    r(0, 0, 28, 11, '#2a1a10');
+    r(1, 1, 26, 2, '#a5633b'); r(1, 1, 26, 1, '#bd7a4c'); r(1, 3, 26, 1, '#5f3720');
+    r(1, 4, 26, 2, '#b36c41'); r(1, 4, 26, 1, '#c98552'); r(1, 6, 26, 1, '#5f3720');
+    r(1, 7, 26, 3, '#c88550'); r(1, 7, 26, 1, '#dea06a'); r(1, 9, 26, 1, '#9c6034');
+    r(2, 11, 3, 4, '#1d1d1d'); r(23, 11, 3, 4, '#1d1d1d');
+  }, 1);
+  pracaSprites = {arvore, poste, lixo, banco};
+  return pracaSprites;
+}
+/* a entrada da praça na tela de início (aparece com a lista de jogos, sem busca) */
+function pracaEntradaRender(){
+  const el = document.getElementById('pracaEntrada');
+  if(!el) return;
+  const grid = document.getElementById('grid'), busca = document.getElementById('search');
+  const vis = ONLINE_LIGADO && !!grid && !grid.classList.contains('hidden') && !(busca && busca.value.trim());
+  el.classList.toggle('hidden', !vis);
+  if(!vis) return;
+  const chave = currentLang;
+  if(el.dataset.k === chave) return;
+  el.dataset.k = chave;
+  el.innerHTML = `<span class="praca-entrada-arte" aria-hidden="true">${pracaMiniSvg()}</span>
+    <span class="praca-entrada-txt"><b>${chatListEscape(t('praca_tile'))}</b><small>${chatListEscape(t('praca_tile_sub'))}</small></span>
+    <span class="praca-entrada-btn">${chatListEscape(t('praca_tile_btn'))}</span>`;
+  el.setAttribute('aria-label', t('praca_tile') + ': ' + t('praca_tile_sub'));
+  if(!el.dataset.ligado){ el.dataset.ligado = '1'; el.addEventListener('click', ()=>pracaAbrir(0)); }
+}
+/* a fontezinha do cartão da praça (pixel art) */
+function pracaMiniSvg(){
+  const px = [
+    '....bbbb....', '...bwwwwb...', '....bggb....', '.....gg.....', '..ssssssss..', '.swwwwwwwws.', 'swwbwwwwbwws', 'ssssssssssss', '.dddddddddd.'];
+  const cor = {b: '#bfe9ff', w: '#4fb3e8', g: '#9aa5b1', s: '#c5ced6', d: '#6f7c89'};
+  let r = '';
+  px.forEach((linha, y)=>[...linha].forEach((c, x)=>{ if(cor[c]) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${cor[c]}"/>`; }));
+  return `<svg viewBox="0 0 12 9" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${r}</svg>`;
+}
+/* as coisas que não dá pra atravessar (no mundo) */
+function pracaLivre(x, y){
+  const P = pracaAtiva, num = P ? P.num : 0;
+  const dentro = x >= 162 && x <= 1338 && y >= 134 && y <= 874;                          // dentro do murinho
+  const caminhoLado = y >= 456 && y <= 552 && x >= (num <= 1 ? 42 : 0) && x <= (num >= PRACA_ULTIMA ? 1458 : PRACA_W);   // esquerda/direita (vão pra outra praça)
+  const caminhoMeio = x >= 696 && x <= 804 && y >= 30 && y <= PRACA_H - 20;             // cima/baixo
+  if(!dentro && !caminhoLado && !caminhoMeio) return false;
+  if(((x - PRACA_FONTE.x) / 168) ** 2 + ((y - PRACA_FONTE.y - 6) / 148) ** 2 < 1) return false;   // a fonte e as moitas dela
+  for(const [a, b] of PRACA_ARVORES){ if((x - a) ** 2 + ((y - b + 8) * 1.6) ** 2 < 36 * 36) return false; }
+  for(const [a, b] of PRACA_POSTES){ if((x - a) ** 2 + ((y - b) * 1.6) ** 2 < 15 * 15) return false; }
+  for(const [a, b] of PRACA_LIXOS){ if(Math.abs(x - a) < 30 && y > b - 20 && y < b + 6) return false; }
+  for(const [a, b, w, h] of PRACA_BLOCOS){ if(x > a && x < a + w && y > b && y < b + h) return false; }
+  return true;
+}
+/* anda um passo em direção ao alvo, escorregando nas coisas; guarda pra onde está virado */
+function pracaPasso(p, dt){
+  const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy);
+  if(d < 2){ p.x = p.tx; p.y = p.ty; p.anda = false; return; }
+  const v = Math.min(d, PRACA_VEL * dt), nx = p.x + dx / d * v, ny = p.y + dy / d * v;
+  let mx = 0, my = 0;
+  if(pracaLivre(nx, ny)){ mx = nx - p.x; my = ny - p.y; }
+  else if(pracaLivre(nx, p.y)){ mx = nx - p.x; }
+  else if(pracaLivre(p.x, ny)){ my = ny - p.y; }
+  else { p.tx = p.x; p.ty = p.y; p.anda = false; return; }
+  p.x += mx; p.y += my;
+  p.anda = true;
+  /* pra baixo: de frente; pro lado: de frente (virado pro lado certo); pra cima: de costas */
+  if(Math.abs(my) > Math.abs(mx) * 1.1) p.dir = my < 0 ? 'cima' : 'baixo';
+  else if(Math.abs(mx) > .01){ p.dir = 'lado'; p.vira = mx < 0; }
+}
+/* onde a k-ésima pessoa senta (os pés): no assento, na frente do encosto */
+function pracaAssento(i, k, n){
+  const b = PRACA_BANCOS[i], larg = 132;
+  return {x: b.x - larg / 2 + (k + .5) * larg / Math.max(1, n), y: b.y - 4};
+}
+/* de pé, na frente do banco */
+function pracaLadoDoBanco(i){ return PRACA_BANCOS[i].y + 40; }
+function pracaBancoDe(id){
+  const P = pracaAtiva;
+  if(!P) return -1;
+  return P.bancos.findIndex(b=>b && b.membros.indexOf(id) >= 0);
+}
+function pracaFigura(av, variante){
+  const u = pzImagemDe(av, variante) || pzImagemDe(pzCodigo(pzNorm(PZ_PADRAO)), variante);
+  const im = new Image();
+  if(u) im.src = u;
+  return im;
+}
+function pracaPessoa(j){
+  const x = Number(j.x) || PRACA_FONTE.x, y = Number(j.y) || 860;
+  return {id: String(j.id), nome: String(j.nome || ''), im: pracaFigura(j.av), imC: pracaFigura(j.av, 'costas'), x, y, tx: x, ty: y,
+    anda: false, vira: false, dir: 'baixo', fala: null, falaAte: 0};
+}
+
+/* ---------- abrir, conectar e fechar ---------- */
+function pracaAbrir(num){
+  if(!ONLINE_LIGADO) return;
+  if(pracaAtiva){ pracaTrocar(num); return; }
+  playSound('click');
+  const el = pracaMontarTela();
+  el.classList.remove('hidden');
+  el.querySelector('[data-chat]').classList.add('hidden');
+  el.querySelector('[data-chatbtn]').classList.remove('on');
+  document.documentElement.classList.add('praca-aberta');
+  const P = pracaAtiva = {el, cv: el.querySelector('canvas'), ws: null, num: 0, quer: Math.max(0, Math.floor(num) || 0), eu: null, gente: new Map(), bancos: [null, null, null, null],
+    dif: 0, fechado: false, tentativas: 0, raf: 0, ultimo: performance.now(), cam: {x: PRACA_FONTE.x, y: 700}, ultEnvio: 0, anterior: 0};
+  pracaPintarTopo(P);
+  pracaMsg(P, t('praca_conectando'));
+  pracaConectar(P);
+  P.raf = requestAnimationFrame(tm=>pracaQuadro(P, tm));
+}
+function pracaFechar(){
+  const P = pracaAtiva;
+  pracaAtiva = null;
+  if(!P) return;
+  P.fechado = true;
+  cancelAnimationFrame(P.raf);
+  clearTimeout(P.timer);
+  try{ if(P.ws) P.ws.close(); }catch(e){}
+  P.el.classList.add('hidden');
+  document.documentElement.classList.remove('praca-aberta');
+}
+/* andou até o fim do caminho do lado: vai pra praça vizinha (direita = próxima, esquerda = anterior) */
+function pracaVizinha(P, d){
+  const n = P.num + d;
+  if(P.trocando || !P.num || n < 1 || n > PRACA_ULTIMA) return;
+  P.trocando = true;
+  P.entrada = d > 0 ? 'esq' : 'dir';
+  playSound('click');
+  P.el.querySelector('[data-fade]').classList.add('on');
+  setTimeout(()=>{ if(pracaAtiva === P) pracaTrocar(n); }, 220);
+}
+/* ir pra outra praça pelo número (se estiver cheia, volta pra que estava) */
+function pracaTrocar(num){
+  const P = pracaAtiva;
+  if(!P) return;
+  num = Math.floor(num) || 0;
+  if(num === P.num && P.eu) return;
+  P.anterior = P.num;
+  P.quer = num;
+  try{ if(P.ws){ const w = P.ws; P.ws = null; w.close(); } }catch(e){}
+  P.eu = null; P.gente.clear(); P.bancos = [null, null, null, null]; P.tentativas = 0;
+  pracaPintarTopo(P);
+  pracaMsg(P, t('praca_conectando'));
+  pracaConectar(P);
+}
+function pracaMeuAv(){ try{ return souVisitante() ? pzCodigo(pzNorm(PZ_PADRAO)) : meuCodigo(); }catch(e){ return ''; } }
+function pracaConectar(P){
+  if(P.fechado || pracaAtiva !== P || P.ws) return;
+  const av = pracaMeuAv();
+  const q = 'jogo=' + PRACA_JOGO + '&cap=' + PRACA_MAX + '&nome=' + encodeURIComponent(onlineNome()) + (av ? '&av=' + encodeURIComponent(av) : '') + (P.quer ? '&sala=' + P.quer + '&exata=1' : '');
+  let ws;
+  try{ ws = new WebSocket(ONLINE_URL + '/jogar?' + q); }catch(e){ pracaCaiu(P, false); return; }
+  P.ws = ws;
+  let cheia = false;
+  const tCon = setTimeout(()=>{ if(P.ws === ws && !P.eu){ try{ ws.close(); }catch(e){} } }, 12000);
+  ws.onmessage = ev=>{
+    if(P.ws !== ws) return;
+    let m; try{ m = JSON.parse(ev.data); }catch(e){ return; }
+    if(m && m.t === 'cheia'){ cheia = true; return; }
+    if(m && m.t === 'oi'){ clearTimeout(tCon); P.tentativas = 0; P.anterior = 0; }
+    pracaReceber(P, m);
+  };
+  ws.onclose = ()=>{
+    clearTimeout(tCon);
+    if(P.ws !== ws) return;
+    P.ws = null;
+    const tinha = !!P.eu;
+    P.eu = null;
+    if(P.fechado || pracaAtiva !== P) return;
+    if(cheia){
+      toast(t('praca_cheia'));
+      /* a do lado lotou: volta pra que estava, aparecendo no caminho por onde saiu */
+      if(P.entrada) P.entrada = P.entrada === 'esq' ? 'dir' : 'esq';
+      if(P.anterior && P.anterior !== P.quer){ P.quer = P.anterior; P.anterior = 0; P.tentativas = 0; pracaConectar(P); }
+      else if(P.quer){ P.quer = 0; pracaConectar(P); }       // a praça digitada lotou: vai pra uma com vaga
+      return;
+    }
+    pracaCaiu(P, tinha);
+  };
+  ws.onerror = ()=>{};
+}
+function pracaCaiu(P, tinha){
+  if(tinha) P.tentativas = 0;
+  P.tentativas++;
+  if(P.tentativas > 4){ toast(t('praca_erro')); pracaFechar(); return; }
+  pracaMsg(P, t('praca_conectando'));
+  clearTimeout(P.timer);
+  P.timer = setTimeout(()=>pracaConectar(P), Math.min(6000, 700 * P.tentativas));
+}
+function pracaEnviar(P, obj){
+  if(!P.ws || P.ws.readyState !== 1 || !P.eu) return;
+  try{ P.ws.send(JSON.stringify(obj)); }catch(e){}
+}
+function pracaReceber(P, m){
+  if(!m) return;
+  if(m.t === 'oi'){
+    P.eu = String(m.eu); P.num = m.sala; P.quer = m.sala;   // se cair, volta pra esta mesma praça
+    P.gente.clear();
+    (m.jogadores || []).forEach(j=>P.gente.set(String(j.id), pracaPessoa(j)));
+    pracaBancos(P, m.bancos, m.agora);
+    const eu = P.gente.get(P.eu);
+    if(eu && P.entrada){
+      /* chegou andando pelo caminho do lado: aparece na entrada e já dá uns passos pra dentro */
+      const esq = P.entrada === 'esq';
+      eu.x = esq ? 30 : PRACA_W - 30; eu.y = 504; eu.tx = esq ? 230 : PRACA_W - 230; eu.ty = 504; eu.dir = 'lado'; eu.vira = !esq;
+      pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)});
+    }
+    if(eu){ P.cam.x = eu.x; P.cam.y = eu.y; }
+    const veio = !!P.entrada;
+    P.entrada = ''; P.trocando = false;
+    P.el.querySelector('[data-fade]').classList.remove('on');
+    pracaPintarTopo(P);
+    pracaMsg(P, '');
+    if(!veio) pracaDica(P);
+  } else if(m.t === 'entrou'){
+    P.gente.set(String(m.id), pracaPessoa(m));
+    pracaPintarTopo(P);
+  } else if(m.t === 'saiu'){
+    P.gente.delete(String(m.id));
+    pracaPintarTopo(P);
+  } else if(m.t === 'pos'){
+    const p = P.gente.get(String(m.id));
+    if(p){ p.tx = Math.max(0, Math.min(PRACA_W, Number(m.x) || 0)); p.ty = Math.max(0, Math.min(PRACA_H, Number(m.y) || 0)); }
+  } else if(m.t === 'emo' || m.t === 'frase'){
+    const p = P.gente.get(String(m.id));
+    const n = Number(m.t === 'emo' ? m.e : m.f);
+    const ok = m.t === 'emo' ? !!PRACA_EMOS[n] : (n >= 0 && n < PRACA_FRASES && Math.floor(n) === n);
+    if(p && ok){ p.fala = {tipo: m.t, n}; p.falaAte = performance.now() + (m.t === 'emo' ? 2600 : 3800); }
+  } else if(m.t === 'bancos'){
+    pracaBancos(P, m.bancos, m.agora);
+  } else if(m.t === 'lotado'){
+    toast(t('banco_lotado'));
+  } else if(m.t === 'partiu'){
+    pracaPartiu(P, m);
+  }
+}
+function pracaBancos(P, lista, agora){
+  if(agora) P.dif = Number(agora) - Date.now();
+  const antes = pracaBancoDe(P.eu);
+  P.bancos = [0, 1, 2, 3].map(i=>{
+    const b = Array.isArray(lista) ? lista[i] : null;
+    if(!b || !b.jogo || !Array.isArray(b.membros)) return null;
+    return {dono: String(b.dono || ''), jogo: {id: String(b.jogo.id || ''), nome: String(b.jogo.nome || '')}, cap: Math.max(2, Math.min(10, Number(b.cap) || 2)), ate: Number(b.ate) || 0, membros: b.membros.map(String)};
+  });
+  /* quem levanta do banco fica em pé do ladinho dele */
+  P.gente.forEach((p, id)=>{
+    if(p.sentado != null && pracaBancoDe(id) < 0){
+      p.y = pracaLadoDoBanco(p.sentado);
+      p.tx = p.x; p.ty = p.y;
+      p.sentado = null;
+    }
+  });
+  const agoraB = pracaBancoDe(P.eu);
+  if(agoraB >= 0 && antes !== agoraB) playSound('click');
+}
+/* o banco saiu: quem estava nele vai pro jogo, todo mundo junto na mesma sala */
+function pracaPartiu(P, m){
+  const jogo = m.jogo || {};
+  if(!Array.isArray(m.membros) || m.membros.indexOf(P.eu) < 0) return;
+  const g = GAMES.find(x=>x.id === jogo.id);
+  if(!g || !g.playable){ toast(t('praca_sem_jogo')); return; }
+  pracaGrupo = {jogo: String(jogo.id), grupo: String(m.grupo || ''), ate: Date.now() + 120000};
+  const num = P.num;
+  toast(t('banco_partiu'));
+  playSound('click');
+  pracaFechar();
+  try{ openGame(g.id, g.name); }catch(e){}
+  pracaVolta = num;      // quando o jogo fechar, volta pra esta praça
+}
+/* chamado ao fechar um jogo: se ele veio de um banco, volta pra praça */
+function pracaDepoisDoJogo(){
+  const n = pracaVolta;
+  pracaVolta = 0;
+  if(!n) return;
+  setTimeout(()=>{ if(overlay.classList.contains('hidden') && !pracaAtiva) pracaAbrir(n); }, 350);
+}
+
+/* ---------- a tela ---------- */
+function pracaMontarTela(){
+  let el = document.getElementById('praca');
+  if(el) return el;
+  el = document.createElement('div');
+  el.id = 'praca';
+  el.className = 'praca hidden';
+  el.innerHTML = `<div class="praca-topo">
+      <button type="button" class="praca-voltar" data-voltar aria-label="${chatListEscape(t('praca_sair'))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button type="button" class="praca-num" data-num></button>
+      <span class="praca-gente" data-gente></span>
+      <button type="button" class="praca-ir" data-ir>${chatListEscape(t('praca_ir'))}</button>
+    </div>
+    <div class="praca-palco"><canvas></canvas><div class="praca-msg hidden" data-msg></div><div class="praca-dica hidden" data-dica></div><div class="praca-fade" data-fade></div>
+      <div class="praca-chat hidden" data-chat role="dialog" aria-label="${chatListEscape(t('praca_chat'))}">
+        <div class="praca-frases" data-frases></div>
+        <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
+      </div>
+      <button type="button" class="praca-chat-btn" data-chatbtn aria-label="${chatListEscape(t('praca_chat'))}" aria-expanded="false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.6 21l4.3-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8S17.5 3 12 3z"/><circle cx="7.5" cy="11" r="1.4" fill="#fff"/><circle cx="12" cy="11" r="1.4" fill="#fff"/><circle cx="16.5" cy="11" r="1.4" fill="#fff"/></svg></button>
+    </div>`;
+  document.body.appendChild(el);
+  el.querySelector('[data-voltar]').addEventListener('click', ()=>{ playSound('click'); pracaFechar(); });
+  el.querySelector('[data-num]').addEventListener('click', ()=>{
+    const P = pracaAtiva;
+    if(!P || !P.num) return;
+    playSound('click');
+    const txt = t('praca_tit', {n: P.num});
+    try{ navigator.clipboard.writeText(txt).then(()=>toast(t('praca_copiado')), ()=>toast(txt)); }catch(e){ toast(txt); }
+  });
+  el.querySelector('[data-ir]').addEventListener('click', ()=>pracaPerguntarNumero());
+  /* o chat só abre quando toca no botãozinho: aí aparecem as frases prontas e as figurinhas */
+  const chat = el.querySelector('[data-chat]'), btn = el.querySelector('[data-chatbtn]');
+  const abrirChat = abre=>{
+    if(abre){ el.querySelector('[data-frases]').innerHTML = Array.from({length: PRACA_FRASES}, (_, i)=>`<button type="button" data-fr="${i}">${chatListEscape(t('praca_f' + i))}</button>`).join(''); }
+    chat.classList.toggle('hidden', !abre);
+    btn.classList.toggle('on', abre);
+    btn.setAttribute('aria-expanded', abre ? 'true' : 'false');
+  };
+  btn.addEventListener('click', ()=>{ playSound('click'); abrirChat(chat.classList.contains('hidden')); });
+  const falar = obj=>{
+    const P = pracaAtiva;
+    if(!P || !P.eu) return;
+    const agora = performance.now();
+    if(agora - (P.ultEmo || 0) < 900) return;      // sem enxurrada de mensagens
+    P.ultEmo = agora;
+    playSound('click');
+    pracaEnviar(P, obj);
+    abrirChat(false);
+  };
+  chat.addEventListener('click', ev=>{
+    const f = ev.target.closest('[data-fr]'), e = ev.target.closest('[data-emo]');
+    if(f) falar({t: 'frase', f: Number(f.dataset.fr)});
+    else if(e) falar({t: 'emo', e: Number(e.dataset.emo)});
+  });
+  el.querySelector('canvas').addEventListener('pointerdown', ev=>{
+    ev.preventDefault();
+    if(!chat.classList.contains('hidden')){ abrirChat(false); return; }
+    pracaToque(ev);
+  });
+  return el;
+}
+function pracaPintarTopo(P){
+  const n = P.el.querySelector('[data-num]'), g = P.el.querySelector('[data-gente]');
+  n.innerHTML = P.num ? `${chatListEscape(t('praca_nome'))} <b>nº ${P.num}</b>` : chatListEscape(t('praca_nome'));
+  n.setAttribute('aria-label', P.num ? t('praca_tit', {n: P.num}) : t('praca_nome'));
+  g.innerHTML = ICONS.people + `<span>${P.eu ? P.gente.size : 0}/${PRACA_MAX}</span>`;
+}
+function pracaMsg(P, txt){
+  const m = P.el.querySelector('[data-msg]');
+  m.textContent = txt;
+  m.classList.toggle('hidden', !txt);
+}
+function pracaDica(P){
+  const d = P.el.querySelector('[data-dica]');
+  d.textContent = t('praca_dica');
+  d.classList.remove('hidden');
+  clearTimeout(P.tDica);
+  P.tDica = setTimeout(()=>d.classList.add('hidden'), 6000);
+}
+function pracaPerguntarNumero(){
+  playSound('click');
+  kbsDialogo(`<h3 class="kbs-dlg-tit">${chatListEscape(t('praca_ir_tit'))}</h3>
+    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" class="praca-campo" data-n placeholder="${chatListEscape(t('praca_ir_dica'))}" aria-label="${chatListEscape(t('praca_ir_dica'))}">
+    <div class="kbs-dlg-btns"><button type="button" class="kbs-btn" data-ok>${chatListEscape(t('praca_entrar'))}</button></div>
+    <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
+    const campo = bg.querySelector('[data-n]');
+    setTimeout(()=>{ try{ campo.focus(); }catch(e){} }, 60);
+    const ir = ()=>{
+      const n = parseInt(String(campo.value).replace(/\D/g, ''), 10);
+      if(!(n >= 1 && n <= 200)){ toast(t('praca_num_invalido')); return; }
+      playSound('click');
+      fechar();
+      if(pracaAtiva) pracaTrocar(n); else pracaAbrir(n);
+    };
+    campo.addEventListener('keydown', e=>{ if(e.key === 'Enter') ir(); });
+    bg.querySelector('[data-ok]').addEventListener('click', ir);
+    bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+  });
+}
+/* o tamanho da tela e a câmera: mostra boa parte da praça e segue você */
+function pracaVista(P){
+  const cv = P.cv, w = cv.clientWidth || 1, h = cv.clientHeight || 1;
+  const s = Math.max(Math.min(w / PRACA_W, h / PRACA_H), Math.max(w, h) / 1000 * .75);
+  const eu = P.gente.get(P.eu);
+  if(eu){ P.cam.x += (eu.x - P.cam.x) * .12; P.cam.y += (eu.y - PRACA_ALT / 2 - P.cam.y) * .12; }
+  const eixo = (tam, c, total)=>total * s <= tam ? (tam - total * s) / 2 : Math.min(0, Math.max(tam - total * s, tam / 2 - c * s));
+  return {w, h, s, ox: eixo(w, P.cam.x, PRACA_W), oy: eixo(h, P.cam.y, PRACA_H)};
+}
+function pracaToque(ev){
+  const P = pracaAtiva;
+  if(!P || !P.eu) return;
+  const r = P.cv.getBoundingClientRect(), v = P.vista || pracaVista(P);
+  const wx = (ev.clientX - r.left - v.ox) / v.s, wy = (ev.clientY - r.top - v.oy) / v.s;
+  /* tocou num banco? */
+  for(let i = 0; i < 4; i++){
+    const b = PRACA_BANCOS[i];
+    if(Math.abs(wx - b.x) < 92 && wy > b.y - 105 && wy < b.y + 25){ pracaTocouBanco(P, i); return; }
+  }
+  const eu = P.gente.get(P.eu);
+  if(!eu) return;
+  const bi = pracaBancoDe(P.eu);
+  if(bi >= 0){
+    /* levanta na hora (sem esperar o servidor) pra já sair andando */
+    pracaEnviar(P, {t: 'levantar'});
+    const b = P.bancos[bi];
+    b.membros = b.membros.filter(id=>id !== P.eu);
+    if(!b.membros.length) P.bancos[bi] = null;
+    eu.sentado = null;
+    eu.y = pracaLadoDoBanco(bi);
+    eu.dir = 'baixo';
+  }
+  eu.tx = Math.max(0, Math.min(PRACA_W, wx)); eu.ty = Math.max(0, Math.min(PRACA_H, wy));
+  const agora = performance.now();
+  if(agora - P.ultEnvio > 120){ P.ultEnvio = agora; pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }
+  else { clearTimeout(P.tPos); P.tPos = setTimeout(()=>{ P.ultEnvio = performance.now(); pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }, 130); }
+}
+function pracaTocouBanco(P, i){
+  const b = P.bancos[i];
+  if(b && b.membros.indexOf(P.eu) >= 0){ pracaInfoBanco(P, i); return; }
+  if(b){
+    if(b.membros.length >= b.cap){ playSound('click'); toast(t('banco_lotado')); return; }
+    playSound('click');
+    pracaEnviar(P, {t: 'sentar', b: i});
+    toast(t('banco_sentou', {jogo: b.jogo.nome}));
+    return;
+  }
+  pracaCriarBanco(P, i);
+}
+/* os jogos que dão pra jogar junto (os que usam as salas online do Koda) */
+function pracaJogosOnline(){
+  return GAMES.filter(g=>g.playable && modoMultiplayer(g) === 'online');
+}
+function pracaCriarBanco(P, i){
+  playSound('click');
+  const jogos = pracaJogosOnline();
+  if(!jogos.length){
+    kbsDialogo(`<h3 class="kbs-dlg-tit">${chatListEscape(t('banco_criar_tit'))}</h3>
+      <p class="kbs-dlg-dica">${chatListEscape(t('banco_sem_jogos'))}</p>
+      <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
+      bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+    });
+    return;
+  }
+  const qtds = [2, 3, 4, 5, 6, 8, 10];
+  let esc = jogos[0].id, qtd = 4;
+  kbsDialogo(`<h3 class="kbs-dlg-tit">${chatListEscape(t('banco_criar_tit'))}</h3>
+    <p class="banco-rot">${chatListEscape(t('banco_jogo'))}</p>
+    <div class="banco-jogos">${jogos.map(g=>`<button type="button" class="banco-jogo" data-j="${chatListEscape(g.id)}"><i style="background:${safeCssColor(g.bg) || '#1FB58C'}"></i><span>${chatListEscape(g.name)}</span></button>`).join('')}</div>
+    <p class="banco-rot">${chatListEscape(t('banco_qtd'))}</p>
+    <div class="banco-qtds">${qtds.map(n=>`<button type="button" data-q="${n}">${n}</button>`).join('')}</div>
+    <p class="kbs-dlg-dica">${chatListEscape(t('banco_dica'))}</p>
+    <div class="kbs-dlg-btns"><button type="button" class="kbs-btn" data-ok>${chatListEscape(t('banco_criar'))}</button></div>
+    <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
+    const marcar = ()=>{
+      bg.querySelectorAll('[data-j]').forEach(b=>b.classList.toggle('on', b.dataset.j === esc));
+      bg.querySelectorAll('[data-q]').forEach(b=>b.classList.toggle('on', Number(b.dataset.q) === qtd));
+    };
+    marcar();
+    bg.querySelectorAll('[data-j]').forEach(b=>b.addEventListener('click', ()=>{ esc = b.dataset.j; playSound('click'); marcar(); }));
+    bg.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click', ()=>{ qtd = Number(b.dataset.q); playSound('click'); marcar(); }));
+    bg.querySelector('[data-ok]').addEventListener('click', ()=>{
+      const g = jogos.find(x=>x.id === esc);
+      fechar();
+      if(!g || pracaAtiva !== P) return;
+      playSound('click');
+      const atual = P.bancos[i];
+      if(atual){ pracaTocouBanco(P, i); return; }   // alguém criou antes: senta nele
+      pracaEnviar(P, {t: 'sentar', b: i, jogo: {id: g.id, nome: String(g.name || '').slice(0, 40)}, cap: qtd});
+    });
+    bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+  });
+}
+function pracaInfoBanco(P, i){
+  const b = P.bancos[i];
+  if(!b) return;
+  playSound('click');
+  kbsDialogo(`<h3 class="kbs-dlg-tit">${chatListEscape(t('banco_de', {jogo: b.jogo.nome}))}</h3>
+    <p class="kbs-dlg-dica">${chatListEscape(t('banco_dica'))}</p>
+    <div class="kbs-dlg-btns"><button type="button" class="kbs-btn sec" data-lev>${chatListEscape(t('banco_levantar'))}</button><button type="button" class="kbs-btn" data-no>${chatListEscape(t('banco_ficar'))}</button></div>`, (bg, fechar)=>{
+    bg.querySelector('[data-lev]').addEventListener('click', ()=>{ playSound('click'); fechar(); if(pracaAtiva === P) pracaEnviar(P, {t: 'levantar'}); });
+    bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+  });
+}
+
+/* ---------- o desenho de cada quadro ---------- */
+function pracaBalao(x, sx, topo, texto, fonte, cor){
+  x.font = fonte;
+  const w = x.measureText(texto).width, alt = parseInt((/(\d+)px/.exec(fonte) || [0, 14])[1], 10);
+  const pad = alt * .55, bw = w + pad * 2, bh = alt * 1.55, bx = sx - bw / 2, by = topo - bh - 6;
+  x.fillStyle = '#ffffff'; x.strokeStyle = 'rgba(0,0,0,.28)'; x.lineWidth = 2;
+  x.beginPath();
+  if(x.roundRect) x.roundRect(bx, by, bw, bh, bh / 2.4); else x.rect(bx, by, bw, bh);
+  x.fill(); x.stroke();
+  x.beginPath(); x.moveTo(sx - 5, by + bh - 1); x.lineTo(sx, by + bh + 6); x.lineTo(sx + 5, by + bh - 1); x.closePath(); x.fill();
+  x.fillStyle = cor; x.textBaseline = 'middle';
+  x.fillText(texto, sx, by + bh / 2 + 1);
+  x.textBaseline = 'bottom';
+}
+function pracaQuadro(P, tm){
+  if(P.fechado || pracaAtiva !== P) return;
+  P.raf = requestAnimationFrame(t2=>pracaQuadro(P, t2));
+  const dt = Math.min(.05, (tm - P.ultimo) / 1000);
+  P.ultimo = tm;
+  const cv = P.cv, dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cw = Math.round((cv.clientWidth || 1) * dpr), ch = Math.round((cv.clientHeight || 1) * dpr);
+  if(cv.width !== cw || cv.height !== ch){ cv.width = cw; cv.height = ch; }
+  /* quem está sentado vai pro assento; os outros andam */
+  P.gente.forEach((p, id)=>{
+    const bi = pracaBancoDe(id);
+    if(bi >= 0){
+      const b = P.bancos[bi], a = pracaAssento(bi, b.membros.indexOf(id), b.membros.length);
+      p.x = p.tx = a.x; p.y = p.ty = a.y; p.anda = false; p.sentado = bi;
+      p.dir = 'baixo';
+    } else pracaPasso(p, dt);
+  });
+  const euP = P.gente.get(P.eu);
+  if(euP && P.eu && !P.trocando && pracaBancoDe(P.eu) < 0){
+    if(euP.x <= 14) pracaVizinha(P, -1);
+    else if(euP.x >= PRACA_W - 14) pracaVizinha(P, 1);
+  }
+  const v = P.vista = pracaVista(P);
+  const x = cv.getContext('2d');
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  x.imageSmoothingEnabled = false;
+  /* a grama de fora em toda a tela e a praça por cima */
+  const fora = pracaDesenharFora(), q = 40 * PRACA_PX * v.s;
+  for(let ty = Math.floor(-v.oy / q) - 1; ty * q + v.oy < v.h; ty++) for(let tx = Math.floor(-v.ox / q) - 1; tx * q + v.ox < v.w; tx++)
+    x.drawImage(fora, Math.round(v.ox + tx * q), Math.round(v.oy + ty * q), Math.ceil(q) + 1, Math.ceil(q) + 1);
+  x.drawImage(pracaDesenharChao(), Math.round(v.ox), Math.round(v.oy), Math.round(PRACA_W * v.s), Math.round(PRACA_H * v.s));
+  const SP = pracaFazerSprites();
+  const tela = (wx, wy)=>[v.ox + wx * v.s, v.oy + wy * v.s];
+  const px = PRACA_PX * v.s;                      // 1 "pixel" do desenho na tela
+  const pixel = (wx, wy, cor, w, h)=>{ const [sx, sy] = tela(wx, wy); x.fillStyle = cor; x.fillRect(Math.round(sx), Math.round(sy), Math.ceil(px * (w || 1)), Math.ceil(px * (h || 1))); };
+  const seg = tm / 1000;
+  /* a água: ondinhas que abrem do meio, brilhinhos e os jatos caindo */
+  for(let o = 0; o < 3; o++){
+    const f = ((seg * .45 + o / 3) % 1), raio = (4 + f * 10) * PRACA_PX;
+    const alfa = (1 - f) * .45;
+    for(let k = 0; k < 28; k++){
+      const a = k / 28 * Math.PI * 2;
+      pixel(PRACA_FONTE.x + Math.cos(a) * raio, PRACA_FONTE.y + Math.sin(a) * raio * .84, 'rgba(255,255,255,' + alfa.toFixed(2) + ')', 1, 1);
+    }
+  }
+  for(let k = 0; k < 7; k++){
+    const fase = (seg * 1.3 + k * .37) % 1;
+    if(fase > .5) continue;
+    const a = k * 2.39 + Math.floor(seg * 1.3 + k * .37) * 1.7, d = (4 + (k * 5) % 10) * PRACA_PX;
+    pixel(PRACA_FONTE.x + Math.cos(a) * d, PRACA_FONTE.y + Math.sin(a) * d * .84, 'rgba(255,255,255,' + (1 - fase * 2).toFixed(2) + ')');
+  }
+  /* brilho dos postes */
+  PRACA_POSTES.forEach(([a, b], i)=>{
+    const [sx, sy] = tela(a, b - 150);
+    const raio = 70 * v.s, gr = x.createRadialGradient(sx, sy, 0, sx, sy, raio);
+    gr.addColorStop(0, 'rgba(255,236,160,' + (.26 + .05 * Math.sin(seg * 2.5 + i)).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(255,236,160,0)');
+    x.fillStyle = gr; x.fillRect(sx - raio, sy - raio, raio * 2, raio * 2);
+  });
+  /* tudo que fica em pé, na ordem de quem está mais pra trás */
+  const itens = [];
+  const sprite = (img, wx, wy, ax, ay)=>{ const [sx, sy] = tela(wx, wy); x.drawImage(img, Math.round(sx - ax * px), Math.round(sy - ay * px), Math.round(img.width * px), Math.round(img.height * px)); };
+  PRACA_ARVORES.forEach(([a, b])=>itens.push({y: b, f: ()=>sprite(SP.arvore, a, b, 21, 42)}));
+  PRACA_POSTES.forEach(([a, b])=>itens.push({y: b, f: ()=>sprite(SP.poste, a, b, 4.5, 30)}));
+  PRACA_LIXOS.forEach(([a, b])=>itens.push({y: b, f: ()=>sprite(SP.lixo, a, b, 5, 13)}));
+  PRACA_BANCOS.forEach(b=>itens.push({y: b.y - 10, f: ()=>sprite(SP.banco, b.x, b.y, 14, 15)}));
+  /* o jato da fonte: sobe do meio e cai em gotinhas */
+  itens.push({y: PRACA_FONTE.y + 8, f: ()=>{
+    const fx = PRACA_FONTE.x, fy = PRACA_FONTE.y - 2;
+    pixel(fx - PRACA_PX, fy - 7 * PRACA_PX, '#9fd8fb', 2, 7);
+    pixel(fx - PRACA_PX, fy - 7 * PRACA_PX, '#e6f6ff', 1, 6);
+    pixel(fx - 2 * PRACA_PX, fy - 8 * PRACA_PX, '#bfe6ff', 4, 1);
+    for(let k = 0; k < 10; k++){
+      const ang = k / 10 * Math.PI * 2, f = ((seg * .9 + k * .13) % 1);
+      const d = (1 + f * 6) * PRACA_PX, yy = fy - 8 * PRACA_PX + (60 * f * f - 18 * Math.sin(f * Math.PI));
+      pixel(fx + Math.cos(ang) * d, yy + Math.sin(ang) * d * .4, 'rgba(200,238,255,' + (.95 - f * .5).toFixed(2) + ')');
+    }
+  }});
+  /* a muretinha no fim do caminho (na primeira praça não dá pra ir pra esquerda; na última, pra direita) */
+  const mureta = wx=>{ const [sx, sy] = tela(wx, 438); x.fillStyle = '#4e2d1f'; x.fillRect(Math.round(sx), Math.round(sy), Math.round(5 * px), Math.round(19 * px));
+    x.fillStyle = '#a3613f'; x.fillRect(Math.round(sx + px), Math.round(sy + px), Math.round(3 * px), Math.round(17 * px));
+    x.fillStyle = '#7a4430'; for(let k = 5; k < 18; k += 5) x.fillRect(Math.round(sx + px), Math.round(sy + k * px), Math.round(3 * px), Math.max(1, Math.round(px / 2))); };
+  if(P.num <= 1) itens.push({y: 552, f: ()=>mureta(12)});
+  if(P.num >= PRACA_ULTIMA) itens.push({y: 552, f: ()=>mureta(PRACA_W - 42)});
+  const alt = PRACA_ALT * v.s, larg = alt * 22 / 29;
+  const lista = Array.from(P.gente.values());
+  lista.forEach(p=>itens.push({y: p.y, f: ()=>{
+    const [sx, sy] = tela(p.x, p.y);
+    const eu = p.id === P.eu;
+    x.fillStyle = eu ? 'rgba(255,214,0,.6)' : 'rgba(0,0,0,.24)';
+    x.beginPath(); x.ellipse(sx, sy, larg * .42, larg * .15, 0, 0, Math.PI * 2); x.fill();
+    const pulo = p.anda ? Math.abs(Math.sin(seg * 12 + p.x * .01)) * 5 * v.s : 0;
+    const im = p.dir === 'cima' ? p.imC : p.im;
+    if(im.complete && im.naturalWidth){
+      x.save();
+      if(p.dir === 'lado' && p.vira){ x.translate(sx, 0); x.scale(-1, 1); x.translate(-sx, 0); }
+      x.drawImage(im, Math.round(sx - larg / 2), Math.round(sy - alt - pulo), Math.round(larg), Math.round(alt));
+      x.restore();
+    }
+  }}));
+  itens.sort((a, b)=>a.y - b.y).forEach(it=>it.f());
+  /* borboletas e pétalas voando */
+  for(let k = 0; k < 5; k++){
+    const bx = 750 + Math.sin(seg * .23 + k * 1.9) * 520 + Math.sin(seg * 1.1 + k) * 40, by = 500 + Math.cos(seg * .19 + k * 2.7) * 330 + Math.sin(seg * 1.7 + k * 2) * 30;
+    const asa = Math.sin(seg * 14 + k) > 0, cor = ['#ffd23f', '#ff8fc1', '#8fd3ff', '#ffffff', '#c3a6ff'][k];
+    pixel(bx, by, '#3b2a1a', 1, 1);
+    if(asa){ pixel(bx - PRACA_PX, by - PRACA_PX, cor); pixel(bx + PRACA_PX, by - PRACA_PX, cor); }
+    else { pixel(bx - PRACA_PX, by, cor); pixel(bx + PRACA_PX, by, cor); }
+  }
+  /* sombra de nuvem passando devagar */
+  for(let k = 0; k < 2; k++){
+    const nx = ((seg * 14 + k * 900) % 2400) - 450, ny = 260 + k * 420;
+    const [sx, sy] = tela(nx, ny), raio = 230 * v.s;
+    const gr = x.createRadialGradient(sx, sy, 0, sx, sy, raio);
+    gr.addColorStop(0, 'rgba(10,40,30,.10)'); gr.addColorStop(1, 'rgba(10,40,30,0)');
+    x.fillStyle = gr; x.fillRect(sx - raio, sy - raio, raio * 2, raio * 2);
+  }
+  /* plaquinhas nos caminhos do lado: pra qual praça cada um leva */
+  if(P.num){
+    const f = Math.max(11, Math.round(20 * v.s));
+    x.font = '800 ' + f + 'px "Baloo 2",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const placa = (wx, txt)=>{
+      const [sx, sy] = tela(wx, 405), w = x.measureText(txt).width + f * 1.2, h = f * 1.6;
+      x.fillStyle = '#5a3412'; x.fillRect(Math.round(sx - 2), Math.round(sy + h / 2), 4, Math.round(30 * v.s));
+      x.fillStyle = '#f6cf8c'; x.strokeStyle = '#5a3412'; x.lineWidth = Math.max(2, 3 * v.s);
+      x.beginPath(); if(x.roundRect) x.roundRect(sx - w / 2, sy - h / 2, w, h, f * .35); else x.rect(sx - w / 2, sy - h / 2, w, h); x.fill(); x.stroke();
+      x.fillStyle = '#3b1f08'; x.fillText(txt, sx, sy + 1);
+    };
+    if(P.num > 1) placa(75, '← nº ' + (P.num - 1));
+    if(P.num < PRACA_ULTIMA) placa(PRACA_W - 75, 'nº ' + (P.num + 1) + ' →');
+  }
+  /* nomes, balões de fala e figurinhas por cima de tudo */
+  const fNome = Math.max(11, Math.round(22 * v.s));
+  x.textAlign = 'center'; x.textBaseline = 'bottom';
+  lista.forEach(p=>{
+    const [sx, sy] = tela(p.x, p.y);
+    const topo = sy - alt - 6;
+    x.font = '800 ' + fNome + 'px "Baloo 2",sans-serif';
+    const nm = p.nome.length > 14 ? p.nome.slice(0, 13) + '…' : p.nome;
+    const w = x.measureText(nm).width + fNome * .8;
+    x.fillStyle = p.id === P.eu ? 'rgba(120,80,0,.62)' : 'rgba(0,0,0,.42)';
+    x.beginPath();
+    if(x.roundRect) x.roundRect(sx - w / 2, topo - fNome * 1.15, w, fNome * 1.25, fNome * .6); else x.rect(sx - w / 2, topo - fNome * 1.15, w, fNome * 1.25);
+    x.fill();
+    x.fillStyle = p.id === P.eu ? '#ffe066' : '#fff';
+    x.fillText(nm, sx, topo + 1);
+    if(p.fala && tm < p.falaAte){
+      if(p.fala.tipo === 'emo') pracaBalao(x, sx, topo - fNome * 1.2, PRACA_EMOS[p.fala.n], Math.round(fNome * 1.5) + 'px sans-serif', '#000');
+      else pracaBalao(x, sx, topo - fNome * 1.2, t('praca_f' + p.fala.n), '800 ' + Math.round(fNome * 1.05) + 'px "Baloo 2",sans-serif', '#08322B');
+    }
+  });
+  /* as placas dos bancos: o jogo, quantas pessoas e o tempo */
+  const agora = Date.now() + P.dif;
+  P.bancos.forEach((b, i)=>{
+    const pb = PRACA_BANCOS[i];
+    const f = Math.max(11, Math.round(21 * v.s));
+    x.font = '800 ' + f + 'px "Baloo 2",sans-serif';
+    x.textBaseline = 'middle';
+    /* a placa fica acima da cabeça (e do nome) de quem senta */
+    const [sx, by] = tela(pb.x, pb.y - 4);
+    const sy = by - alt - fNome * 1.3 - 10 - (b ? f * 1.35 : f * .8) - 4;
+    if(!b){
+      const txt = '+ ' + t('banco_livre');
+      const w = x.measureText(txt).width + f * 1.3;
+      const pulso = .82 + .18 * Math.sin(seg * 3 + i);
+      x.fillStyle = 'rgba(255,255,255,' + (.85 * pulso).toFixed(2) + ')';
+      x.strokeStyle = 'rgba(8,50,43,.35)'; x.lineWidth = 2;
+      x.beginPath(); if(x.roundRect) x.roundRect(sx - w / 2, sy - f * .8, w, f * 1.6, f * .8); else x.rect(sx - w / 2, sy - f * .8, w, f * 1.6); x.fill(); x.stroke();
+      x.fillStyle = '#1b6b3a'; x.fillText(txt, sx, sy + 1);
+      return;
+    }
+    const seg2 = Math.max(0, Math.ceil((b.ate - agora) / 1000));
+    let nome = b.jogo.nome;
+    const maxW = 190 * v.s + 60;
+    while(nome.length > 3 && x.measureText(nome).width > maxW) nome = nome.slice(0, -2);
+    if(nome !== b.jogo.nome) nome = nome.replace(/.$/, '…');
+    const linha2 = b.membros.length + '/' + b.cap + '  ·  ' + seg2 + 's';
+    const w = Math.max(x.measureText(nome).width, x.measureText(linha2).width) + f * 1.4, h = f * 2.7;
+    x.fillStyle = '#5a3412';
+    x.fillRect(sx - 2, sy + h / 2, 4, Math.max(6, by - alt - fNome * 1.3 - 6 - (sy + h / 2)));
+    const meu = b.membros.indexOf(P.eu) >= 0;
+    x.fillStyle = '#7a4a1c';
+    x.beginPath(); if(x.roundRect) x.roundRect(sx - w / 2, sy - h / 2 + 3, w, h, f * .4); else x.rect(sx - w / 2, sy - h / 2 + 3, w, h); x.fill();
+    x.fillStyle = meu ? '#ffd23f' : '#f6cf8c';
+    x.strokeStyle = '#5a3412'; x.lineWidth = Math.max(2, 3 * v.s);
+    x.beginPath(); if(x.roundRect) x.roundRect(sx - w / 2, sy - h / 2, w, h, f * .4); else x.rect(sx - w / 2, sy - h / 2, w, h); x.fill(); x.stroke();
+    /* a barrinha do tempo que vai acabando */
+    const resto = Math.max(0, Math.min(1, (b.ate - agora) / 30000));
+    x.fillStyle = 'rgba(90,52,18,.25)'; x.fillRect(sx - w / 2 + 4, sy + h / 2 - 5, w - 8, 3);
+    x.fillStyle = seg2 <= 5 ? '#e53935' : '#2e9e5b'; x.fillRect(sx - w / 2 + 4, sy + h / 2 - 5, (w - 8) * resto, 3);
+    x.fillStyle = '#3b1f08';
+    x.fillText(nome, sx, sy - f * .6);
+    x.fillStyle = seg2 <= 5 ? '#c62828' : '#3b1f08';
+    x.fillText(linha2, sx, sy + f * .5);
+  });
+  x.textBaseline = 'alphabetic';
+  /* cantinhos um pouco mais escuros (fica mais aconchegante) */
+  const vg = x.createRadialGradient(v.w / 2, v.h / 2, Math.min(v.w, v.h) * .45, v.w / 2, v.h / 2, Math.max(v.w, v.h) * .75);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,20,10,.22)');
+  x.fillStyle = vg; x.fillRect(0, 0, v.w, v.h);
+}
+
 /* o pedacinho de código que entra dentro do quadro do jogo */
 const KODA_BRIDGE = '<script>(function(){'
   + 'var ultimo=0, explicito=false;'
@@ -21051,6 +22072,22 @@ const KODA_BRIDGE = '<script>(function(){'
   +   'score:function(n){ window.KODA.pontuar(n); },'
   +   'gameOver:function(n){ window.KODA.pontuar(n); }'
   + '};'
+  /* o jogador (nome e personagem de quem está jogando): o Koda manda quando o jogo pede */
+  + 'var JOG={nome:"",personagem:"",img:null}, jogOuv=[];'
+  + 'window.addEventListener("message",function(ev){'
+  +   'var d=ev&&ev.data; if(ev.source!==parent||!d||d.__kodaJogador!==1) return;'
+  +   'JOG.nome=String(d.nome||""); JOG.personagem=String(d.personagem||"");'
+  +   'if(d.img){ var im=new Image(); im.onload=function(){ JOG.img=im; var l=jogOuv.slice(); jogOuv=[]; l.forEach(function(f){ try{ f(); }catch(e){} }); }; im.src=d.img; }'
+  + '});'
+  + 'window.KODA.jogador={'
+  +   'nome:function(){ return JOG.nome; },'
+  +   'personagem:function(){ return JOG.img; },'
+  +   'pronto:function(){ return !!JOG.img; },'
+  +   'aoPronto:function(f){ if(typeof f!=="function") return; if(JOG.img) f(); else jogOuv.push(f); },'
+  +   'desenharImagem:function(ctx,im,x,y,h){ if(!ctx||!im||!(im.naturalWidth>0)) return false; h=Number(h)||64; ctx.save(); ctx.imageSmoothingEnabled=false; ctx.drawImage(im,x,y,h*22/29,h); ctx.restore(); return true; },'
+  +   'desenhar:function(ctx,x,y,h){ return window.KODA.jogador.desenharImagem(ctx,JOG.img,x,y,h); }'
+  + '};'
+  + 'manda("jogadorPedir",1);'
   + '(' + kodaOnlineNoJogo.toString() + ')(manda);'
   /* loja de moedas e diamantes dentro do jogo (só funciona se o criador ligou; quem cobra é o Koda) */
   + 'var INI=window.__KODA_LOJA_INI||{}, lojaCompras=INI.compras||{}, lojaItens=[], lojaOuv=[], lojaPend={}, lojaSeq=0;'
@@ -28366,6 +29403,7 @@ function diariosVisivel(){
 }
 function diariosRender(){
   if(!ROT_PRONTO) return;                    // chamado antes desta parte do código rodar (o primeiro desenho da lista)
+  try{ pracaEntradaRender(); }catch(e){}
   const el = document.getElementById('diarios');
   if(!el) return;
   const vis = diariosVisivel();
@@ -30184,10 +31222,26 @@ function pzGrade(c, variante){
   pzPint(g, tags, Sap.px, Sap.cores, 'sapato', null, Sap.fn);
   if(!P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
   pzPint(g, tags, Cam.px, Object.assign(Cam.cores, cEst), 'cam', null, Cam.fn);
-  pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
+  const deCostas = variante === 'costas';      // visto de trás (andando pra cima): sem rosto, cabelo cobrindo a cabeça, mochila/asas na frente
+  if(!deCostas) pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
   if(P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
   pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
   pzPint(g, tags, Mao.px, Mao.cores, 'mao', null, Mao.fn);
+  if(deCostas){
+    pzPint(g, tags, Cab.px, Cab.cores, 'cab', null, Cab.fn);
+    if(c.cab !== 'careca'){
+      const cabC = pzHexDe('cor', c.corCab), sombra = pzEsc(cabC, .22);
+      for(let y = 5; y <= 13; y++) for(let x = 0; x < PZ_W; x++){
+        const k = y * PZ_W + x;
+        if(tags[k] === 'corpo' && g[k] === sk){ g[k] = y >= 12 ? sombra : cabC; tags[k] = 'cab'; }
+      }
+    }
+    pzPint(g, tags, Cos.atras, Cos.cores, 'costas', null, Cos.fn);
+    pzPint(g, tags, Cab.atras, Cab.cores, 'cab', null, Cab.fn);    // cabelo comprido cai por cima das costas
+    if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
+    pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
+    return g;
+  }
   const olho = pzHexDe('cor', c.corOlhos);
   pzPint(g, tags, variante === 'feliz' ? PZ_OLHO_FELIZ : variante === 'pisca' ? PZ_OLHO_FECHADO : P.olhos.px,
     Object.assign({}, base, {e:olho, f:pzClr(olho, .35), E:pzEsc(olho, .4)}), 'olhos');
@@ -30229,6 +31283,38 @@ function pzSvg(c, modo, variante){
   PZ_CACHE.set(chave, s);
   return s;
 }
+
+/* o personagem como IMAGEM pronta pro jogo desenhar (data URI de SVG). O código vem de fora (de outra pessoa na sala):
+   só vira imagem se for um código "kp1:" válido, e quem desenha é o Koda, nunca o texto de fora. */
+const PZ_IMG_CACHE = new Map();
+function pzImagemDe(codigo, variante){
+  const cfg = pzDeCodigo(codigo);
+  if(!cfg) return null;
+  const chave = pzCodigo(cfg) + (variante ? '|' + variante : '');
+  let u = PZ_IMG_CACHE.get(chave);
+  if(!u){
+    const svg = pzSvg(cfg, 'corpo', variante).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="290" ');
+    u = 'data:image/svg+xml;base64,' + btoa(svg);
+    if(PZ_IMG_CACHE.size > 80) PZ_IMG_CACHE.clear();
+    PZ_IMG_CACHE.set(chave, u);
+  }
+  return u;
+}
+/* quem está jogando agora (nome nunca é e-mail): o jogo recebe só isso */
+function jogadorParaJogo(){
+  let cod = '';
+  try{ cod = souVisitante() ? pzCodigo(pzNorm(PZ_PADRAO)) : meuCodigo(); }catch(e){ cod = pzCodigo(pzNorm(PZ_PADRAO)); }
+  return {nome: onlineNome(), personagem: cod, img: pzImagemDe(cod)};
+}
+window.addEventListener('message', function(ev){
+  const d = ev.data;
+  if(!d || d.__koda !== 1 || d.tipo !== 'jogadorPedir') return;
+  /* só responde pra quadro de jogo do Koda */
+  let ehJogo = false;
+  document.querySelectorAll('iframe').forEach(f=>{ try{ if(f.contentWindow === ev.source) ehJogo = true; }catch(e){} });
+  if(!ehJogo) return;
+  try{ ev.source.postMessage(Object.assign({__kodaJogador: 1}, jogadorParaJogo()), '*'); }catch(e){}
+});
 
 /* ---------- no lugar da foto ---------- */
 /* 'valor' é o que vem no campo avatar (código 'kp1:...'; foto antiga ou nada viram o personagem sorteado da pessoa) */
