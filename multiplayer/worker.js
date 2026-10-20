@@ -297,6 +297,10 @@ export class Sala {
       this.transmitir({ t: 'emo', id: a.id, e });
       return;
     }
+    if (m.t === 'moeda') {   // jogou uma moedinha na fonte (os outros veem a animação)
+      this.transmitir({ t: 'moeda', id: a.id, x: coord(m.x, PRACA_W), y: coord(m.y, PRACA_H) }, ws);
+      return;
+    }
     if (m.t === 'frase') {
       const f = Math.floor(Number(m.f));
       if (!(f >= 0 && f < FRASES)) return;
