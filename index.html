@@ -11754,7 +11754,7 @@ var PRACA_TXT = {
  praca_ir_tit:'Ir para outra praça|Go to another plaza|Ir a otra plaza|Vai in un’altra piazza|Aller sur une autre place|Zu einem anderen Platz|Naar een ander plein|ほかの広場へ行く|去别的广场|다른 광장으로 가기',
  praca_ir_dica:'Número da praça|Plaza number|Número de la plaza|Numero della piazza|Numéro de la place|Nummer des Platzes|Nummer van het plein|広場の番号|广场号码|광장 번호',
  praca_entrar:'Entrar|Enter|Entrar|Entra|Entrer|Betreten|Naar binnen|入る|进入|들어가기',
- praca_num_invalido:'Digite um número de 1 a 200|Type a number from 1 to 200|Escribe un número del 1 al 200|Scrivi un numero da 1 a 200|Tape un nombre de 1 à 200|Gib eine Zahl von 1 bis 200 ein|Typ een getal van 1 tot 200|1から200までの数字を入れてね|请输入1到200的数字|1부터 200까지 숫자를 입력해요',
+ praca_num_invalido:'Digite um número maior que 0.|Type a number greater than 0.|Escribe un número mayor que 0.|Scrivi un numero maggiore di 0.|Tape un nombre supérieur à 0.|Gib eine Zahl größer als 0 ein.|Typ een getal groter dan 0.|1以上の数字を入れてね。|请输入大于0的数字。|0보다 큰 숫자를 입력해요.',
  praca_cheia:'Essa praça está cheia (20 pessoas)|This plaza is full (20 people)|Esta plaza está llena (20 personas)|Questa piazza è piena (20 persone)|Cette place est pleine (20 personnes)|Dieser Platz ist voll (20 Personen)|Dit plein is vol (20 mensen)|この広場はいっぱいだよ（20人）|这个广场满了（20人）|이 광장은 꽉 찼어요 (20명)',
  praca_erro:'Não deu pra entrar na praça. Tente de novo.|Couldn’t enter the plaza. Try again.|No se pudo entrar en la plaza. Inténtalo de nuevo.|Non è stato possibile entrare nella piazza. Riprova.|Impossible d’entrer sur la place. Réessaie.|Der Platz konnte nicht betreten werden. Versuch es noch mal.|Kon het plein niet in. Probeer het opnieuw.|広場に入れなかったよ。もう一度ためしてね。|进不了广场，请再试一次。|광장에 들어가지 못했어요. 다시 해 봐요.',
  praca_conectando:'Entrando na praça…|Entering the plaza…|Entrando en la plaza…|Sto entrando nella piazza…|Entrée sur la place…|Platz wird betreten…|Plein wordt geopend…|広場に入っています…|正在进入广场…|광장에 들어가는 중…',
@@ -21237,7 +21237,7 @@ window.addEventListener('message', function(ev){
 ============================================================ */
 const PRACA_JOGO = 'koda-praca';
 const PRACA_MAX = 20;
-const PRACA_ULTIMA = 200;         // a última praça (o servidor tem até 200 por "jogo")
+const PRACA_ULTIMA = 999999999;   // a última praça: na prática não acabam (qualquer número de 9 dígitos)
 const PRACA_EMOS = ['👋', '❤️', '😂', '😮', '🔥', '👍', '🎉', '😎'];
 const PRACA_FRASES = 12;          // frases prontas (praca_f0..praca_f11): cada um vê na própria língua
 const PRACA_VEL = 270;            // unidades do mundo por segundo
@@ -21843,14 +21843,14 @@ function pracaDica(P){
 function pracaPerguntarNumero(){
   playSound('click');
   kbsDialogo(`<h3 class="kbs-dlg-tit">${chatListEscape(t('praca_ir_tit'))}</h3>
-    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" class="praca-campo" data-n placeholder="${chatListEscape(t('praca_ir_dica'))}" aria-label="${chatListEscape(t('praca_ir_dica'))}">
+    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" class="praca-campo" data-n placeholder="${chatListEscape(t('praca_ir_dica'))}" aria-label="${chatListEscape(t('praca_ir_dica'))}">
     <div class="kbs-dlg-btns"><button type="button" class="kbs-btn" data-ok>${chatListEscape(t('praca_entrar'))}</button></div>
     <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
     const campo = bg.querySelector('[data-n]');
     setTimeout(()=>{ try{ campo.focus(); }catch(e){} }, 60);
     const ir = ()=>{
       const n = parseInt(String(campo.value).replace(/\D/g, ''), 10);
-      if(!(n >= 1 && n <= 200)){ toast(t('praca_num_invalido')); return; }
+      if(!(n >= 1 && n <= PRACA_ULTIMA)){ toast(t('praca_num_invalido')); return; }
       playSound('click');
       fechar();
       if(pracaAtiva) pracaTrocar(n); else pracaAbrir(n);
@@ -31885,9 +31885,77 @@ function pzCaixa(masks){
   masks.forEach(m=>m.slice(1).forEach((l, i)=>{ for(let x = 0; x < l.length; x++) if(/[123]/.test(l[x])){ const y = m[0] + i; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } }));
   return [x0, y0, x1, y1];
 }
+/* ---------- o personagem VISTO DE TRÁS ----------
+   De frente aparece o que fica na frente (gravata, bolso, rosto...). De costas cada peça mostra o seu verso:
+   - costas (guitarra, asas, jetpack...): desenho próprio por cima do corpo (PZ_DORSO; as asas são desenhadas só metade e espelhadas)
+   - camisa: o verso liso (sem gravata, zíper, cordão...)
+   - chapéu: capacetes e abóbora fecham a cabeça e perdem os detalhes da frente (rosto, viseira, logo)
+   - acessório: só o que dá a volta no pescoço/orelha (cachecol, lenço, fones, brincos)
+   - estampa: só as que cobrem tudo (listras, bolinhas...), não os desenhos do peito */
+var PZ_DORSO_METADE = {
+  anjo:     [10, 'ww.........', 'wwww.......', 'wxwww......', '.wxwww.....', '..wxwww....', '...wxwww...', '....wxwww..', '.www.wxww..', '.wwwwwxww..', '..wwxwwww..', '..wwwwxww..', '...wwxwww..', '....wwwww..', '.....www...'],
+  morcego:  [10, 'L..........', 'LL.........', 'LLLL.......', 'LkLLL......', 'LLkLLL.....', 'LLLkLLL....', 'LLLLkLLL...', 'L.LLLkLL...', '..L.LLkL...', '....L.LL...', '.......L...'],
+  fada:     [9, 'zz.........', 'zzzz.......', 'zwzzz......', 'zzwzzz.....', '.zzzzzz....', '..zzzzzz...', '...zzzzzz..', '..ppp.zzz..', '.pppp..zz..', '.ppppp.....', '..pppp.....', '...ppp.....'],
+  dragao:   [9, 'V..........', 'VV.........', 'VvV........', 'VvvV.......', 'VvvvV......', 'VvvvvV.....', '.VvvvvV....', '..VvvvvV...', 'V.VvvvvV...', 'VV.VvvvV...', '.V..VvvV...', '.....VvV...'],
+  cristal:  [10, 'z..........', 'zz.........', 'zwz........', 'zbzz.......', 'zzbzz......', '.zzbzzz....', '..zzwzzz...', '...zzbzzz..', '....zzzzz..', '.....zzzz..', '......zz...'],
+  robo:     [10, 'X..........', 'XX.........', 'XzX........', 'XxzX.......', 'XxxzXXX....', 'XxxxzxzXX..', '.XxxxxxxX..', '..XXxxxxXX.', '....XxxxxX.', '.....XXXXX.'],
+  borboleta:[9, '111........', '1w11.......', '11111......', '.131111....', '..1111111..', '...1111311.', '.111.11111.', '1w11..1111.', '1111...111.', '.11.....11.'],
+  jetpack:  [15, '.....XXXXX.', '.....XxxxX.', '.....XxxxX.', '.....XxxxX.', '.....XxxxX.', '.....XXXXX.', '......qqq..', '......qyq..', '.......y...']
+};
+var PZ_DORSO = {
+  guitarra: [9, '..................kk..', '..................kn..', '.................kn...', '................kn....', '...............kn.....', '..............kn......', '.............kn.......', '............kn........', '.......kkkk.kn........', '.....kkkkkkkkn........', '....kknnnnnnnkk.......', '....knnkkkknnnk.......', '....knnkkkknnnk.......', '....kknnnnnnnkk.......', '.....kknnnnnkk........', '......kkkkkkk.........'],
+  rabo:     [20, '..........11..........', '..........111.........', '...........11.........', '...........112........', '............22........'],
+  dinorabo: [19, '..........22..........', '.........1111.........', '.........11111........', '..........11111.......', '...........11111......', '............11112.....', '.............2w2......'],
+  prancha:  [14, '........yyyyyy........', '.......yyqqqqyy.......', '.......yqqwwqqy.......', '.......yqqwwqqy.......', '.......yqqqqqqy.......', '.......yqqwwqqy.......', '.......yqqwwqqy.......', '.......yqqqqqqy.......', '.......yqqwwqqy.......', '.......yqqwwqqy.......', '........yqqqqy........', '.........yyyy.........']
+};
+function pzEspelha(def, troca){
+  const o = [def[0]];
+  for(let i = 1; i < def.length; i++){
+    const h = def[i], r = h.split('').reverse().map(ch=>(troca && troca[ch]) || ch).join('');
+    o.push(h + r);
+  }
+  return [o];
+}
+Object.keys(PZ_DORSO_METADE).forEach(id=>{ PZ_DORSO[id] = pzEspelha(PZ_DORSO_METADE[id], id === 'fada' ? {z:'l'} : null); });
+Object.keys(PZ_DORSO).forEach(id=>{ if(Array.isArray(PZ_DORSO[id][0]) === false) PZ_DORSO[id] = [PZ_DORSO[id]]; });
+/* camisa: o que trocar pra ficar liso atrás (só da 2ª linha pra baixo: o colarinho fica) */
+var PZ_CAMISA_COSTAS = {moletom: {w:'1'}, jaqueta: {'4':'1'}, terno: {'4':'1', w:'1'}, armadura: {g:'x'}};
+/* chapéu: troca de letras e, nos capacetes, o "buraco" do rosto vira chapéu */
+var PZ_CHAPEU_COSTAS = {abobora: {k:'q'}, tubarao: {w:'x'}, pirata: {w:'k'}, bone_vermelho: {w:'r'}, bone_azul: {w:'b'}, capacete: {B:'1', b:'1'}, astronauta: {b:'x', r:'x'}, viseira: {b:'k'}};
+/* acessório: quantas linhas do desenho aparecem de costas */
+var PZ_ACES_COSTAS = {cachecol: 2, fonespescoco: 2, brincos: 2, lenco: 1};
+/* estampa: só as que dão a volta no corpo */
+var PZ_ESTAMPA_COSTAS = ['listras', 'verticais', 'bolinhas', 'xadrez', 'duascores', 'faixa'];
+function pzVersoDe(slot, it){
+  if(slot === 'costas') return {dorso: PZ_DORSO[it.id] || null};
+  if(!it.px || !it.px.length) return {};
+  if(slot === 'camisa' && PZ_CAMISA_COSTAS[it.id]){
+    const mapa = PZ_CAMISA_COSTAS[it.id];
+    return {pxC: it.px.map(m=>[m[0]].concat(m.slice(1).map((l, i)=>i === 0 ? l : l.replace(/./g, ch=>mapa[ch] || ch))))};
+  }
+  if(slot === 'aces' && PZ_ACES_COSTAS[it.id]){
+    return {pxC: it.px.map(m=>[m[0]].concat(m.slice(1, 1 + PZ_ACES_COSTAS[it.id])))};
+  }
+  if(slot === 'aces') return {pxC: []};                       // rosto, peito: não aparece de costas
+  if(slot === 'chapeu' && (PZ_CHAPEU_COSTAS[it.id] || (it.corta || 0) >= 8)){
+    const mapa = PZ_CHAPEU_COSTAS[it.id] || {};
+    let conta = {};
+    it.px.forEach(m=>m.slice(1).forEach(l=>{ for(const ch of l) if(ch !== '.') conta[ch] = (conta[ch] || 0) + 1; }));
+    let dom = null;
+    Object.keys(conta).forEach(k=>{ if(!dom || conta[k] > conta[dom]) dom = k; });
+    const fecha = (it.corta || 0) >= 8 && dom;
+    return {pxC: it.px.map(m=>[m[0]].concat(m.slice(1).map(l=>{
+      let r = l.replace(/./g, ch=>mapa[ch] || ch);
+      if(fecha){ const a = r.search(/[^.]/), b = r.length - 1 - r.split('').reverse().join('').search(/[^.]/); if(a >= 0 && a < b) r = r.slice(0, a) + r.slice(a, b + 1).replace(/\./g, dom) + r.slice(b + 1); }
+      return r;
+    })))};
+  }
+  return {};
+}
 Object.keys(PZ_EST_DO).forEach(slot=>{
   pzLista(slot).forEach(it=>{
     if(it.id === 'nenhum') return;
+    Object.assign(it, pzVersoDe(slot, it));
     const tudo = [].concat(it.px || [], it.atras || []);
     const nativo = !it.fix && pzCelulas(tudo) > 0;
     if(!nativo && PZ_TINGE[slot]){
@@ -31898,6 +31966,8 @@ Object.keys(PZ_EST_DO).forEach(slot=>{
       if(f && conta[f] >= 3){
         const mapa = {}; mapa[f] = '1'; if(PZ_PARES[f]) mapa[PZ_PARES[f]] = '2';
         it.tinge = f; it.pxT = pzTrocar(it.px, mapa); it.atrasT = pzTrocar(it.atras, mapa);
+        if(it.pxC) it.pxCT = pzTrocar(it.pxC, mapa);
+        if(it.dorso) it.dorsoT = pzTrocar(it.dorso, mapa);
       }
     }
     const ef = it.tinge ? [].concat(it.pxT || [], it.atrasT || []) : nativo ? tudo : [];
@@ -32017,6 +32087,14 @@ function pzPintura(slot, it, corId, estId, base){
   if(!c1){ c1 = corId === 'original' ? pzHexOriginal(slot, it) : pzHexDe('cor', corId); Object.assign(cores, pzCoresDe(c1)); }
   return {px, atras, cores, fn: est && it.caixa ? pzEstiloFn(est, c1, it.caixa) : null};
 }
+/* a mesma pintura, mas com o verso da peça (visto de trás) */
+function pzPinturaC(slot, it, corId, estId, base){
+  const r = pzPintura(slot, it, corId, estId, base);
+  const usaT = !!it.tinge && ((it.pxT && r.px === it.pxT) || (it.atrasT && r.atras === it.atrasT));
+  if(it.pxC) r.px = usaT && it.pxCT ? it.pxCT : it.pxC;
+  r.dorso = it.dorso ? (usaT && it.dorsoT ? it.dorsoT : it.dorso) : null;
+  return r;
+}
 /* variante: '' normal · 'pisca' olhos fechados · 'feliz' olhinhos ^^ com bochecha (carinho) */
 function pzGrade(c, variante){
   const g = new Array(PZ_W * PZ_H).fill(null), tags = new Array(PZ_W * PZ_H).fill(null);
@@ -32025,22 +32103,23 @@ function pzGrade(c, variante){
   if(c.cab === 'careca') base.h = pzEsc(sk, .55);
   const P = {};
   ['cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'].forEach(s=>{ P[s] = pzItem(s, c[s]) || pzLista(s)[0]; });
-  const pin = (s, campoCor)=>pzPintura(s, P[s], c[campoCor], c[PZ_EST_DO[s]], base);
+  const deCostas = variante === 'costas';      // visto de trás (andando pra cima): sem rosto, cabelo cobrindo a cabeça e cada peça mostra o seu verso
+  const pin = (s, campoCor)=>(deCostas ? pzPinturaC : pzPintura)(s, P[s], c[campoCor], c[PZ_EST_DO[s]], base);
   const Cos = pin('costas', 'corCostas'), Cab = pin('cab', 'corCab'), Sap = pin('sapato', 'corSapato'), Cal = pin('calca', 'corCalca'),
     Cam = pin('camisa', 'corCamisa'), Mao = pin('mao', 'corMao'), Ace = pin('aces', 'corAces'), Cha = pin('chapeu', 'corChapeu');
   const est = pzHexDe('cor', c.corEstampa), cEst = {'4':est, '5':pzEsc(est, .25)};
-  pzPint(g, tags, Cos.atras, Cos.cores, 'costas', null, Cos.fn);
+  if(!deCostas) pzPint(g, tags, Cos.atras, Cos.cores, 'costas', null, Cos.fn);   // (de trás a peça das costas vai por cima do corpo, mais abaixo)
   pzPint(g, tags, Cab.atras, Cab.cores, 'cab', null, Cab.fn);
   pzPint(g, tags, [PZ_BASE], base, 'corpo');
   pzPint(g, tags, Sap.px, Sap.cores, 'sapato', null, Sap.fn);
   if(!P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
   pzPint(g, tags, Cam.px, Object.assign(Cam.cores, cEst), 'cam', null, Cam.fn);
-  const deCostas = variante === 'costas';      // visto de trás (andando pra cima): sem rosto, cabelo cobrindo a cabeça, mochila/asas na frente
-  if(!deCostas) pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
+  if(!deCostas || PZ_ESTAMPA_COSTAS.indexOf(c.estampa) >= 0) pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
   if(P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
-  pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
+  if(!deCostas) pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
   pzPint(g, tags, Mao.px, Mao.cores, 'mao', null, Mao.fn);
   if(deCostas){
+    pzPint(g, tags, Ace.px, Ace.cores, 'aces', null, Ace.fn);       // só o que dá a volta no pescoço/orelha
     pzPint(g, tags, Cab.px, Cab.cores, 'cab', null, Cab.fn);
     if(c.cab !== 'careca'){
       const cabC = pzHexDe('cor', c.corCab), sombra = pzEsc(cabC, .22);
@@ -32049,7 +32128,10 @@ function pzGrade(c, variante){
         if(tags[k] === 'corpo' && g[k] === sk){ g[k] = y >= 12 ? sombra : cabC; tags[k] = 'cab'; }
       }
     }
-    pzPint(g, tags, Cos.atras, Cos.cores, 'costas', null, Cos.fn);
+    /* a peça das costas (guitarra, asas, mochila...) vai por cima do corpo, mas a cabeça fica na frente dela */
+    const cabeca = g.slice(0, 16 * PZ_W), cabTags = tags.slice(0, 16 * PZ_W);
+    pzPint(g, tags, Cos.dorso || Cos.atras, Cos.cores, 'costas', null, Cos.fn);
+    for(let k = 0; k < 16 * PZ_W; k++) if(cabeca[k]){ g[k] = cabeca[k]; tags[k] = cabTags[k]; }
     pzPint(g, tags, Cab.atras, Cab.cores, 'cab', null, Cab.fn);    // cabelo comprido cai por cima das costas
     if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
     pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
