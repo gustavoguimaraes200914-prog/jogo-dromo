@@ -31929,9 +31929,11 @@ var PZ_ESTAMPA_COSTAS = ['listras', 'verticais', 'bolinhas', 'xadrez', 'duascore
 function pzVersoDe(slot, it){
   if(slot === 'costas') return {dorso: PZ_DORSO[it.id] || null};
   if(!it.px || !it.px.length) return {};
-  if(slot === 'camisa' && PZ_CAMISA_COSTAS[it.id]){
-    const mapa = PZ_CAMISA_COSTAS[it.id];
-    return {pxC: it.px.map(m=>[m[0]].concat(m.slice(1).map((l, i)=>i === 0 ? l : l.replace(/./g, ch=>mapa[ch] || ch))))};
+  if(slot === 'camisa'){
+    const mapa = PZ_CAMISA_COSTAS[it.id] || {};
+    /* o decote ("S" = pele) é da frente: atrás o colarinho fecha com a cor da camisa */
+    const fecha = l=>{ let o = '', ult = '.'; for(const ch of l){ if(ch === 'S' && ult !== '.' && ult !== 'S') o += ult; else { o += ch; if(ch !== 'S') ult = ch; } } return o.replace(/S+/g, m=>m.replace(/S/g, ult !== '.' ? ult : '1')); };
+    return {pxC: it.px.map(m=>[m[0]].concat(m.slice(1).map((l, i)=>i === 0 ? fecha(l) : l.replace(/./g, ch=>mapa[ch] || ch))))};
   }
   if(slot === 'aces' && PZ_ACES_COSTAS[it.id]){
     return {pxC: it.px.map(m=>[m[0]].concat(m.slice(1, 1 + PZ_ACES_COSTAS[it.id])))};
@@ -32096,6 +32098,57 @@ function pzPinturaC(slot, it, corId, estId, base){
   return r;
 }
 /* variante: '' normal · 'pisca' olhos fechados · 'feliz' olhinhos ^^ com bochecha (carinho) */
+/* a nuca: o cabelo cobre a cabeça toda (sem franja, sem faixa); só o topo do desenho da frente fica (coque, espetos, crista, chamas) */
+function pzCabeloCostas(g, tags, c, it, Cab, sk){
+  if(c.cab === 'careca') return;
+  const W = PZ_W, masks = it.px || [], m0 = masks[0], fixo = !!it.fix;
+  const cor = ch=>Cab.cores[ch] || PZ_FIXAS[ch] || Cab.cores['1'];
+  /* cada linha da cabeça: a cor do cabelo (nos penteados de cor fixa, a cor que domina aquela linha do desenho) */
+  let domGeral = '1';
+  if(fixo && m0){
+    const cont = {};
+    m0.slice(1).forEach(l=>{ for(const ch of l) if(ch !== '.') cont[ch] = (cont[ch] || 0) + 1; });
+    Object.keys(cont).forEach(ch=>{ if(cont[ch] > (cont[domGeral] || 0)) domGeral = ch; });
+  }
+  const corDaLinha = y=>{
+    if(!fixo || !m0) return Cab.cores['1'];
+    const l = m0[1 + y - m0[0]];
+    if(!l) return cor(domGeral);
+    const cont = {}; let dom = null;
+    for(const ch of l) if(ch !== '.'){ cont[ch] = (cont[ch] || 0) + 1; if(!dom || cont[ch] > cont[dom]) dom = ch; }
+    return dom ? cor(dom) : cor(domGeral);
+  };
+  const base = Cab.cores['1'], sombra = fixo ? null : Cab.cores['2'], brilho = fixo ? null : Cab.cores['3'];
+  for(let y = 5; y <= 13; y++) for(let x = 0; x < W; x++){
+    const k = y * W + x;
+    const volume = (x === 4 || x === 17) && y >= 9 && y <= 12;          // o cabelo é mais largo que a cabeça
+    if((tags[k] === 'corpo' && g[k] === sk) || (volume && (!g[k] || tags[k] === 'corpo'))){
+      let v = corDaLinha(y);
+      if(!fixo){
+        if(y === 13 || ((x <= 5 || x >= 16) && y >= 10)) v = sombra;
+        else if(y >= 6 && y <= 7 && x >= 7 && x <= 9) v = brilho;
+      }
+      g[k] = v; tags[k] = 'cab';
+    }
+  }
+  /* a risca da nuca: o cabelo desce um pouco dos lados e o meio fica com a pele do pescoço */
+  for(let x = 6; x <= 15; x++){
+    if(x >= 9 && x <= 12) continue;
+    const k = 14 * W + x;
+    if(tags[k] === 'corpo' && g[k] === sk){ g[k] = fixo ? corDaLinha(13) : sombra; tags[k] = 'cab'; }
+  }
+  /* o que fica do desenho da frente: nos de cor fixa tudo (as listras e os brilhos); nos outros só o topo (coque, espetos, crista) */
+  const parte = fixo ? masks : masks.map(m=>[m[0]].concat(m.slice(1, 5).map((l, i)=>{
+    /* só o que sobe acima da cabeça (espetos, coque, crista) ou cai dentro dela; linha inteira e larga vira a largura da cabeça (o resto é volume) */
+    const solta = /\.[^.]+\.[^.]+/.test(l.replace(/^\.+|\.+$/g, '').replace(/^/, '.')) && /[^.]\.+[^.]/.test(l);
+    return (m[0] + i < 5 && solta) ? l : l.replace(/./g, (ch, x)=>(x >= 5 && x <= 16 ? ch : '.'));
+  })));
+  pzPint(g, tags, parte, Cab.cores, 'cab', null, Cab.fn);
+}
+/* cabelo que cai atrás: de costas o rabo de cavalo fica no meio da nuca (na frente ele aparece de lado) */
+var PZ_CAB_ATRAS_COSTAS = {
+  rabo: [[6, '..........11..........', '.........1rr1.........', '.........1311.........', '.........1112.........', '.........1112.........', '.........1112.........', '.........1112.........', '.........1112.........', '.........1122.........', '.........1122.........', '..........12..........', '..........22..........']]
+};
 function pzGrade(c, variante){
   const g = new Array(PZ_W * PZ_H).fill(null), tags = new Array(PZ_W * PZ_H).fill(null);
   const sk = pzHexDe('pele', c.pele), cab = pzHexDe('cor', c.corCab);
@@ -32120,19 +32173,12 @@ function pzGrade(c, variante){
   pzPint(g, tags, Mao.px, Mao.cores, 'mao', null, Mao.fn);
   if(deCostas){
     pzPint(g, tags, Ace.px, Ace.cores, 'aces', null, Ace.fn);       // só o que dá a volta no pescoço/orelha
-    pzPint(g, tags, Cab.px, Cab.cores, 'cab', null, Cab.fn);
-    if(c.cab !== 'careca'){
-      const cabC = pzHexDe('cor', c.corCab), sombra = pzEsc(cabC, .22);
-      for(let y = 5; y <= 13; y++) for(let x = 0; x < PZ_W; x++){
-        const k = y * PZ_W + x;
-        if(tags[k] === 'corpo' && g[k] === sk){ g[k] = y >= 12 ? sombra : cabC; tags[k] = 'cab'; }
-      }
-    }
-    /* a peça das costas (guitarra, asas, mochila...) vai por cima do corpo, mas a cabeça fica na frente dela */
+    pzCabeloCostas(g, tags, c, P.cab, Cab, sk);
+    pzPint(g, tags, PZ_CAB_ATRAS_COSTAS[P.cab.id] || Cab.atras, Cab.cores, 'cab', null, Cab.fn);    // cabelo comprido cai pelas costas...
+    /* ...e a peça das costas (guitarra, asas, mochila...) vai por cima dele e do corpo, mas a cabeça fica na frente dela */
     const cabeca = g.slice(0, 16 * PZ_W), cabTags = tags.slice(0, 16 * PZ_W);
     pzPint(g, tags, Cos.dorso || Cos.atras, Cos.cores, 'costas', null, Cos.fn);
     for(let k = 0; k < 16 * PZ_W; k++) if(cabeca[k]){ g[k] = cabeca[k]; tags[k] = cabTags[k]; }
-    pzPint(g, tags, Cab.atras, Cab.cores, 'cab', null, Cab.fn);    // cabelo comprido cai por cima das costas
     if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
     pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
     return g;
