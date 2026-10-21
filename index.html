@@ -11754,7 +11754,7 @@ var PRACA_TXT = {
  praca_ir_tit:'Ir para outra praça|Go to another plaza|Ir a otra plaza|Vai in un’altra piazza|Aller sur une autre place|Zu einem anderen Platz|Naar een ander plein|ほかの広場へ行く|去别的广场|다른 광장으로 가기',
  praca_ir_dica:'Número da praça|Plaza number|Número de la plaza|Numero della piazza|Numéro de la place|Nummer des Platzes|Nummer van het plein|広場の番号|广场号码|광장 번호',
  praca_entrar:'Entrar|Enter|Entrar|Entra|Entrer|Betreten|Naar binnen|入る|进入|들어가기',
- praca_num_invalido:'Digite um número de 1 a 200|Type a number from 1 to 200|Escribe un número del 1 al 200|Scrivi un numero da 1 a 200|Tape un nombre de 1 à 200|Gib eine Zahl von 1 bis 200 ein|Typ een getal van 1 tot 200|1から200までの数字を入れてね|请输入1到200的数字|1부터 200까지 숫자를 입력해요',
+ praca_num_invalido:'Digite um número maior que 0.|Type a number greater than 0.|Escribe un número mayor que 0.|Scrivi un numero maggiore di 0.|Tape un nombre supérieur à 0.|Gib eine Zahl größer als 0 ein.|Typ een getal groter dan 0.|1以上の数字を入れてね。|请输入大于0的数字。|0보다 큰 숫자를 입력해요.',
  praca_cheia:'Essa praça está cheia (20 pessoas)|This plaza is full (20 people)|Esta plaza está llena (20 personas)|Questa piazza è piena (20 persone)|Cette place est pleine (20 personnes)|Dieser Platz ist voll (20 Personen)|Dit plein is vol (20 mensen)|この広場はいっぱいだよ（20人）|这个广场满了（20人）|이 광장은 꽉 찼어요 (20명)',
  praca_erro:'Não deu pra entrar na praça. Tente de novo.|Couldn’t enter the plaza. Try again.|No se pudo entrar en la plaza. Inténtalo de nuevo.|Non è stato possibile entrare nella piazza. Riprova.|Impossible d’entrer sur la place. Réessaie.|Der Platz konnte nicht betreten werden. Versuch es noch mal.|Kon het plein niet in. Probeer het opnieuw.|広場に入れなかったよ。もう一度ためしてね。|进不了广场，请再试一次。|광장에 들어가지 못했어요. 다시 해 봐요.',
  praca_conectando:'Entrando na praça…|Entering the plaza…|Entrando en la plaza…|Sto entrando nella piazza…|Entrée sur la place…|Platz wird betreten…|Plein wordt geopend…|広場に入っています…|正在进入广场…|광장에 들어가는 중…',
@@ -21237,7 +21237,7 @@ window.addEventListener('message', function(ev){
 ============================================================ */
 const PRACA_JOGO = 'koda-praca';
 const PRACA_MAX = 20;
-const PRACA_ULTIMA = 200;         // a última praça (o servidor tem até 200 por "jogo")
+const PRACA_ULTIMA = 999999999;   // a última praça: na prática não acabam (qualquer número de 9 dígitos)
 const PRACA_EMOS = ['👋', '❤️', '😂', '😮', '🔥', '👍', '🎉', '😎'];
 const PRACA_FRASES = 12;          // frases prontas (praca_f0..praca_f11): cada um vê na própria língua
 const PRACA_VEL = 270;            // unidades do mundo por segundo
@@ -21843,14 +21843,14 @@ function pracaDica(P){
 function pracaPerguntarNumero(){
   playSound('click');
   kbsDialogo(`<h3 class="kbs-dlg-tit">${chatListEscape(t('praca_ir_tit'))}</h3>
-    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" class="praca-campo" data-n placeholder="${chatListEscape(t('praca_ir_dica'))}" aria-label="${chatListEscape(t('praca_ir_dica'))}">
+    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" class="praca-campo" data-n placeholder="${chatListEscape(t('praca_ir_dica'))}" aria-label="${chatListEscape(t('praca_ir_dica'))}">
     <div class="kbs-dlg-btns"><button type="button" class="kbs-btn" data-ok>${chatListEscape(t('praca_entrar'))}</button></div>
     <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
     const campo = bg.querySelector('[data-n]');
     setTimeout(()=>{ try{ campo.focus(); }catch(e){} }, 60);
     const ir = ()=>{
       const n = parseInt(String(campo.value).replace(/\D/g, ''), 10);
-      if(!(n >= 1 && n <= 200)){ toast(t('praca_num_invalido')); return; }
+      if(!(n >= 1 && n <= PRACA_ULTIMA)){ toast(t('praca_num_invalido')); return; }
       playSound('click');
       fechar();
       if(pracaAtiva) pracaTrocar(n); else pracaAbrir(n);

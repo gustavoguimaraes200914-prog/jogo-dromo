@@ -10,6 +10,7 @@ const MAX_SALA = 20;          // limite duro de pessoas numa sala
 const PADRAO_SALA = 16;       // tamanho padrão quando o jogo não pede outro
 const MIN_SALA = 2;
 const MAX_SALAS_POR_JOGO = 200;
+const PRACA_MAX_NUM = 999999999;   // as praças não acabam: qualquer número de 1 a 999.999.999 (sala vazia some da lista, então não ocupa nada)
 const MAX_MSG = 2000;         // bytes por mensagem
 const MSG_POR_SEG = 20;       // por jogador (o site já limita a 10; aqui é a rede de segurança)
 const RESERVA_MS = 20000;     // vaga reservada que ninguém ocupou volta sozinha
@@ -75,7 +76,7 @@ export default {
     }
 
     const dir = env.DIRETORIO.get(env.DIRETORIO.idFromName(jogo));
-    const r = await dir.fetch('https://dir/reservar?cap=' + cap + '&quer=' + quer + (exata ? '&exata=1' : ''));
+    const r = await dir.fetch('https://dir/reservar?cap=' + cap + '&quer=' + quer + '&max=' + (jogo === PRACA ? PRACA_MAX_NUM : MAX_SALAS_POR_JOGO) + (exata ? '&exata=1' : ''));
     if (!r.ok) return exata ? respostaCheia() : new Response('Sem vaga agora.', { status: 503 });
     const { sala } = await r.json();
 
@@ -105,11 +106,12 @@ export class Diretorio {
 
     if (url.pathname === '/reservar') {
       const quer = parseInt(url.searchParams.get('quer'), 10) || 0;
+      const maxSalas = Math.min(PRACA_MAX_NUM, parseInt(url.searchParams.get('max'), 10) || MAX_SALAS_POR_JOGO);
       let escolhida = 0;
       if (quer > 0 && this.salas[quer] && this.efetivo(this.salas[quer]) < cap) escolhida = quer;
       if (url.searchParams.get('exata') === '1') {
         /* o número exato (a praça digitada): se ainda não existe, abre ela; se está cheia, não manda pra outra */
-        if (!(quer >= 1 && quer <= MAX_SALAS_POR_JOGO)) return new Response('numero', { status: 404 });
+        if (!(quer >= 1 && quer <= maxSalas)) return new Response('numero', { status: 404 });
         if (this.salas[quer] && this.efetivo(this.salas[quer]) >= cap) return new Response('cheio', { status: 503 });
         escolhida = quer;
       }
@@ -118,7 +120,7 @@ export class Diretorio {
         for (const k of nums) { if (this.efetivo(this.salas[k]) < cap) { escolhida = k; break; } }
       }
       if (!escolhida) {
-        for (let k = 1; k <= MAX_SALAS_POR_JOGO; k++) { if (!this.salas[k]) { escolhida = k; break; } }
+        for (let k = 1; k <= maxSalas; k++) { if (!this.salas[k]) { escolhida = k; break; } }
       }
       if (!escolhida) return new Response('cheio', { status: 503 });
       const s = this.salas[escolhida] || (this.salas[escolhida] = { n: 0, pend: [] });
