@@ -1335,10 +1335,7 @@
   .kbs-dlg-x{margin-top:10px;padding:6px 12px;border:none;background:none;cursor:pointer;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.92rem;text-decoration:underline;}
   .kbs-btn:focus-visible,.kbs-dlg-x:focus-visible{outline:3px solid #0b1650;outline-offset:2px;}
   .gift-sure{margin:2px 0 10px;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.98rem;color:inherit;}
-  /* visitante: botão no login, aviso de "crie uma conta" e faixa na tela inicial */
-  .auth-visit{width:100%;margin-top:12px;padding:10px;border:none;border-radius:12px;background:transparent;color:#08322B;cursor:pointer;
-    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;text-decoration:underline;}
-  .auth-visit:focus-visible{outline:3px solid var(--mint);outline-offset:2px;}
+  /* visitante (não existe mais o botão no login): aviso de "crie uma conta" e faixa na tela inicial */
   .auth-motivo{margin:0 0 12px;padding:9px 12px;border-radius:12px;background:#fff3c4;color:#4a3405;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.86rem;line-height:1.35;}
   .auth-card[data-criar] #cadGo{box-shadow:0 0 0 3px rgba(23,199,158,.45);}
   .visitante-faixa{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px auto 10px;padding:7px 8px 7px 16px;border-radius:999px;width:fit-content;max-width:100%;
@@ -2219,7 +2216,6 @@
   .auth-alt svg{width:19px;height:19px;flex:none;color:#0b7a5a;}
   .auth-alt:focus-visible,.auth-google:focus-visible,.auth-go:focus-visible,.cad-volta:focus-visible{outline:3px solid #0b7a5a;outline-offset:2px;}
   .auth-google svg{flex:none;}
-  #authGate[data-logado="1"] #authVisit{display:none;}
   /* criar conta: uma etapa de cada vez */
   .cad-topo{display:flex;align-items:center;gap:10px;margin:0 0 18px;}
   .cad-volta{width:38px;height:38px;flex:none;border:none;border-radius:50%;background:#d7ede4;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
@@ -5268,7 +5264,6 @@
         <span data-i18n="auth_google_btn">Entrar com o Google</span>
       </button>
     </div>
-    <button class="auth-visit" id="authVisit" type="button" data-i18n="vis_btn">Entrar como visitante</button>
   </div>
 </div>
 
@@ -5383,6 +5378,8 @@ Object.defineProperty(ICONS, 'passe', {configurable:true, enumerable:true, get()
 ============================================================ */
 var VISITANTE_KEY = 'koda_visitante';
 var visitanteMem = false;           // vale mesmo se o aparelho não deixar guardar nada
+/* o "Entrar como visitante" saiu: quem estava como visitante neste aparelho volta pra tela de criar conta ou entrar */
+try{ localStorage.removeItem(VISITANTE_KEY); }catch(e){}
 function souVisitante(){
   if(visitanteMem) return true;
   try{ return localStorage.getItem(VISITANTE_KEY) === '1'; }catch(e){ return false; }
@@ -5406,7 +5403,6 @@ function mostrarPortaoDeConta(motivo){
   if(card) card.setAttribute('data-criar', '1');
   gate.dataset.pedido = '1';
   try{ authPainel('criar'); erroPortao(''); }catch(e){}
-  const v = document.getElementById('authVisit'); if(v) v.textContent = t('vis_voltar');
   gate.classList.remove('hidden');
 }
 function fecharPortaoDeConta(){
@@ -5416,23 +5412,12 @@ function fecharPortaoDeConta(){
   gate.dataset.pedido = '';
   const m = document.getElementById('authMotivo'); if(m){ m.textContent = ''; m.classList.add('hidden'); }
   const card = gate.querySelector('.auth-card'); if(card) card.removeAttribute('data-criar');
-  const v = document.getElementById('authVisit'); if(v) v.textContent = t('vis_btn');
 }
 /* true = é visitante e a tela de criar conta abriu (quem chamou para por aí) */
 function pedirConta(motivo){
   if(!souVisitante()) return false;
   mostrarPortaoDeConta(motivo);
   return true;
-}
-function entrarVisitante(){
-  /* nada da conta que estava neste aparelho passa pro visitante */
-  try{
-    resetLocalAccountData();
-    ['jogodromo_moedas', 'jogodromo_cosmeticos', 'jogodromo_temas_comprados', 'jogodromo_race_garage', 'jogodromo_banca', 'jogodromo_current_uid']
-      .forEach(k=>localStorage.removeItem(k));
-  }catch(e){}
-  visitanteLigar(true);
-  location.reload();
 }
 function desenharFaixaVisitante(){
   const antiga = document.getElementById('visitanteFaixa');
@@ -15880,12 +15865,7 @@ function renderAuthForm(){
   $('recTrocar').addEventListener('click', trocar);
   enter('recSenha', trocar);
 
-  /* ---------- visitante e Google (embaixo das telas de criar e de entrar) ---------- */
-  const visBtn = document.getElementById('authVisit');
-  if(visBtn) visBtn.addEventListener('click', ()=>{
-    if(gate && gate.dataset.pedido === '1') fecharPortaoDeConta();   // veio de um "precisa de conta": volta pra onde estava
-    else entrarVisitante();
-  });
+  /* ---------- Google (embaixo da tela de entrar) ---------- */
   googleBtn.addEventListener('click', async ()=>{
     erroPortao('');
     googleBtn.disabled = true;
