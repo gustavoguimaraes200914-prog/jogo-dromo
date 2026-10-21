@@ -3968,10 +3968,18 @@
   .praca-msg,.praca-dica{position:absolute;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);box-sizing:border-box;padding:8px 16px;border-radius:14px;
     background:rgba(8,40,20,.78);font-weight:800;font-size:.95rem;text-align:center;pointer-events:none;}
   .praca-msg{top:42%;}
-  .praca-dica{bottom:calc(84px + env(safe-area-inset-bottom));font-size:.88rem;}
+  .praca-dica{bottom:calc(176px + env(safe-area-inset-bottom));font-size:.88rem;}
   .praca-msg.hidden,.praca-dica.hidden{display:none;}
   .praca-fade{position:absolute;inset:0;background:#0b2a14;opacity:0;pointer-events:none;transition:opacity .22s ease;}
   .praca-fade.on{opacity:1;}
+  .praca-stick{position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:150px;height:150px;border-radius:50%;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;z-index:2;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+  .praca-stick-anel{position:absolute;inset:14px;border-radius:50%;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.26),rgba(255,255,255,.12));box-shadow:inset 0 0 0 3px rgba(255,255,255,.55),0 4px 14px rgba(0,0,0,.28);pointer-events:none;transition:background .15s;}
+  .praca-stick-anel::before{content:'';position:absolute;inset:0;border-radius:50%;background:
+    linear-gradient(#fff,#fff) 50% 9px/3px 12px no-repeat,linear-gradient(#fff,#fff) 50% calc(100% - 9px)/3px 12px no-repeat,
+    linear-gradient(#fff,#fff) 9px 50%/12px 3px no-repeat,linear-gradient(#fff,#fff) calc(100% - 9px) 50%/12px 3px no-repeat;opacity:.7;}
+  .praca-stick.on .praca-stick-anel{background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.4),rgba(255,255,255,.2));}
+  .praca-stick-bola{position:relative;width:62px;height:62px;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 38% 32%,#8ffbe3,#17c79e 70%);box-shadow:0 0 0 3px #fff,0 5px 12px rgba(0,0,0,.35);transition:transform .08s;}
+  .praca-stick.on .praca-stick-bola{transition:none;}
   .praca-chat-btn{position:absolute;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:56px;height:56px;border:none;border-radius:50%;cursor:pointer;padding:0;
     display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#5ff0d0,#17c79e);color:#08322B;box-shadow:0 4px 0 rgba(0,0,0,.28),0 6px 16px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent;transition:transform .15s;}
   .praca-chat-btn svg{width:30px;height:30px;}
@@ -3988,7 +3996,7 @@
   .praca-emos button{height:38px;border:none;border-radius:10px;background:#fff;font-size:1.25rem;line-height:1;cursor:pointer;padding:0;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);-webkit-tap-highlight-color:transparent;}
   .praca-emos button:active{transform:scale(.9);background:#dffcf3;}
   @media (max-width:360px){ .praca-num{font-size:.95rem;} .praca-emos button{height:34px;font-size:1.05rem;} .praca-frases button{font-size:.84rem;} }
-  @media (max-height:430px) and (orientation:landscape){ .praca-topo{padding:4px 10px;} .praca-voltar{width:32px;height:32px;} .praca-chat-btn{width:48px;height:48px;bottom:10px;} .praca-chat{bottom:66px;} .praca-frases{grid-template-columns:repeat(3,minmax(0,1fr));max-height:calc(100vh - 190px);} }
+  @media (max-height:430px) and (orientation:landscape){ .praca-stick{width:116px;height:116px;bottom:6px;left:8px;} .praca-stick-anel{inset:8px;} .praca-stick-bola{width:48px;height:48px;} .praca-dica{bottom:132px;} .praca-topo{padding:4px 10px;} .praca-voltar{width:32px;height:32px;} .praca-chat-btn{width:48px;height:48px;bottom:10px;} .praca-chat{bottom:66px;} .praca-frases{grid-template-columns:repeat(3,minmax(0,1fr));max-height:calc(100vh - 190px);} }
   .praca-campo{width:100%;box-sizing:border-box;margin:0 0 12px;padding:12px;border-radius:14px;border:2px solid rgba(8,50,43,.25);font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;text-align:center;color:#08322B;background:#fff;}
   .banco-rot{margin:4px 0 6px;font-weight:800;font-size:.92rem;text-align:left;}
   .banco-jogos{display:flex;flex-direction:column;gap:6px;max-height:min(34vh,220px);overflow-y:auto;margin-bottom:8px;padding:2px;}
@@ -11751,7 +11759,8 @@ var PRACA_TXT = {
  praca_erro:'Não deu pra entrar na praça. Tente de novo.|Couldn’t enter the plaza. Try again.|No se pudo entrar en la plaza. Inténtalo de nuevo.|Non è stato possibile entrare nella piazza. Riprova.|Impossible d’entrer sur la place. Réessaie.|Der Platz konnte nicht betreten werden. Versuch es noch mal.|Kon het plein niet in. Probeer het opnieuw.|広場に入れなかったよ。もう一度ためしてね。|进不了广场，请再试一次。|광장에 들어가지 못했어요. 다시 해 봐요.',
  praca_conectando:'Entrando na praça…|Entering the plaza…|Entrando en la plaza…|Sto entrando nella piazza…|Entrée sur la place…|Platz wird betreten…|Plein wordt geopend…|広場に入っています…|正在进入广场…|광장에 들어가는 중…',
  praca_copiado:'Número da praça copiado!|Plaza number copied!|¡Número de la plaza copiado!|Numero della piazza copiato!|Numéro de la place copié !|Platznummer kopiert!|Pleinnummer gekopieerd!|広場の番号をコピーしたよ！|广场号码已复制！|광장 번호를 복사했어요!',
- praca_dica:'Toque no chão pra andar. Sente num banco pra jogar junto!|Tap the ground to walk. Sit on a bench to play together!|Toca el suelo para caminar. ¡Siéntate en un banco para jugar juntos!|Tocca il terreno per camminare. Siediti su una panchina per giocare insieme!|Touche le sol pour marcher. Assieds-toi sur un banc pour jouer ensemble !|Tippe auf den Boden zum Laufen. Setz dich auf eine Bank, um zusammen zu spielen!|Tik op de grond om te lopen. Ga op een bankje zitten om samen te spelen!|地面をタップして歩こう。ベンチにすわるといっしょに遊べるよ！|点地面走路。坐到长椅上就能一起玩！|땅을 눌러서 걸어요. 벤치에 앉으면 같이 놀 수 있어요!',
+ praca_dica:'Use o analógico pra andar. Toque num banco pra sentar e jogar junto!|Use the joystick to walk. Tap a bench to sit and play together!|Usa el joystick para caminar. ¡Toca un banco para sentarte y jugar juntos!|Usa il joystick per camminare. Tocca una panchina per sederti e giocare insieme!|Utilise le joystick pour marcher. Touche un banc pour t’asseoir et jouer ensemble !|Lauf mit dem Joystick. Tippe auf eine Bank, um dich zu setzen und zusammen zu spielen!|Loop met de joystick. Tik op een bankje om te gaan zitten en samen te spelen!|スティックで歩こう。ベンチをタップしてすわると、いっしょに遊べるよ！|用摇杆走路。点一下长椅坐下，就能一起玩！|조이스틱으로 걸어요. 벤치를 눌러 앉으면 같이 놀 수 있어요!',
+ praca_analogico:'Analógico pra andar|Joystick to walk|Joystick para caminar|Joystick per camminare|Joystick pour marcher|Joystick zum Laufen|Joystick om te lopen|歩くスティック|走路摇杆|걷기 조이스틱',
  praca_sem_jogo:'Não achei esse jogo aqui. Atualize a página.|Couldn’t find that game here. Reload the page.|No encontré ese juego aquí. Recarga la página.|Non ho trovato quel gioco qui. Ricarica la pagina.|Je n’ai pas trouvé ce jeu ici. Recharge la page.|Das Spiel wurde hier nicht gefunden. Lade die Seite neu.|Die game is hier niet gevonden. Vernieuw de pagina.|そのゲームが見つからないよ。ページを再読み込みしてね。|这里找不到那个游戏，请刷新页面。|그 게임을 찾지 못했어요. 페이지를 새로고침해요.',
  banco_livre:'Banco livre|Free bench|Banco libre|Panchina libera|Banc libre|Freie Bank|Vrij bankje|空きベンチ|空长椅|빈 벤치',
  banco_criar_tit:'Criar um banco|Create a bench|Crear un banco|Crea una panchina|Créer un banc|Bank erstellen|Bankje maken|ベンチを作る|创建长椅|벤치 만들기',
@@ -21455,21 +21464,70 @@ function pracaLivre(x, y){
   for(const [a, b, w, h] of PRACA_BLOCOS){ if(x > a && x < a + w && y > b && y < b + h) return false; }
   return true;
 }
-/* anda um passo em direção ao alvo, escorregando nas coisas; guarda pra onde está virado */
-function pracaPasso(p, dt){
-  const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy);
-  if(d < 2){ p.x = p.tx; p.y = p.ty; p.anda = false; return; }
-  const v = Math.min(d, PRACA_VEL * dt), nx = p.x + dx / d * v, ny = p.y + dy / d * v;
+/* anda (nx, ny) escorregando nas coisas; guarda pra onde está virado. Devolve se andou */
+function pracaMover(p, nx, ny){
   let mx = 0, my = 0;
   if(pracaLivre(nx, ny)){ mx = nx - p.x; my = ny - p.y; }
   else if(pracaLivre(nx, p.y)){ mx = nx - p.x; }
   else if(pracaLivre(p.x, ny)){ my = ny - p.y; }
-  else { p.tx = p.x; p.ty = p.y; p.anda = false; return; }
+  else return false;
   p.x += mx; p.y += my;
-  p.anda = true;
   /* pra baixo: de frente; pro lado: de frente (virado pro lado certo); pra cima: de costas */
   if(Math.abs(my) > Math.abs(mx) * 1.1) p.dir = my < 0 ? 'cima' : 'baixo';
   else if(Math.abs(mx) > .01){ p.dir = 'lado'; p.vira = mx < 0; }
+  return true;
+}
+/* anda um passo em direção ao alvo (quem não é você; ou você indo até a fonte) */
+function pracaPasso(p, dt, alcance){
+  const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy);
+  if(d < 2){ p.x = p.tx; p.y = p.ty; p.anda = false; return; }
+  const v = Math.min(d, (alcance ? Math.max(PRACA_VEL, d * 7) : PRACA_VEL) * dt);     // os outros alcançam mais rápido quando ficam pra trás
+  if(pracaMover(p, p.x + dx / d * v, p.y + dy / d * v)) p.anda = true;
+  else { p.tx = p.x; p.ty = p.y; p.anda = false; }
+}
+/* ---------- o analógico: um círculo no canto da tela (e as setas / WASD no teclado) ---------- */
+function pracaEntradaMovimento(P){
+  let ax = P.stick.x, ay = P.stick.y;
+  const k = P.teclas;
+  const tx = (k.ArrowRight || k.d ? 1 : 0) - (k.ArrowLeft || k.a ? 1 : 0), ty = (k.ArrowDown || k.s ? 1 : 0) - (k.ArrowUp || k.w ? 1 : 0);
+  if(tx || ty){ const m = Math.hypot(tx, ty); ax = tx / m; ay = ty / m; }
+  const m = Math.hypot(ax, ay);
+  return m < .14 ? {x: 0, y: 0, m: 0} : {x: ax / m, y: ay / m, m: Math.min(1, (m - .14) / .86)};
+}
+function pracaLigarAnalogico(el){
+  const base = el.querySelector('[data-stick]'), bola = el.querySelector('[data-bola]');
+  let id = null;
+  const R = ()=>Math.max(30, base.clientWidth / 2 - 6);
+  const mover = ev=>{
+    const P = pracaAtiva;
+    if(!P) return;
+    const r = base.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let dx = ev.clientX - cx, dy = ev.clientY - cy;
+    const lim = R(), d = Math.hypot(dx, dy);
+    if(d > lim){ dx = dx / d * lim; dy = dy / d * lim; }
+    P.stick.x = dx / lim; P.stick.y = dy / lim;
+    bola.style.transform = `translate(${dx}px,${dy}px)`;
+  };
+  const soltar = ev=>{
+    if(id === null || (ev && ev.pointerId !== id)) return;
+    id = null;
+    const P = pracaAtiva;
+    if(P){ P.stick.x = 0; P.stick.y = 0; }
+    base.classList.remove('on');
+    bola.style.transform = 'translate(0,0)';
+  };
+  base.addEventListener('pointerdown', ev=>{
+    if(id !== null || !pracaAtiva) return;
+    ev.preventDefault(); id = ev.pointerId;
+    try{ base.setPointerCapture(id); }catch(e){}
+    base.classList.add('on');
+    pracaAtiva.jogarAoChegar = false;
+    mover(ev);
+  });
+  base.addEventListener('pointermove', ev=>{ if(ev.pointerId === id){ ev.preventDefault(); mover(ev); } });
+  base.addEventListener('pointerup', soltar);
+  base.addEventListener('pointercancel', soltar);
+  base.addEventListener('lostpointercapture', soltar);
 }
 /* onde a k-ésima pessoa senta (os pés): no assento, na frente do encosto */
 function pracaAssento(i, k, n){
@@ -21491,8 +21549,11 @@ function pracaFigura(av, variante){
 }
 function pracaPessoa(j){
   const x = Number(j.x) || PRACA_FONTE.x, y = Number(j.y) || 860;
-  return {id: String(j.id), nome: String(j.nome || ''), im: pracaFigura(j.av), imC: pracaFigura(j.av, 'costas'), x, y, tx: x, ty: y,
-    anda: false, vira: false, dir: 'baixo', fala: null, falaAte: 0};
+  return {id: String(j.id), nome: String(j.nome || ''), x, y, tx: x, ty: y,
+    im: pracaFigura(j.av), imC: pracaFigura(j.av, 'costas'),
+    /* os passos da caminhada: [parado, perna esquerda, parado, perna direita] */
+    passoF: [pracaFigura(j.av, 'p1'), pracaFigura(j.av, 'p2')], passoC: [pracaFigura(j.av, 'costas1'), pracaFigura(j.av, 'costas2')],
+    andaT: 0, anda: false, vira: false, dir: 'baixo', fala: null, falaAte: 0};
 }
 
 /* ---------- abrir, conectar e fechar ---------- */
@@ -21506,7 +21567,7 @@ function pracaAbrir(num){
   el.querySelector('[data-chatbtn]').classList.remove('on');
   document.documentElement.classList.add('praca-aberta');
   const P = pracaAtiva = {el, cv: el.querySelector('canvas'), ws: null, num: 0, quer: Math.max(0, Math.floor(num) || 0), eu: null, gente: new Map(), bancos: [null, null, null, null],
-    dif: 0, fechado: false, tentativas: 0, raf: 0, ultimo: performance.now(), cam: {x: PRACA_FONTE.x, y: 700}, ultEnvio: 0, anterior: 0, efeitos: []};
+    dif: 0, fechado: false, tentativas: 0, raf: 0, ultimo: performance.now(), cam: {x: PRACA_FONTE.x, y: 700}, ultEnvio: 0, anterior: 0, efeitos: [], stick: {x: 0, y: 0}, teclas: {}, ultPos: 0, parado: true};
   pracaPintarTopo(P);
   pracaMsg(P, t('praca_conectando'));
   pracaConectar(P);
@@ -21517,6 +21578,8 @@ function pracaFechar(){
   pracaAtiva = null;
   if(!P) return;
   P.fechado = true;
+  P.stick.x = 0; P.stick.y = 0;
+  try{ const bola = P.el.querySelector('[data-bola]'); bola.style.transform = 'translate(0,0)'; P.el.querySelector('[data-stick]').classList.remove('on'); }catch(e){}
   cancelAnimationFrame(P.raf);
   clearTimeout(P.timer);
   try{ if(P.ws) P.ws.close(); }catch(e){}
@@ -21700,6 +21763,7 @@ function pracaMontarTela(){
         <div class="praca-frases" data-frases></div>
         <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
       </div>
+      <div class="praca-stick" data-stick role="application" aria-label="${chatListEscape(t('praca_analogico'))}"><i class="praca-stick-anel"></i><i class="praca-stick-bola" data-bola></i></div>
       <button type="button" class="praca-chat-btn" data-chatbtn aria-label="${chatListEscape(t('praca_chat'))}" aria-expanded="false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.6 21l4.3-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8S17.5 3 12 3z"/><circle cx="7.5" cy="11" r="1.4" fill="#fff"/><circle cx="12" cy="11" r="1.4" fill="#fff"/><circle cx="16.5" cy="11" r="1.4" fill="#fff"/></svg></button>
     </div>`;
   document.body.appendChild(el);
@@ -21712,6 +21776,7 @@ function pracaMontarTela(){
     try{ navigator.clipboard.writeText(txt).then(()=>toast(t('praca_copiado')), ()=>toast(txt)); }catch(e){ toast(txt); }
   });
   el.querySelector('[data-ir]').addEventListener('click', ()=>pracaPerguntarNumero());
+  pracaLigarAnalogico(el);
   /* o chat só abre quando toca no botãozinho: aí aparecem as frases prontas e as figurinhas */
   const chat = el.querySelector('[data-chat]'), btn = el.querySelector('[data-chatbtn]');
   const abrirChat = abre=>{
@@ -21739,8 +21804,22 @@ function pracaMontarTela(){
   el.querySelector('canvas').addEventListener('pointerdown', ev=>{
     ev.preventDefault();
     if(!chat.classList.contains('hidden')){ abrirChat(false); return; }
-    pracaToque(ev);
+    pracaToque(ev);       // tocar num banco senta; tocar na fonte joga uma moedinha (andar é no analógico)
   });
+  /* teclado (computador): setas ou WASD */
+  const tecla = (ev, v)=>{
+    const P = pracaAtiva;
+    if(!P || P.el !== el) return;
+    const k = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
+    if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].indexOf(k) < 0) return;
+    if(ev.target && /^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) return;
+    ev.preventDefault();
+    P.teclas[k] = v;
+    if(v) P.jogarAoChegar = false;
+  };
+  document.addEventListener('keydown', ev=>tecla(ev, true));
+  document.addEventListener('keyup', ev=>tecla(ev, false));
+  window.addEventListener('blur', ()=>{ const P = pracaAtiva; if(P) P.teclas = {}; });
   return el;
 }
 function pracaPintarTopo(P){
@@ -21803,23 +21882,20 @@ function pracaToque(ev){
     const b = PRACA_BANCOS[i];
     if(Math.abs(wx - b.x) < 92 && wy > b.y - 105 && wy < b.y + 25){ pracaTocouBanco(P, i); return; }
   }
-  const eu = P.gente.get(P.eu);
-  if(!eu) return;
-  const bi = pracaBancoDe(P.eu);
-  if(bi >= 0){
-    /* levanta na hora (sem esperar o servidor) pra já sair andando */
-    pracaEnviar(P, {t: 'levantar'});
-    const b = P.bancos[bi];
-    b.membros = b.membros.filter(id=>id !== P.eu);
-    if(!b.membros.length) P.bancos[bi] = null;
-    eu.sentado = null;
-    eu.y = pracaLadoDoBanco(bi);
-    eu.dir = 'baixo';
-  }
-  eu.tx = Math.max(0, Math.min(PRACA_W, wx)); eu.ty = Math.max(0, Math.min(PRACA_H, wy));
-  const agora = performance.now();
-  if(agora - P.ultEnvio > 120){ P.ultEnvio = agora; pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }
-  else { clearTimeout(P.tPos); P.tPos = setTimeout(()=>{ P.ultEnvio = performance.now(); pracaEnviar(P, {t: 'pos', x: Math.round(eu.tx), y: Math.round(eu.ty)}); }, 130); }
+  /* tocar no chão não faz nada: andar é no analógico */
+}
+/* levanta do banco na hora (sem esperar o servidor) pra já sair andando */
+function pracaLevantar(P){
+  const eu = P.gente.get(P.eu), bi = pracaBancoDe(P.eu);
+  if(!eu || bi < 0) return;
+  pracaEnviar(P, {t: 'levantar'});
+  const b = P.bancos[bi];
+  b.membros = b.membros.filter(id=>id !== P.eu);
+  if(!b.membros.length) P.bancos[bi] = null;
+  eu.sentado = null;
+  eu.y = pracaLadoDoBanco(bi);
+  eu.tx = eu.x; eu.ty = eu.y;
+  eu.dir = 'baixo';
 }
 /* ---------- a fonte dos desejos: toque nela e o personagem joga uma moedinha; a cada 10, a fonte devolve 1 moeda do Koda ---------- */
 const FONTE_KEY = 'koda_fonte_moedas';
@@ -22038,14 +22114,31 @@ function pracaQuadro(P, tm){
   if(cv.width !== cw || cv.height !== ch){ cv.width = cw; cv.height = ch; }
   /* quem está sentado vai pro assento; os outros andam */
   P.gente.forEach((p, id)=>{
-    const bi = pracaBancoDe(id);
+    let bi = pracaBancoDe(id);
+    if(bi >= 0 && id === P.eu && pracaEntradaMovimento(P).m > .3){ pracaLevantar(P); bi = -1; }     // mexeu no analógico: levanta do banco
     if(bi >= 0){
       const b = P.bancos[bi], a = pracaAssento(bi, b.membros.indexOf(id), b.membros.length);
       p.x = p.tx = a.x; p.y = p.ty = a.y; p.anda = false; p.sentado = bi;
       p.dir = 'baixo';
-    } else pracaPasso(p, dt);
+    } else if(id === P.eu){
+      /* você: anda pelo analógico (ou, sem mexer nele, vai até onde estava indo, como a fonte) */
+      const en = pracaEntradaMovimento(P);
+      if(en.m > 0){
+        P.jogarAoChegar = false;
+        const v2 = PRACA_VEL * (.35 + .65 * en.m) * dt;
+        p.anda = pracaMover(p, p.x + en.x * v2, p.y + en.y * v2);
+        p.tx = p.x; p.ty = p.y;
+      } else pracaPasso(p, dt);
+    } else pracaPasso(p, dt, true);
+    p.andaT = p.anda ? p.andaT + dt : 0;
   });
   const euP = P.gente.get(P.eu);
+  /* conta pros outros onde você está (8 vezes por segundo enquanto anda, e uma última quando para) */
+  if(euP && P.eu){
+    const agora = performance.now();
+    if(euP.anda && agora - P.ultPos > 115){ P.ultPos = agora; P.parado = false; pracaEnviar(P, {t: 'pos', x: Math.round(euP.x), y: Math.round(euP.y)}); }
+    else if(!euP.anda && !P.parado){ P.parado = true; P.ultPos = agora; pracaEnviar(P, {t: 'pos', x: Math.round(euP.x), y: Math.round(euP.y)}); }
+  }
   if(euP && P.jogarAoChegar && !euP.anda){ P.jogarAoChegar = false; pracaJogarMoeda(P); }
   if(euP && P.eu && !P.trocando && pracaBancoDe(P.eu) < 0){
     if(euP.x <= 14) pracaVizinha(P, -1);
@@ -22120,12 +22213,15 @@ function pracaQuadro(P, tm){
     x.fillStyle = eu ? 'rgba(255,214,0,.6)' : 'rgba(0,0,0,.24)';
     x.beginPath(); x.ellipse(sx, sy, larg * .42, larg * .15, 0, 0, Math.PI * 2); x.fill();
     const jogando = p.joga ? (tm - p.joga) / 340 : 1;     // o pulinho de quem joga a moeda
-    const pulo = p.anda ? Math.abs(Math.sin(seg * 12 + p.x * .01)) * 5 * v.s : (jogando < 1 ? Math.sin(jogando * Math.PI) * 12 * v.s : 0);
-    const im = p.dir === 'cima' ? p.imC : p.im;
-    if(im.complete && im.naturalWidth){
+    /* a caminhada: 4 quadros (perna esquerda, parado, perna direita, parado), 8,5 por segundo, com o corpinho subindo e descendo */
+    const cima = p.dir === 'cima', passo = p.anda ? Math.floor(p.andaT * 8.5) % 4 : -1;
+    const pulo = p.anda ? (passo % 2 ? 0 : 2.2 * v.s) : (jogando < 1 ? Math.sin(jogando * Math.PI) * 12 * v.s : 0);
+    const im = passo === 0 ? (cima ? p.passoC[0] : p.passoF[0]) : passo === 2 ? (cima ? p.passoC[1] : p.passoF[1]) : (cima ? p.imC : p.im);
+    const imOk = im.complete && im.naturalWidth ? im : (cima ? p.imC : p.im);
+    if(imOk.complete && imOk.naturalWidth){
       x.save();
       if(p.dir === 'lado' && p.vira){ x.translate(sx, 0); x.scale(-1, 1); x.translate(-sx, 0); }
-      x.drawImage(im, Math.round(sx - larg / 2), Math.round(sy - alt - pulo), Math.round(larg), Math.round(alt));
+      x.drawImage(imOk, Math.round(sx - larg / 2), Math.round(sy - alt - pulo), Math.round(larg), Math.round(alt));
       x.restore();
     }
   }}));
@@ -31972,12 +32068,31 @@ function pzGrade(c, variante){
   return g;
 }
 const PZ_CACHE = new Map();
-/* modo: 'corpo' (inteiro) ou 'rosto' (a cabeça, pros lugares onde antes ia a foto redondinha) */
+/* um passo da caminhada: lado 1 = a perna esquerda levanta (e o braço do outro lado vai pra frente), lado 2 = a perna direita.
+   Pernas: nas linhas 23 a 26; a perna que levanta encolhe e o pé sobe. Braços: a mão do lado oposto sobe, a do mesmo lado desce. */
+function pzAndar(g, lado){
+  const W = PZ_W, o = g.slice();
+  const x0 = lado === 1 ? 0 : 11, x1 = lado === 1 ? 11 : 22;
+  for(let y = 24; y <= 26; y++) for(let x = x0; x < x1; x++) o[y * W + x] = null;
+  for(let x = x0; x < x1; x++) o[24 * W + x] = g[26 * W + x];            // o pé sobe
+  const braco = (xa, xb, sobe)=>{
+    if(sobe){ for(let y = 18; y <= 20; y++) for(let x = xa; x <= xb; x++){ o[(y - 1) * W + x] = g[y * W + x]; if(y === 20) o[y * W + x] = null; } }
+    else for(let x = xa; x <= xb; x++) o[21 * W + x] = g[20 * W + x];         // a mão desce (braço mais comprido)
+  };
+  braco(3, 6, lado === 2);       // braço esquerdo: sobe quando a perna direita levanta
+  braco(15, 18, lado === 1);     // braço direito
+  return o;
+}
+/* modo: 'corpo' (inteiro) ou 'rosto' (a cabeça, pros lugares onde antes ia a foto redondinha).
+   variante: 'feliz' | 'pisca' | 'costas' (de trás) | 'p1' 'p2' (passos da caminhada, de frente) | 'costas1' 'costas2' (passos, de trás) */
 function pzSvg(c, modo, variante){
   const chave = pzCodigo(c) + '|' + (modo || '') + '|' + (variante || '');
   const pronto = PZ_CACHE.get(chave);
   if(pronto) return pronto;
-  const g = pzGrade(pzNorm(c), variante), g2 = g.slice(), cont = PZ_FIXAS.o;
+  const passo = /^(p|costas)([12])$/.exec(variante || '');
+  let g = pzGrade(pzNorm(c), passo ? (passo[1] === 'costas' ? 'costas' : undefined) : variante);
+  if(passo) g = pzAndar(g, Number(passo[2]));
+  const g2 = g.slice(), cont = PZ_FIXAS.o;
   for(let y = 0; y < PZ_H; y++) for(let x = 0; x < PZ_W; x++){       // contorno: em volta de tudo que tem cor
     const k = y * PZ_W + x;
     if(g[k]) continue;
@@ -32012,7 +32127,7 @@ function pzImagemDe(codigo, variante){
   if(!u){
     const svg = pzSvg(cfg, 'corpo', variante).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="290" ');
     u = 'data:image/svg+xml;base64,' + btoa(svg);
-    if(PZ_IMG_CACHE.size > 80) PZ_IMG_CACHE.clear();
+    if(PZ_IMG_CACHE.size > 500) PZ_IMG_CACHE.clear();
     PZ_IMG_CACHE.set(chave, u);
   }
   return u;
