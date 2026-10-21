@@ -2211,7 +2211,42 @@
     text-align:center;min-height:1.2em;margin:0 0 8px;
   }
   /* criar conta com nome de usuário (tipo Roblox), entrar e recuperar com código */
-  .auth-painel[hidden],[data-rec][hidden],[data-seg][hidden]{display:none;}
+  .auth-painel[hidden],[data-rec][hidden],[data-seg][hidden],[data-cel][hidden],.cad-passo[hidden],.auth-painel [hidden]{display:none;}
+  /* início (tipo Roblox): criar conta ou entrar */
+  .auth-boas{text-align:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.15rem;color:var(--ink);margin:0 0 16px;}
+  .auth-alt{width:100%;padding:12px;margin-top:10px;border:1.5px solid #cfe8df;border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .auth-alt svg{width:19px;height:19px;flex:none;color:#0b7a5a;}
+  .auth-alt:focus-visible,.auth-google:focus-visible,.auth-go:focus-visible,.cad-volta:focus-visible{outline:3px solid #0b7a5a;outline-offset:2px;}
+  .auth-google svg{flex:none;}
+  #authGate[data-logado="1"] #authVisit{display:none;}
+  /* criar conta: uma etapa de cada vez */
+  .cad-topo{display:flex;align-items:center;gap:10px;margin:0 0 18px;}
+  .cad-volta{width:38px;height:38px;flex:none;border:none;border-radius:50%;background:#d7ede4;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+  .cad-volta svg{width:20px;height:20px;}
+  .cad-barra{flex:1;height:8px;border-radius:99px;background:#d7ede4;overflow:hidden;}
+  .cad-barra i{display:block;height:100%;width:14%;border-radius:99px;background:linear-gradient(90deg,#17c79e,#0b9c78);transition:width .3s ease;}
+  .cad-n{flex:none;min-width:28px;text-align:right;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.8rem;color:#527066;}
+  .cad-q{display:block;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.2rem;line-height:1.25;color:var(--ink);margin:0 0 14px;}
+  .cad-passo{animation:cadEntra .22s ease;}
+  @keyframes cadEntra{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){ .cad-passo{animation:none;} .cad-barra i{transition:none;} }
+  .auth-gen.cad-gen button{flex-direction:column;padding:12px 8px;font-size:1rem;}
+  .auth-gen.cad-gen .pz-corpo,.auth-gen.cad-gen .auth-gen-boneco{width:54px;height:72px;}
+  .auth-dica.cad-obrig{text-align:center;margin:10px 0 0;}
+  .auth-cel{display:flex;gap:6px;}
+  .auth-cel .auth-pais{flex:0 0 auto;width:auto;max-width:44%;padding:11px 6px;background:#fff;font-size:.92rem;}
+  .auth-cel input{flex:1;min-width:0;}
+  #cadRecaptcha,#celRecaptcha{position:fixed;}
+  /* celular deitado: pouca altura, o cartão fica mais baixinho */
+  @media (max-height:500px) and (orientation:landscape){
+    .auth-card{padding:16px 20px;}
+    .auth-brand{margin-bottom:8px;}
+    .auth-brand .koda-wordmark{height:32px;}
+    .cad-topo{margin-bottom:10px;}
+    .cad-q{font-size:1.05rem;margin-bottom:10px;}
+    .auth-gen.cad-gen .pz-corpo,.auth-gen.cad-gen .auth-gen-boneco{width:40px;height:54px;}
+  }
   .auth-rot{display:block;margin:2px 0 5px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.8rem;color:#2f5a4f;}
   .auth-nasc{display:flex;gap:6px;margin-bottom:10px;}
   .auth-nasc .auth-input{margin:0;padding:11px 4px;font-size:.9rem;background:#fff;min-width:0;flex:1.15;}
@@ -11739,6 +11774,40 @@ const I18N = {
 /* textos da entrada com nome de usuário: 'pt|en|es|it|fr|de|nl|ja|zh|ko' (entram já aqui: a tela de entrar é montada logo no começo) */
 var CONTA_TXT = {
  cad_titulo:'Criar conta|Create account|Crear cuenta|Crea account|Créer un compte|Konto erstellen|Account maken|アカウントを作る|创建账号|계정 만들기',
+ ini_boas:'Bem-vindo ao Koda!|Welcome to Koda!|¡Bienvenido a Koda!|Benvenuto su Koda!|Bienvenue sur Koda !|Willkommen bei Koda!|Welkom bij Koda!|Kodaへようこそ！|欢迎来到 Koda！|Koda에 오신 걸 환영해요!',
+ cad_q_nome:'Que nome você quer dar pra sua conta?|What do you want to name your account?|¿Qué nombre quieres darle a tu cuenta?|Che nome vuoi dare al tuo account?|Quel nom veux-tu donner à ton compte ?|Wie soll dein Konto heißen?|Welke naam wil je je account geven?|アカウントの名前は何にする？|你想给账号取什么名字？|계정 이름을 뭐라고 할까요?',
+ cad_q_senha:'Crie uma senha|Create a password|Crea una contraseña|Crea una password|Crée un mot de passe|Erstelle ein Passwort|Maak een wachtwoord|パスワードを作ろう|设置一个密码|비밀번호를 만들어요',
+ cad_q_conf:'Escreva a senha de novo|Type the password again|Escribe la contraseña otra vez|Scrivi di nuovo la password|Écris le mot de passe encore une fois|Gib das Passwort noch einmal ein|Typ het wachtwoord nog een keer|もう一度パスワードを入力|再输入一次密码|비밀번호를 한 번 더 입력해요',
+ cad_conf_dica:'Pra ter certeza de que você escreveu certo.|Just to make sure you typed it right.|Para asegurarnos de que la escribiste bien.|Per essere sicuri che sia scritta giusta.|Pour être sûr que tu l’as bien écrit.|Damit sicher ist, dass du dich nicht vertippt hast.|Om zeker te weten dat je het goed typte.|まちがえていないか確認するためだよ。|确认一下你没有输错。|제대로 입력했는지 확인하려고요.',
+ cad_conf_erro:'As senhas não são iguais. Tente de novo.|The passwords don’t match. Try again.|Las contraseñas no coinciden. Inténtalo otra vez.|Le password non sono uguali. Riprova.|Les mots de passe ne sont pas pareils. Réessaie.|Die Passwörter stimmen nicht überein. Versuch es nochmal.|De wachtwoorden zijn niet hetzelfde. Probeer opnieuw.|パスワードが同じじゃないよ。もう一度。|两次密码不一样，再试一次。|비밀번호가 서로 달라요. 다시 해 봐요.',
+ cad_q_seg:'Deixe sua conta segura|Keep your account safe|Mantén tu cuenta segura|Proteggi il tuo account|Protège ton compte|Schütze dein Konto|Houd je account veilig|アカウントを安全にしよう|保护你的账号|계정을 안전하게 지켜요',
+ cad_seg_texto:'Coloque um e-mail (pode ser o do seu pai ou da sua mãe). Se um dia você esquecer a senha, a gente manda um código de 6 números pra ele.|Add an email (it can be your mom’s or dad’s). If you ever forget your password, we’ll send a 6-digit code to it.|Pon un correo (puede ser el de tu papá o tu mamá). Si algún día olvidas la contraseña, te enviamos un código de 6 números.|Metti un’email (anche quella di mamma o papà). Se un giorno dimentichi la password, ti mandiamo un codice di 6 cifre.|Mets un e-mail (ça peut être celui de ton père ou de ta mère). Si un jour tu oublies ton mot de passe, on y envoie un code à 6 chiffres.|Gib eine E-Mail an (auch die von Mama oder Papa). Wenn du dein Passwort vergisst, schicken wir einen 6-stelligen Code dorthin.|Vul een e-mail in (mag die van je vader of moeder zijn). Vergeet je ooit je wachtwoord, dan sturen we er een code van 6 cijfers naartoe.|メールを入れてね（お父さんかお母さんのでもOK）。パスワードを忘れたら、6けたのコードを送るよ。|填一个邮箱（爸爸或妈妈的也可以）。如果哪天忘了密码，我们会发一个6位验证码过去。|이메일을 넣어 주세요(엄마나 아빠 것도 괜찮아요). 비밀번호를 잊으면 6자리 코드를 보내 드려요.',
+ cad_seg_velha:'Agora toda conta precisa de um e-mail, do Google ou de um celular. Assim, se você esquecer a senha, dá pra recuperar.|Every account now needs an email, Google or a phone number. That way you can get it back if you forget your password.|Ahora toda cuenta necesita un correo, Google o un celular. Así puedes recuperarla si olvidas la contraseña.|Ora ogni account ha bisogno di un’email, di Google o di un cellulare. Così puoi recuperarlo se dimentichi la password.|Maintenant chaque compte a besoin d’un e-mail, de Google ou d’un téléphone. Comme ça, tu peux le récupérer si tu oublies ton mot de passe.|Jedes Konto braucht jetzt eine E-Mail, Google oder eine Handynummer. So bekommst du es zurück, wenn du dein Passwort vergisst.|Elk account heeft nu een e-mail, Google of een telefoonnummer nodig. Zo krijg je het terug als je je wachtwoord vergeet.|これからはどのアカウントにもメール、Google、または電話番号が必要です。パスワードを忘れても取りもどせます。|现在每个账号都需要邮箱、Google 或手机号。这样忘了密码也能找回来。|이제 모든 계정에 이메일, 구글 또는 휴대폰 번호가 필요해요. 비밀번호를 잊어도 되찾을 수 있어요.',
+ cad_seg_obrig:'Obrigatório: escolha um e-mail, o Google ou um celular.|Required: pick an email, Google or a phone number.|Obligatorio: elige un correo, Google o un celular.|Obbligatorio: scegli un’email, Google o un cellulare.|Obligatoire : choisis un e-mail, Google ou un téléphone.|Pflicht: Wähle eine E-Mail, Google oder eine Handynummer.|Verplicht: kies een e-mail, Google of een telefoonnummer.|必須：メール、Google、電話番号のどれかを選んでね。|必填：选择邮箱、Google 或手机号其中一个。|필수: 이메일, 구글, 휴대폰 중 하나를 골라요.',
+ cad_google:'Continuar com o Google|Continue with Google|Continuar con Google|Continua con Google|Continuer avec Google|Weiter mit Google|Doorgaan met Google|Googleで続ける|使用 Google 继续|구글로 계속하기',
+ cad_cel_btn:'Usar número de celular|Use a phone number|Usar número de celular|Usa un numero di cellulare|Utiliser un numéro de téléphone|Handynummer verwenden|Telefoonnummer gebruiken|電話番号を使う|使用手机号|휴대폰 번호 사용',
+ cad_q_cel:'Qual é o seu celular?|What’s your phone number?|¿Cuál es tu celular?|Qual è il tuo cellulare?|Quel est ton numéro de téléphone ?|Wie lautet deine Handynummer?|Wat is je telefoonnummer?|電話番号は？|你的手机号是多少？|휴대폰 번호가 뭐예요?',
+ cad_cel_dica:'Escolha o país e digite o número com DDD. A gente manda um código por SMS.|Pick the country and type the number with the area code. We’ll text you a code.|Elige el país y escribe el número con la característica. Te enviamos un código por SMS.|Scegli il paese e scrivi il numero. Ti mandiamo un codice via SMS.|Choisis le pays et écris le numéro. On t’envoie un code par SMS.|Wähle das Land und gib die Nummer ein. Wir schicken dir einen Code per SMS.|Kies het land en typ het nummer. We sturen je een code per sms.|国を選んで番号を入力してね。SMSでコードを送るよ。|选择国家并输入号码，我们会发短信验证码。|나라를 고르고 번호를 입력해요. 문자로 코드를 보내 드려요.',
+ cad_cel_ph:'Número do celular|Phone number|Número de celular|Numero di cellulare|Numéro de téléphone|Handynummer|Telefoonnummer|電話番号|手机号|휴대폰 번호',
+ cad_pais:'País|Country|País|Paese|Pays|Land|Land|国|国家|나라',
+ cad_cel_mandar:'Mandar código por SMS|Text me a code|Enviar código por SMS|Invia codice via SMS|Envoyer un code par SMS|Code per SMS senden|Code per sms sturen|SMSでコードを送る|发送短信验证码|문자로 코드 보내기',
+ cad_usar_email:'Usar e-mail|Use email|Usar correo|Usa l’email|Utiliser un e-mail|E-Mail verwenden|E-mail gebruiken|メールを使う|使用邮箱|이메일 사용',
+ cad_q_cod:'Digite o código|Type the code|Escribe el código|Scrivi il codice|Écris le code|Gib den Code ein|Typ de code|コードを入力|输入验证码|코드를 입력해요',
+ cad_sms_texto:'Mandamos um SMS com 6 números para {num}.|We texted a 6-digit code to {num}.|Enviamos un SMS con 6 números a {num}.|Abbiamo inviato un SMS con 6 cifre a {num}.|On a envoyé un SMS avec 6 chiffres au {num}.|Wir haben einen 6-stelligen Code an {num} geschickt.|We stuurden een sms met 6 cijfers naar {num}.|{num} に6けたのSMSを送ったよ。|我们已向 {num} 发送了6位短信验证码。|{num}(으)로 6자리 문자를 보냈어요.',
+ cad_q_nasc:'Quando você nasceu?|When were you born?|¿Cuándo naciste?|Quando sei nato?|Quand es-tu né ?|Wann bist du geboren?|Wanneer ben je geboren?|いつ生まれた？|你的生日是哪天？|언제 태어났어요?',
+ cad_continuar:'Continuar|Continue|Continuar|Continua|Continuer|Weiter|Doorgaan|つづける|继续|계속',
+ cad_comecar:'Começar a jogar|Start playing|Empezar a jugar|Inizia a giocare|Commencer à jouer|Los geht’s|Begin met spelen|あそびはじめる|开始玩|게임 시작',
+ cad_criando:'Criando sua conta…|Creating your account…|Creando tu cuenta…|Creazione dell’account…|Création de ton compte…|Konto wird erstellt…|Account wordt gemaakt…|アカウントを作っています…|正在创建账号…|계정을 만드는 중…',
+ cad_sair:'Sair desta conta|Log out of this account|Salir de esta cuenta|Esci da questo account|Se déconnecter de ce compte|Von diesem Konto abmelden|Uitloggen bij dit account|このアカウントからログアウト|退出这个账号|이 계정에서 로그아웃',
+ ent_codigo_email:'Esqueci a senha: código por e-mail|Forgot password: email me a code|Olvidé la contraseña: código por correo|Password dimenticata: codice via email|Mot de passe oublié : code par e-mail|Passwort vergessen: Code per E-Mail|Wachtwoord vergeten: code per e-mail|パスワードを忘れた：メールでコード|忘记密码：邮箱验证码|비밀번호 분실: 이메일로 코드 받기',
+ cel_titulo:'Entrar com o celular|Log in with phone|Entrar con el celular|Entra con il cellulare|Se connecter avec le téléphone|Mit Handy einloggen|Inloggen met telefoon|電話番号でログイン|用手机号登录|휴대폰으로 로그인',
+ cel_sem_conta:'Não achamos uma conta com esse celular.|We couldn’t find an account with that phone number.|No encontramos una cuenta con ese celular.|Non abbiamo trovato un account con questo cellulare.|On n’a trouvé aucun compte avec ce numéro.|Wir haben kein Konto mit dieser Nummer gefunden.|We vonden geen account met dit nummer.|その電話番号のアカウントは見つからなかったよ。|没有找到绑定这个手机号的账号。|이 번호로 된 계정을 찾지 못했어요.',
+ cel_invalido:'Esse número não parece certo.|That number doesn’t look right.|Ese número no parece correcto.|Questo numero non sembra giusto.|Ce numéro n’a pas l’air bon.|Diese Nummer sieht nicht richtig aus.|Dit nummer lijkt niet te kloppen.|その番号は正しくないみたい。|这个号码好像不对。|번호가 올바르지 않은 것 같아요.',
+ cel_codigo_errado:'Código errado. Confira o SMS.|Wrong code. Check the text message.|Código incorrecto. Revisa el SMS.|Codice sbagliato. Controlla l’SMS.|Code incorrect. Vérifie le SMS.|Falscher Code. Schau in die SMS.|Verkeerde code. Kijk in de sms.|コードがちがうよ。SMSを確認してね。|验证码错误，请查看短信。|코드가 틀렸어요. 문자를 확인해요.',
+ cel_ja_usado:'Esse celular já está em outra conta.|That phone number is already on another account.|Ese celular ya está en otra cuenta.|Questo cellulare è già su un altro account.|Ce numéro est déjà sur un autre compte.|Diese Nummer gehört schon zu einem anderen Konto.|Dit nummer hoort al bij een ander account.|その電話番号は別のアカウントで使われているよ。|这个手机号已经绑定了别的账号。|이 번호는 이미 다른 계정에 있어요.',
+ cel_muitos:'Muitas tentativas. Espere um pouco e tente de novo.|Too many tries. Wait a bit and try again.|Demasiados intentos. Espera un poco y vuelve a intentarlo.|Troppi tentativi. Aspetta un po’ e riprova.|Trop d’essais. Attends un peu et réessaie.|Zu viele Versuche. Warte kurz und versuch es nochmal.|Te veel pogingen. Wacht even en probeer opnieuw.|回数が多すぎるよ。少し待ってからもう一度。|尝试次数太多，请稍后再试。|시도가 너무 많아요. 잠시 후 다시 해 봐요.',
+ cel_desligado:'Usar o celular ainda não está ligado no Koda. Use o e-mail ou o Google.|Phone numbers aren’t turned on in Koda yet. Use email or Google.|El celular todavía no está activado en Koda. Usa el correo o Google.|Il cellulare non è ancora attivo su Koda. Usa l’email o Google.|Le téléphone n’est pas encore activé sur Koda. Utilise l’e-mail ou Google.|Handynummern sind bei Koda noch nicht aktiv. Nutze E-Mail oder Google.|Telefoonnummers staan nog niet aan in Koda. Gebruik e-mail of Google.|Kodaではまだ電話番号が使えないよ。メールかGoogleを使ってね。|Koda 还没开通手机号，请使用邮箱或 Google。|Koda에서 아직 휴대폰을 쓸 수 없어요. 이메일이나 구글을 써요.',
+ google_ja_usado:'Esse Google já tem uma conta no Koda. Use outro ou o e-mail.|That Google account already has a Koda account. Use another one or email.|Ese Google ya tiene una cuenta en Koda. Usa otro o el correo.|Questo Google ha già un account Koda. Usane un altro o l’email.|Ce Google a déjà un compte Koda. Utilise-en un autre ou l’e-mail.|Dieses Google-Konto hat schon ein Koda-Konto. Nimm ein anderes oder die E-Mail.|Dit Google-account heeft al een Koda-account. Gebruik een ander of e-mail.|そのGoogleはもうKodaのアカウントがあるよ。別のかメールを使ってね。|这个 Google 已经有 Koda 账号了，换一个或用邮箱。|이 구글은 이미 Koda 계정이 있어요. 다른 것이나 이메일을 써요.',
  cad_nasc:'Data de nascimento|Birthday|Fecha de nacimiento|Data di nascita|Date de naissance|Geburtsdatum|Geboortedatum|生年月日|出生日期|생년월일',
  cad_dia:'Dia|Day|Día|Giorno|Jour|Tag|Dag|日|日|일',
  cad_mes:'Mês|Month|Mes|Mese|Mois|Monat|Maand|月|月|월',
@@ -15095,17 +15164,21 @@ function firebaseErrorMessage(err){
 }
 /* ============================================================
    ENTRADA "TIPO ROBLOX": criar conta com nome de usuário
-   - Criar conta: data de nascimento, nome de usuário, senha e menino/menina. Sem e-mail.
+   - Criar conta: uma etapa por tela — nome, senha, senha de novo (aqui a conta é criada), e-mail OU Google OU celular
+     (obrigatório; e-mail e celular confirmados com código de 6 números), nascimento e menino/menina.
+     Conta de nome de usuário sem nenhum dos três (as de antes) tem que escolher um ao entrar.
      Por trás, a conta do Firebase usa um e-mail de mentirinha: <nome>@contas.koda.invalid
      (".invalid" não existe de verdade: nenhum e-mail vai pra lá, e o nome fica único porque o e-mail é único).
    - Entrar: nome de usuário (ou o e-mail, pra quem já tinha conta) e senha. O Google continua embaixo.
-   - Proteger a conta (opcional): um e-mail de segurança, confirmado com um código. Ele fica guardado só
+   - Celular: é o próprio Firebase que manda o SMS (precisa do "Telefone" ligado no Firebase). Entrar pelo celular só vale
+     se ele estiver ligado numa conta; senão a conta vazia que o Firebase cria é apagada na hora.
+   - E-mail de segurança: confirmado com um código. Ele fica guardado só
      no servidor do Koda; no site aparece escondido (a***@gmail.com).
    - Esqueci a senha: o servidor manda um código pro e-mail de segurança e, com ele, troca a senha.
      Conta com e-mail de verdade (as antigas) recebe o link do próprio Firebase.
 ============================================================ */
 const CONTA_DOMINIO = 'contas.koda.invalid';
-const CADASTRO_KEY = 'koda_cadastro', PROTEGER_KEY = 'koda_proteger';
+const CADASTRO_KEY = 'koda_cadastro';
 const ICONE_ESCUDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 4.5 5.5v6c0 4.6 3.1 8.4 7.5 10 4.4-1.6 7.5-5.4 7.5-10v-6z"/><path d="m8.6 12 2.4 2.4 4.4-4.6"/></svg>';
 const ICONE_OLHO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>';
 function nomeUsuarioValido(n){ return /^[a-z0-9][a-z0-9_]{1,18}[a-z0-9]$/i.test(String(n || '')); }
@@ -15137,7 +15210,119 @@ function msgDeConta(j){
   if(e === 'rede') return t('auth_error_network');
   return t('cod_indisponivel');   // servidor ainda sem a parte das contas, sem o Brevo configurado etc.
 }
-/* as 3 telas: criar conta, entrar e recuperar */
+const ICONE_GOOGLE = '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.1 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7c4.3-4 6.8-9.9 6.8-17.4z"/><path fill="#FBBC05" d="M10.5 19.3c-.5 1.5-.8 3.1-.8 4.7s.3 3.2.8 4.7l-7.9 6.1C.9 31.6 0 27.9 0 24s.9-7.6 2.6-10.8l7.9 6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.7 2.2-8.6 2.2-6.3 0-11.6-3.6-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
+const ICONE_CELULAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>';
+const ICONE_CARTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>';
+/* as etapas do "Criar conta", uma tela de cada vez (o celular e o código contam como a etapa do e-mail) */
+const CAD_PASSOS = ['nome', 'senha', 'conf', 'seg', 'cod', 'nasc', 'gen'];
+const CAD_NUM_DO = {nome: 1, senha: 2, conf: 3, seg: 4, cel: 4, cod: 5, nasc: 6, gen: 7};
+/* o código do país do celular (o primeiro da lista é o do idioma do site) */
+const PAISES_CEL = [['BR', '55', '🇧🇷'], ['PT', '351', '🇵🇹'], ['US', '1', '🇺🇸'], ['GB', '44', '🇬🇧'], ['ES', '34', '🇪🇸'], ['MX', '52', '🇲🇽'], ['AR', '54', '🇦🇷'],
+  ['CO', '57', '🇨🇴'], ['CL', '56', '🇨🇱'], ['PE', '51', '🇵🇪'], ['UY', '598', '🇺🇾'], ['PY', '595', '🇵🇾'], ['AO', '244', '🇦🇴'], ['MZ', '258', '🇲🇿'],
+  ['IT', '39', '🇮🇹'], ['FR', '33', '🇫🇷'], ['DE', '49', '🇩🇪'], ['NL', '31', '🇳🇱'], ['BE', '32', '🇧🇪'], ['CH', '41', '🇨🇭'], ['CA', '1', '🇨🇦'],
+  ['JP', '81', '🇯🇵'], ['CN', '86', '🇨🇳'], ['KR', '82', '🇰🇷']];
+function seletorDePais(id){
+  const pref = ({pt: 'BR', en: 'US', es: 'ES', it: 'IT', fr: 'FR', de: 'DE', nl: 'NL', ja: 'JP', zh: 'CN', ko: 'KR'})[currentLang] || 'BR';
+  return `<select class="auth-input auth-pais" id="${id}" aria-label="${chatListEscape(t('cad_pais'))}">` + PAISES_CEL.map(([c, n, f])=>`<option value="${n}"${c === pref ? ' selected' : ''}>${f} +${n}</option>`).join('') + '</select>';
+}
+/* país + número → "+5511912345678" (ou null se não parece um celular) */
+function celularCompleto(pais, num){
+  let d = String(num || '').trim();
+  if(d.startsWith('+')) d = d.replace(/\D/g, '');
+  else { d = d.replace(/\D/g, '').replace(/^0+/, ''); d = String(pais || '') + d; }
+  return /^\d{8,15}$/.test(d) ? '+' + d : null;
+}
+function celularEscondido(n){ const d = String(n || ''); return d.length > 7 ? d.slice(0, 3) + ' ••• ' + d.slice(-4) : d; }
+/* o erro do Firebase ao mandar ou conferir o SMS / ligar o Google, do jeito que uma criança entende */
+function msgDeCelular(e){
+  const c = (e && e.code) || '';
+  if(/invalid-phone-number|missing-phone-number/.test(c)) return t('cel_invalido');
+  if(/invalid-verification-code|missing-verification-code/.test(c)) return t('cel_codigo_errado');
+  if(/code-expired/.test(c)) return t('cod_expirou');
+  if(/credential-already-in-use|provider-already-linked|account-exists-with-different-credential/.test(c)) return t('cel_ja_usado');
+  if(/too-many-requests|quota-exceeded/.test(c)) return t('cel_muitos');
+  if(/operation-not-allowed|admin-restricted|billing|captcha-check-failed|app-not-authorized|unauthorized-domain/.test(c)) return t('cel_desligado');
+  return firebaseErrorMessage(e);
+}
+/* a conta pelo nome de usuário tem um jeito de ser recuperada? (e-mail de segurança, Google ou celular ligados nela) */
+function contaProtegida(user){
+  if(!user || !ehContaDeNome(user.email)) return true;
+  try{ if(localStorage.getItem('koda_seguranca')) return true; }catch(e){}
+  return (user.providerData || []).some(p=>p && (p.providerId === 'google.com' || p.providerId === 'phone'));
+}
+/* enquanto o cadastro (ou a entrada pelo celular) não termina, a entrada da conta (initAuth) espera */
+let esperaDoPortao = null;
+function portaoSegurar(){ let soltar; esperaDoPortao = new Promise(r=>{ soltar = r; }); return ()=>{ esperaDoPortao = null; soltar(); }; }
+function cadastroPendente(user){
+  let p = null;
+  try{ p = JSON.parse(localStorage.getItem(CADASTRO_KEY)); }catch(e){}
+  return (p && p.nome && user && String(user.email || '').toLowerCase() === emailDeUsuario(p.nome)) ? p : null;
+}
+function cadastroGuardar(mudar){
+  let p = null;
+  try{ p = JSON.parse(localStorage.getItem(CADASTRO_KEY)) || {}; }catch(e){ p = {}; }
+  Object.assign(p, mudar);
+  try{ localStorage.setItem(CADASTRO_KEY, JSON.stringify(p)); }catch(e){}
+  return p;
+}
+const CAD = {passo: 'nome', aoFim: null, velha: false};
+/* a conta já existe e ainda falta proteger (fechou o app no meio do cadastro, ou é uma conta de antes):
+   abre o "Criar conta" direto na etapa que falta e só segue quando terminar */
+function cadastroRetomar(user, etapa, velha){
+  const gate = document.getElementById('authGate');
+  if(!gate || !document.getElementById('cadNome')) return Promise.resolve();
+  introReady();
+  gate.classList.remove('hidden');
+  CAD.velha = !!velha;
+  return new Promise(r=>{
+    CAD.aoFim = r;
+    authPainel('criar');
+    cadastroIr(etapa);
+  });
+}
+/* conta pelo nome de usuário sem e-mail, Google nem celular: agora é obrigatório */
+function exigirSeguranca(user){
+  if(contaProtegida(user) || document.querySelector('#authGate:not(.hidden)')) return;
+  cadastroRetomar(user, 'seg', true).then(()=>{ const g = document.getElementById('authGate'); if(g) g.classList.add('hidden'); });
+}
+function cadastroIr(passo){
+  const gate = document.getElementById('authGate');
+  if(!gate) return;
+  CAD.passo = passo;
+  gate.querySelectorAll('.cad-passo').forEach(el=>{ el.hidden = el.dataset.cad !== passo; });
+  const n = CAD_NUM_DO[passo] || 1, logado = !!(FIREBASE_ENABLED && fbAuth().currentUser);
+  const barra = document.getElementById('cadBarra');
+  if(barra) barra.style.width = Math.round(100 * n / CAD_PASSOS.length) + '%';
+  const box = document.getElementById('cadBarraBox');
+  if(box) box.setAttribute('aria-valuenow', String(n));
+  const num = document.getElementById('cadN');
+  if(num) num.textContent = n + '/' + CAD_PASSOS.length;
+  const topo = gate.querySelector('.cad-topo');
+  if(topo) topo.hidden = CAD.velha;   // conta de antes: é só esta etapa, sem barra de etapas
+  /* voltar: antes de criar a conta volta uma etapa; depois, só entre e-mail / celular / código */
+  const volta = document.getElementById('cadVolta');
+  if(volta) volta.style.visibility = (passo === 'seg' || passo === 'nasc') ? 'hidden' : 'visible';
+  gate.dataset.logado = logado ? '1' : '';   // já com a conta criada: some o "Entrar como visitante"
+  const go = document.getElementById('cadGo');
+  if(go){
+    go.hidden = ['seg', 'cel', 'cod'].indexOf(passo) >= 0;
+    go.textContent = t(passo === 'gen' ? 'cad_comecar' : 'cad_continuar');
+    go.disabled = false;
+  }
+  const jaTem = document.getElementById('cadJaTem');
+  if(jaTem) jaTem.hidden = passo !== 'nome';
+  const sair = document.getElementById('cadSair');
+  if(sair) sair.hidden = !logado || ['seg', 'cel', 'cod'].indexOf(passo) < 0;
+  const txt = document.getElementById('cadSegTxt');
+  if(txt) txt.textContent = t(CAD.velha ? 'cad_seg_velha' : 'cad_seg_texto');
+  gate.querySelectorAll('#authPaineis .auth-error').forEach(e=>{ e.textContent = ''; });
+  if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)){
+    const primeiro = gate.querySelector('.cad-passo:not([hidden]) input, .cad-passo:not([hidden]) select');
+    if(primeiro) setTimeout(()=>{ try{ primeiro.focus(); }catch(e){} }, 60);
+  }
+  gate.scrollTop = 0;
+}
+/* as telas: início (criar conta ou entrar), criar conta (etapa por etapa), entrar, entrar pelo celular e recuperar */
 function portaoHtml(){
   const esc = chatListEscape;
   const ordem = ({en: 'mda', ja: 'amd', zh: 'amd', ko: 'amd'})[currentLang] || 'dma';
@@ -15154,21 +15339,69 @@ function portaoHtml(){
   const olho = id=>`<button type="button" class="auth-olho" data-olho="${id}" aria-pressed="false" aria-label="${esc(t('cad_ver'))}" title="${esc(t('cad_ver'))}">${ICONE_OLHO}</button>`;
   const semCorrecao = 'autocapitalize="none" autocorrect="off" spellcheck="false"';
   return `
-  <section class="auth-painel" data-painel="criar">
-    <div class="auth-title">${esc(t('cad_titulo'))}</div>
+  <section class="auth-painel" data-painel="inicio">
+    <p class="auth-boas">${esc(t('ini_boas'))}</p>
+    <button class="auth-go" type="button" data-ir="criar">${esc(t('cad_titulo'))}</button>
+    <button class="auth-alt" type="button" data-ir="entrar">${esc(t('auth_login_tab'))}</button>
+  </section>
+  <section class="auth-painel" data-painel="criar" hidden>
+    <div class="cad-topo">
+      <button type="button" class="cad-volta" id="cadVolta" aria-label="${esc(t('rec_voltar'))}" title="${esc(t('rec_voltar'))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="cad-barra" role="progressbar" aria-valuemin="1" aria-valuemax="${CAD_PASSOS.length}" id="cadBarraBox"><i id="cadBarra"></i></div>
+      <span class="cad-n" id="cadN"></span>
+    </div>
+    <div class="cad-passo" data-cad="nome">
+      <label class="cad-q" for="cadNome">${esc(t('cad_q_nome'))}</label>
+      <input class="auth-input" id="cadNome" type="text" maxlength="20" autocomplete="username" ${semCorrecao} placeholder="${esc(t('cad_nome'))}" aria-describedby="cadNomeDica">
+      <p class="auth-dica" id="cadNomeDica" aria-live="polite">${esc(t('cad_nome_dica'))}</p>
+    </div>
+    <div class="cad-passo" data-cad="senha" hidden>
+      <label class="cad-q" for="cadSenha">${esc(t('cad_q_senha'))}</label>
+      <div class="auth-senha"><input class="auth-input" id="cadSenha" type="password" maxlength="100" autocomplete="new-password" placeholder="${esc(t('cad_senha'))}" aria-describedby="cadSenhaDica">${olho('cadSenha')}</div>
+      <p class="auth-dica" id="cadSenhaDica">${esc(t('cad_senha_dica'))}</p>
+    </div>
+    <div class="cad-passo" data-cad="conf" hidden>
+      <label class="cad-q" for="cadSenha2">${esc(t('cad_q_conf'))}</label>
+      <div class="auth-senha"><input class="auth-input" id="cadSenha2" type="password" maxlength="100" autocomplete="new-password" placeholder="${esc(t('cad_senha'))}" aria-describedby="cadConfDica">${olho('cadSenha2')}</div>
+      <p class="auth-dica" id="cadConfDica">${esc(t('cad_conf_dica'))}</p>
+    </div>
+    <div class="cad-passo" data-cad="seg" hidden>
+      <div class="cad-q">${esc(t('cad_q_seg'))}</div>
+      <p class="auth-texto" id="cadSegTxt">${esc(t('cad_seg_texto'))}</p>
+      <input class="auth-input" id="cadEmail" type="email" inputmode="email" autocomplete="email" maxlength="120" ${semCorrecao} placeholder="${esc(t('seg_email_ph'))}" aria-label="${esc(t('seg_email_ph'))}">
+      <button class="auth-go" id="cadEmailGo" type="button">${esc(t('rec_pedir'))}</button>
+      <div class="auth-or"><span>${esc(t('auth_or'))}</span></div>
+      <button class="auth-google" id="cadGoogle" type="button">${ICONE_GOOGLE}<span>${esc(t('cad_google'))}</span></button>
+      <button class="auth-alt" id="cadCelBtn" type="button">${ICONE_CELULAR}<span>${esc(t('cad_cel_btn'))}</span></button>
+      <p class="auth-dica cad-obrig">${esc(t('cad_seg_obrig'))}</p>
+    </div>
+    <div class="cad-passo" data-cad="cel" hidden>
+      <label class="cad-q" for="cadCel">${esc(t('cad_q_cel'))}</label>
+      <div class="auth-cel">${seletorDePais('cadPais')}<input class="auth-input" id="cadCel" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" placeholder="${esc(t('cad_cel_ph'))}"></div>
+      <p class="auth-dica">${esc(t('cad_cel_dica'))}</p>
+      <button class="auth-go" id="cadCelGo" type="button">${esc(t('cad_cel_mandar'))}</button>
+      <button type="button" class="auth-link auth-esqueci" id="cadUsarEmail">${esc(t('cad_usar_email'))}</button>
+    </div>
+    <div class="cad-passo" data-cad="cod" hidden>
+      <label class="cad-q" for="cadCodigo">${esc(t('cad_q_cod'))}</label>
+      <p class="auth-ok" id="cadCodTxt" aria-live="polite"></p>
+      <input class="auth-input auth-codigo" id="cadCodigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="${esc(t('rec_codigo_ph'))}" aria-label="${esc(t('rec_codigo_ph'))}">
+      <button class="auth-go" id="cadCodGo" type="button">${esc(t('seg_confirmar'))}</button>
+      <button type="button" class="auth-link auth-esqueci" id="cadCodOutro">${esc(t('rec_outro'))}</button>
+    </div>
+    <div class="cad-passo" data-cad="nasc" hidden>
+      <span class="cad-q" id="cadNascRot">${esc(t('cad_q_nasc'))}</span>
+      <div class="auth-nasc" role="group" aria-labelledby="cadNascRot">${ordem.split('').map(k=>sel[k]).join('')}</div>
+    </div>
+    <div class="cad-passo" data-cad="gen" hidden>
+      <span class="cad-q" id="cadGenRot">${esc(t('cad_genero'))}</span>
+      <div class="auth-gen cad-gen" id="cadGen" role="group" aria-labelledby="cadGenRot">${['menino', 'menina'].map(g=>`<button type="button" data-g="${g}" aria-pressed="false"><i class="auth-gen-boneco"></i><span>${esc(t('cad_' + g))}</span></button>`).join('')}</div>
+    </div>
     <p class="auth-error" role="alert"></p>
-    <span class="auth-rot" id="cadNascRot">${esc(t('cad_nasc'))}</span>
-    <div class="auth-nasc" role="group" aria-labelledby="cadNascRot">${ordem.split('').map(k=>sel[k]).join('')}</div>
-    <label class="auth-rot" for="cadNome">${esc(t('cad_nome'))}</label>
-    <input class="auth-input" id="cadNome" type="text" maxlength="20" autocomplete="username" ${semCorrecao} aria-describedby="cadNomeDica">
-    <p class="auth-dica" id="cadNomeDica" aria-live="polite">${esc(t('cad_nome_dica'))}</p>
-    <label class="auth-rot" for="cadSenha">${esc(t('cad_senha'))}</label>
-    <div class="auth-senha"><input class="auth-input" id="cadSenha" type="password" maxlength="100" autocomplete="new-password" aria-describedby="cadSenhaDica">${olho('cadSenha')}</div>
-    <p class="auth-dica" id="cadSenhaDica">${esc(t('cad_senha_dica'))}</p>
-    <span class="auth-rot" id="cadGenRot">${esc(t('cad_genero'))}</span>
-    <div class="auth-gen" id="cadGen" role="group" aria-labelledby="cadGenRot">${['menino', 'menina'].map(g=>`<button type="button" data-g="${g}" aria-pressed="false"><i class="auth-gen-boneco"></i><span>${esc(t('cad_' + g))}</span></button>`).join('')}</div>
-    <button class="auth-go" id="cadGo" type="button">${esc(t('cad_titulo'))}</button>
-    <p class="auth-troca">${esc(t('cad_ja_tem'))} <button type="button" class="auth-link" data-ir="entrar">${esc(t('auth_login_tab'))}</button></p>
+    <button class="auth-go" id="cadGo" type="button">${esc(t('cad_continuar'))}</button>
+    <p class="auth-troca" id="cadJaTem">${esc(t('cad_ja_tem'))} <button type="button" class="auth-link" data-ir="entrar">${esc(t('auth_login_tab'))}</button></p>
+    <button type="button" class="auth-link auth-voltar" id="cadSair" hidden>${esc(t('cad_sair'))}</button>
+    <div id="cadRecaptcha"></div>
   </section>
   <section class="auth-painel" data-painel="entrar" hidden>
     <div class="auth-title">${esc(t('auth_login_tab'))}</div>
@@ -15176,8 +15409,26 @@ function portaoHtml(){
     <input class="auth-input" id="authUser" type="text" autocomplete="username" ${semCorrecao} placeholder="${esc(t('ent_user_ph'))}" aria-label="${esc(t('ent_user_ph'))}">
     <div class="auth-senha"><input class="auth-input" id="authPass" type="password" autocomplete="current-password" placeholder="${esc(t('auth_password_ph'))}" aria-label="${esc(t('auth_password_ph'))}">${olho('authPass')}</div>
     <button class="auth-go" id="authGo" type="button">${esc(t('auth_login_tab'))}</button>
-    <button type="button" class="auth-link auth-esqueci" data-ir="esqueci">${esc(t('ent_esqueci'))}</button>
+    <button class="auth-alt" type="button" data-ir="esqueci">${ICONE_CARTA}<span>${esc(t('ent_codigo_email'))}</span></button>
+    <button class="auth-alt" type="button" data-ir="celular">${ICONE_CELULAR}<span>${esc(t('cel_titulo'))}</span></button>
     <p class="auth-troca">${esc(t('cad_nao_tem'))} <button type="button" class="auth-link" data-ir="criar">${esc(t('cad_titulo'))}</button></p>
+  </section>
+  <section class="auth-painel" data-painel="celular" hidden>
+    <div class="auth-title">${esc(t('cel_titulo'))}</div>
+    <div data-cel="1">
+      <div class="auth-cel">${seletorDePais('celPais')}<input class="auth-input" id="celNum" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" placeholder="${esc(t('cad_cel_ph'))}" aria-label="${esc(t('cad_cel_ph'))}"></div>
+      <p class="auth-error" role="alert"></p>
+      <button class="auth-go" id="celMandar" type="button">${esc(t('cad_cel_mandar'))}</button>
+    </div>
+    <div data-cel="2" hidden>
+      <p class="auth-ok" id="celTxt" aria-live="polite"></p>
+      <input class="auth-input auth-codigo" id="celCodigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="${esc(t('rec_codigo_ph'))}" aria-label="${esc(t('rec_codigo_ph'))}">
+      <p class="auth-error" role="alert"></p>
+      <button class="auth-go" id="celEntrar" type="button">${esc(t('auth_login_tab'))}</button>
+      <button type="button" class="auth-link auth-esqueci" id="celOutro">${esc(t('rec_outro'))}</button>
+    </div>
+    <button type="button" class="auth-link auth-voltar" data-ir="entrar">${esc(t('rec_voltar'))}</button>
+    <div id="celRecaptcha"></div>
   </section>
   <section class="auth-painel" data-painel="esqueci" hidden>
     <div class="auth-title">${esc(t('rec_titulo'))}</div>
@@ -15194,6 +15445,7 @@ function portaoHtml(){
       <button class="auth-go" id="recTrocar" type="button">${esc(t('rec_trocar'))}</button>
       <button type="button" class="auth-link auth-esqueci" id="recOutro">${esc(t('rec_outro'))}</button>
     </div>
+    <button type="button" class="auth-link auth-esqueci" data-ir="celular">${esc(t('cel_titulo'))}</button>
     <button type="button" class="auth-link auth-voltar" data-ir="entrar">${esc(t('rec_voltar'))}</button>
   </section>`;
 }
@@ -15201,8 +15453,10 @@ function authPainel(nome){
   const gate = document.getElementById('authGate');
   if(!gate) return;
   gate.querySelectorAll('.auth-painel').forEach(p=>{ p.hidden = p.dataset.painel !== nome; });
+  gate.dataset.logado = (nome === 'criar' && FIREBASE_ENABLED && fbAuth().currentUser) ? '1' : '';
   const extra = document.getElementById('authExtra');
-  if(extra) extra.hidden = nome === 'esqueci';
+  if(extra) extra.hidden = nome !== 'entrar';   // o "Entrar com o Google" fica só na tela de entrar (no cadastro ele aparece na etapa da segurança)
+  if(nome === 'criar' && !(FIREBASE_ENABLED && fbAuth().currentUser)) cadastroIr('nome');
   gate.querySelectorAll('.auth-painel .auth-error').forEach(e=>{ e.textContent = ''; });
   if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)){
     const primeiro = gate.querySelector('.auth-painel:not([hidden]) input:not([hidden])');
@@ -15211,7 +15465,7 @@ function authPainel(nome){
 }
 /* a mensagem de erro (ou de aviso) da tela que está aberta */
 function erroPortao(msg){
-  const el = document.querySelector('#authGate .auth-painel:not([hidden]) .auth-error');
+  const el = Array.from(document.querySelectorAll('#authGate .auth-painel:not([hidden]) .auth-error')).find(e=>!e.closest('[hidden]'));
   if(el) el.textContent = msg || '';
 }
 /* depois de entrar: recarrega a página do jeito que o Koda sempre fez */
@@ -15235,7 +15489,7 @@ async function aplicarCadastroPendente(user){
     pzSalvarHeroi(cfg);
     pzSalvarAgente({cfg: Object.assign({}, cfg), nome: '', balao: 'branco', oculto: false});
     if(/^\d{4}-\d{2}-\d{2}$/.test(p.nasc || '')) localStorage.setItem('koda_nascimento', p.nasc);
-    localStorage.setItem(PROTEGER_KEY, user.uid);
+    if(typeof p.seg === 'string' && p.seg) localStorage.setItem('koda_seguranca', p.seg.slice(0, 130));   // o e-mail de segurança confirmado no cadastro
     localStorage.removeItem(CADASTRO_KEY);
     sessionStorage.setItem('jogodromo_synced', '1');   // conta novinha: não tem nada no servidor pra baixar
   }catch(e){}
@@ -15257,14 +15511,28 @@ function renderAuthForm(){
     inp.type = ver ? 'text' : 'password';
     b.setAttribute('aria-pressed', String(ver));
   }));
-  authPainel(loadKnownAccounts().length ? 'entrar' : 'criar');
+  authPainel(loadKnownAccounts().length ? 'entrar' : 'inicio');
   /* o bonequinho de cada um (o desenho do personagem só fica pronto depois que a página inteira carrega) */
   setTimeout(()=>{ try{ box.querySelectorAll('#cadGen button').forEach(b=>{ b.querySelector('.auth-gen-boneco').outerHTML = pzCorpo(pzCodigo(Object.assign(pzNorm(PZ_PADRAO), {genero: b.dataset.g}))); }); }catch(e){} }, 0);
 
-  /* ---------- criar conta ---------- */
-  const cad = {genero: null, livre: null, seq: 0, timer: null};
+  /* ---------- criar conta: uma etapa de cada vez ----------
+     nome → senha → senha de novo → (a conta é criada) → e-mail, Google ou celular (obrigatório) → código → nascimento → menino/menina */
+  const cad = {genero: null, livre: null, seq: 0, timer: null, modo: '', conf: null, verif: null, num: '', email: '', soltar: null};
   const dica = $('cadNomeDica');
   const pintarDica = (txt, tipo)=>{ dica.textContent = txt; dica.className = 'auth-dica' + (tipo ? ' ' + tipo : ''); };
+  const checarNome = nome=>new Promise(res=>{
+    clearTimeout(cad.timer);
+    const seq = ++cad.seq;
+    cad.timer = setTimeout(async ()=>{
+      const j = await contaPedir('/conta/livre', {usuario: nome});
+      if(seq !== cad.seq){ res(null); return; }
+      if(typeof j.livre !== 'boolean'){ cad.livre = null; res(null); return; }   // servidor sem essa parte ainda: a checagem fica pra hora de criar
+      cad.livre = j.livre ? true : (j.motivo === 'palavra' ? 'palavra' : false);
+      if(j.livre) pintarDica(t('cad_nome_ok'), 'ok');
+      else pintarDica(t(j.motivo === 'palavra' ? 'cad_nome_feio' : j.motivo === 'formato' ? 'cad_nome_formato' : 'cad_nome_usado'), 'ruim');
+      res(cad.livre);
+    }, 450);
+  });
   $('cadNome').addEventListener('input', ()=>{
     const nome = $('cadNome').value.trim();
     clearTimeout(cad.timer);
@@ -15272,14 +15540,7 @@ function renderAuthForm(){
     if(!nome){ pintarDica(t('cad_nome_dica')); return; }
     if(!nomeUsuarioValido(nome)){ pintarDica(nome.length >= 3 || /[^a-z0-9_]/i.test(nome) ? t('cad_nome_formato') : t('cad_nome_dica'), nome.length >= 3 || /[^a-z0-9_]/i.test(nome) ? 'ruim' : ''); return; }
     pintarDica(t('cad_nome_dica'));
-    const seq = cad.seq;
-    cad.timer = setTimeout(async ()=>{
-      const j = await contaPedir('/conta/livre', {usuario: nome});
-      if(seq !== cad.seq || typeof j.livre !== 'boolean') return;   // servidor sem essa parte ainda: a checagem fica pra hora de criar
-      cad.livre = j.livre ? true : (j.motivo === 'palavra' ? 'palavra' : false);
-      if(j.livre) pintarDica(t('cad_nome_ok'), 'ok');
-      else pintarDica(t(j.motivo === 'palavra' ? 'cad_nome_feio' : j.motivo === 'formato' ? 'cad_nome_formato' : 'cad_nome_usado'), 'ruim');
-    }, 450);
+    checarNome(nome);
   });
   $('cadGen').addEventListener('click', e=>{
     const b = e.target.closest('button[data-g]'); if(!b) return;
@@ -15287,38 +15548,251 @@ function renderAuthForm(){
     $('cadGen').querySelectorAll('button').forEach(x=>{ x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
     playSound('click');
   });
-  const criar = async ()=>{
-    erroPortao('');
-    const d = +$('cadDia').value, m = +$('cadMes').value, a = +$('cadAno').value;
-    const nasc = new Date(a, m - 1, d);
-    if(!d || !m || !a || nasc.getMonth() !== m - 1 || nasc > new Date()){ erroPortao(t('cad_falta_nasc')); return; }
-    const nome = $('cadNome').value.trim();
-    if(!nomeUsuarioValido(nome)){ erroPortao(t('cad_nome_formato')); $('cadNome').focus(); return; }
-    if(cad.livre === false){ erroPortao(t('cad_nome_usado')); return; }
-    if(cad.livre === 'palavra'){ erroPortao(t('cad_nome_feio')); return; }
-    const senha = $('cadSenha').value;
-    if(senha.length < 6){ erroPortao(t('auth_error_weak_password')); return; }
-    if(senha.trim().toLowerCase() === nome.toLowerCase()){ erroPortao(t('cad_senha_nome')); return; }
-    if(!cad.genero){ erroPortao(t('cad_falta_genero')); return; }
+  /* terminou: o que foi escolhido fica guardado e a entrada da conta (initAuth) segue daqui */
+  const cadTerminar = ()=>{
+    const fim = CAD.aoFim, soltar = cad.soltar;
+    CAD.aoFim = null; cad.soltar = null;
+    if(fim) fim();
+    if(soltar) soltar();
+  };
+  /* a segurança ficou pronta (e-mail confirmado, Google ou celular ligados) */
+  const segurancaPronta = mascara=>{
+    playSound('buy');
+    toast(t('seg_ok'));
+    if(CAD.velha){
+      /* conta de antes: só faltava isso */
+      if(mascara){ try{ localStorage.setItem('koda_seguranca', String(mascara).slice(0, 130)); }catch(e){} try{ syncToServer(); }catch(e){} }
+      CAD.velha = false;
+      try{ localStorage.removeItem(CADASTRO_KEY); }catch(e){}
+      cadTerminar();
+      return;
+    }
+    cadastroGuardar({etapa: 'nasc', seg: mascara || ''});
+    cadastroIr('nasc');
+  };
+  const criarConta = async ()=>{
+    const nome = $('cadNome').value.trim(), senha = $('cadSenha').value;
     const btn = $('cadGo');
-    btn.disabled = true;
-    const pad = n=>String(n).padStart(2, '0');
-    try{ localStorage.setItem(CADASTRO_KEY, JSON.stringify({nome, genero: cad.genero, nasc: a + '-' + pad(m) + '-' + pad(d)})); }catch(e){}
+    btn.disabled = true; btn.textContent = t('cad_criando');
+    try{ localStorage.setItem(CADASTRO_KEY, JSON.stringify({nome, etapa: 'seg'})); }catch(e){}
+    cad.soltar = portaoSegurar();
     try{
-      /* daqui pra frente quem cuida é a entrada da conta (initAuth): ela aplica o que foi escolhido e fecha esta tela */
       await fbAuth().createUserWithEmailAndPassword(emailDeUsuario(nome), senha);
       rememberAccount(emailDeUsuario(nome), nome, null, 'password');
+      CAD.velha = false;
+      cadastroIr('seg');
     }catch(e){
       try{ localStorage.removeItem(CADASTRO_KEY); }catch(_){}
-      btn.disabled = false;
+      const s0 = cad.soltar; cad.soltar = null; if(s0) s0();
+      btn.disabled = false; btn.textContent = t('cad_continuar');
       const cod = e && e.code;
-      erroPortao(cod === 'auth/email-already-in-use' ? t('cad_nome_usado')
-        : (cod === 'auth/operation-not-allowed' || cod === 'auth/admin-restricted-operation') ? t('cad_bloqueado')
-        : firebaseErrorMessage(e));
+      if(cod === 'auth/email-already-in-use'){ cadastroIr('nome'); pintarDica(t('cad_nome_usado'), 'ruim'); erroPortao(t('cad_nome_usado')); return; }
+      erroPortao((cod === 'auth/operation-not-allowed' || cod === 'auth/admin-restricted-operation') ? t('cad_bloqueado') : firebaseErrorMessage(e));
     }
   };
-  $('cadGo').addEventListener('click', criar);
-  enter('cadSenha', criar);
+  /* o botão "Continuar" das etapas que não têm botão próprio */
+  const continuar = async ()=>{
+    erroPortao('');
+    const p = CAD.passo;
+    if(p === 'nome'){
+      const nome = $('cadNome').value.trim();
+      if(!nomeUsuarioValido(nome)){ erroPortao(t('cad_nome_formato')); $('cadNome').focus(); return; }
+      if(cad.livre === null){ $('cadGo').disabled = true; await checarNome(nome); $('cadGo').disabled = false; }
+      if(cad.livre === false){ erroPortao(t('cad_nome_usado')); return; }
+      if(cad.livre === 'palavra'){ erroPortao(t('cad_nome_feio')); return; }
+      playSound('click'); cadastroIr('senha');
+    } else if(p === 'senha'){
+      const senha = $('cadSenha').value;
+      if(senha.length < 6){ erroPortao(t('auth_error_weak_password')); return; }
+      if(senha.trim().toLowerCase() === $('cadNome').value.trim().toLowerCase()){ erroPortao(t('cad_senha_nome')); return; }
+      playSound('click'); $('cadSenha2').value = ''; cadastroIr('conf');
+    } else if(p === 'conf'){
+      if($('cadSenha2').value !== $('cadSenha').value){ erroPortao(t('cad_conf_erro')); $('cadSenha2').select(); return; }
+      playSound('click'); criarConta();
+    } else if(p === 'nasc'){
+      const d = +$('cadDia').value, m = +$('cadMes').value, a = +$('cadAno').value;
+      const nasc = new Date(a, m - 1, d);
+      if(!d || !m || !a || nasc.getMonth() !== m - 1 || nasc > new Date()){ erroPortao(t('cad_falta_nasc')); return; }
+      const pad = n=>String(n).padStart(2, '0');
+      cadastroGuardar({etapa: 'gen', nasc: a + '-' + pad(m) + '-' + pad(d)});
+      playSound('click'); cadastroIr('gen');
+    } else if(p === 'gen'){
+      if(!cad.genero){ erroPortao(t('cad_falta_genero')); return; }
+      const g = cadastroGuardar({genero: cad.genero});
+      delete g.etapa;
+      try{ localStorage.setItem(CADASTRO_KEY, JSON.stringify(g)); }catch(e){}
+      $('cadGo').disabled = true;
+      cadTerminar();
+    }
+  };
+  $('cadGo').addEventListener('click', continuar);
+  ['cadNome', 'cadSenha', 'cadSenha2'].forEach(id=>enter(id, continuar));
+  $('cadVolta').addEventListener('click', ()=>{
+    playSound('click');
+    const p = CAD.passo;
+    if(p === 'nome') authPainel('inicio');
+    else if(p === 'senha') cadastroIr('nome');
+    else if(p === 'conf') cadastroIr('senha');
+    else if(p === 'cel') cadastroIr('seg');
+    else if(p === 'cod') cadastroIr(cad.modo === 'sms' ? 'cel' : 'seg');
+    else if(p === 'gen') cadastroIr('nasc');
+  });
+  /* sair no meio (escreveu o nome errado, quer outra conta...): a conta fica sem terminar e volta pro início */
+  $('cadSair').addEventListener('click', async ()=>{
+    playSound('click');
+    try{ localStorage.removeItem(CADASTRO_KEY); }catch(e){}
+    CAD.velha = false;
+    try{ await fbAuth().signOut(); }catch(e){}
+    cadTerminar();
+    authPainel('inicio');
+  });
+  /* e-mail: manda o código (o mesmo do "Proteger conta") */
+  const mandarEmail = async ()=>{
+    const email = $('cadEmail').value.trim();
+    erroPortao('');
+    if(!/^[^\s@<>"']{1,64}@[^\s@<>"']+\.[a-z]{2,24}$/i.test(email)){ erroPortao(t('seg_email_invalido')); return; }
+    const u = fbAuth().currentUser;
+    if(!u){ erroPortao(t('cod_indisponivel')); return; }
+    const btn = $('cadEmailGo');
+    btn.disabled = true;
+    let token = '';
+    try{ token = await u.getIdToken(); }catch(e){}
+    const j = await contaPedir('/conta/seguranca', {email, lang: currentLang}, token);
+    btn.disabled = false;
+    if(!j.ok){ erroPortao(msgDeConta(j)); return; }
+    cad.modo = 'email'; cad.email = email;
+    $('cadCodTxt').textContent = t('seg_conf_texto', {email: j.mascara || ''});
+    $('cadCodigo').value = '';
+    cadastroIr('cod');
+  };
+  $('cadEmailGo').addEventListener('click', mandarEmail);
+  enter('cadEmail', mandarEmail);
+  /* Google: liga a conta do Google nesta conta (depois dá pra entrar com ele também) */
+  $('cadGoogle').addEventListener('click', async ()=>{
+    erroPortao('');
+    const u = fbAuth().currentUser;
+    if(!u) return;
+    const btn = $('cadGoogle');
+    btn.disabled = true;
+    try{
+      await u.linkWithPopup(googleProvider());
+      segurancaPronta('');
+    }catch(e){
+      const c = (e && e.code) || '';
+      if(!/popup-closed|cancelled-popup/.test(c)) erroPortao(/credential-already-in-use|email-already-in-use|account-exists/.test(c) ? t('google_ja_usado') : isStandaloneMode() ? t('google_standalone_error') : firebaseErrorMessage(e));
+    }finally{ btn.disabled = false; }
+  });
+  /* celular: código por SMS (é o próprio Firebase que manda) */
+  $('cadCelBtn').addEventListener('click', ()=>{ playSound('click'); cadastroIr('cel'); });
+  $('cadUsarEmail').addEventListener('click', ()=>{ playSound('click'); cadastroIr('seg'); });
+  const verificador = (caixa, guardar)=>{
+    if(guardar.verif) return guardar.verif;
+    guardar.verif = new firebase.auth.RecaptchaVerifier(caixa, {size: 'invisible'});
+    return guardar.verif;
+  };
+  const limparVerificador = guardar=>{ try{ if(guardar.verif) guardar.verif.clear(); }catch(e){} guardar.verif = null; const c = $(guardar === cad ? 'cadRecaptcha' : 'celRecaptcha'); if(c) c.innerHTML = ''; };
+  const mandarSms = async ()=>{
+    erroPortao('');
+    const num = celularCompleto($('cadPais').value, $('cadCel').value);
+    if(!num){ erroPortao(t('cel_invalido')); return; }
+    const u = fbAuth().currentUser;
+    if(!u) return;
+    const btn = $('cadCelGo');
+    btn.disabled = true;
+    try{
+      fbAuth().languageCode = currentLang;
+      cad.conf = await u.linkWithPhoneNumber(num, verificador('cadRecaptcha', cad));
+      cad.modo = 'sms'; cad.num = num;
+      $('cadCodTxt').textContent = t('cad_sms_texto', {num: celularEscondido(num)});
+      $('cadCodigo').value = '';
+      cadastroIr('cod');
+    }catch(e){ erroPortao(msgDeCelular(e)); limparVerificador(cad); }
+    finally{ btn.disabled = false; }
+  };
+  $('cadCelGo').addEventListener('click', mandarSms);
+  enter('cadCel', mandarSms);
+  /* o código que chegou (no e-mail ou no SMS) */
+  $('cadCodigo').addEventListener('input', ()=>{ const v = $('cadCodigo').value.replace(/\D/g, '').slice(0, 6); if(v !== $('cadCodigo').value) $('cadCodigo').value = v; });
+  const confirmarCodigo = async ()=>{
+    erroPortao('');
+    const codigo = $('cadCodigo').value.replace(/\D/g, '');
+    if(codigo.length !== 6){ erroPortao(t('rec_codigo_ph')); $('cadCodigo').focus(); return; }
+    const u = fbAuth().currentUser;
+    if(!u) return;
+    const btn = $('cadCodGo');
+    btn.disabled = true;
+    try{
+      if(cad.modo === 'sms'){
+        if(!cad.conf){ cadastroIr('cel'); return; }
+        await cad.conf.confirm(codigo);
+        limparVerificador(cad);
+        segurancaPronta('');
+      } else {
+        let token = '';
+        try{ token = await u.getIdToken(); }catch(e){}
+        const j = await contaPedir('/conta/seguranca-confirma', {codigo}, token);
+        if(!j.ok){ erroPortao(msgDeConta(j)); return; }
+        segurancaPronta(j.mascara || '');
+      }
+    }catch(e){ erroPortao(msgDeCelular(e)); }
+    finally{ btn.disabled = false; }
+  };
+  $('cadCodGo').addEventListener('click', confirmarCodigo);
+  enter('cadCodigo', confirmarCodigo);
+  $('cadCodOutro').addEventListener('click', ()=>{ playSound('click'); if(cad.modo === 'sms'){ limparVerificador(cad); mandarSms(); } else { $('cadEmail').value = cad.email; mandarEmail(); } });
+
+  /* ---------- entrar pelo celular (o celular tem que estar ligado numa conta) ---------- */
+  const cel = {conf: null, verif: null, num: ''};
+  const celPasso = n=>{ gate.querySelectorAll('[data-cel]').forEach(el=>{ el.hidden = el.dataset.cel !== String(n); }); erroPortao(''); };
+  const celMandar = async ()=>{
+    erroPortao('');
+    const num = celularCompleto($('celPais').value, $('celNum').value);
+    if(!num){ erroPortao(t('cel_invalido')); return; }
+    const btn = $('celMandar');
+    btn.disabled = true;
+    try{
+      fbAuth().languageCode = currentLang;
+      cel.conf = await fbAuth().signInWithPhoneNumber(num, verificador('celRecaptcha', cel));
+      cel.num = num;
+      $('celTxt').textContent = t('cad_sms_texto', {num: celularEscondido(num)});
+      $('celCodigo').value = '';
+      celPasso(2);
+      setTimeout(()=>{ try{ $('celCodigo').focus(); }catch(e){} }, 60);
+    }catch(e){ erroPortao(msgDeCelular(e)); limparVerificador(cel); }
+    finally{ btn.disabled = false; }
+  };
+  $('celMandar').addEventListener('click', celMandar);
+  enter('celNum', celMandar);
+  $('celCodigo').addEventListener('input', ()=>{ const v = $('celCodigo').value.replace(/\D/g, '').slice(0, 6); if(v !== $('celCodigo').value) $('celCodigo').value = v; });
+  const celEntrar = async ()=>{
+    erroPortao('');
+    const codigo = $('celCodigo').value.replace(/\D/g, '');
+    if(codigo.length !== 6 || !cel.conf){ erroPortao(t('rec_codigo_ph')); return; }
+    const btn = $('celEntrar');
+    btn.disabled = true;
+    const soltar = portaoSegurar();
+    try{
+      const r = await cel.conf.confirm(codigo);
+      if(r.additionalUserInfo && r.additionalUserInfo.isNewUser){
+        /* esse celular não estava em conta nenhuma: o Firebase criou uma vazia, que é apagada na hora */
+        try{ await r.user.delete(); }catch(e){ try{ await fbAuth().signOut(); }catch(_){} }
+        soltar(); btn.disabled = false;
+        celPasso(1); erroPortao(t('cel_sem_conta'));
+        return;
+      }
+      limparVerificador(cel);
+      soltar();
+      await entrouPorSenha(r.user.email);
+    }catch(e){
+      soltar();
+      recarregandoPorLogin = false;
+      btn.disabled = false;
+      erroPortao(msgDeCelular(e));
+    }
+  };
+  $('celEntrar').addEventListener('click', celEntrar);
+  enter('celCodigo', celEntrar);
+  $('celOutro').addEventListener('click', ()=>{ playSound('click'); limparVerificador(cel); celPasso(1); });
 
   /* ---------- entrar (nome de usuário ou e-mail) ---------- */
   const entrar = async ()=>{
@@ -15432,21 +15906,7 @@ function renderAuthForm(){
     }
   });
 }
-/* ---------- proteger a conta: e-mail de segurança, confirmado com um código ---------- */
-function iniciarProtecao(user){
-  let pend = null;
-  try{ pend = localStorage.getItem(PROTEGER_KEY); }catch(e){}
-  if(!pend || !user || pend !== user.uid) return;
-  try{ localStorage.removeItem(PROTEGER_KEY); }catch(e){}
-  if(!ehContaDeNome(user.email)) return;
-  /* espera as outras janelas que aparecem ao entrar (prêmio do dia, aulas...) fecharem */
-  let vezes = 0;
-  const tentar = ()=>{
-    if(document.querySelector('.rot-bg.show, .onb-bg, #kodaSplash, .tut-bg, .kbs-dlg-bg') && ++vezes < 90){ setTimeout(tentar, 800); return; }
-    abrirProtecao(user);
-  };
-  quandoAIntroSair(()=>setTimeout(tentar, 900));
-}
+/* ---------- proteger a conta (no perfil): trocar o e-mail de segurança, confirmado com um código ---------- */
 function abrirProtecao(user){
   if(!user || document.getElementById('segBg')) return;
   const esc = chatListEscape;
@@ -15849,6 +16309,10 @@ async function initAuth(){
       introReady();
       return;
     }
+    if(esperaDoPortao) await esperaDoPortao;   // criando a conta (etapa por etapa) ou entrando pelo celular: espera terminar
+    { const atual = fbAuth().currentUser; if(!atual || atual.uid !== user.uid) return; }   // saiu no meio ou a conta foi apagada
+    { const pend = cadastroPendente(user); if(pend && pend.etapa) await cadastroRetomar(user, pend.etapa === 'seg' && contaProtegida(user) ? 'nasc' : pend.etapa); }   // fechou no meio do cadastro: continua de onde parou
+    { const atual = fbAuth().currentUser; if(!atual || atual.uid !== user.uid) return; }
     if(souVisitante()){ visitanteLigar(false); const fx = document.getElementById('visitanteFaixa'); if(fx) fx.remove(); }   // entrou com conta: acabou o modo visitante
     try{ aplicarFundo(); }catch(e){}
     // troca de conta no mesmo aparelho: limpa tudo que era da conta anterior e recarrega do zero
@@ -15914,7 +16378,7 @@ async function initAuth(){
     conferirConvites(); // algum amigo diferente entrou pelo meu link? (só depois de baixar os dados da conta, senão as moedas se perdem)
     abrirJogoDoLink(); // veio por um link de jogo compartilhado? entra direto nele
     iniciarBoasVindas(user); // conta nova? apelido e foto antes de tudo
-    iniciarProtecao(user);   // conta nova pelo nome de usuário? oferece o e-mail de segurança (opcional)
+    exigirSeguranca(user);   // conta pelo nome de usuário sem e-mail, Google nem celular: agora é obrigatório
   });
 }
 /* avisa a intro do Koda que o site terminou de carregar (seguro chamar várias vezes) */
