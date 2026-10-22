@@ -4879,7 +4879,41 @@
   .ugc-tipos{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
   .ugc-tipo{flex:1 0 auto;border:2px solid transparent;border-radius:999px;padding:6px 12px;background:#fff;color:inherit;font:800 .8rem 'Baloo 2',sans-serif;cursor:pointer;}
   .ugc-tipo.on{border-color:#17C79E;background:#DDF7EF;}
-  .ugc-tela{height:min(50vh,440px);min-height:220px;display:flex;align-items:center;justify-content:center;}
+  .ugc-lados{display:flex;gap:6px;}
+  .ugc-lado{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 10px;border:2px solid transparent;border-radius:14px;background:#fff;color:inherit;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;min-width:0;}
+  .ugc-lado img{width:30px;height:40px;image-rendering:pixelated;flex:none;}
+  .ugc-lado.on{border-color:#17C79E;background:#DDF7EF;}
+  .ugc-tela{height:min(44vh,420px);min-height:200px;display:flex;align-items:center;justify-content:center;}
+  /* recortar a foto da galeria */
+  .ugc-foto{position:fixed;inset:0;z-index:98;background:#0E2621;color:#fff;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);}
+  .ugc-foto .ugc-ed-topo{color:#13312A;}
+  .ugc-foto-palco{flex:1;position:relative;min-height:0;overflow:hidden;touch-action:none;}
+  .ugc-foto-img{position:absolute;}
+  .ugc-foto-src{display:block;width:100%;height:100%;}
+  .ugc-foto-sel{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.55);cursor:move;box-sizing:border-box;}
+  .ugc-foto-sel i{position:absolute;width:26px;height:26px;border-radius:50%;background:#17C79E;border:3px solid #fff;box-sizing:border-box;}
+  .ugc-foto-sel .nw{left:-13px;top:-13px;cursor:nwse-resize;} .ugc-foto-sel .ne{right:-13px;top:-13px;cursor:nesw-resize;}
+  .ugc-foto-sel .sw{left:-13px;bottom:-13px;cursor:nesw-resize;} .ugc-foto-sel .se{right:-13px;bottom:-13px;cursor:nwse-resize;}
+  .ugc-foto-baixo{display:flex;gap:12px;align-items:center;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:#13312A;}
+  .ugc-foto-baixo canvas{flex:none;max-height:84px;max-width:110px;image-rendering:pixelated;border-radius:8px;background:repeating-conic-gradient(#3a5a52 0 25%,#2c4a43 0 50%) 0 0/12px 12px;}
+  .ugc-foto .ugc-dica{color:#d8efe8;opacity:.9;}
+  .ugc-ades{display:none;flex-direction:column;align-items:center;gap:6px;}
+  .ugc-ed.com-adesivo .ugc-ades{display:flex;}
+  .ugc-ed.com-adesivo .ugc-ferrs{display:none;}
+  .ugc-ades .ugc-dica{text-align:center;}
+  .ugc-ades-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+  .ugc-ades-btns .ugc-ferr{font:800 1.3rem/1 'Baloo 2',sans-serif;}
+  .ugc-ades-fundo,.ugc-ades-ok{height:40px;border-radius:12px;padding:0 12px;border:2px solid transparent;background:#fff;color:inherit;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .ugc-ades-fundo.on{border-color:#17C79E;background:#DDF7EF;}
+  .ugc-ades-ok{background:#17C79E;color:#fff;}
+  .ugc-foto-modos{display:flex;gap:8px;justify-content:center;padding:8px 12px;}
+  .ugc-foto-modos button{border:2px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 14px;background:transparent;color:#fff;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .ugc-foto-modos button.on{background:#17C79E;border-color:#17C79E;}
+  .ugc-foto-img svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
+  .ugc-foto-img path{fill:rgba(23,199,158,.25);stroke:#fff;stroke-width:3;stroke-linejoin:round;stroke-dasharray:8 5;vector-effect:non-scaling-stroke;}
+  .ugc-foto-sel[hidden]{display:none;}
+  .ugc-foto-fundo{display:flex;align-items:center;gap:8px;margin-top:6px;font:800 .88rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .ugc-foto-fundo input{width:20px;height:20px;accent-color:#17C79E;}
   .ugc-tela canvas{touch-action:none;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#fff;cursor:crosshair;}
   .ugc-ferrs{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
   .ugc-ferr{width:40px;height:40px;border-radius:12px;border:2px solid transparent;background:#fff;font-size:1.1rem;cursor:pointer;padding:0;}
@@ -4918,6 +4952,10 @@
     .ugc-ferr{width:34px;height:34px;font-size:.95rem;}
     .ugc-ed-esq{gap:5px;padding:6px 8px 4px;}
     .ugc-tipo{padding:3px 10px;}
+    .ugc-lado img{display:none;}
+    .ugc-ades .ugc-dica{display:none;}
+    .ugc-lado{padding:3px 8px;}
+    .ugc-foto-baixo canvas{max-height:56px;}
   }
   @media (min-width:700px){
     .pz-loja{display:grid;grid-template-columns:240px minmax(0,1fr);column-gap:16px;align-items:start;}
@@ -31074,7 +31112,21 @@ var PZ_W = 22, PZ_H = 29;
      (pecasVendas/{id}_{comprador}, uma por pessoa), confere ao entrar no site e o valor cai na conta dele.
    - Desenho ofensivo: o admin apaga (botão na própria peça).
 ============================================================ */
-var UGC_TIPOS = ['roupa', 'cabeca', 'costas', 'mao'];
+var UGC_TIPOS = ['roupa', 'calca', 'cabeca', 'costas', 'mao'];   // 'roupa' = a camisa (tronco e braços)
+/* onde cada tipo pode ser pintado (colunas x0..x1 e linhas y0..y1 da grade 22 x 29; a mão tem os dois lados)
+   e a caixa onde a foto entra (a foto é recortada já do formato dela) */
+var UGC_AREA = {
+  roupa:  {partes: [[2, 19, 15, 22]], foto: [2, 19, 15, 22]},
+  calca:  {partes: [[5, 16, 21, 26]], foto: [5, 16, 21, 26]},
+  cabeca: {partes: [[0, 21, 0, 15]], foto: [3, 18, 0, 15]},
+  costas: {partes: [[0, 21, 0, 28]], foto: [0, 21, 0, 28]},
+  mao:    {partes: [[0, 6, 6, 28], [15, 21, 6, 28]], foto: [15, 21, 8, 28]}
+};
+function ugcMascara(tipo){
+  const m = new Uint8Array(PZ_W * PZ_H), a = UGC_AREA[tipo] || UGC_AREA.costas;
+  a.partes.forEach(([x0, x1, y0, y1])=>{ for(let y = y0; y <= y1; y++) for(let x = x0; x <= x1; x++) m[y * PZ_W + x] = 1; });
+  return m;
+}
 var UGC_ALF = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';   // 63 cores por peça ('.' = vazio)
 var UGC_PRECO_MAX = 10000, UGC_PARTE_CRIADOR = 0.7, UGC_MIN_PX = 8;
 var UGC_CACHE_KEY = 'koda_ugc_cache', UGC_VENDAS_PEND = 'koda_ugc_vendas_pend';
@@ -31095,29 +31147,42 @@ function ugcDecodificar(d){
   const tipo = d.tipo, cores = d.cores, px = d.px;
   if(UGC_TIPOS.indexOf(tipo) < 0 || !Array.isArray(cores) || cores.length < 1 || cores.length > 63 || typeof px !== 'string' || px.length !== PZ_W * PZ_H) return null;
   if(!cores.every(c=>typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c))) return null;
-  const arr = new Array(PZ_W * PZ_H).fill(null);
-  for(let k = 0; k < px.length; k++){
-    const ch = px[k];
-    if(ch === '.') continue;
-    const i = UGC_ALF.indexOf(ch);
-    if(i < 0 || i >= cores.length) return null;
-    arr[k] = cores[i].toUpperCase();
-  }
-  return {desenho: {tipo, px: arr}, meta: {nome: String(d.nome || '').slice(0, 24), preco: Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(d.preco) || 0))),
+  const lado = txt=>{
+    const arr = new Array(PZ_W * PZ_H).fill(null);
+    for(let k = 0; k < txt.length; k++){
+      const ch = txt[k];
+      if(ch === '.') continue;
+      const i = UGC_ALF.indexOf(ch);
+      if(i < 0 || i >= cores.length) return null;
+      arr[k] = cores[i].toUpperCase();
+    }
+    return arr;
+  };
+  const arr = lado(px);
+  if(!arr) return null;
+  /* pxC = o desenho das costas (as peças antigas não têm: de costas aparece o mesmo da frente) */
+  let arrC = null;
+  if(typeof d.pxC === 'string'){ if(d.pxC.length !== PZ_W * PZ_H) return null; arrC = lado(d.pxC); if(!arrC) return null; }
+  return {desenho: {tipo, px: arr, pxC: arrC}, meta: {nome: String(d.nome || '').slice(0, 24), preco: Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(d.preco) || 0))),
     criador: String(d.criador || ''), criadorNome: String(d.criadorNome || '').slice(0, 40), criadoEm: Number(d.criadoEm) || 0, oculto: !!d.oculto}};
 }
-/* desenho (array de cores) → {cores, px} pra guardar */
-function ugcCodificar(arr){
+/* desenho da frente e das costas (arrays de cores) → {cores, px, pxC} pra guardar (as cores são as mesmas pros dois lados) */
+function ugcCodificar(arr, arrC){
   const cores = [], idx = {};
-  let px = '';
-  for(let k = 0; k < PZ_W * PZ_H; k++){
-    const c = arr[k];
-    if(!c){ px += '.'; continue; }
-    const u = c.toUpperCase();
-    if(!(u in idx)){ if(cores.length >= 63) return null; idx[u] = cores.length; cores.push(u); }
-    px += UGC_ALF[idx[u]];
-  }
-  return {cores, px};
+  const lado = a=>{
+    let px = '';
+    for(let k = 0; k < PZ_W * PZ_H; k++){
+      const c = a && a[k];
+      if(!c){ px += '.'; continue; }
+      const u = c.toUpperCase();
+      if(!(u in idx)){ if(cores.length >= 63) return null; idx[u] = cores.length; cores.push(u); }
+      px += UGC_ALF[idx[u]];
+    }
+    return px;
+  };
+  const px = lado(arr), pxC = lado(arrC);
+  if(px === null || pxC === null) return null;
+  return {cores, px, pxC};
 }
 function ugcGuardarNoAparelho(id, d){
   try{
@@ -31150,7 +31215,7 @@ function ugcCarregar(id){
     const d = bruto && !bruto.oculto ? ugcDecodificar(bruto) : null;
     if(!d){ E.falhou.add(id); ugcChegou(id); return; }
     E.cache.set(id, d.desenho); E.meta.set(id, d.meta);
-    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, nome: bruto.nome, preco: bruto.preco, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm});
+    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, pxC: typeof bruto.pxC === 'string' ? bruto.pxC : undefined, nome: bruto.nome, preco: bruto.preco, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm});
     ugcChegou(id);
   }).catch(()=>{ E.carregando.delete(id); });   // sem internet: tenta de novo na próxima vez que precisar
 }
@@ -31212,19 +31277,19 @@ function ugcNomeRuim(nome){
   return UGC_NOMES_RUINS.some(p=>junto.indexOf(p) >= 0 || junto.replace(/ /g, '').indexOf(p.trim()) >= 0 && p.trim().length >= 4);
 }
 /* ---------- publicar ---------- */
-async function ugcPublicar(desenho, tipo, nome, preco){
+async function ugcPublicar(desenho, desenhoC, tipo, nome, preco){
   if(souVisitante() || !FIREBASE_ENABLED) return {ok: false, motivo: 'conta'};
   const u = fbAuth().currentUser;
   if(!u) return {ok: false, motivo: 'conta'};
-  const cod = ugcCodificar(desenho);
+  const cod = ugcCodificar(desenho, desenhoC);
   if(!cod) return {ok: false, motivo: 'cores'};
-  if(desenho.filter(Boolean).length < UGC_MIN_PX) return {ok: false, motivo: 'pouco'};
+  if(desenho.filter(Boolean).length + desenhoC.filter(Boolean).length < UGC_MIN_PX) return {ok: false, motivo: 'pouco'};
   nome = String(nome || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24);
   if(nome.length < 2) return {ok: false, motivo: 'nome_curto'};
   if(ugcNomeRuim(nome)) return {ok: false, motivo: 'nome_ruim'};
   preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(preco) || 0)));
   const id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const doc = {criador: u.uid, criadorNome: String(onlineNome() || '').slice(0, 40), nome, preco, tipo, cores: cod.cores, px: cod.px, criadoEm: Date.now(), oculto: false};
+  const doc = {criador: u.uid, criadorNome: String(onlineNome() || '').slice(0, 40), nome, preco, tipo, cores: cod.cores, px: cod.px, pxC: cod.pxC, criadoEm: Date.now(), oculto: false};
   try{ await fbDb().collection('pecasCriadas').doc(id).set(doc); }
   catch(e){ return {ok: false, motivo: 'erro', detalhe: e && e.message}; }
   const d = ugcDecodificar(doc);
@@ -31365,6 +31430,190 @@ function ugcPerguntarCompra(id, alvo, aoComprar){
 }
 
 /* ---------- o editor: pintar pixel por pixel ---------- */
+/* ---------- foto da galeria → quadradinhos ---------- */
+/* recorte (canvas) → w x h cores (no máximo "maxCores" diferentes); semFundo tira o fundo parecido com as bordas */
+function ugcFotoEmPixels(recorte, w, h, maxCores, semFundo){
+  /* reduz em 2 passos (fica a média das cores, e não um pixel qualquer) */
+  const meio = document.createElement('canvas');
+  meio.width = w * 6; meio.height = h * 6;
+  const xm = meio.getContext('2d');
+  xm.imageSmoothingEnabled = true; xm.imageSmoothingQuality = 'high';
+  xm.drawImage(recorte, 0, 0, meio.width, meio.height);
+  const pq = document.createElement('canvas');
+  pq.width = w; pq.height = h;
+  const xp = pq.getContext('2d');
+  xp.imageSmoothingEnabled = true; xp.imageSmoothingQuality = 'high';
+  xp.drawImage(meio, 0, 0, w, h);
+  const d = xp.getImageData(0, 0, w, h).data, n = w * h;
+  const rgb = [], vivo = new Uint8Array(n);
+  for(let i = 0; i < n; i++){ rgb.push([d[i * 4], d[i * 4 + 1], d[i * 4 + 2]]); vivo[i] = d[i * 4 + 3] >= 128 ? 1 : 0; }
+  const dist = (a, b)=>{ const r = a[0] - b[0], g = a[1] - b[1], bb = a[2] - b[2]; return r * r + g * g + bb * bb; };
+  if(semFundo){
+    /* a cor que mais aparece na borda é o fundo: o que encosta na borda e tem essa cor sai
+       (assim um desenho que encosta na borda não some junto) */
+    const borda = [];
+    for(let x = 0; x < w; x++){ borda.push(x, (h - 1) * w + x); }
+    for(let y = 0; y < h; y++){ borda.push(y * w, y * w + w - 1); }
+    let fundo = null, maisVotos = -1;
+    borda.forEach(i=>{ if(!vivo[i]) return; let v = 0; borda.forEach(j=>{ if(vivo[j] && dist(rgb[i], rgb[j]) <= 40 * 40) v++; }); if(v > maisVotos){ maisVotos = v; fundo = i; } });
+    const fila = [];
+    if(fundo !== null) borda.forEach(i=>{ if(vivo[i] && dist(rgb[i], rgb[fundo]) <= 55 * 55) fila.push([i, fundo]); });
+    const visto = new Uint8Array(n);
+    while(fila.length){
+      const [i, semente] = fila.pop();
+      if(visto[i] || !vivo[i] || dist(rgb[i], rgb[semente]) > 55 * 55) continue;
+      visto[i] = 1; vivo[i] = 0;
+      const x = i % w, y = Math.floor(i / w);
+      if(x > 0) fila.push([i - 1, semente]); if(x < w - 1) fila.push([i + 1, semente]);
+      if(y > 0) fila.push([i - w, semente]); if(y < h - 1) fila.push([i + w, semente]);
+    }
+  }
+  /* poucas cores: k-médias simples (começa com cores espalhadas do escuro ao claro) */
+  const pts = [];
+  for(let i = 0; i < n; i++) if(vivo[i]) pts.push(rgb[i]);
+  const out = new Array(n).fill(null);
+  if(!pts.length) return out;
+  const k = Math.min(maxCores, pts.length);
+  const ord = pts.slice().sort((a, b)=>(a[0] * 3 + a[1] * 6 + a[2]) - (b[0] * 3 + b[1] * 6 + b[2]));
+  let cen = Array.from({length: k}, (_, j)=>ord[Math.floor((j + .5) * ord.length / k)].slice());
+  const perto = p=>{ let m = 0, md = Infinity; for(let j = 0; j < cen.length; j++){ const dd = dist(p, cen[j]); if(dd < md){ md = dd; m = j; } } return m; };
+  for(let it = 0; it < 8; it++){
+    const soma = cen.map(()=>[0, 0, 0, 0]);
+    pts.forEach(p=>{ const j = perto(p), s = soma[j]; s[0] += p[0]; s[1] += p[1]; s[2] += p[2]; s[3]++; });
+    cen = cen.map((c, j)=>soma[j][3] ? [soma[j][0] / soma[j][3], soma[j][1] / soma[j][3], soma[j][2] / soma[j][3]] : c);
+  }
+  const hex = c=>'#' + c.map(v=>Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+  const hx = cen.map(hex);
+  for(let i = 0; i < n; i++) if(vivo[i]) out[i] = hx[perto(rgb[i])];
+  return out;
+}
+/* a tela de recortar: à mão livre (contorna com o dedo o que quer) ou com um retângulo.
+   O recorte volta como uma imagem (o que ficou fora do contorno é transparente) */
+function ugcRecortarFoto(arquivo, aoUsar){
+  const esc = chatListEscape;
+  const url = URL.createObjectURL(arquivo);
+  const im = new Image();
+  im.onerror = ()=>{ URL.revokeObjectURL(url); toast(t('ugc_foto_erro')); };
+  im.onload = ()=>{
+    URL.revokeObjectURL(url);
+    /* foto grande fica menor (o recorte vira poucos quadradinhos mesmo) */
+    const esc0 = Math.min(1, 1200 / Math.max(im.naturalWidth, im.naturalHeight));
+    const src = document.createElement('canvas');
+    src.width = Math.max(1, Math.round(im.naturalWidth * esc0)); src.height = Math.max(1, Math.round(im.naturalHeight * esc0));
+    src.getContext('2d').drawImage(im, 0, 0, src.width, src.height);
+    const SW = src.width, SH = src.height;
+    const bg = document.createElement('div');
+    bg.className = 'ugc-foto';
+    bg.innerHTML = `<div class="ugc-ed-topo"><button type="button" class="ugc-x" data-nao aria-label="${esc(t('menu_cancel'))}">✕</button><b>${esc(t('ugc_foto_tit'))}</b><button type="button" class="ugc-prox" data-usar>${esc(t('ugc_foto_usar'))}</button></div>
+      <div class="ugc-foto-modos" role="tablist">
+        <button type="button" data-modo="mao" class="on">✂️ ${esc(t('ugc_foto_mao'))}</button>
+        <button type="button" data-modo="ret">⬜ ${esc(t('ugc_foto_ret'))}</button>
+      </div>
+      <div class="ugc-foto-palco" data-palco><div class="ugc-foto-img" data-img><svg data-svg preserveAspectRatio="none"><path data-caminho></path></svg></div>
+        <div class="ugc-foto-sel" data-sel hidden>${['nw', 'ne', 'sw', 'se'].map(c=>`<i data-canto="${c}" class="${c}"></i>`).join('')}</div></div>
+      <div class="ugc-foto-baixo"><p class="ugc-dica" data-dica></p></div>`;
+    document.body.appendChild(bg);
+    const imgBox = bg.querySelector('[data-img]'), palco = bg.querySelector('[data-palco]'), sel = bg.querySelector('[data-sel]');
+    const svg = bg.querySelector('[data-svg]'), caminho = bg.querySelector('[data-caminho]'), dica = bg.querySelector('[data-dica]');
+    src.className = 'ugc-foto-src';
+    imgBox.insertBefore(src, svg);
+    svg.setAttribute('viewBox', `0 0 ${SW} ${SH}`);
+    let modo = 'mao', pontos = [];
+    const R = {w: SW * .6, h: SH * .6, x: SW * .2, y: SH * .2};
+    let vista = {s: 1, ox: 0, oy: 0};
+    const layout = ()=>{
+      const cx = palco.getBoundingClientRect();
+      const s = Math.min((cx.width - 48) / SW, (cx.height - 48) / SH);   // sobra espaço pros cantos do quadro
+      vista = {s, ox: (cx.width - SW * s) / 2, oy: (cx.height - SH * s) / 2};
+      Object.assign(imgBox.style, {left: vista.ox + 'px', top: vista.oy + 'px', width: SW * s + 'px', height: SH * s + 'px'});
+      mostra();
+    };
+    const mostra = ()=>{
+      sel.hidden = modo !== 'ret';
+      Object.assign(sel.style, {left: vista.ox + R.x * vista.s + 'px', top: vista.oy + R.y * vista.s + 'px', width: R.w * vista.s + 'px', height: R.h * vista.s + 'px'});
+      caminho.setAttribute('d', modo === 'mao' && pontos.length ? 'M' + pontos.map(p=>p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join('L') + (desenhando ? '' : 'Z') : '');
+      dica.textContent = t(modo === 'mao' ? 'ugc_foto_dica_mao' : 'ugc_foto_dica');
+    };
+    /* o recorte: retângulo, ou o contorno (o resto fica transparente) */
+    const recorte = ()=>{
+      let x0, y0, x1, y1;
+      if(modo === 'ret'){ x0 = R.x; y0 = R.y; x1 = R.x + R.w; y1 = R.y + R.h; }
+      else {
+        if(pontos.length < 3) return null;
+        x0 = Math.min(...pontos.map(p=>p.x)); x1 = Math.max(...pontos.map(p=>p.x));
+        y0 = Math.min(...pontos.map(p=>p.y)); y1 = Math.max(...pontos.map(p=>p.y));
+      }
+      x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(SW, Math.ceil(x1)); y1 = Math.min(SH, Math.ceil(y1));
+      if(x1 - x0 < 4 || y1 - y0 < 4) return null;
+      const c = document.createElement('canvas');
+      c.width = x1 - x0; c.height = y1 - y0;
+      const x = c.getContext('2d');
+      if(modo === 'mao'){
+        x.beginPath();
+        pontos.forEach((p, i)=>{ if(i) x.lineTo(p.x - x0, p.y - y0); else x.moveTo(p.x - x0, p.y - y0); });
+        x.closePath(); x.clip();
+      }
+      x.drawImage(src, x0, y0, c.width, c.height, 0, 0, c.width, c.height);
+      return c;
+    };
+    let arrasto = null, desenhando = false;
+    const ponto = ev=>{ const cx = palco.getBoundingClientRect(); return {x: (ev.clientX - cx.left - vista.ox) / vista.s, y: (ev.clientY - cx.top - vista.oy) / vista.s}; };
+    const dentro = p=>({x: Math.max(0, Math.min(SW, p.x)), y: Math.max(0, Math.min(SH, p.y))});
+    palco.addEventListener('pointerdown', ev=>{
+      ev.preventDefault();
+      try{ palco.setPointerCapture(ev.pointerId); }catch(e){}
+      const p = ponto(ev);
+      if(modo === 'mao'){ desenhando = true; pontos = [dentro(p)]; mostra(); return; }
+      const canto = ev.target.closest('[data-canto]');
+      if(canto){
+        const c = canto.dataset.canto;
+        arrasto = {tipo: 'canto', ax: c[1] === 'w' ? R.x + R.w : R.x, ay: c[0] === 'n' ? R.y + R.h : R.y};
+      } else if(p.x >= R.x && p.x <= R.x + R.w && p.y >= R.y && p.y <= R.y + R.h) arrasto = {tipo: 'mover', px: p.x - R.x, py: p.y - R.y};
+      else { R.x = Math.max(0, Math.min(SW - R.w, p.x - R.w / 2)); R.y = Math.max(0, Math.min(SH - R.h, p.y - R.h / 2)); mostra(); arrasto = {tipo: 'mover', px: R.w / 2, py: R.h / 2}; }
+    });
+    palco.addEventListener('pointermove', ev=>{
+      const p = ponto(ev);
+      if(modo === 'mao'){
+        if(!desenhando) return;
+        ev.preventDefault();
+        const u = pontos[pontos.length - 1], q = dentro(p);
+        if(Math.hypot(q.x - u.x, q.y - u.y) * vista.s >= 3){ pontos.push(q); mostra(); }
+        return;
+      }
+      if(!arrasto) return;
+      ev.preventDefault();
+      if(arrasto.tipo === 'mover'){
+        R.x = Math.max(0, Math.min(SW - R.w, p.x - arrasto.px));
+        R.y = Math.max(0, Math.min(SH - R.h, p.y - arrasto.py));
+      } else {
+        const q = dentro(p), min = 12 / vista.s;
+        R.x = Math.min(arrasto.ax, q.x); R.y = Math.min(arrasto.ay, q.y);
+        R.w = Math.max(min, Math.abs(q.x - arrasto.ax)); R.h = Math.max(min, Math.abs(q.y - arrasto.ay));
+        R.x = Math.min(R.x, SW - R.w); R.y = Math.min(R.y, SH - R.h);
+      }
+      mostra();
+    });
+    const solta = ()=>{ arrasto = null; if(desenhando){ desenhando = false; if(pontos.length < 3) pontos = []; mostra(); } };
+    palco.addEventListener('pointerup', solta); palco.addEventListener('pointercancel', solta);
+    bg.querySelectorAll('[data-modo]').forEach(b=>b.addEventListener('click', ()=>{
+      modo = b.dataset.modo; playSound('click');
+      bg.querySelectorAll('[data-modo]').forEach(x=>x.classList.toggle('on', x === b));
+      mostra();
+    }));
+    const fechar = ()=>{ window.removeEventListener('resize', layout); bg.remove(); };
+    bg.querySelector('[data-nao]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+    bg.querySelector('[data-usar]').addEventListener('click', ()=>{
+      const c = recorte();
+      if(!c){ toast(t(modo === 'mao' ? 'ugc_foto_dica_mao' : 'ugc_foto_dica')); return; }
+      playSound('click');
+      fechar();
+      aoUsar(c);
+    });
+    window.addEventListener('resize', layout);
+    requestAnimationFrame(layout);
+  };
+  im.src = url;
+}
 var UGC_RASCUNHO_KEY = 'koda_ugc_rascunho';
 function ugcPaleta(){
   const out = [];
@@ -31381,10 +31630,14 @@ function ugcAbrirEditor(aoPublicar){
   const esc = chatListEscape, N = PZ_W * PZ_H;
   let r = null;
   try{ r = JSON.parse(localStorage.getItem(UGC_RASCUNHO_KEY)); }catch(e){}
-  const E = {px: (r && Array.isArray(r.px) && r.px.length === N) ? r.px.map(c=>typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c) ? c.toUpperCase() : null) : new Array(N).fill(null),
+  const lerLado = a=>(Array.isArray(a) && a.length === N) ? a.map(c=>typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c) ? c.toUpperCase() : null) : new Array(N).fill(null);
+  const E = {lados: {frente: lerLado(r && r.px), costas: lerLado(r && r.pxC)}, lado: 'frente',
     tipo: r && UGC_TIPOS.indexOf(r.tipo) >= 0 ? r.tipo : 'roupa', cor: '#E8413C', ferr: 'pincel', espelho: false, guia: true, desfaz: [], refaz: [], recentes: (r && Array.isArray(r.recentes) ? r.recentes : []).slice(0, 12),
     passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', preco: r && Number.isFinite(r.preco) ? r.preco : 100};
-  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.px, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco})); }catch(e){} };
+  /* E.px = o lado que está sendo pintado agora (frente ou costas) */
+  Object.defineProperty(E, 'px', {get(){ return E.lados[E.lado]; }, set(v){ E.lados[E.lado] = v; }});
+  let mascara = ugcMascara(E.tipo);
+  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco})); }catch(e){} };
   const bg = document.createElement('div');
   bg.className = 'ugc-ed';
   document.body.appendChild(bg);
@@ -31392,17 +31645,47 @@ function ugcAbrirEditor(aoPublicar){
   const PALETA = ugcPaleta();
   /* o boneco clarinho atrás (o meu personagem, sem peça da comunidade) */
   const base = Object.assign({}, meuHeroi()); base.ugc = 'nenhum';
-  const guiaIm = new Image(); guiaIm.src = pzImagemDe(pzCodigo(base)) || '';
-  guiaIm.onload = ()=>{ if(E.passo === 1) pintar(); };
-  const ICO = {pincel: '✏️', borracha: '🧽', balde: '🪣', conta: '💧', desfazer: '↩️', refazer: '↪️', espelho: '🪞', limpar: '🗑️', guia: '👤'};
+  const guia = {frente: new Image(), costas: new Image()};
+  guia.frente.src = pzImagemDe(pzCodigo(base)) || '';
+  guia.costas.src = pzImagemDe(pzCodigo(base), 'costas') || '';
+  guia.frente.onload = guia.costas.onload = ()=>{ if(E.passo === 1) pintar(); };
+  const ICO = {pincel: '✏️', borracha: '🧽', balde: '🪣', conta: '💧', desfazer: '↩️', refazer: '↪️', espelho: '🪞', limpar: '🗑️', guia: '👤', foto: '🖼️'};
+  /* as duas prévias (o personagem com a peça, de frente e de costas), refeitas logo depois de cada pincelada */
+  const RASC = 'urascunho0', cRasc = Object.assign({}, base, {ugc: RASC});
+  const refazerPrevias = ()=>{
+    ugcEstado().cache.set(RASC, {tipo: E.tipo, px: E.lado === 'frente' ? comAdesivo(E.lados.frente) : E.lados.frente.slice(), pxC: E.lado === 'costas' ? comAdesivo(E.lados.costas) : E.lados.costas.slice()});
+    try{ for(const k of Array.from(PZ_CACHE.keys())) if(k.indexOf(RASC) >= 0) PZ_CACHE.delete(k); }catch(e){}
+    try{ for(const k of Array.from(PZ_IMG_CACHE.keys())) if(k.indexOf(RASC) >= 0) PZ_IMG_CACHE.delete(k); }catch(e){}
+  };
+  let previaT = 0;
+  const previas = ()=>{
+    clearTimeout(previaT);
+    previaT = setTimeout(()=>{
+      if(!bg.isConnected || E.passo !== 1) return;
+      refazerPrevias();
+      const cod = pzCodigo(cRasc);
+      bg.querySelectorAll('[data-lado-img]').forEach(im=>{ im.src = pzImagemDe(cod, im.dataset.ladoImg === 'costas' ? 'costas' : undefined) || ''; });
+    }, 90);
+  };
   function desenhaTela(){
     if(E.passo === 1){
       bg.innerHTML = `<div class="ugc-ed-topo"><button type="button" class="ugc-x" data-fechar aria-label="${esc(t('x_fechar'))}">✕</button><b>${esc(t('ugc_tit'))}</b><button type="button" class="ugc-prox" data-prox>${esc(t('ugc_proximo'))} →</button></div>
         <div class="ugc-ed-corpo">
           <div class="ugc-ed-esq">
             <div class="ugc-tipos" role="tablist">${UGC_TIPOS.map(tp=>`<button type="button" class="ugc-tipo${tp === E.tipo ? ' on' : ''}" data-tipo="${tp}">${esc(t('ugc_t_' + tp))}</button>`).join('')}</div>
+            <div class="ugc-lados" role="tablist">${['frente', 'costas'].map(l=>`<button type="button" class="ugc-lado${l === E.lado ? ' on' : ''}" data-lado="${l}" role="tab" aria-selected="${l === E.lado}"><img data-lado-img="${l}" alt=""><span>${esc(t('ugc_' + l))}</span></button>`).join('')}</div>
             <div class="ugc-tela"><canvas data-tela></canvas></div>
-            <div class="ugc-ferrs">${['pincel', 'borracha', 'balde', 'conta', 'espelho', 'guia', 'desfazer', 'refazer', 'limpar'].map(f=>`<button type="button" class="ugc-ferr${E.ferr === f || (f === 'espelho' && E.espelho) || (f === 'guia' && E.guia) ? ' on' : ''}" data-ferr="${f}" title="${esc(t('ugc_f_' + f))}" aria-label="${esc(t('ugc_f_' + f))}">${ICO[f]}</button>`).join('')}</div>
+            <div class="ugc-ades">
+              <p class="ugc-dica">${esc(t('ugc_ades_dica'))}</p>
+              <div class="ugc-ades-btns">
+                <button type="button" class="ugc-ferr" data-ades="menor" title="${esc(t('ugc_ades_menor'))}" aria-label="${esc(t('ugc_ades_menor'))}">−</button>
+                <button type="button" class="ugc-ferr" data-ades="maior" title="${esc(t('ugc_ades_maior'))}" aria-label="${esc(t('ugc_ades_maior'))}">+</button>
+                <button type="button" class="ugc-ades-fundo" data-ades="fundo">${esc(t('ugc_foto_fundo'))}</button>
+                <button type="button" class="ugc-ferr" data-ades="tirar" title="${esc(t('menu_cancel'))}" aria-label="${esc(t('menu_cancel'))}">✕</button>
+                <button type="button" class="ugc-ades-ok" data-ades="ok">✔ ${esc(t('ugc_ades_ok'))}</button>
+              </div>
+            </div>
+            <div class="ugc-ferrs">${['pincel', 'borracha', 'balde', 'conta', 'espelho', 'guia', 'foto', 'desfazer', 'refazer', 'limpar'].map(f=>`<button type="button" class="ugc-ferr${E.ferr === f || (f === 'espelho' && E.espelho) || (f === 'guia' && E.guia) ? ' on' : ''}" data-ferr="${f}" title="${esc(t('ugc_f_' + f))}" aria-label="${esc(t('ugc_f_' + f))}">${ICO[f]}</button>`).join('')}</div>
           </div>
           <div class="ugc-ed-dir">
             <div class="ugc-cor-atual"><i data-cor-atual style="background:${E.cor}"></i><input type="text" data-hex value="${E.cor}" maxlength="7" spellcheck="false" aria-label="${esc(t('ugc_cor_exata'))}"><label class="ugc-exata">${esc(t('ugc_cor_exata'))}<input type="color" data-picker value="${E.cor.toLowerCase()}"></label></div>
@@ -31412,11 +31695,12 @@ function ugcAbrirEditor(aoPublicar){
           </div>
         </div>`;
       ligarPasso1();
+      mostrarBarraAdesivo();
       pintar();
+      previas();
     } else {
-      const c2 = Object.assign({}, base); c2.ugc = 'urascunho0';
-      ugcEstado().cache.set('urascunho0', {tipo: E.tipo, px: E.px.slice()});
-      ugcChegou('urascunho0');
+      const c2 = cRasc;
+      refazerPrevias();
       bg.innerHTML = `<div class="ugc-ed-topo"><button type="button" class="ugc-x" data-voltar aria-label="${esc(t('ugc_voltar'))}">←</button><b>${esc(t('ugc_tit'))}</b><span></span></div>
         <div class="ugc-detalhes">
           <div class="ugc-previa"><figure><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo')}</span><figcaption>${esc(t('ugc_frente'))}</figcaption></figure>
@@ -31444,16 +31728,46 @@ function ugcAbrirEditor(aoPublicar){
     const x = cv.getContext('2d');
     x.setTransform(d, 0, 0, d, 0, 0); x.imageSmoothingEnabled = false;
     for(let yy = 0; yy < PZ_H; yy++) for(let xx = 0; xx < PZ_W; xx++){ x.fillStyle = (xx + yy) % 2 ? '#EEF2F1' : '#FFFFFF'; x.fillRect(xx * cel, yy * cel, cel, cel); }
-    if(E.guia && guiaIm.complete && guiaIm.naturalWidth){ x.globalAlpha = .33; x.drawImage(guiaIm, 0, 0, PZ_W * cel, PZ_H * cel); x.globalAlpha = 1; }
-    for(let k = 0; k < N; k++) if(E.px[k]){ x.fillStyle = E.px[k]; x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel); }
+    const gi = guia[E.lado];
+    if(E.guia && gi.complete && gi.naturalWidth){ x.globalAlpha = .33; x.drawImage(gi, 0, 0, PZ_W * cel, PZ_H * cel); x.globalAlpha = 1; }
+    const arr = comAdesivo(E.px);
+    for(let k = 0; k < N; k++) if(arr[k]){ x.fillStyle = arr[k]; x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel); }
+    /* fora da área do tipo (camisa, calça...) não dá pra pintar: fica escurinho e riscado */
+    x.fillStyle = 'rgba(19,49,42,.42)';
+    for(let k = 0; k < N; k++) if(!mascara[k]) x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel);
     x.strokeStyle = 'rgba(0,0,0,.08)'; x.lineWidth = 1;
     x.beginPath();
     for(let i = 0; i <= PZ_W; i++){ x.moveTo(i * cel + .5, 0); x.lineTo(i * cel + .5, PZ_H * cel); }
     for(let i = 0; i <= PZ_H; i++){ x.moveTo(0, i * cel + .5); x.lineTo(PZ_W * cel, i * cel + .5); }
     x.stroke();
     if(E.espelho){ x.strokeStyle = 'rgba(232,65,60,.45)'; x.lineWidth = 2; x.beginPath(); x.moveTo(PZ_W * cel / 2, 0); x.lineTo(PZ_W * cel / 2, PZ_H * cel); x.stroke(); }
+    if(E.adesivo){
+      /* a parte do adesivo que cai fora da área aparece clarinha (pra ver a foto inteira enquanto posiciona) */
+      const A = adesivoCores(), ax = Math.round(A.x), ay = Math.round(A.y);
+      x.globalAlpha = .35;
+      for(let yy = 0; yy < A.hc; yy++) for(let xx = 0; xx < A.wc; xx++){
+        const gx = ax + xx, gy = ay + yy, c = A.cores[yy * A.wc + xx];
+        if(!c || gx < 0 || gy < 0 || gx >= PZ_W || gy >= PZ_H || mascara[gy * PZ_W + gx]) continue;
+        x.fillStyle = c; x.fillRect(gx * cel, gy * cel, cel, cel);
+      }
+      x.globalAlpha = 1;
+      x.setLineDash([6, 4]); x.lineWidth = 2; x.strokeStyle = '#13312A';
+      x.strokeRect(ax * cel + 1, ay * cel + 1, A.wc * cel - 2, A.hc * cel - 2);
+      x.setLineDash([]);
+      const hx = (ax + A.wc) * cel, hy = (ay + A.hc) * cel;
+      x.fillStyle = '#17C79E'; x.strokeStyle = '#fff'; x.lineWidth = 3;
+      x.beginPath(); x.arc(hx, hy, Math.max(9, cel * .7), 0, 7); x.fill(); x.stroke();
+    }
   }
-  const guardaDesfazer = ()=>{ E.desfaz.push(E.px.slice()); if(E.desfaz.length > 60) E.desfaz.shift(); E.refaz = []; };
+  /* desfazer/refazer guardam os dois lados (a foto e o "limpar" também voltam) */
+  const fotoAtual = ()=>({f: E.lados.frente.slice(), c: E.lados.costas.slice(), tipo: E.tipo});
+  const voltarFoto = o=>{
+    E.lados.frente = o.f; E.lados.costas = o.c;
+    if(o.tipo && o.tipo !== E.tipo){ E.tipo = o.tipo; mascara = ugcMascara(E.tipo); desenhaTela(); }   // desfez a troca de tipo
+  };
+  const guardaDesfazer = ()=>{ E.desfaz.push(fotoAtual()); if(E.desfaz.length > 60) E.desfaz.shift(); E.refaz = []; };
+  let avisouFora = false;
+  const fora = ()=>{ if(avisouFora) return; avisouFora = true; toast(t('ugc_fora', {tipo: t('ugc_t_' + E.tipo)})); setTimeout(()=>{ avisouFora = false; }, 2500); };
   const usarCor = c=>{
     E.cor = c.toUpperCase();
     E.recentes = [E.cor].concat(E.recentes.filter(x=>x !== E.cor)).slice(0, 12);
@@ -31463,12 +31777,13 @@ function ugcAbrirEditor(aoPublicar){
     if(E.ferr === 'borracha' || E.ferr === 'conta'){ E.ferr = 'pincel'; bg.querySelectorAll('[data-ferr]').forEach(b=>b.classList.toggle('on', b.dataset.ferr === 'pincel' || (b.dataset.ferr === 'espelho' && E.espelho) || (b.dataset.ferr === 'guia' && E.guia))); }
   };
   const poe = (k, c)=>{
+    if(!mascara[k]){ if(c) fora(); return; }
     E.px[k] = c;
-    if(E.espelho){ const xx = k % PZ_W, yy = Math.floor(k / PZ_W); E.px[yy * PZ_W + (PZ_W - 1 - xx)] = c; }
+    if(E.espelho){ const xx = k % PZ_W, yy = Math.floor(k / PZ_W), q = yy * PZ_W + (PZ_W - 1 - xx); if(mascara[q]) E.px[q] = c; }
   };
   const balde = (k, c)=>{
     const alvo = E.px[k];
-    if(alvo === c) return;
+    if(alvo === c || !mascara[k]) return;
     const fila = [k], visto = new Set([k]);
     while(fila.length){
       const p = fila.pop();
@@ -31478,18 +31793,33 @@ function ugcAbrirEditor(aoPublicar){
         const nx = xx + dx, ny = yy + dy;
         if(nx < 0 || ny < 0 || nx >= PZ_W || ny >= PZ_H) return;
         const q = ny * PZ_W + nx;
-        if(!visto.has(q) && E.px[q] === alvo){ visto.add(q); fila.push(q); }
+        if(!visto.has(q) && mascara[q] && E.px[q] === alvo){ visto.add(q); fila.push(q); }
       });
     }
   };
   function ligarPasso1(){
     bg.querySelector('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
     bg.querySelector('[data-prox]').addEventListener('click', ()=>{
-      if(E.px.filter(Boolean).length < UGC_MIN_PX){ toast(t('ugc_pouco')); return; }
-      if(!ugcCodificar(E.px)){ toast(t('ugc_muitas_cores')); return; }
+      colocarAdesivo();
+      if(E.lados.frente.filter(Boolean).length + E.lados.costas.filter(Boolean).length < UGC_MIN_PX){ toast(t('ugc_pouco')); return; }
+      if(!ugcCodificar(E.lados.frente, E.lados.costas)){ toast(t('ugc_muitas_cores')); return; }
       playSound('click'); E.passo = 2; salvarRascunho(); desenhaTela();
     });
-    bg.querySelectorAll('[data-tipo]').forEach(b=>b.addEventListener('click', ()=>{ E.tipo = b.dataset.tipo; playSound('click'); salvarRascunho(); desenhaTela(); }));
+    /* trocou o tipo: o que estava fora da área nova sai (dá pra desfazer) */
+    bg.querySelectorAll('[data-tipo]').forEach(b=>b.addEventListener('click', ()=>{
+      if(b.dataset.tipo === E.tipo) return;
+      const antes = fotoAtual();
+      E.tipo = b.dataset.tipo; mascara = ugcMascara(E.tipo);
+      let saiu = false;
+      ['frente', 'costas'].forEach(l=>{ const a = E.lados[l]; for(let k = 0; k < N; k++) if(a[k] && !mascara[k]){ a[k] = null; saiu = true; } });
+      if(saiu){ E.desfaz.push(antes); E.refaz = []; toast(t('ugc_tirou', {tipo: t('ugc_t_' + E.tipo)})); }
+      playSound('click'); salvarRascunho(); desenhaTela();
+    }));
+    bg.querySelectorAll('[data-lado]').forEach(b=>b.addEventListener('click', ()=>{
+      E.lado = b.dataset.lado; playSound('click');
+      bg.querySelectorAll('[data-lado]').forEach(x=>{ x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+      pintar();
+    }));
     bg.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click', ()=>{ usarCor(b.dataset.c); playSound('click'); }));
     const hx = bg.querySelector('[data-hex]');
     hx.addEventListener('change', ()=>{ let v = hx.value.trim(); if(!v.startsWith('#')) v = '#' + v; if(/^#[0-9a-f]{6}$/i.test(v)) usarCor(v); else hx.value = E.cor; });
@@ -31497,17 +31827,62 @@ function ugcAbrirEditor(aoPublicar){
     bg.querySelectorAll('[data-ferr]').forEach(b=>b.addEventListener('click', ()=>{
       const f = b.dataset.ferr;
       playSound('click');
-      if(f === 'desfazer'){ if(E.desfaz.length){ E.refaz.push(E.px.slice()); E.px = E.desfaz.pop(); pintar(); salvarRascunho(); } return; }
-      if(f === 'refazer'){ if(E.refaz.length){ E.desfaz.push(E.px.slice()); E.px = E.refaz.pop(); pintar(); salvarRascunho(); } return; }
-      if(f === 'limpar'){ if(confirm(t('ugc_limpar_conf'))){ guardaDesfazer(); E.px = new Array(N).fill(null); pintar(); salvarRascunho(); } return; }
+      if(f === 'desfazer'){ if(E.desfaz.length){ E.refaz.push(fotoAtual()); voltarFoto(E.desfaz.pop()); pintar(); previas(); salvarRascunho(); } return; }
+      if(f === 'refazer'){ if(E.refaz.length){ E.desfaz.push(fotoAtual()); voltarFoto(E.refaz.pop()); pintar(); previas(); salvarRascunho(); } return; }
+      if(f === 'limpar'){ if(confirm(t('ugc_limpar_conf'))){ guardaDesfazer(); E.px = new Array(N).fill(null); pintar(); previas(); salvarRascunho(); } return; }
+      if(f === 'foto'){ escolherFoto(); return; }
       if(f === 'espelho') E.espelho = !E.espelho;
       else if(f === 'guia') E.guia = !E.guia;
       else E.ferr = f;
       bg.querySelectorAll('[data-ferr]').forEach(x=>x.classList.toggle('on', x.dataset.ferr === E.ferr || (x.dataset.ferr === 'espelho' && E.espelho) || (x.dataset.ferr === 'guia' && E.guia)));
       pintar();
     }));
+    bg.querySelectorAll('[data-ades]').forEach(b=>b.addEventListener('click', ()=>{
+      if(!E.adesivo) return;
+      const o = b.dataset.ades;
+      playSound('click');
+      if(o === 'menor') tamanhoAdesivo(E.adesivo.w - 1);
+      else if(o === 'maior') tamanhoAdesivo(E.adesivo.w + 1);
+      else if(o === 'fundo'){ E.adesivo.semFundo = !E.adesivo.semFundo; E.adesivo.chave = ''; }
+      else if(o === 'tirar') E.adesivo = null;
+      else if(o === 'ok'){ colocarAdesivo(); return; }
+      mostrarBarraAdesivo(); pintar(); previas();
+    }));
     /* pintar arrastando o dedo */
     const tela = bg.querySelector('[data-tela]');
+    const dedos = new Map();
+    let gesto = null;
+    const celF = ev=>{ const rr = tela.getBoundingClientRect(); return {x: (ev.clientX - rr.left) / cel, y: (ev.clientY - rr.top) / cel}; };
+    const adesivoDown = ev=>{
+      dedos.set(ev.pointerId, celF(ev));
+      try{ tela.setPointerCapture(ev.pointerId); }catch(e){}
+      const A = E.adesivo;
+      if(dedos.size >= 2){
+        const [a, b2] = Array.from(dedos.values());
+        gesto = {tipo: 'pinca', d0: Math.max(.5, Math.hypot(a.x - b2.x, a.y - b2.y)), w0: A.w};
+        return;
+      }
+      const p = celF(ev), ad = adesivoCores(), ax = Math.round(A.x), ay = Math.round(A.y);
+      if(Math.abs(p.x - (ax + ad.wc)) < 1.6 && Math.abs(p.y - (ay + ad.hc)) < 1.6) gesto = {tipo: 'tam'};
+      else gesto = {tipo: 'mover', dx: p.x - A.x, dy: p.y - A.y};
+    };
+    const adesivoMove = ev=>{
+      if(!dedos.has(ev.pointerId) || !gesto) return;
+      dedos.set(ev.pointerId, celF(ev));
+      const A = E.adesivo, p = celF(ev);
+      if(gesto.tipo === 'pinca' && dedos.size >= 2){
+        const [a, b2] = Array.from(dedos.values());
+        tamanhoAdesivo(gesto.w0 * Math.hypot(a.x - b2.x, a.y - b2.y) / gesto.d0);
+      } else if(gesto.tipo === 'tam'){
+        A.w = Math.max(2, Math.min(44, Math.max(p.x - A.x, (p.y - A.y) * A.ar), 44 * A.ar));
+        prenderAdesivo();
+      } else if(gesto.tipo === 'mover'){
+        A.x = p.x - gesto.dx; A.y = p.y - gesto.dy;
+        prenderAdesivo();
+      }
+      pintar(); previas();
+    };
+    const adesivoUp = ev=>{ dedos.delete(ev.pointerId); if(!dedos.size) gesto = null; else if(gesto && gesto.tipo === 'pinca') gesto = null; };
     let pintando = false, ultimo = -1;
     const celDe = ev=>{
       const rr = tela.getBoundingClientRect();
@@ -31520,22 +31895,87 @@ function ugcAbrirEditor(aoPublicar){
       if(E.ferr === 'pincel') poe(k, E.cor);
       else if(E.ferr === 'borracha') poe(k, null);
       pintar();
+      previas();
     };
     tela.addEventListener('pointerdown', ev=>{
       ev.preventDefault();
+      if(E.adesivo){ adesivoDown(ev); return; }
       const k = celDe(ev);
       if(k < 0) return;
       if(E.ferr === 'conta'){ if(E.px[k]) usarCor(E.px[k]); return; }
       guardaDesfazer();
-      if(E.ferr === 'balde'){ balde(k, E.cor); if(E.espelho){ const xx = k % PZ_W, yy = Math.floor(k / PZ_W); balde(yy * PZ_W + (PZ_W - 1 - xx), E.cor); } pintar(); salvarRascunho(); return; }
+      if(E.ferr === 'balde'){ if(!mascara[k]){ fora(); return; } balde(k, E.cor); if(E.espelho){ const xx = k % PZ_W, yy = Math.floor(k / PZ_W); balde(yy * PZ_W + (PZ_W - 1 - xx), E.cor); } pintar(); previas(); salvarRascunho(); return; }
       pintando = true; ultimo = -1;
       try{ tela.setPointerCapture(ev.pointerId); }catch(e){}
       aplica(k);
     });
-    tela.addEventListener('pointermove', ev=>{ if(pintando){ ev.preventDefault(); aplica(celDe(ev)); } });
-    const solta = ()=>{ if(pintando){ pintando = false; salvarRascunho(); } };
+    tela.addEventListener('pointermove', ev=>{ if(E.adesivo){ ev.preventDefault(); adesivoMove(ev); return; } if(pintando){ ev.preventDefault(); aplica(celDe(ev)); } });
+    const solta = ev=>{ if(E.adesivo){ adesivoUp(ev); return; } if(pintando){ pintando = false; salvarRascunho(); } };
     tela.addEventListener('pointerup', solta); tela.addEventListener('pointercancel', solta);
   }
+  /* ----- foto da galeria ----- */
+  /* ----- foto da galeria: escolhe, recorta e ela vira um adesivo em cima da peça.
+     O adesivo dá pra arrastar, aumentar e diminuir (pelo canto, com dois dedos ou no − e +);
+     em "Colocar" ele vira quadradinhos de verdade (só dentro da área do tipo) ----- */
+  function escolherFoto(){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.style.cssText = 'position:fixed;left:-9999px;top:0;';
+    document.body.appendChild(inp);
+    inp.addEventListener('change', ()=>{
+      const arq = inp.files && inp.files[0];
+      inp.remove();
+      if(!arq) return;
+      ugcRecortarFoto(arq, recorte=>{
+        /* começa do tamanho da área do tipo (camisa, calça...), no meio dela */
+        const [x0, x1, y0, y1] = (UGC_AREA[E.tipo] || UGC_AREA.costas).foto;
+        const ar = recorte.width / recorte.height, bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+        const w = Math.max(2, Math.min(bw, bh * ar)), h = w / ar;
+        const usadas = new Set(E.lados[E.lado === 'frente' ? 'costas' : 'frente'].filter(Boolean).concat(E.px.filter(Boolean)));
+        E.adesivo = {img: recorte, ar, w, x: x0 + (bw - w) / 2, y: y0 + (bh - h) / 2, semFundo: false, k: Math.max(4, Math.min(32, 63 - usadas.size)), chave: ''};
+        mostrarBarraAdesivo(); pintar(); previas();
+      });
+    });
+    inp.click();
+  }
+  /* as cores do adesivo no tamanho de agora (refeitas só quando o tamanho muda) */
+  const adesivoCores = ()=>{
+    const A = E.adesivo, wc = Math.max(1, Math.round(A.w)), hc = Math.max(1, Math.round(A.w / A.ar)), chave = wc + 'x' + hc + (A.semFundo ? 'f' : '');
+    if(A.chave !== chave){ A.chave = chave; A.wc = wc; A.hc = hc; A.cores = ugcFotoEmPixels(A.img, wc, hc, A.k, A.semFundo); }
+    return A;
+  };
+  /* um lado do desenho com o adesivo por cima (só onde o tipo deixa pintar) */
+  const comAdesivo = arr=>{
+    if(!E.adesivo) return arr;
+    const A = adesivoCores(), out = arr.slice(), x0 = Math.round(A.x), y0 = Math.round(A.y);
+    for(let yy = 0; yy < A.hc; yy++) for(let xx = 0; xx < A.wc; xx++){
+      const gx = x0 + xx, gy = y0 + yy;
+      if(gx < 0 || gy < 0 || gx >= PZ_W || gy >= PZ_H) continue;
+      const k = gy * PZ_W + gx, c = A.cores[yy * A.wc + xx];
+      if(c && mascara[k]) out[k] = c;
+    }
+    return out;
+  };
+  const mostrarBarraAdesivo = ()=>{
+    bg.classList.toggle('com-adesivo', !!E.adesivo);
+    const f = bg.querySelector('[data-ades="fundo"]');
+    if(f) f.classList.toggle('on', !!(E.adesivo && E.adesivo.semFundo));
+  };
+  const tamanhoAdesivo = novo=>{
+    const A = E.adesivo;
+    const cx = A.x + A.w / 2, cy = A.y + A.w / A.ar / 2;
+    A.w = Math.max(2, Math.min(44, novo, 44 * A.ar));
+    A.x = cx - A.w / 2; A.y = cy - A.w / A.ar / 2;
+    prenderAdesivo();
+  };
+  const prenderAdesivo = ()=>{ const A = E.adesivo, h = A.w / A.ar; A.x = Math.max(1 - A.w, Math.min(PZ_W - 1, A.x)); A.y = Math.max(1 - h, Math.min(PZ_H - 1, A.y)); };
+  const colocarAdesivo = ()=>{
+    if(!E.adesivo) return;
+    guardaDesfazer();
+    E.px = comAdesivo(E.px);
+    E.adesivo = null;
+    mostrarBarraAdesivo(); pintar(); previas(); salvarRascunho();
+  };
   function ligarPasso2(){
     bg.querySelector('[data-voltar]').addEventListener('click', ()=>{ playSound('click'); E.passo = 1; desenhaTela(); });
     const nome = bg.querySelector('[data-nome]'), preco = bg.querySelector('[data-preco]');
@@ -31548,7 +31988,7 @@ function ugcAbrirEditor(aoPublicar){
     pub.addEventListener('click', async ()=>{
       if(pub.disabled) return;
       pub.disabled = true; pub.textContent = t('ugc_publicando');
-      const r = await ugcPublicar(E.px, E.tipo, nome.value, E.preco);
+      const r = await ugcPublicar(E.lados.frente, E.lados.costas, E.tipo, nome.value, E.preco);
       if(!r.ok){
         pub.disabled = false; pub.textContent = t('ugc_publicar');
         toast(t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', nome_ruim: 'ugc_nome_ruim', cores: 'ugc_muitas_cores'}[r.motivo] || 'ugc_erro'));
@@ -31942,14 +32382,31 @@ var PZ_TXT = {
  ugc_tit:'Criar peça|Create item|Crear prenda|Crea capo|Créer une pièce|Teil erstellen|Item maken|アイテム作成|创作|아이템 만들기',
  ugc_proximo:'Próximo|Next|Siguiente|Avanti|Suivant|Weiter|Volgende|次へ|下一步|다음',
  ugc_voltar:'Voltar|Back|Volver|Indietro|Retour|Zurück|Terug|戻る|返回|뒤로',
- ugc_t_roupa:'Roupa|Outfit|Ropa|Vestito|Tenue|Kleidung|Kleding|ふく|服装|옷',
+ ugc_t_roupa:'Camisa|Shirt|Camiseta|Maglia|Haut|Oberteil|Shirt|シャツ|上衣|상의',
  ugc_t_cabeca:'Cabeça|Head|Cabeza|Testa|Tête|Kopf|Hoofd|あたま|头部|머리',
  ugc_t_costas:'Costas|Back|Espalda|Schiena|Dos|Rücken|Rug|せなか|背部|등',
+ ugc_t_calca:'Calça|Pants|Pantalón|Pantaloni|Pantalon|Hose|Broek|ズボン|裤子|바지',
+ ugc_dica_calca:'Calça: só na cintura e nas pernas. Pinte a frente e as costas.|Pants: only on the waist and legs. Paint the front and the back.|Pantalón: solo en la cintura y las piernas. Pinta el frente y la espalda.|Pantaloni: solo in vita e sulle gambe. Colora davanti e dietro.|Pantalon : seulement la taille et les jambes. Peins le devant et le dos.|Hose: nur Hüfte und Beine. Male vorne und hinten.|Broek: alleen op de taille en de benen. Kleur de voor- en achterkant.|ズボン：こしと足だけ。前と後ろをぬってね。|裤子：只能画在腰和腿上。正面和背面都要画。|바지: 허리와 다리에만 칠해요. 앞과 뒤를 칠해요.',
+ ugc_fora:'Aqui não dá: {tipo} só pinta a parte clara.|Not here: {tipo} only paints the light area.|Aquí no: {tipo} solo pinta la parte clara.|Qui no: {tipo} colora solo la parte chiara.|Pas ici : {tipo} se peint seulement dans la zone claire.|Hier nicht: {tipo} nur im hellen Bereich.|Hier niet: {tipo} kleur je alleen in het lichte stuk.|ここはダメ：{tipo}は明るいところだけぬれるよ。|这里不行：{tipo}只能画在亮的区域。|여기는 안 돼요: {tipo}은(는) 밝은 부분에만 칠해요.',
+ ugc_tirou:'Saiu o que estava fora da área de {tipo} (dá pra desfazer).|Removed what was outside the {tipo} area (you can undo it).|Se quitó lo que estaba fuera del área de {tipo} (puedes deshacerlo).|Tolto ciò che era fuori dall’area {tipo} (puoi annullare).|Ce qui dépassait de la zone {tipo} a été enlevé (tu peux annuler).|Was außerhalb von {tipo} war, ist weg (rückgängig möglich).|Wat buiten {tipo} stond is weg (ongedaan maken kan).|{tipo}の外にあった所は消えたよ（元に戻せるよ）。|{tipo}区域外的部分被去掉了（可以撤销）。|{tipo} 밖에 있던 건 지워졌어요(되돌릴 수 있어요).',
+ ugc_f_foto:'Foto da galeria|Photo from gallery|Foto de la galería|Foto dalla galleria|Photo de la galerie|Foto aus der Galerie|Foto uit galerij|ギャラリーの写真|相册照片|갤러리 사진',
+ ugc_foto_mao:'À mão livre|Freehand|A mano alzada|A mano libera|À main levée|Freihand|Uit de vrije hand|フリーハンド|自由裁剪|자유롭게',
+ ugc_foto_ret:'Retângulo|Rectangle|Rectángulo|Rettangolo|Rectangle|Rechteck|Rechthoek|四角|矩形|사각형',
+ ugc_foto_dica_mao:'Contorne com o dedo a parte da foto que você quer.|Trace around the part of the photo you want with your finger.|Rodea con el dedo la parte de la foto que quieres.|Contorna con il dito la parte della foto che vuoi.|Entoure avec ton doigt la partie de la photo que tu veux.|Umrande mit dem Finger den Teil des Fotos, den du willst.|Trek met je vinger om het deel van de foto dat je wilt.|ほしい所を指でぐるっとなぞってね。|用手指圈出你想要的部分。|원하는 부분을 손가락으로 따라 그려요.',
+ ugc_ades_dica:'Arraste a foto pra onde quiser. Puxe a bolinha do canto ou use dois dedos pra mudar o tamanho.|Drag the photo wherever you want. Pull the corner dot or use two fingers to resize.|Arrastra la foto adonde quieras. Tira del punto de la esquina o usa dos dedos para cambiar el tamaño.|Trascina la foto dove vuoi. Tira il pallino dell’angolo o usa due dita per cambiare misura.|Fais glisser la photo où tu veux. Tire le rond du coin ou utilise deux doigts pour la taille.|Zieh das Foto, wohin du willst. Zieh am Eckpunkt oder nimm zwei Finger für die Größe.|Sleep de foto waar je wilt. Trek aan het rondje in de hoek of gebruik twee vingers voor de grootte.|写真を好きな所に動かしてね。角の丸を引くか、2本指で大きさを変えられるよ。|把照片拖到任意位置。拉角上的圆点或用两根手指改变大小。|사진을 원하는 곳으로 끌어요. 모서리 점을 당기거나 두 손가락으로 크기를 바꿔요.',
+ ugc_ades_menor:'Diminuir|Smaller|Más pequeña|Più piccola|Plus petit|Kleiner|Kleiner|小さく|缩小|작게',
+ ugc_ades_maior:'Aumentar|Bigger|Más grande|Più grande|Plus grand|Größer|Groter|大きく|放大|크게',
+ ugc_ades_ok:'Colocar|Place it|Colocar|Metti|Placer|Einsetzen|Plaatsen|置く|放上去|붙이기',
+ ugc_foto_tit:'Recortar a foto|Crop the photo|Recortar la foto|Ritaglia la foto|Recadrer la photo|Foto zuschneiden|Foto bijsnijden|写真を切りとる|裁剪照片|사진 자르기',
+ ugc_foto_usar:'Usar|Use|Usar|Usa|Utiliser|Verwenden|Gebruiken|使う|使用|사용',
+ ugc_foto_dica:'Arraste o quadro até a parte que você quer. Puxe um canto pra mudar o tamanho.|Drag the box to the part you want. Pull a corner to resize it.|Arrastra el cuadro a la parte que quieras. Tira de una esquina para cambiar el tamaño.|Trascina il riquadro sulla parte che vuoi. Tira un angolo per cambiare la misura.|Fais glisser le cadre sur la partie voulue. Tire un coin pour changer la taille.|Zieh den Rahmen auf den Teil, den du willst. Zieh an einer Ecke für die Größe.|Sleep het kader naar het deel dat je wilt. Trek aan een hoek voor de grootte.|ほしい所まで枠を動かしてね。角を引っぱると大きさが変わるよ。|把框拖到你想要的部分，拉角可以改变大小。|원하는 부분으로 틀을 끌어요. 모서리를 당기면 크기가 바뀌어요.',
+ ugc_foto_fundo:'Tirar o fundo|Remove background|Quitar el fondo|Togli lo sfondo|Enlever le fond|Hintergrund entfernen|Achtergrond weghalen|背景を消す|去掉背景|배경 지우기',
+ ugc_foto_erro:'Não deu pra abrir essa foto.|Couldn’t open that photo.|No se pudo abrir esa foto.|Impossibile aprire questa foto.|Impossible d’ouvrir cette photo.|Das Foto ließ sich nicht öffnen.|Die foto kon niet worden geopend.|その写真は開けなかったよ。|无法打开这张照片。|이 사진을 열 수 없어요.',
  ugc_t_mao:'Na mão|In hand|En la mano|In mano|En main|In der Hand|In de hand|手に持つ|手持|손에 들기',
- ugc_dica_roupa:'Roupa: fica por cima do corpo e aparece de frente.|Outfit: goes over the body and shows from the front.|Ropa: va encima del cuerpo y se ve de frente.|Vestito: va sopra il corpo e si vede di fronte.|Tenue : par-dessus le corps, visible de face.|Kleidung: liegt über dem Körper, von vorne sichtbar.|Kleding: over het lichaam, zichtbaar van voren.|ふく：体の上に重なり、正面から見えます。|服装：盖在身体上，正面可见。|옷: 몸 위에 겹쳐지고 앞에서 보여요.',
- ugc_dica_cabeca:'Cabeça: fica por cima de tudo, até do chapéu.|Head: goes over everything, even the hat.|Cabeza: va encima de todo, incluso del sombrero.|Testa: sta sopra tutto, anche il cappello.|Tête : par-dessus tout, même le chapeau.|Kopf: liegt über allem, sogar über dem Hut.|Hoofd: over alles heen, zelfs de hoed.|あたま：ぼうしも含めて一番上に重なります。|头部：盖在所有东西上面，包括帽子。|머리: 모자까지 포함해 맨 위에 겹쳐져요.',
+ ugc_dica_roupa:'Camisa: só no tronco e nos braços. Pinte a frente e as costas.|Shirt: only on the body and arms. Paint the front and the back.|Camiseta: solo en el tronco y los brazos. Pinta el frente y la espalda.|Maglia: solo sul busto e sulle braccia. Colora davanti e dietro.|Haut : seulement sur le torse et les bras. Peins le devant et le dos.|Oberteil: nur Oberkörper und Arme. Male vorne und hinten.|Shirt: alleen op de romp en de armen. Kleur de voor- en achterkant.|シャツ：体とうでだけ。前と後ろをぬってね。|上衣：只能画在身体和手臂上。正面和背面都要画。|상의: 몸통과 팔에만 칠해요. 앞과 뒤를 칠해요.',
+ ugc_dica_cabeca:'Cabeça: só na cabeça (chapéu, máscara, cabelo). Fica por cima de tudo.|Head: only on the head (hat, mask, hair). Goes over everything.|Cabeza: solo en la cabeza (sombrero, máscara, pelo). Va encima de todo.|Testa: solo sulla testa (cappello, maschera, capelli). Sta sopra tutto.|Tête : seulement sur la tête (chapeau, masque, cheveux). Par-dessus tout.|Kopf: nur am Kopf (Hut, Maske, Haare). Liegt über allem.|Hoofd: alleen op het hoofd (hoed, masker, haar). Over alles heen.|あたま：あたまだけ（ぼうし、お面、かみ）。一番上に重なるよ。|头部：只能画在头上（帽子、面具、头发），会盖在所有东西上面。|머리: 머리에만 칠해요(모자, 가면, 머리카락). 맨 위에 겹쳐져요.',
  ugc_dica_costas:'Costas: fica atrás do corpo (asas, capa, mochila) e aparece de costas.|Back: goes behind the body (wings, cape, backpack) and shows from behind.|Espalda: va detrás del cuerpo (alas, capa, mochila) y se ve de espaldas.|Schiena: va dietro al corpo (ali, mantello, zaino) e si vede da dietro.|Dos : derrière le corps (ailes, cape, sac), visible de dos.|Rücken: hinter dem Körper (Flügel, Umhang, Rucksack), von hinten sichtbar.|Rug: achter het lichaam (vleugels, cape, rugzak), zichtbaar van achteren.|せなか：体のうしろ（羽、マント、リュック）。後ろから見えます。|背部：在身体后面（翅膀、披风、背包），背面可见。|등: 몸 뒤에 있어요(날개, 망토, 가방). 뒤에서 보여요.',
- ugc_dica_mao:'Na mão: fica por cima das mãos (espada, varinha, bola).|In hand: goes over the hands (sword, wand, ball).|En la mano: va encima de las manos (espada, varita, pelota).|In mano: sopra le mani (spada, bacchetta, palla).|En main : par-dessus les mains (épée, baguette, ballon).|In der Hand: über den Händen (Schwert, Zauberstab, Ball).|In de hand: over de handen (zwaard, toverstaf, bal).|手に持つ：手の上に重なります（剣、つえ、ボール）。|手持：盖在手上（剑、魔杖、球）。|손에 들기: 손 위에 겹쳐져요(칼, 지팡이, 공).',
+ ugc_dica_mao:'Na mão: só dos lados, onde ficam as mãos (espada, varinha, bola).|In hand: only on the sides, where the hands are (sword, wand, ball).|En la mano: solo a los lados, donde están las manos (espada, varita, pelota).|In mano: solo ai lati, dove ci sono le mani (spada, bacchetta, palla).|En main : seulement sur les côtés, là où sont les mains (épée, baguette, ballon).|In der Hand: nur an den Seiten, wo die Hände sind (Schwert, Zauberstab, Ball).|In de hand: alleen aan de zijkanten, waar de handen zijn (zwaard, toverstaf, bal).|手に持つ：手のある横のところだけ（剣、つえ、ボール）。|手持：只能画在两边有手的地方（剑、魔杖、球）。|손에 들기: 손이 있는 양옆에만 칠해요(칼, 지팡이, 공).',
  ugc_f_pincel:'Pincel|Brush|Pincel|Pennello|Pinceau|Pinsel|Penseel|ペン|画笔|붓',
  ugc_f_borracha:'Borracha|Eraser|Goma|Gomma|Gomme|Radiergummi|Gum|消しゴム|橡皮擦|지우개',
  ugc_f_balde:'Balde de tinta|Paint bucket|Cubo de pintura|Secchiello|Pot de peinture|Farbeimer|Verfemmer|ぬりつぶし|油漆桶|페인트 통',
@@ -33260,7 +33717,7 @@ function pzGrade(c, variante){
   const est = pzHexDe('cor', c.corEstampa), cEst = {'4':est, '5':pzEsc(est, .25)};
   /* a peça desenhada pela comunidade (se o desenho já chegou do banco): cada tipo entra numa camada */
   const U = ugcDados(c.ugc);
-  const pintaU = tipo=>{ if(!U || U.tipo !== tipo) return; for(let k = 0; k < PZ_W * PZ_H; k++) if(U.px[k]){ g[k] = U.px[k]; tags[k] = 'ugc'; } };
+  const pintaU = tipo=>{ if(!U || U.tipo !== tipo) return; const a = deCostas ? (U.pxC || U.px) : U.px; for(let k = 0; k < PZ_W * PZ_H; k++) if(a[k]){ g[k] = a[k]; tags[k] = 'ugc'; } };
   if(!deCostas) pzPint(g, tags, Cos.atras, Cos.cores, 'costas', null, Cos.fn);   // (de trás a peça das costas vai por cima do corpo, mais abaixo)
   if(!deCostas) pintaU('costas');
   pzPint(g, tags, Cab.atras, Cab.cores, 'cab', null, Cab.fn);
@@ -33270,6 +33727,7 @@ function pzGrade(c, variante){
   pzPint(g, tags, Cam.px, Object.assign(Cam.cores, cEst), 'cam', null, Cam.fn);
   if(!deCostas || PZ_ESTAMPA_COSTAS.indexOf(c.estampa) >= 0) pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
   if(P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
+  pintaU('calca');
   pintaU('roupa');
   if(!deCostas) pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
   pzPint(g, tags, Mao.px, Mao.cores, 'mao', null, Mao.fn);
