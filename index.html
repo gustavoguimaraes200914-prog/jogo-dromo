@@ -4897,6 +4897,21 @@
   .ugc-foto-baixo{display:flex;gap:12px;align-items:center;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:#13312A;}
   .ugc-foto-baixo canvas{flex:none;max-height:84px;max-width:110px;image-rendering:pixelated;border-radius:8px;background:repeating-conic-gradient(#3a5a52 0 25%,#2c4a43 0 50%) 0 0/12px 12px;}
   .ugc-foto .ugc-dica{color:#d8efe8;opacity:.9;}
+  .ugc-ades{display:none;flex-direction:column;align-items:center;gap:6px;}
+  .ugc-ed.com-adesivo .ugc-ades{display:flex;}
+  .ugc-ed.com-adesivo .ugc-ferrs{display:none;}
+  .ugc-ades .ugc-dica{text-align:center;}
+  .ugc-ades-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+  .ugc-ades-btns .ugc-ferr{font:800 1.3rem/1 'Baloo 2',sans-serif;}
+  .ugc-ades-fundo,.ugc-ades-ok{height:40px;border-radius:12px;padding:0 12px;border:2px solid transparent;background:#fff;color:inherit;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .ugc-ades-fundo.on{border-color:#17C79E;background:#DDF7EF;}
+  .ugc-ades-ok{background:#17C79E;color:#fff;}
+  .ugc-foto-modos{display:flex;gap:8px;justify-content:center;padding:8px 12px;}
+  .ugc-foto-modos button{border:2px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 14px;background:transparent;color:#fff;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .ugc-foto-modos button.on{background:#17C79E;border-color:#17C79E;}
+  .ugc-foto-img svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
+  .ugc-foto-img path{fill:rgba(23,199,158,.25);stroke:#fff;stroke-width:3;stroke-linejoin:round;stroke-dasharray:8 5;vector-effect:non-scaling-stroke;}
+  .ugc-foto-sel[hidden]{display:none;}
   .ugc-foto-fundo{display:flex;align-items:center;gap:8px;margin-top:6px;font:800 .88rem 'Baloo 2',sans-serif;cursor:pointer;}
   .ugc-foto-fundo input{width:20px;height:20px;accent-color:#17C79E;}
   .ugc-tela canvas{touch-action:none;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#fff;cursor:crosshair;}
@@ -4938,6 +4953,7 @@
     .ugc-ed-esq{gap:5px;padding:6px 8px 4px;}
     .ugc-tipo{padding:3px 10px;}
     .ugc-lado img{display:none;}
+    .ugc-ades .ugc-dica{display:none;}
     .ugc-lado{padding:3px 8px;}
     .ugc-foto-baixo canvas{max-height:56px;}
   }
@@ -31471,8 +31487,9 @@ function ugcFotoEmPixels(recorte, w, h, maxCores, semFundo){
   for(let i = 0; i < n; i++) if(vivo[i]) out[i] = hx[perto(rgb[i])];
   return out;
 }
-/* a tela de recortar: a foto inteira e um quadro (no formato da área da peça) que dá pra arrastar e aumentar pelos cantos */
-function ugcRecortarFoto(arquivo, proporcao, aoUsar){
+/* a tela de recortar: à mão livre (contorna com o dedo o que quer) ou com um retângulo.
+   O recorte volta como uma imagem (o que ficou fora do contorno é transparente) */
+function ugcRecortarFoto(arquivo, aoUsar){
   const esc = chatListEscape;
   const url = URL.createObjectURL(arquivo);
   const im = new Image();
@@ -31488,17 +31505,21 @@ function ugcRecortarFoto(arquivo, proporcao, aoUsar){
     const bg = document.createElement('div');
     bg.className = 'ugc-foto';
     bg.innerHTML = `<div class="ugc-ed-topo"><button type="button" class="ugc-x" data-nao aria-label="${esc(t('menu_cancel'))}">✕</button><b>${esc(t('ugc_foto_tit'))}</b><button type="button" class="ugc-prox" data-usar>${esc(t('ugc_foto_usar'))}</button></div>
-      <div class="ugc-foto-palco" data-palco><div class="ugc-foto-img" data-img></div><div class="ugc-foto-sel" data-sel>${['nw', 'ne', 'sw', 'se'].map(c=>`<i data-canto="${c}" class="${c}"></i>`).join('')}</div></div>
-      <div class="ugc-foto-baixo"><canvas data-previa></canvas><div><p class="ugc-dica">${esc(t('ugc_foto_dica'))}</p>
-        <label class="ugc-foto-fundo"><input type="checkbox" data-fundo> ${esc(t('ugc_foto_fundo'))}</label></div></div>`;
+      <div class="ugc-foto-modos" role="tablist">
+        <button type="button" data-modo="mao" class="on">✂️ ${esc(t('ugc_foto_mao'))}</button>
+        <button type="button" data-modo="ret">⬜ ${esc(t('ugc_foto_ret'))}</button>
+      </div>
+      <div class="ugc-foto-palco" data-palco><div class="ugc-foto-img" data-img><svg data-svg preserveAspectRatio="none"><path data-caminho></path></svg></div>
+        <div class="ugc-foto-sel" data-sel hidden>${['nw', 'ne', 'sw', 'se'].map(c=>`<i data-canto="${c}" class="${c}"></i>`).join('')}</div></div>
+      <div class="ugc-foto-baixo"><p class="ugc-dica" data-dica></p></div>`;
     document.body.appendChild(bg);
     const imgBox = bg.querySelector('[data-img]'), palco = bg.querySelector('[data-palco]'), sel = bg.querySelector('[data-sel]');
+    const svg = bg.querySelector('[data-svg]'), caminho = bg.querySelector('[data-caminho]'), dica = bg.querySelector('[data-dica]');
     src.className = 'ugc-foto-src';
-    imgBox.appendChild(src);
-    /* o recorte em coordenadas da foto */
-    let w0 = Math.min(SW, SH * proporcao) * .8;
-    const R = {w: w0, h: w0 / proporcao, x: 0, y: 0};
-    R.x = (SW - R.w) / 2; R.y = (SH - R.h) / 2;
+    imgBox.insertBefore(src, svg);
+    svg.setAttribute('viewBox', `0 0 ${SW} ${SH}`);
+    let modo = 'mao', pontos = [];
+    const R = {w: SW * .6, h: SH * .6, x: SW * .2, y: SH * .2};
     let vista = {s: 1, ox: 0, oy: 0};
     const layout = ()=>{
       const cx = palco.getBoundingClientRect();
@@ -31507,70 +31528,86 @@ function ugcRecortarFoto(arquivo, proporcao, aoUsar){
       Object.assign(imgBox.style, {left: vista.ox + 'px', top: vista.oy + 'px', width: SW * s + 'px', height: SH * s + 'px'});
       mostra();
     };
-    const pv = bg.querySelector('[data-previa]');
-    let pvT = 0;
-    const previa = ()=>{
-      clearTimeout(pvT);
-      pvT = setTimeout(()=>{
-        const gw = Math.max(1, Math.round(28 * Math.min(1, proporcao))), gh = Math.max(1, Math.round(gw / proporcao));
-        const cores = ugcFotoEmPixels(recorte(), gw, gh, 32, bg.querySelector('[data-fundo]').checked);
-        const t0 = Math.max(2, Math.floor(84 / Math.max(gw, gh)));
-        pv.width = gw * t0; pv.height = gh * t0;
-        const x = pv.getContext('2d');
-        x.clearRect(0, 0, pv.width, pv.height);
-        cores.forEach((c, i)=>{ if(c){ x.fillStyle = c; x.fillRect((i % gw) * t0, Math.floor(i / gw) * t0, t0, t0); } });
-      }, 80);
-    };
     const mostra = ()=>{
+      sel.hidden = modo !== 'ret';
       Object.assign(sel.style, {left: vista.ox + R.x * vista.s + 'px', top: vista.oy + R.y * vista.s + 'px', width: R.w * vista.s + 'px', height: R.h * vista.s + 'px'});
-      previa();
+      caminho.setAttribute('d', modo === 'mao' && pontos.length ? 'M' + pontos.map(p=>p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join('L') + (desenhando ? '' : 'Z') : '');
+      dica.textContent = t(modo === 'mao' ? 'ugc_foto_dica_mao' : 'ugc_foto_dica');
     };
+    /* o recorte: retângulo, ou o contorno (o resto fica transparente) */
     const recorte = ()=>{
+      let x0, y0, x1, y1;
+      if(modo === 'ret'){ x0 = R.x; y0 = R.y; x1 = R.x + R.w; y1 = R.y + R.h; }
+      else {
+        if(pontos.length < 3) return null;
+        x0 = Math.min(...pontos.map(p=>p.x)); x1 = Math.max(...pontos.map(p=>p.x));
+        y0 = Math.min(...pontos.map(p=>p.y)); y1 = Math.max(...pontos.map(p=>p.y));
+      }
+      x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(SW, Math.ceil(x1)); y1 = Math.min(SH, Math.ceil(y1));
+      if(x1 - x0 < 4 || y1 - y0 < 4) return null;
       const c = document.createElement('canvas');
-      c.width = Math.max(1, Math.round(R.w)); c.height = Math.max(1, Math.round(R.h));
-      c.getContext('2d').drawImage(src, R.x, R.y, R.w, R.h, 0, 0, c.width, c.height);
+      c.width = x1 - x0; c.height = y1 - y0;
+      const x = c.getContext('2d');
+      if(modo === 'mao'){
+        x.beginPath();
+        pontos.forEach((p, i)=>{ if(i) x.lineTo(p.x - x0, p.y - y0); else x.moveTo(p.x - x0, p.y - y0); });
+        x.closePath(); x.clip();
+      }
+      x.drawImage(src, x0, y0, c.width, c.height, 0, 0, c.width, c.height);
       return c;
     };
-    /* arrastar o quadro (ou um canto dele) */
-    let modo = null;
+    let arrasto = null, desenhando = false;
     const ponto = ev=>{ const cx = palco.getBoundingClientRect(); return {x: (ev.clientX - cx.left - vista.ox) / vista.s, y: (ev.clientY - cx.top - vista.oy) / vista.s}; };
+    const dentro = p=>({x: Math.max(0, Math.min(SW, p.x)), y: Math.max(0, Math.min(SH, p.y))});
     palco.addEventListener('pointerdown', ev=>{
-      const p = ponto(ev), canto = ev.target.closest('[data-canto]');
-      if(canto){
-        const c = canto.dataset.canto;
-        modo = {tipo: 'canto', ax: c[1] === 'w' ? R.x + R.w : R.x, ay: c[0] === 'n' ? R.y + R.h : R.y, dx: c[1] === 'w' ? -1 : 1, dy: c[0] === 'n' ? -1 : 1};
-      } else if(p.x >= R.x && p.x <= R.x + R.w && p.y >= R.y && p.y <= R.y + R.h) modo = {tipo: 'mover', px: p.x - R.x, py: p.y - R.y};
-      else { /* tocou fora: o quadro vai pra lá */ R.x = Math.max(0, Math.min(SW - R.w, p.x - R.w / 2)); R.y = Math.max(0, Math.min(SH - R.h, p.y - R.h / 2)); mostra(); modo = {tipo: 'mover', px: R.w / 2, py: R.h / 2}; }
       ev.preventDefault();
       try{ palco.setPointerCapture(ev.pointerId); }catch(e){}
+      const p = ponto(ev);
+      if(modo === 'mao'){ desenhando = true; pontos = [dentro(p)]; mostra(); return; }
+      const canto = ev.target.closest('[data-canto]');
+      if(canto){
+        const c = canto.dataset.canto;
+        arrasto = {tipo: 'canto', ax: c[1] === 'w' ? R.x + R.w : R.x, ay: c[0] === 'n' ? R.y + R.h : R.y};
+      } else if(p.x >= R.x && p.x <= R.x + R.w && p.y >= R.y && p.y <= R.y + R.h) arrasto = {tipo: 'mover', px: p.x - R.x, py: p.y - R.y};
+      else { R.x = Math.max(0, Math.min(SW - R.w, p.x - R.w / 2)); R.y = Math.max(0, Math.min(SH - R.h, p.y - R.h / 2)); mostra(); arrasto = {tipo: 'mover', px: R.w / 2, py: R.h / 2}; }
     });
     palco.addEventListener('pointermove', ev=>{
-      if(!modo) return;
-      ev.preventDefault();
       const p = ponto(ev);
-      if(modo.tipo === 'mover'){
-        R.x = Math.max(0, Math.min(SW - R.w, p.x - modo.px));
-        R.y = Math.max(0, Math.min(SH - R.h, p.y - modo.py));
+      if(modo === 'mao'){
+        if(!desenhando) return;
+        ev.preventDefault();
+        const u = pontos[pontos.length - 1], q = dentro(p);
+        if(Math.hypot(q.x - u.x, q.y - u.y) * vista.s >= 3){ pontos.push(q); mostra(); }
+        return;
+      }
+      if(!arrasto) return;
+      ev.preventDefault();
+      if(arrasto.tipo === 'mover'){
+        R.x = Math.max(0, Math.min(SW - R.w, p.x - arrasto.px));
+        R.y = Math.max(0, Math.min(SH - R.h, p.y - arrasto.py));
       } else {
-        const maxW = modo.dx > 0 ? SW - modo.ax : modo.ax, maxH = modo.dy > 0 ? SH - modo.ay : modo.ay;
-        let w = Math.max(Math.abs(p.x - modo.ax), Math.abs(p.y - modo.ay) * proporcao);
-        w = Math.max(12, Math.min(w, maxW, maxH * proporcao));
-        R.w = w; R.h = w / proporcao;
-        R.x = modo.dx > 0 ? modo.ax : modo.ax - R.w;
-        R.y = modo.dy > 0 ? modo.ay : modo.ay - R.h;
+        const q = dentro(p), min = 12 / vista.s;
+        R.x = Math.min(arrasto.ax, q.x); R.y = Math.min(arrasto.ay, q.y);
+        R.w = Math.max(min, Math.abs(q.x - arrasto.ax)); R.h = Math.max(min, Math.abs(q.y - arrasto.ay));
+        R.x = Math.min(R.x, SW - R.w); R.y = Math.min(R.y, SH - R.h);
       }
       mostra();
     });
-    const solta = ()=>{ modo = null; };
+    const solta = ()=>{ arrasto = null; if(desenhando){ desenhando = false; if(pontos.length < 3) pontos = []; mostra(); } };
     palco.addEventListener('pointerup', solta); palco.addEventListener('pointercancel', solta);
-    bg.querySelector('[data-fundo]').addEventListener('change', previa);
+    bg.querySelectorAll('[data-modo]').forEach(b=>b.addEventListener('click', ()=>{
+      modo = b.dataset.modo; playSound('click');
+      bg.querySelectorAll('[data-modo]').forEach(x=>x.classList.toggle('on', x === b));
+      mostra();
+    }));
     const fechar = ()=>{ window.removeEventListener('resize', layout); bg.remove(); };
     bg.querySelector('[data-nao]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
     bg.querySelector('[data-usar]').addEventListener('click', ()=>{
+      const c = recorte();
+      if(!c){ toast(t(modo === 'mao' ? 'ugc_foto_dica_mao' : 'ugc_foto_dica')); return; }
       playSound('click');
-      const semFundo = bg.querySelector('[data-fundo]').checked, c = recorte();
       fechar();
-      aoUsar(c, semFundo);
+      aoUsar(c);
     });
     window.addEventListener('resize', layout);
     requestAnimationFrame(layout);
@@ -31616,7 +31653,7 @@ function ugcAbrirEditor(aoPublicar){
   /* as duas prévias (o personagem com a peça, de frente e de costas), refeitas logo depois de cada pincelada */
   const RASC = 'urascunho0', cRasc = Object.assign({}, base, {ugc: RASC});
   const refazerPrevias = ()=>{
-    ugcEstado().cache.set(RASC, {tipo: E.tipo, px: E.lados.frente.slice(), pxC: E.lados.costas.slice()});
+    ugcEstado().cache.set(RASC, {tipo: E.tipo, px: E.lado === 'frente' ? comAdesivo(E.lados.frente) : E.lados.frente.slice(), pxC: E.lado === 'costas' ? comAdesivo(E.lados.costas) : E.lados.costas.slice()});
     try{ for(const k of Array.from(PZ_CACHE.keys())) if(k.indexOf(RASC) >= 0) PZ_CACHE.delete(k); }catch(e){}
     try{ for(const k of Array.from(PZ_IMG_CACHE.keys())) if(k.indexOf(RASC) >= 0) PZ_IMG_CACHE.delete(k); }catch(e){}
   };
@@ -31638,6 +31675,16 @@ function ugcAbrirEditor(aoPublicar){
             <div class="ugc-tipos" role="tablist">${UGC_TIPOS.map(tp=>`<button type="button" class="ugc-tipo${tp === E.tipo ? ' on' : ''}" data-tipo="${tp}">${esc(t('ugc_t_' + tp))}</button>`).join('')}</div>
             <div class="ugc-lados" role="tablist">${['frente', 'costas'].map(l=>`<button type="button" class="ugc-lado${l === E.lado ? ' on' : ''}" data-lado="${l}" role="tab" aria-selected="${l === E.lado}"><img data-lado-img="${l}" alt=""><span>${esc(t('ugc_' + l))}</span></button>`).join('')}</div>
             <div class="ugc-tela"><canvas data-tela></canvas></div>
+            <div class="ugc-ades">
+              <p class="ugc-dica">${esc(t('ugc_ades_dica'))}</p>
+              <div class="ugc-ades-btns">
+                <button type="button" class="ugc-ferr" data-ades="menor" title="${esc(t('ugc_ades_menor'))}" aria-label="${esc(t('ugc_ades_menor'))}">−</button>
+                <button type="button" class="ugc-ferr" data-ades="maior" title="${esc(t('ugc_ades_maior'))}" aria-label="${esc(t('ugc_ades_maior'))}">+</button>
+                <button type="button" class="ugc-ades-fundo" data-ades="fundo">${esc(t('ugc_foto_fundo'))}</button>
+                <button type="button" class="ugc-ferr" data-ades="tirar" title="${esc(t('menu_cancel'))}" aria-label="${esc(t('menu_cancel'))}">✕</button>
+                <button type="button" class="ugc-ades-ok" data-ades="ok">✔ ${esc(t('ugc_ades_ok'))}</button>
+              </div>
+            </div>
             <div class="ugc-ferrs">${['pincel', 'borracha', 'balde', 'conta', 'espelho', 'guia', 'foto', 'desfazer', 'refazer', 'limpar'].map(f=>`<button type="button" class="ugc-ferr${E.ferr === f || (f === 'espelho' && E.espelho) || (f === 'guia' && E.guia) ? ' on' : ''}" data-ferr="${f}" title="${esc(t('ugc_f_' + f))}" aria-label="${esc(t('ugc_f_' + f))}">${ICO[f]}</button>`).join('')}</div>
           </div>
           <div class="ugc-ed-dir">
@@ -31648,6 +31695,7 @@ function ugcAbrirEditor(aoPublicar){
           </div>
         </div>`;
       ligarPasso1();
+      mostrarBarraAdesivo();
       pintar();
       previas();
     } else {
@@ -31682,7 +31730,8 @@ function ugcAbrirEditor(aoPublicar){
     for(let yy = 0; yy < PZ_H; yy++) for(let xx = 0; xx < PZ_W; xx++){ x.fillStyle = (xx + yy) % 2 ? '#EEF2F1' : '#FFFFFF'; x.fillRect(xx * cel, yy * cel, cel, cel); }
     const gi = guia[E.lado];
     if(E.guia && gi.complete && gi.naturalWidth){ x.globalAlpha = .33; x.drawImage(gi, 0, 0, PZ_W * cel, PZ_H * cel); x.globalAlpha = 1; }
-    for(let k = 0; k < N; k++) if(E.px[k]){ x.fillStyle = E.px[k]; x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel); }
+    const arr = comAdesivo(E.px);
+    for(let k = 0; k < N; k++) if(arr[k]){ x.fillStyle = arr[k]; x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel); }
     /* fora da área do tipo (camisa, calça...) não dá pra pintar: fica escurinho e riscado */
     x.fillStyle = 'rgba(19,49,42,.42)';
     for(let k = 0; k < N; k++) if(!mascara[k]) x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel);
@@ -31692,6 +31741,23 @@ function ugcAbrirEditor(aoPublicar){
     for(let i = 0; i <= PZ_H; i++){ x.moveTo(0, i * cel + .5); x.lineTo(PZ_W * cel, i * cel + .5); }
     x.stroke();
     if(E.espelho){ x.strokeStyle = 'rgba(232,65,60,.45)'; x.lineWidth = 2; x.beginPath(); x.moveTo(PZ_W * cel / 2, 0); x.lineTo(PZ_W * cel / 2, PZ_H * cel); x.stroke(); }
+    if(E.adesivo){
+      /* a parte do adesivo que cai fora da área aparece clarinha (pra ver a foto inteira enquanto posiciona) */
+      const A = adesivoCores(), ax = Math.round(A.x), ay = Math.round(A.y);
+      x.globalAlpha = .35;
+      for(let yy = 0; yy < A.hc; yy++) for(let xx = 0; xx < A.wc; xx++){
+        const gx = ax + xx, gy = ay + yy, c = A.cores[yy * A.wc + xx];
+        if(!c || gx < 0 || gy < 0 || gx >= PZ_W || gy >= PZ_H || mascara[gy * PZ_W + gx]) continue;
+        x.fillStyle = c; x.fillRect(gx * cel, gy * cel, cel, cel);
+      }
+      x.globalAlpha = 1;
+      x.setLineDash([6, 4]); x.lineWidth = 2; x.strokeStyle = '#13312A';
+      x.strokeRect(ax * cel + 1, ay * cel + 1, A.wc * cel - 2, A.hc * cel - 2);
+      x.setLineDash([]);
+      const hx = (ax + A.wc) * cel, hy = (ay + A.hc) * cel;
+      x.fillStyle = '#17C79E'; x.strokeStyle = '#fff'; x.lineWidth = 3;
+      x.beginPath(); x.arc(hx, hy, Math.max(9, cel * .7), 0, 7); x.fill(); x.stroke();
+    }
   }
   /* desfazer/refazer guardam os dois lados (a foto e o "limpar" também voltam) */
   const fotoAtual = ()=>({f: E.lados.frente.slice(), c: E.lados.costas.slice(), tipo: E.tipo});
@@ -31734,6 +31800,7 @@ function ugcAbrirEditor(aoPublicar){
   function ligarPasso1(){
     bg.querySelector('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
     bg.querySelector('[data-prox]').addEventListener('click', ()=>{
+      colocarAdesivo();
       if(E.lados.frente.filter(Boolean).length + E.lados.costas.filter(Boolean).length < UGC_MIN_PX){ toast(t('ugc_pouco')); return; }
       if(!ugcCodificar(E.lados.frente, E.lados.costas)){ toast(t('ugc_muitas_cores')); return; }
       playSound('click'); E.passo = 2; salvarRascunho(); desenhaTela();
@@ -31770,8 +31837,52 @@ function ugcAbrirEditor(aoPublicar){
       bg.querySelectorAll('[data-ferr]').forEach(x=>x.classList.toggle('on', x.dataset.ferr === E.ferr || (x.dataset.ferr === 'espelho' && E.espelho) || (x.dataset.ferr === 'guia' && E.guia)));
       pintar();
     }));
+    bg.querySelectorAll('[data-ades]').forEach(b=>b.addEventListener('click', ()=>{
+      if(!E.adesivo) return;
+      const o = b.dataset.ades;
+      playSound('click');
+      if(o === 'menor') tamanhoAdesivo(E.adesivo.w - 1);
+      else if(o === 'maior') tamanhoAdesivo(E.adesivo.w + 1);
+      else if(o === 'fundo'){ E.adesivo.semFundo = !E.adesivo.semFundo; E.adesivo.chave = ''; }
+      else if(o === 'tirar') E.adesivo = null;
+      else if(o === 'ok'){ colocarAdesivo(); return; }
+      mostrarBarraAdesivo(); pintar(); previas();
+    }));
     /* pintar arrastando o dedo */
     const tela = bg.querySelector('[data-tela]');
+    const dedos = new Map();
+    let gesto = null;
+    const celF = ev=>{ const rr = tela.getBoundingClientRect(); return {x: (ev.clientX - rr.left) / cel, y: (ev.clientY - rr.top) / cel}; };
+    const adesivoDown = ev=>{
+      dedos.set(ev.pointerId, celF(ev));
+      try{ tela.setPointerCapture(ev.pointerId); }catch(e){}
+      const A = E.adesivo;
+      if(dedos.size >= 2){
+        const [a, b2] = Array.from(dedos.values());
+        gesto = {tipo: 'pinca', d0: Math.max(.5, Math.hypot(a.x - b2.x, a.y - b2.y)), w0: A.w};
+        return;
+      }
+      const p = celF(ev), ad = adesivoCores(), ax = Math.round(A.x), ay = Math.round(A.y);
+      if(Math.abs(p.x - (ax + ad.wc)) < 1.6 && Math.abs(p.y - (ay + ad.hc)) < 1.6) gesto = {tipo: 'tam'};
+      else gesto = {tipo: 'mover', dx: p.x - A.x, dy: p.y - A.y};
+    };
+    const adesivoMove = ev=>{
+      if(!dedos.has(ev.pointerId) || !gesto) return;
+      dedos.set(ev.pointerId, celF(ev));
+      const A = E.adesivo, p = celF(ev);
+      if(gesto.tipo === 'pinca' && dedos.size >= 2){
+        const [a, b2] = Array.from(dedos.values());
+        tamanhoAdesivo(gesto.w0 * Math.hypot(a.x - b2.x, a.y - b2.y) / gesto.d0);
+      } else if(gesto.tipo === 'tam'){
+        A.w = Math.max(2, Math.min(44, Math.max(p.x - A.x, (p.y - A.y) * A.ar), 44 * A.ar));
+        prenderAdesivo();
+      } else if(gesto.tipo === 'mover'){
+        A.x = p.x - gesto.dx; A.y = p.y - gesto.dy;
+        prenderAdesivo();
+      }
+      pintar(); previas();
+    };
+    const adesivoUp = ev=>{ dedos.delete(ev.pointerId); if(!dedos.size) gesto = null; else if(gesto && gesto.tipo === 'pinca') gesto = null; };
     let pintando = false, ultimo = -1;
     const celDe = ev=>{
       const rr = tela.getBoundingClientRect();
@@ -31788,6 +31899,7 @@ function ugcAbrirEditor(aoPublicar){
     };
     tela.addEventListener('pointerdown', ev=>{
       ev.preventDefault();
+      if(E.adesivo){ adesivoDown(ev); return; }
       const k = celDe(ev);
       if(k < 0) return;
       if(E.ferr === 'conta'){ if(E.px[k]) usarCor(E.px[k]); return; }
@@ -31797,11 +31909,14 @@ function ugcAbrirEditor(aoPublicar){
       try{ tela.setPointerCapture(ev.pointerId); }catch(e){}
       aplica(k);
     });
-    tela.addEventListener('pointermove', ev=>{ if(pintando){ ev.preventDefault(); aplica(celDe(ev)); } });
-    const solta = ()=>{ if(pintando){ pintando = false; salvarRascunho(); } };
+    tela.addEventListener('pointermove', ev=>{ if(E.adesivo){ ev.preventDefault(); adesivoMove(ev); return; } if(pintando){ ev.preventDefault(); aplica(celDe(ev)); } });
+    const solta = ev=>{ if(E.adesivo){ adesivoUp(ev); return; } if(pintando){ pintando = false; salvarRascunho(); } };
     tela.addEventListener('pointerup', solta); tela.addEventListener('pointercancel', solta);
   }
   /* ----- foto da galeria ----- */
+  /* ----- foto da galeria: escolhe, recorta e ela vira um adesivo em cima da peça.
+     O adesivo dá pra arrastar, aumentar e diminuir (pelo canto, com dois dedos ou no − e +);
+     em "Colocar" ele vira quadradinhos de verdade (só dentro da área do tipo) ----- */
   function escolherFoto(){
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'image/*';
@@ -31811,22 +31926,56 @@ function ugcAbrirEditor(aoPublicar){
       const arq = inp.files && inp.files[0];
       inp.remove();
       if(!arq) return;
-      const [x0, x1, y0, y1] = (UGC_AREA[E.tipo] || UGC_AREA.costas).foto;
-      const w = x1 - x0 + 1, h = y1 - y0 + 1;
-      ugcRecortarFoto(arq, w / h, (recorte, semFundo)=>{
-        const usadas = new Set(E.lados[E.lado === 'frente' ? 'costas' : 'frente'].filter(Boolean));
-        for(let k = 0; k < N; k++) if(E.px[k] && !(k % PZ_W >= x0 && k % PZ_W <= x1 && Math.floor(k / PZ_W) >= y0 && Math.floor(k / PZ_W) <= y1)) usadas.add(E.px[k]);
-        const cores = ugcFotoEmPixels(recorte, w, h, Math.max(4, Math.min(32, 63 - usadas.size)), semFundo);
-        guardaDesfazer();
-        for(let yy = 0; yy < h; yy++) for(let xx = 0; xx < w; xx++){
-          const k = (y0 + yy) * PZ_W + x0 + xx;
-          if(mascara[k]) E.px[k] = cores[yy * w + xx];
-        }
-        pintar(); previas(); salvarRascunho();
+      ugcRecortarFoto(arq, recorte=>{
+        /* começa do tamanho da área do tipo (camisa, calça...), no meio dela */
+        const [x0, x1, y0, y1] = (UGC_AREA[E.tipo] || UGC_AREA.costas).foto;
+        const ar = recorte.width / recorte.height, bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+        const w = Math.max(2, Math.min(bw, bh * ar)), h = w / ar;
+        const usadas = new Set(E.lados[E.lado === 'frente' ? 'costas' : 'frente'].filter(Boolean).concat(E.px.filter(Boolean)));
+        E.adesivo = {img: recorte, ar, w, x: x0 + (bw - w) / 2, y: y0 + (bh - h) / 2, semFundo: false, k: Math.max(4, Math.min(32, 63 - usadas.size)), chave: ''};
+        mostrarBarraAdesivo(); pintar(); previas();
       });
     });
     inp.click();
   }
+  /* as cores do adesivo no tamanho de agora (refeitas só quando o tamanho muda) */
+  const adesivoCores = ()=>{
+    const A = E.adesivo, wc = Math.max(1, Math.round(A.w)), hc = Math.max(1, Math.round(A.w / A.ar)), chave = wc + 'x' + hc + (A.semFundo ? 'f' : '');
+    if(A.chave !== chave){ A.chave = chave; A.wc = wc; A.hc = hc; A.cores = ugcFotoEmPixels(A.img, wc, hc, A.k, A.semFundo); }
+    return A;
+  };
+  /* um lado do desenho com o adesivo por cima (só onde o tipo deixa pintar) */
+  const comAdesivo = arr=>{
+    if(!E.adesivo) return arr;
+    const A = adesivoCores(), out = arr.slice(), x0 = Math.round(A.x), y0 = Math.round(A.y);
+    for(let yy = 0; yy < A.hc; yy++) for(let xx = 0; xx < A.wc; xx++){
+      const gx = x0 + xx, gy = y0 + yy;
+      if(gx < 0 || gy < 0 || gx >= PZ_W || gy >= PZ_H) continue;
+      const k = gy * PZ_W + gx, c = A.cores[yy * A.wc + xx];
+      if(c && mascara[k]) out[k] = c;
+    }
+    return out;
+  };
+  const mostrarBarraAdesivo = ()=>{
+    bg.classList.toggle('com-adesivo', !!E.adesivo);
+    const f = bg.querySelector('[data-ades="fundo"]');
+    if(f) f.classList.toggle('on', !!(E.adesivo && E.adesivo.semFundo));
+  };
+  const tamanhoAdesivo = novo=>{
+    const A = E.adesivo;
+    const cx = A.x + A.w / 2, cy = A.y + A.w / A.ar / 2;
+    A.w = Math.max(2, Math.min(44, novo, 44 * A.ar));
+    A.x = cx - A.w / 2; A.y = cy - A.w / A.ar / 2;
+    prenderAdesivo();
+  };
+  const prenderAdesivo = ()=>{ const A = E.adesivo, h = A.w / A.ar; A.x = Math.max(1 - A.w, Math.min(PZ_W - 1, A.x)); A.y = Math.max(1 - h, Math.min(PZ_H - 1, A.y)); };
+  const colocarAdesivo = ()=>{
+    if(!E.adesivo) return;
+    guardaDesfazer();
+    E.px = comAdesivo(E.px);
+    E.adesivo = null;
+    mostrarBarraAdesivo(); pintar(); previas(); salvarRascunho();
+  };
   function ligarPasso2(){
     bg.querySelector('[data-voltar]').addEventListener('click', ()=>{ playSound('click'); E.passo = 1; desenhaTela(); });
     const nome = bg.querySelector('[data-nome]'), preco = bg.querySelector('[data-preco]');
@@ -32241,6 +32390,13 @@ var PZ_TXT = {
  ugc_fora:'Aqui não dá: {tipo} só pinta a parte clara.|Not here: {tipo} only paints the light area.|Aquí no: {tipo} solo pinta la parte clara.|Qui no: {tipo} colora solo la parte chiara.|Pas ici : {tipo} se peint seulement dans la zone claire.|Hier nicht: {tipo} nur im hellen Bereich.|Hier niet: {tipo} kleur je alleen in het lichte stuk.|ここはダメ：{tipo}は明るいところだけぬれるよ。|这里不行：{tipo}只能画在亮的区域。|여기는 안 돼요: {tipo}은(는) 밝은 부분에만 칠해요.',
  ugc_tirou:'Saiu o que estava fora da área de {tipo} (dá pra desfazer).|Removed what was outside the {tipo} area (you can undo it).|Se quitó lo que estaba fuera del área de {tipo} (puedes deshacerlo).|Tolto ciò che era fuori dall’area {tipo} (puoi annullare).|Ce qui dépassait de la zone {tipo} a été enlevé (tu peux annuler).|Was außerhalb von {tipo} war, ist weg (rückgängig möglich).|Wat buiten {tipo} stond is weg (ongedaan maken kan).|{tipo}の外にあった所は消えたよ（元に戻せるよ）。|{tipo}区域外的部分被去掉了（可以撤销）。|{tipo} 밖에 있던 건 지워졌어요(되돌릴 수 있어요).',
  ugc_f_foto:'Foto da galeria|Photo from gallery|Foto de la galería|Foto dalla galleria|Photo de la galerie|Foto aus der Galerie|Foto uit galerij|ギャラリーの写真|相册照片|갤러리 사진',
+ ugc_foto_mao:'À mão livre|Freehand|A mano alzada|A mano libera|À main levée|Freihand|Uit de vrije hand|フリーハンド|自由裁剪|자유롭게',
+ ugc_foto_ret:'Retângulo|Rectangle|Rectángulo|Rettangolo|Rectangle|Rechteck|Rechthoek|四角|矩形|사각형',
+ ugc_foto_dica_mao:'Contorne com o dedo a parte da foto que você quer.|Trace around the part of the photo you want with your finger.|Rodea con el dedo la parte de la foto que quieres.|Contorna con il dito la parte della foto che vuoi.|Entoure avec ton doigt la partie de la photo que tu veux.|Umrande mit dem Finger den Teil des Fotos, den du willst.|Trek met je vinger om het deel van de foto dat je wilt.|ほしい所を指でぐるっとなぞってね。|用手指圈出你想要的部分。|원하는 부분을 손가락으로 따라 그려요.',
+ ugc_ades_dica:'Arraste a foto pra onde quiser. Puxe a bolinha do canto ou use dois dedos pra mudar o tamanho.|Drag the photo wherever you want. Pull the corner dot or use two fingers to resize.|Arrastra la foto adonde quieras. Tira del punto de la esquina o usa dos dedos para cambiar el tamaño.|Trascina la foto dove vuoi. Tira il pallino dell’angolo o usa due dita per cambiare misura.|Fais glisser la photo où tu veux. Tire le rond du coin ou utilise deux doigts pour la taille.|Zieh das Foto, wohin du willst. Zieh am Eckpunkt oder nimm zwei Finger für die Größe.|Sleep de foto waar je wilt. Trek aan het rondje in de hoek of gebruik twee vingers voor de grootte.|写真を好きな所に動かしてね。角の丸を引くか、2本指で大きさを変えられるよ。|把照片拖到任意位置。拉角上的圆点或用两根手指改变大小。|사진을 원하는 곳으로 끌어요. 모서리 점을 당기거나 두 손가락으로 크기를 바꿔요.',
+ ugc_ades_menor:'Diminuir|Smaller|Más pequeña|Più piccola|Plus petit|Kleiner|Kleiner|小さく|缩小|작게',
+ ugc_ades_maior:'Aumentar|Bigger|Más grande|Più grande|Plus grand|Größer|Groter|大きく|放大|크게',
+ ugc_ades_ok:'Colocar|Place it|Colocar|Metti|Placer|Einsetzen|Plaatsen|置く|放上去|붙이기',
  ugc_foto_tit:'Recortar a foto|Crop the photo|Recortar la foto|Ritaglia la foto|Recadrer la photo|Foto zuschneiden|Foto bijsnijden|写真を切りとる|裁剪照片|사진 자르기',
  ugc_foto_usar:'Usar|Use|Usar|Usa|Utiliser|Verwenden|Gebruiken|使う|使用|사용',
  ugc_foto_dica:'Arraste o quadro até a parte que você quer. Puxe um canto pra mudar o tamanho.|Drag the box to the part you want. Pull a corner to resize it.|Arrastra el cuadro a la parte que quieras. Tira de una esquina para cambiar el tamaño.|Trascina il riquadro sulla parte che vuoi. Tira un angolo per cambiare la misura.|Fais glisser le cadre sur la partie voulue. Tire un coin pour changer la taille.|Zieh den Rahmen auf den Teil, den du willst. Zieh an einer Ecke für die Größe.|Sleep het kader naar het deel dat je wilt. Trek aan een hoek voor de grootte.|ほしい所まで枠を動かしてね。角を引っぱると大きさが変わるよ。|把框拖到你想要的部分，拉角可以改变大小。|원하는 부분으로 틀을 끌어요. 모서리를 당기면 크기가 바뀌어요.',
