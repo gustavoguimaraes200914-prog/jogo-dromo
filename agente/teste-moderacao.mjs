@@ -255,7 +255,7 @@ console.log('== 15. léxico: disfarces comuns são pegos; inocentes não');
   t('coreano 씨발', acha('씨발 뭐야', 'palavrao', 'grave'));
   t('chinês 操你妈', acha('操你妈', 'palavrao', 'grave'));
   t('prefixo masturbação', acha('masturbação', 'sexual', 'grave'));
-  t('1488', acha('numero 1488 aqui', 'odio', 'grave'));
+  t('números do código (14, 88, 1488) não viram sinal de ódio', !acha('numero 1488 aqui', 'odio', 'grave') && !acha('var px = [14, 88, 1488];', 'odio', 'grave'));
   t('"cubo" NÃO casa "cu"', !acha('um cubo azul', 'palavrao'));
   t('"viaduto" é exceção', !acha('o viaduto da cidade', 'odio'));
   t('"matar zumbis" só atenção, não grave', acha('matar zumbis', 'violencia', 'atencao') && !acha('matar zumbis', 'violencia', 'grave'));

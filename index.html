@@ -31268,13 +31268,104 @@ function ugcListar(forcar){
     try{ document.dispatchEvent(new CustomEvent('koda-ugc', {detail: {lista: true}})); }catch(e){}
   }).catch(()=>{ E.listando = false; E.erroLista = true; E.lista = E.lista || []; try{ document.dispatchEvent(new CustomEvent('koda-ugc', {detail: {lista: true}})); }catch(e){} });
 }
-/* ---------- filtro do nome (o servidor tem o completo; aqui o básico pra nome de peça) ---------- */
-var UGC_NOMES_RUINS = ['porra','caralho','puta','puto','merda','foda','fdp','buceta','bct','cu ','pinto','pau ','rola','piroca','viado','bicha','macaco','nazi','hitler','fuck','shit','bitch','dick','cock','pussy','nigg','sex','sexo','porn','droga','maconha','cocaina','idiota','burro','retardado','otario','arrombad','vagabund','safad','gostos','putaria','mierda','joder','puta','coño','cazzo','merde','scheiße','kut','死','バカ','傻','씨발','병신'];
-function ugcNomeRuim(nome){
-  let s = ' ' + String(nome || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '') + ' ';
-  s = s.replace(/[0134578@$]/g, ch=>({'0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','8':'b','@':'a','$':'s'})[ch]);
-  const junto = s.replace(/[^a-z぀-￿ ]/g, '');
-  return UGC_NOMES_RUINS.some(p=>junto.indexOf(p) >= 0 || junto.replace(/ /g, '').indexOf(p.trim()) >= 0 && p.trim().length >= 4);
+/* ---------- conferir a peça antes de publicar ----------
+   Quase tudo pode: times e camisas de time (Golden State Warriors, Flamengo...), marcas, bandeiras, números,
+   memes, caveiras, monstros, armas de desenho, rabiscos, fotos que viraram quadradinhos...
+   Só 3 coisas não podem:
+     sexual = pênis, partes íntimas, nudez ou algo sexual
+     odio   = símbolo de ódio (suástica, SS nazista, KKK, 1488) ou xingamento racista escrito
+     gesto  = dedo do meio, palavrão ou xingamento escrito no desenho
+   Quem olha o desenho é a IA (pelo servidor do Koda), com a regra de só barrar o que é claro: pixel art é borrada,
+   então "parece um pouquinho" não conta. O nome passa por uma lista de palavras INTEIRAS (nada de achar "puta" dentro
+   de "computador"); se a lista apitar, a IA confere se é engano antes de barrar. */
+var UGC_PALAVRAS_RUINS = ('porra caralho puta putas puto putos merda bosta foda foder fodase fodasse fdp buceta boceta bct xoxota xereca cu cuzao cuzinho ' +
+  'piroca pica pinto_ ' +   // "pinto" (filhote) fica de fora: o "_" tira da lista
+  'viado viadinho boiola baitola traveco retardado retardada mongoloide macaco_ crioulo crioula ' +
+  'nazi nazista nazismo hitler kkk suastica swastika heil 1488 ' +
+  'fuck fucking fucker motherfucker shit bullshit bitch bitches pussy cunt whore slut nigger niggers nigga niggas faggot fag retard tranny chink ' +
+  'sexo sex sexy porno porn pornografia penis vagina punheta boquete siririca maconha cocaina ' +
+  'mierda joder pendejo cabron gilipollas maricon puton cazzo vaffanculo stronzo merde putain connard salope encule ' +
+  'scheisse fotze hurensohn wichser klootzak hoer').split(' ').filter(p=>p && !p.endsWith('_'));
+var UGC_COMECOS_RUINS = ['putari', 'arrombad', 'masturb', 'pornogr', 'filhadaput', 'filhodaput', 'vagabunda', 'motherfuck', 'fuck'];
+var UGC_PALAVRAS_CJK = ['まんこ', 'ちんこ', 'ちんぽ', '死ね', 'セックス', '傻逼', '操你', '鸡巴', '妈的', '씨발', '병신', '개새끼', '섹스', '卐'];
+/* a palavra do nome que não pode (ou '' se o nome está ok) */
+function ugcPalavraRuim(nome){
+  const bruto = String(nome || '');
+  const cjk = UGC_PALAVRAS_CJK.find(p=>bruto.indexOf(p) >= 0);
+  if(cjk) return cjk;
+  const base = bruto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const leet = w=>/[a-z]/.test(w) && /[0-9@$]/.test(w) ? w.replace(/[0134578@$]/g, ch=>({'0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','8':'b','@':'a','$':'s'})[ch]) : w;
+  let palavras = base.split(/[^a-z0-9@$]+/).filter(Boolean).map(leet).map(w=>w.replace(/(.)\1{2,}/g, '$1$1'));
+  /* letras separadas ("p u t a") viram uma palavra só */
+  const juntas = [];
+  let soltas = '';
+  palavras.forEach(w=>{ if(w.length === 1 && /[a-z]/.test(w)) soltas += w; else { if(soltas.length > 1) juntas.push(soltas); soltas = ''; } });
+  if(soltas.length > 1) juntas.push(soltas);
+  palavras = palavras.concat(juntas);
+  const achou = palavras.find(w=>UGC_PALAVRAS_RUINS.indexOf(w) >= 0 || UGC_PALAVRAS_RUINS.indexOf(w.replace(/(.)\1+/g, '$1')) >= 0 || UGC_COMECOS_RUINS.some(c=>w.startsWith(c)));
+  return achou || '';
+}
+/* o desenho (frente e costas lado a lado, ampliado, com fundo branco) → PNG em base64 */
+function ugcImagemParaConferir(frente, costas){
+  const T = 8, G = 16, W = PZ_W * T, H = PZ_H * T;
+  const c = document.createElement('canvas');
+  c.width = W * 2 + G; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = '#D0D0D0'; x.fillRect(W, 0, G, H);
+  [frente, costas].forEach((arr, lado)=>{
+    for(let k = 0; k < PZ_W * PZ_H; k++) if(arr[k]){ x.fillStyle = arr[k]; x.fillRect(lado * (W + G) + (k % PZ_W) * T, Math.floor(k / PZ_W) * T, T, T); }
+  });
+  return c.toDataURL('image/png').split(',')[1];
+}
+var UGC_REGRA_IA = `You review pixel-art clothing items that kids draw for their avatar on a kids' game website.
+The image shows the item's FRONT (left) and BACK (right), each drawn on a 22x29 pixel grid (white = empty). Pixel art is very low resolution.
+
+Mark the drawing as forbidden ONLY if it clearly and unmistakably shows one of these 3 things:
+1. "sexual": a penis/phallus, genitals, nude breasts or buttocks, or a sexual act.
+2. "odio": a hate symbol (nazi swastika, SS runes, nazi flag, KKK hood, "1488") or a written racial/hateful slur.
+3. "gesto": the middle-finger gesture, or a clearly written swear word or insult.
+
+EVERYTHING ELSE IS ALLOWED. For example: sports team uniforms, jerseys, logos and names (Golden State Warriors, Lakers, Chicago Bulls, Flamengo, Corinthians, Real Madrid, Warriors, Chiefs, Braves...), player names and numbers, brands and logos, country flags, memes, cartoon or game characters, animals, skulls, monsters, ghosts, zombies, cartoon weapons (swords, guns, lasers), fire, hearts, stars, stripes, abstract shapes, scribbles, photos converted to pixels, and anything ugly, messy or unclear.
+If a shape only vaguely or possibly resembles something forbidden, it is ALLOWED. Only refuse when a normal adult would immediately and certainly recognize it. Wrongly refusing an innocent drawing is a serious mistake.
+
+Also judge the item NAME. name_forbidden = true ONLY if the name contains a real swear word, slur or sexual term (any language). Innocent words that merely contain bad letters (Computador, Sexta-feira, Cocktail, Pau-brasil, Rolamento, Dickens, Shitake) are allowed.
+
+Reply with ONLY one JSON object, nothing else:
+{"forbidden": true or false, "category": "sexual" or "odio" or "gesto" or null, "confidence": 0 to 1, "seen": "what the drawing shows, in a few words", "name_forbidden": true or false, "name_confidence": 0 to 1}`;
+/* pergunta pra IA (pelo servidor do Koda). null = não deu pra perguntar agora */
+async function ugcPerguntarIA(frente, costas, tipo, nome, palavra){
+  if(typeof SERVER_URL === 'undefined' || !SERVER_URL || !FIREBASE_ENABLED || !fbAuth().currentUser) return null;
+  const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(()=>ctrl.abort(), 25000) : null;
+  try{
+    const texto = 'Item type: ' + ({roupa: 'shirt', calca: 'pants', cabeca: 'head item (hat, mask, hair)', costas: 'back item (wings, cape, backpack)', mao: 'item held in the hand'}[tipo] || tipo)
+      + '\nItem name: "' + String(nome).slice(0, 40) + '"'
+      + (palavra ? '\nA simple word list flagged the word "' + palavra + '" in the name (this list often gives false alarms; decide yourself).' : '');
+    const res = await fetch(SERVER_URL + '/agent', {
+      method: 'POST', headers: await cabecalhoDoAgente(), signal: ctrl ? ctrl.signal : undefined,
+      body: JSON.stringify({model: 'claude-haiku-4-5', max_tokens: 300, system: UGC_REGRA_IA,
+        messages: [{role: 'user', content: [{type: 'image', source: {type: 'base64', media_type: 'image/png', data: ugcImagemParaConferir(frente, costas)}}, {type: 'text', text: texto}]}]})
+    });
+    if(timer) clearTimeout(timer);
+    if(!res.ok) return null;
+    const j = await res.json().catch(()=>null);
+    const txt = j && Array.isArray(j.content) ? j.content.map(b=>b && b.text || '').join('') : '';
+    const m = txt.match(/\{[\s\S]*\}/);
+    if(!m) return null;
+    const o = JSON.parse(m[0]);
+    return (o && typeof o === 'object') ? o : null;
+  }catch(e){ if(timer) clearTimeout(timer); return null; }
+}
+/* {ok:true} ou {ok:false, motivo:'sexual'|'odio'|'gesto'|'nome', palavra} */
+async function ugcConferirPeca(frente, costas, tipo, nome){
+  const palavra = ugcPalavraRuim(nome);
+  const ia = await ugcPerguntarIA(frente, costas, tipo, nome, palavra);
+  const certeza = v=>Math.max(0, Math.min(1, Number(v) || 0));
+  if(ia && ia.forbidden === true && ['sexual', 'odio', 'gesto'].indexOf(ia.category) >= 0 && certeza(ia.confidence) >= 0.8) return {ok: false, motivo: ia.category};
+  if(ia && ia.name_forbidden === true && certeza(ia.name_confidence) >= 0.8) return {ok: false, motivo: 'nome', palavra};
+  if(palavra && !(ia && ia.name_forbidden === false && certeza(ia.name_confidence) >= 0.8)) return {ok: false, motivo: 'nome', palavra};   // sem a IA, a lista (só palavras inteiras) decide
+  return {ok: true};
 }
 /* ---------- publicar ---------- */
 async function ugcPublicar(desenho, desenhoC, tipo, nome, preco){
@@ -31286,7 +31377,6 @@ async function ugcPublicar(desenho, desenhoC, tipo, nome, preco){
   if(desenho.filter(Boolean).length + desenhoC.filter(Boolean).length < UGC_MIN_PX) return {ok: false, motivo: 'pouco'};
   nome = String(nome || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24);
   if(nome.length < 2) return {ok: false, motivo: 'nome_curto'};
-  if(ugcNomeRuim(nome)) return {ok: false, motivo: 'nome_ruim'};
   preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(preco) || 0)));
   const id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const doc = {criador: u.uid, criadorNome: String(onlineNome() || '').slice(0, 40), nome, preco, tipo, cores: cod.cores, px: cod.px, pxC: cod.pxC, criadoEm: Date.now(), oculto: false};
@@ -31987,11 +32077,27 @@ function ugcAbrirEditor(aoPublicar){
     const pub = bg.querySelector('[data-publicar]');
     pub.addEventListener('click', async ()=>{
       if(pub.disabled) return;
-      pub.disabled = true; pub.textContent = t('ugc_publicando');
+      pub.disabled = true; pub.textContent = t('ugc_conferindo');
+      /* antes de publicar: o desenho e o nome são conferidos (só barra as 3 coisas proibidas) */
+      const nomeLimpo = String(nome.value || '').replace(/\s+/g, ' ').trim();
+      if(nomeLimpo.length < 2){ pub.disabled = false; pub.textContent = t('ugc_publicar'); toast(t('ugc_nome_curto')); return; }
+      const ch = await ugcConferirPeca(E.lados.frente, E.lados.costas, E.tipo, nomeLimpo);
+      if(!ch.ok){
+        pub.disabled = false; pub.textContent = t('ugc_publicar');
+        const esc2 = chatListEscape;
+        kbsDialogo(`<h3 class="kbs-dlg-tit">${esc2(t('ugc_bloq_tit'))}</h3>
+          <p class="kbs-dlg-dica">${esc2(ch.motivo === 'nome' ? t('ugc_bloq_nome', {p: ch.palavra || ''}) : t('ugc_bloq_' + ch.motivo))}</p>
+          <p class="kbs-dlg-dica">${esc2(t('ugc_bloq_engano'))}</p>
+          <div class="kbs-dlg-btns col"><button type="button" class="kbs-btn" data-ok>${esc2(t('ugc_bloq_ok'))}</button></div>`, (bgd, fechar)=>{
+          bgd.querySelector('[data-ok]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+        });
+        return;
+      }
+      pub.textContent = t('ugc_publicando');
       const r = await ugcPublicar(E.lados.frente, E.lados.costas, E.tipo, nome.value, E.preco);
       if(!r.ok){
         pub.disabled = false; pub.textContent = t('ugc_publicar');
-        toast(t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', nome_ruim: 'ugc_nome_ruim', cores: 'ugc_muitas_cores'}[r.motivo] || 'ugc_erro'));
+        toast(t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', cores: 'ugc_muitas_cores'}[r.motivo] || 'ugc_erro'));
         return;
       }
       try{ localStorage.removeItem(UGC_RASCUNHO_KEY); }catch(e){}
@@ -32402,6 +32508,14 @@ var PZ_TXT = {
  ugc_foto_dica:'Arraste o quadro até a parte que você quer. Puxe um canto pra mudar o tamanho.|Drag the box to the part you want. Pull a corner to resize it.|Arrastra el cuadro a la parte que quieras. Tira de una esquina para cambiar el tamaño.|Trascina il riquadro sulla parte che vuoi. Tira un angolo per cambiare la misura.|Fais glisser le cadre sur la partie voulue. Tire un coin pour changer la taille.|Zieh den Rahmen auf den Teil, den du willst. Zieh an einer Ecke für die Größe.|Sleep het kader naar het deel dat je wilt. Trek aan een hoek voor de grootte.|ほしい所まで枠を動かしてね。角を引っぱると大きさが変わるよ。|把框拖到你想要的部分，拉角可以改变大小。|원하는 부분으로 틀을 끌어요. 모서리를 당기면 크기가 바뀌어요.',
  ugc_foto_fundo:'Tirar o fundo|Remove background|Quitar el fondo|Togli lo sfondo|Enlever le fond|Hintergrund entfernen|Achtergrond weghalen|背景を消す|去掉背景|배경 지우기',
  ugc_foto_erro:'Não deu pra abrir essa foto.|Couldn’t open that photo.|No se pudo abrir esa foto.|Impossibile aprire questa foto.|Impossible d’ouvrir cette photo.|Das Foto ließ sich nicht öffnen.|Die foto kon niet worden geopend.|その写真は開けなかったよ。|无法打开这张照片。|이 사진을 열 수 없어요.',
+ ugc_conferindo:'Conferindo o desenho…|Checking the drawing…|Revisando el dibujo…|Controllo del disegno…|Vérification du dessin…|Zeichnung wird geprüft…|Tekening controleren…|絵をチェック中…|正在检查图案…|그림 확인 중…',
+ ugc_bloq_tit:'Essa peça não pode ser publicada|This item can’t be published|Esta prenda no se puede publicar|Questo capo non può essere pubblicato|Cette pièce ne peut pas être publiée|Dieses Teil kann nicht veröffentlicht werden|Dit item kan niet worden gepubliceerd|このアイテムは公開できません|这件作品不能发布|이 아이템은 올릴 수 없어요',
+ ugc_bloq_sexual:'O desenho parece mostrar uma parte íntima ou algo sexual. Isso não pode no Koda.|The drawing seems to show private parts or something sexual. That’s not allowed on Koda.|El dibujo parece mostrar partes íntimas o algo sexual. Eso no se permite en Koda.|Il disegno sembra mostrare parti intime o qualcosa di sessuale. Non è permesso su Koda.|Le dessin semble montrer des parties intimes ou quelque chose de sexuel. Ce n’est pas permis sur Koda.|Die Zeichnung scheint Intimbereiche oder etwas Sexuelles zu zeigen. Das ist bei Koda nicht erlaubt.|De tekening lijkt intieme delen of iets seksueels te tonen. Dat mag niet op Koda.|体の大事なところや、エッチなものが描かれているみたい。Kodaではダメだよ。|图案看起来有私密部位或色情内容，Koda 不允许。|그림에 은밀한 부위나 야한 것이 있는 것 같아요. Koda에서는 안 돼요.',
+ ugc_bloq_odio:'O desenho parece ter um símbolo de ódio (como a suástica). Isso não pode no Koda.|The drawing seems to have a hate symbol (like the swastika). That’s not allowed on Koda.|El dibujo parece tener un símbolo de odio (como la esvástica). Eso no se permite en Koda.|Il disegno sembra avere un simbolo d’odio (come la svastica). Non è permesso su Koda.|Le dessin semble contenir un symbole de haine (comme la croix gammée). Ce n’est pas permis sur Koda.|Die Zeichnung scheint ein Hasssymbol zu enthalten (wie das Hakenkreuz). Das ist bei Koda nicht erlaubt.|De tekening lijkt een haatsymbool te bevatten (zoals het hakenkruis). Dat mag niet op Koda.|にくしみのマーク（かぎ十字など）が描かれているみたい。Kodaではダメだよ。|图案看起来有仇恨符号（比如纳粹标志），Koda 不允许。|그림에 혐오 상징(나치 문양 등)이 있는 것 같아요. Koda에서는 안 돼요.',
+ ugc_bloq_gesto:'O desenho parece ter um gesto feio ou um palavrão escrito. Isso não pode no Koda.|The drawing seems to have a rude gesture or a written swear word. That’s not allowed on Koda.|El dibujo parece tener un gesto grosero o una grosería escrita. Eso no se permite en Koda.|Il disegno sembra avere un gesto volgare o una parolaccia scritta. Non è permesso su Koda.|Le dessin semble contenir un geste grossier ou un gros mot écrit. Ce n’est pas permis sur Koda.|Die Zeichnung scheint eine unhöfliche Geste oder ein Schimpfwort zu enthalten. Das ist bei Koda nicht erlaubt.|De tekening lijkt een grof gebaar of scheldwoord te bevatten. Dat mag niet op Koda.|下品なジェスチャーか悪口が描かれているみたい。Kodaではダメだよ。|图案看起来有不雅手势或脏话，Koda 不允许。|그림에 나쁜 손동작이나 욕이 있는 것 같아요. Koda에서는 안 돼요.',
+ ugc_bloq_nome:'O nome tem uma palavra que não pode: “{p}”. Troque o nome.|The name has a word that isn’t allowed: “{p}”. Change the name.|El nombre tiene una palabra que no se permite: “{p}”. Cambia el nombre.|Il nome ha una parola non permessa: “{p}”. Cambia il nome.|Le nom contient un mot interdit : « {p} ». Change le nom.|Der Name hat ein Wort, das nicht erlaubt ist: „{p}“. Ändere den Namen.|De naam heeft een woord dat niet mag: “{p}”. Verander de naam.|名前に使えない言葉があるよ：「{p}」。名前を変えてね。|名称里有不允许的词：“{p}”。请改一下名称。|이름에 쓸 수 없는 말이 있어요: “{p}”. 이름을 바꿔 주세요.',
+ ugc_bloq_engano:'Se foi engano, mude um pouquinho e tente de novo.|If this was a mistake, change it a little and try again.|Si fue un error, cámbialo un poquito y vuelve a intentarlo.|Se è un errore, cambialo un pochino e riprova.|Si c’est une erreur, change-le un peu et réessaie.|Wenn das ein Irrtum war, ändere es ein bisschen und versuch es nochmal.|Was dit een vergissing? Verander het een beetje en probeer opnieuw.|まちがいなら、少し変えてもう一度ためしてね。|如果是误会，稍微改一下再试一次。|잘못된 거라면 조금 바꿔서 다시 해 봐요.',
+ ugc_bloq_ok:'Entendi|Got it|Entendido|Ho capito|Compris|Verstanden|Begrepen|わかった|知道了|알겠어요',
  ugc_t_mao:'Na mão|In hand|En la mano|In mano|En main|In der Hand|In de hand|手に持つ|手持|손에 들기',
  ugc_dica_roupa:'Camisa: só no tronco e nos braços. Pinte a frente e as costas.|Shirt: only on the body and arms. Paint the front and the back.|Camiseta: solo en el tronco y los brazos. Pinta el frente y la espalda.|Maglia: solo sul busto e sulle braccia. Colora davanti e dietro.|Haut : seulement sur le torse et les bras. Peins le devant et le dos.|Oberteil: nur Oberkörper und Arme. Male vorne und hinten.|Shirt: alleen op de romp en de armen. Kleur de voor- en achterkant.|シャツ：体とうでだけ。前と後ろをぬってね。|上衣：只能画在身体和手臂上。正面和背面都要画。|상의: 몸통과 팔에만 칠해요. 앞과 뒤를 칠해요.',
  ugc_dica_cabeca:'Cabeça: só na cabeça (chapéu, máscara, cabelo). Fica por cima de tudo.|Head: only on the head (hat, mask, hair). Goes over everything.|Cabeza: solo en la cabeza (sombrero, máscara, pelo). Va encima de todo.|Testa: solo sulla testa (cappello, maschera, capelli). Sta sopra tutto.|Tête : seulement sur la tête (chapeau, masque, cheveux). Par-dessus tout.|Kopf: nur am Kopf (Hut, Maske, Haare). Liegt über allem.|Hoofd: alleen op het hoofd (hoed, masker, haar). Over alles heen.|あたま：あたまだけ（ぼうし、お面、かみ）。一番上に重なるよ。|头部：只能画在头上（帽子、面具、头发），会盖在所有东西上面。|머리: 머리에만 칠해요(모자, 가면, 머리카락). 맨 위에 겹쳐져요.',
@@ -32423,14 +32537,13 @@ var PZ_TXT = {
  ugc_nome:'Nome da peça|Item name|Nombre de la prenda|Nome del capo|Nom de la pièce|Name des Teils|Naam van het item|アイテム名|作品名称|아이템 이름',
  ugc_preco:'Preço (moedas)|Price (coins)|Precio (monedas)|Prezzo (monete)|Prix (pièces)|Preis (Münzen)|Prijs (munten)|値段（コイン）|价格（金币）|가격(코인)',
  ugc_70:'Você ganha 70% de cada venda. Quem compra vê seu nome na peça.|You get 70% of every sale. Buyers see your name on the item.|Ganas el 70% de cada venta. Quien compra ve tu nombre en la prenda.|Ricevi il 70% di ogni vendita. Chi compra vede il tuo nome.|Tu gagnes 70 % de chaque vente. Les acheteurs voient ton nom.|Du bekommst 70 % jedes Verkaufs. Käufer sehen deinen Namen.|Je krijgt 70% van elke verkoop. Kopers zien jouw naam.|売れるたびに70%がもらえます。買った人にはあなたの名前が見えます。|每卖出一件你得到70%，买家能看到你的名字。|팔릴 때마다 70%를 받아요. 구매자에게 내 이름이 보여요.',
- ugc_regras:'Nada de desenho ofensivo: peças assim são apagadas.|No offensive drawings: items like that get deleted.|Nada de dibujos ofensivos: esas prendas se borran.|Niente disegni offensivi: verranno eliminati.|Pas de dessins offensants : ils seront supprimés.|Keine beleidigenden Zeichnungen: solche Teile werden gelöscht.|Geen beledigende tekeningen: die worden verwijderd.|ひどい絵は禁止。そういうアイテムは消されます。|禁止冒犯性的画，这类作品会被删除。|불쾌한 그림은 금지예요. 그런 아이템은 삭제돼요.',
+ ugc_regras:'Pode desenhar quase tudo: times, marcas, bandeiras, memes, monstros… Só não pode: partes íntimas, símbolos de ódio (como a suástica) e gesto ou palavrão.|You can draw almost anything: teams, brands, flags, memes, monsters… Just not: private parts, hate symbols (like the swastika) or rude gestures and swear words.|Puedes dibujar casi todo: equipos, marcas, banderas, memes, monstruos… Solo no: partes íntimas, símbolos de odio (como la esvástica) ni gestos o groserías.|Puoi disegnare quasi tutto: squadre, marchi, bandiere, meme, mostri… Solo no: parti intime, simboli d’odio (come la svastica) o gesti e parolacce.|Tu peux dessiner presque tout : équipes, marques, drapeaux, mèmes, monstres… Sauf : parties intimes, symboles de haine (comme la croix gammée) ou gestes et gros mots.|Du darfst fast alles malen: Teams, Marken, Flaggen, Memes, Monster… Nur nicht: Intimbereiche, Hasssymbole (wie das Hakenkreuz) oder Gesten und Schimpfwörter.|Je mag bijna alles tekenen: teams, merken, vlaggen, memes, monsters… Alleen niet: intieme delen, haatsymbolen (zoals het hakenkruis) of gebaren en scheldwoorden.|ほとんど何でも描けるよ：チーム、ブランド、国旗、ミーム、モンスター…。ダメなのは、体の大事なところ、にくしみのマーク（かぎ十字など）、下品なジェスチャーや悪口だけ。|几乎什么都能画：球队、品牌、国旗、表情包、怪物……只是不能画：私密部位、仇恨符号（比如纳粹标志）、不雅手势或脏话。|거의 다 그려도 돼요: 팀, 브랜드, 국기, 밈, 괴물… 안 되는 건 신체 은밀한 부위, 혐오 상징(나치 문양 등), 욕이나 나쁜 손동작뿐이에요.',
  ugc_publicar:'Publicar na loja|Publish to the shop|Publicar en la tienda|Pubblica nel negozio|Publier dans la boutique|Im Shop veröffentlichen|Publiceren in de winkel|ショップに出す|发布到商店|상점에 올리기',
  ugc_publicando:'Publicando…|Publishing…|Publicando…|Pubblicazione…|Publication…|Wird veröffentlicht…|Publiceren…|公開中…|发布中…|올리는 중…',
  ugc_publicou:'Publicada! Sua peça já está na loja.|Published! Your item is in the shop.|¡Publicada! Tu prenda ya está en la tienda.|Pubblicato! Il tuo capo è nel negozio.|Publiée ! Ta pièce est dans la boutique.|Veröffentlicht! Dein Teil ist im Shop.|Gepubliceerd! Je item staat in de winkel.|公開しました！ショップに並んでいます。|发布成功！作品已经上架。|올렸어요! 아이템이 상점에 있어요.',
  ugc_pouco:'Pinte pelo menos 8 quadradinhos.|Paint at least 8 pixels.|Pinta al menos 8 cuadritos.|Colora almeno 8 quadratini.|Peins au moins 8 pixels.|Male mindestens 8 Pixel.|Kleur minstens 8 pixels.|8マス以上ぬってね。|至少涂8个格子。|최소 8칸은 칠해 주세요.',
  ugc_muitas_cores:'Use no máximo 63 cores diferentes.|Use at most 63 different colors.|Usa como máximo 63 colores distintos.|Usa al massimo 63 colori diversi.|Utilise 63 couleurs différentes au maximum.|Benutze höchstens 63 verschiedene Farben.|Gebruik maximaal 63 verschillende kleuren.|色は63色までです。|最多使用63种颜色。|색은 최대 63가지까지 쓸 수 있어요.',
  ugc_nome_curto:'Dê um nome com pelo menos 2 letras.|Give it a name with at least 2 letters.|Ponle un nombre de al menos 2 letras.|Dai un nome di almeno 2 lettere.|Donne un nom d’au moins 2 lettres.|Gib einen Namen mit mindestens 2 Buchstaben.|Geef een naam van minstens 2 letters.|2文字以上の名前をつけてね。|名称至少2个字。|이름은 2글자 이상이어야 해요.',
- ugc_nome_ruim:'Esse nome não pode. Escolha outro.|That name isn’t allowed. Pick another.|Ese nombre no está permitido. Elige otro.|Questo nome non è permesso. Scegline un altro.|Ce nom n’est pas autorisé. Choisis-en un autre.|Dieser Name ist nicht erlaubt. Wähle einen anderen.|Die naam mag niet. Kies een andere.|その名前は使えません。別の名前にしてね。|这个名称不行，换一个吧。|그 이름은 쓸 수 없어요. 다른 이름을 골라 주세요.',
  ugc_venda_1:'Alguém comprou sua peça!|Someone bought your item!|¡Alguien compró tu prenda!|Qualcuno ha comprato il tuo capo!|Quelqu’un a acheté ta pièce !|Jemand hat dein Teil gekauft!|Iemand kocht je item!|あなたのアイテムが売れました！|有人买了你的作品！|누군가 내 아이템을 샀어요!',
  ugc_venda_n:'{n} pessoas compraram suas peças!|{n} people bought your items!|¡{n} personas compraron tus prendas!|{n} persone hanno comprato i tuoi capi!|{n} personnes ont acheté tes pièces !|{n} Leute haben deine Teile gekauft!|{n} mensen kochten je items!|{n}人があなたのアイテムを買いました！|有 {n} 人买了你的作品！|{n}명이 내 아이템을 샀어요!',
  onb_gen_t:'Menino ou menina?|Boy or girl?|¿Niño o niña?|Bambino o bambina?|Garçon ou fille ?|Junge oder Mädchen?|Jongen of meisje?|男の子？女の子？|男孩还是女孩？|남자아이? 여자아이?',
