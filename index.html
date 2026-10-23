@@ -18528,20 +18528,22 @@ const TRAD_GLOBO = `<svg viewBox="0 0 64 64" class="trad-globo-svg"><defs><clipP
 function initCustomGame(root, game, opts){
   root.innerHTML = '';
   const codeText = jogoCodigoSeguro(b64ToUtf8(game.codeB64));
+  /* jogo que usa a loja do Koda tem loja, mesmo que o catálogo não tenha guardado esse aviso (jogo de outra pessoa) */
+  const comLoja = !!game.loja || codigoTemLoja(codeText);
   const iframe = document.createElement('iframe');
   iframe.className = 'app-frame';
   iframe.setAttribute('title', game.name);
   hardenGameFrame(iframe);
   const safetyNet = jogoRedeDeSeguranca();
   if(opts){
-    const inject = safetyNet + lojaIniDoJogo(game.loja, game.id) + KODA_BRIDGE + '<script>window.JOGODROMO_DIFFICULTY='+JSON.stringify(opts.diff||null)+';window.JOGODROMO_PLAYER_COUNT='+JSON.stringify(opts.playerCount||1)+';<\/script>';
+    const inject = safetyNet + lojaIniDoJogo(comLoja, game.id) + KODA_BRIDGE + '<script>window.JOGODROMO_DIFFICULTY='+JSON.stringify(opts.diff||null)+';window.JOGODROMO_PLAYER_COUNT='+JSON.stringify(opts.playerCount||1)+';<\/script>';
     iframe.srcdoc = inject + tradutorDoJogo(game.trad, currentLang) + codeText;
   } else {
-    iframe.srcdoc = safetyNet + lojaIniDoJogo(game.loja, game.id) + KODA_BRIDGE + tradutorDoJogo(game.trad, currentLang) + codeText;
+    iframe.srcdoc = safetyNet + lojaIniDoJogo(comLoja, game.id) + KODA_BRIDGE + tradutorDoJogo(game.trad, currentLang) + codeText;
   }
   root.appendChild(iframe);
   iniciarPontePublicada(iframe, game, opts);   // a partir daqui esse jogo pode pagar moedas
-  kodaLojaLigar(iframe, {gameId: game.id, nome: game.name, ligada: !!game.loja, criador: game.creatorEmail || null});
+  kodaLojaLigar(iframe, {gameId: game.id, nome: game.name, ligada: comLoja, criador: game.creatorEmail || null});
   onlineLigar(iframe, game);
   return ()=>{ encerrarPontePublicada(); kodaLojaDesligar(); onlineDesligar(); root.innerHTML=''; };
 }
