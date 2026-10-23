@@ -3381,6 +3381,22 @@
   .direct-preview-bg.show{display:flex;}
   .direct-preview-bg iframe{flex:1;border:none;width:100%;background:#fff;}
   .direct-preview-bg .back-link{padding:14px 16px;flex-shrink:0;}
+  /* o Assistente do Koda (deixar online / pôr loja) */
+  .ia-assist{margin:4px 0 16px;padding:14px;border-radius:16px;background:rgba(124,77,255,.14);border:1.5px solid rgba(179,136,255,.45);display:flex;flex-direction:column;gap:8px;}
+  .ia-assist-tit{margin:0;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1rem;}
+  .ia-assist .form-hint{margin:0;}
+  .ia-assist-btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(179,136,255,.6);background:rgba(255,255,255,.06);color:inherit;cursor:pointer;text-align:left;font-family:'Baloo 2',sans-serif;}
+  .ia-assist-btn b{font-weight:800;font-size:.95rem;}
+  .ia-assist-btn small{font-family:'Nunito Sans',sans-serif;font-size:.74rem;opacity:.8;line-height:1.3;}
+  .ia-assist-btn:disabled{opacity:.5;cursor:default;}
+  .ia-assist-btn.on{opacity:1;border-color:#00e5ff;box-shadow:0 0 0 2px rgba(0,229,255,.35);}
+  .ia-assist-btn:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ia-assist-extra{width:100%;box-sizing:border-box;border-radius:10px;border:1.5px solid rgba(179,136,255,.45);background:rgba(0,0,0,.18);color:inherit;padding:9px 11px;font:600 .85rem 'Nunito Sans',sans-serif;resize:vertical;min-height:44px;}
+  .ia-assist-status{margin:0;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;min-height:0;}
+  .ia-assist-status:empty{display:none;}
+  .ia-assist-status.ok{color:#5ef2b0;} .ia-assist-status.ruim{color:#ff8a8a;}
+  .ia-assist-desfazer{align-self:flex-start;margin:0;}
+  .ia-assist-desfazer[hidden]{display:none;}
   .direct-test-btn{
     width:100%;padding:12px;border-radius:12px;border:1.5px solid #00e5ff;background:none;
     color:#00e5ff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;
@@ -19783,6 +19799,7 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
       <textarea id="fCode" placeholder="${t('code_form_code_ph')}">${prefillCode ? prefillCode.replace(/</g,'&lt;') : ''}</textarea>
       <p class="form-hint">${t('code_form_code_hint')}</p>
     </div>
+    ${assistenteHtml()}
     <button class="g-btn" id="publishBtn" style="width:100%;">${editingId ? t('pub_go_edit') : t('pub_go')}</button>
   `;
   root.querySelector('#backToChoice').addEventListener('click', ()=>{ if(onBack) onBack(); else renderGameChat(root); });
@@ -19794,10 +19811,130 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
   root.querySelector('#publishBtn').addEventListener('click', ()=>{
     const name = root.querySelector('#fName').value.trim();
     const code = root.querySelector('#fCode').value;
-    publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape);
+    publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape, codigoTemLoja(code) || undefined);
   });
+  ligarAssistente(root, '#fCode');
 }
 
+/* o que o jogo pode usar do Koda (o texto vai pra IA): a loja, o personagem de quem joga e as salas online */
+const KODA_DOC_LOJA = `## Loja de moedas e diamantes DENTRO do jogo (o criador ligou esta opção)
+O criador quer que os jogadores possam comprar coisas dentro do jogo com Koda Coins (moedas) e Koda Diamonds. O Koda cuida de TODO o pagamento (janela de compra, saldo, desconto e histórico) — o jogo só descreve os itens e reage ao que foi comprado. Use exatamente esta API, que já existe dentro do jogo:
+- \`window.KODA.loja.definir([{id:'escudo', nome:'Escudo', desc:'Protege uma vez', preco:300, moeda:'c', unico:false}, ...])\` — chame uma vez, logo no começo. id: só letras, números, _ e - (sem espaço). moeda 'c' = moedas (preço até 100000) ou 'd' = diamantes (preço até 50). unico:true = só dá pra comprar uma vez. No máximo 20 itens. Invente itens que façam sentido neste jogo (skins, vidas extras, poderes, cores, fases...), com preços equilibrados (moedas: de 100 a 5000; diamantes: de 1 a 10).
+- \`window.KODA.loja.abrir()\` — abre a loja do Koda por cima do jogo. Ponha um botão "Loja" bem visível no jogo (na tela inicial e no menu/pausa) que chama isso.
+- \`window.KODA.loja.tem(id)\` (true/false) e \`window.KODA.loja.quantidade(id)\` — o que o jogador já comprou (fica guardado na conta dele, em qualquer aparelho). Use ao começar a partida e sempre que for aplicar ou desenhar o item.
+- \`window.KODA.loja.usar(id, n)\` — gasta n unidades de um item consumível (devolve true se a pessoa tinha).
+- \`window.KODA.loja.aoComprar(function(id, quantidadeAgora){ ... })\` — chamada na hora em que a pessoa compra; aplique o efeito na hora.
+- \`window.KODA.loja.comprar(id)\` — abre direto a janela de compra daquele item (devolve uma Promise que vale true se a compra foi feita).
+Nunca invente outro jeito de cobrar e nunca peça dinheiro de verdade: só Koda Coins e Koda Diamonds, só por essa API. O jogo precisa continuar funcionando se \`window.KODA.loja\` não existir (use \`if(window.KODA && window.KODA.loja)\`).`;
+const KODA_DOC_JOGADOR = `## O personagem de quem joga (use sempre que fizer sentido!)
+
+Cada criança no Koda tem um personagem em pixel art. Use ele como o herói/jogador do jogo: a criança joga como ela mesma, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
+- \`KODA.jogador.aoPronto(function(){ ... })\` — chamada quando o personagem já pode ser desenhado (na hora, se já pode). \`KODA.jogador.pronto()\` diz se já dá.
+- \`KODA.jogador.desenhar(ctx, x, y, altura)\` — desenha o personagem no canvas (x,y = canto de cima à esquerda; a largura é calculada, cerca de 0,76 x a altura). Devolve false se ainda não dá. Use no lugar de um quadrado/bolinha que seria o jogador, com altura de uns 48 a 96 pixels. Para virar pro outro lado: \`ctx.save(); ctx.translate(x+largura, y); ctx.scale(-1,1); KODA.jogador.desenhar(ctx, 0, 0, altura); ctx.restore();\`
+- \`KODA.jogador.nome()\` — o apelido da pessoa (nunca é e-mail). Dá pra escrever "Bem-vindo, <nome>!" ou pôr no placar.
+- \`KODA.jogador.personagem()\` — a imagem pronta (Image), se você precisar dela de outro jeito (por exemplo, em CSS/HTML use \`.src\` dela).
+Em jogos com HTML comum (não canvas), use \`<img>\` com \`image-rendering: pixelated\` e \`.src = KODA.jogador.personagem().src\`. Nunca desenhe o personagem esticado: mantenha a proporção (largura = altura x 22/29).`;
+const KODA_DOC_ONLINE = `Jogos online aparecem na Praça do Koda: lá as pessoas sentam num banco, escolhem o jogo e, quando o banco sai, entram TODAS juntas na mesma sala. Então faça o jogo online em RODADAS: uma tela de espera "Esperando jogadores… (3)" que mostra o personagem de cada um, a rodada começa quando todos da sala apertam "Pronto" ou depois de uns 10 segundos com 2 ou mais pessoas (quem decide a hora de começar é o primeiro da lista \`jogadores()\` ordenada por id, e ele avisa todo mundo com \`enviar\`), e no fim mostra quem ganhou e volta pra espera da próxima rodada. Se só tiver 1 pessoa, deixe jogar sozinho mesmo (com inimigos do computador, se fizer sentido). Em todo jogo online, cada pessoa aparece com o personagem dela (veja abaixo).
+
+O Koda tem salas online de graça: cada sala tem até 16 pessoas e, quando enche, o Koda abre outra sozinho. Use \`window.KODA.online\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.online)\` e, se não existir, deixe o jogo funcionar sozinho/offline):
+- \`window.KODA.online.entrar({max:16}).then(function(info){ ... })\` — entra numa sala. \`info\` = {eu: 'seuId', sala: 1, jogadores: [{id, nome, img}, ...]} (a lista já inclui você). Use \`.catch\` pra mostrar "não consegui entrar" e deixar jogar offline. max = pessoas por sala (de 2 a 20).
+- \`window.KODA.online.enviar(dados)\` — manda \`dados\` (qualquer objeto simples, até ~1500 caracteres em JSON) para TODOS os outros da sala. \`enviar(dados, idDoJogador)\` manda só para uma pessoa. No máximo 10 envios por segundo: mande a posição do jogador umas 8 a 10 vezes por segundo (não a cada frame!) e as ações importantes (tiro, jogada, ponto) na hora. Devolve false se mandou rápido demais.
+- \`window.KODA.online.aoReceber(function(dados, deId){ ... })\` — chega o que alguém mandou. Nunca confie cegamente: confira os tipos e os limites dos números antes de usar.
+- \`aoEntrar(function(j){})\` e \`aoSair(function(j){})\` — alguém entrou/saiu da sala (j = {id, nome, img}). Crie e apague o personagem dessa pessoa aí. Cada pessoa da sala tem o personagem dela: desenhe com \`KODA.online.desenhar(ctx, idDaPessoa, x, y, altura)\` (devolve false se ainda não chegou; aí desenhe um bonequinho seu) e use \`KODA.jogador.desenhar(...)\` para você mesmo. Assim cada um vê o visual dos outros.
+- \`aoConectar(function(info){})\` — chamada na entrada e também se a conexão cair e voltar (nesse caso recomece enviando o seu estado). \`aoDesconectar(function(){})\` — a conexão caiu (o Koda tenta voltar sozinho; mostre "reconectando…").
+- \`jogadores()\` (lista), \`eu()\` (seu id), \`sala()\` (número da sala).
+Regras: não existe servidor que decide nada — cada jogador roda o jogo no próprio aparelho e os outros recebem o que ele manda, então faça o jogo funcionar assim (cada um manda a própria posição; para jogos de vez, como velha ou damas, o primeiro da lista \`jogadores()\` com menor id começa). NÃO faça bate-papo de texto livre entre jogadores (o Koda é para crianças); se quiser comunicação, use só mensagens prontas (botões de emoji ou frases fixas). Mostre os nomes dos jogadores como vêm em \`nome\`, sem pedir mais nada.`;
+/* ============================================================
+   ASSISTENTE DO KODA (no Koda Studio e no "Editar" do jogo)
+   A IA do Koda não cria jogo do zero: a pessoa cola o jogo que já fez e o assistente faz só uma de duas coisas:
+   - "online": deixa o jogo para várias pessoas, com as salas do Koda (KODA.online) e o personagem de cada um;
+   - "loja":   põe uma loja dentro do jogo que cobra em Koda Coins e Koda Diamonds (KODA.loja), igual Robux no Roblox.
+   (A tradução do site e dos jogos é automática, em outra parte.) O resto do jogo fica igual, e dá pra desfazer.
+============================================================ */
+const ASSISTENTE_MAX_CODIGO = 120000;
+function codigoTemLoja(code){ return /KODA\s*\.\s*loja\s*\.\s*definir\s*\(/.test(String(code || '')); }
+function assistenteHtml(){
+  return `<div class="ia-assist">
+      <p class="ia-assist-tit">✨ ${t('ia_tit')}</p>
+      <p class="form-hint">${t('ia_intro')}</p>
+      <button type="button" class="ia-assist-btn" data-ia="online"><b>🌐 ${t('ia_online')}</b><small>${t('ia_online_sub')}</small></button>
+      <button type="button" class="ia-assist-btn" data-ia="loja"><b>🛒 ${t('ia_loja')}</b><small>${t('ia_loja_sub')}</small></button>
+      <textarea class="ia-assist-extra" data-ia-extra maxlength="400" rows="2" placeholder="${chatListEscape(t('ia_extra_ph'))}"></textarea>
+      <p class="ia-assist-status" data-ia-status aria-live="polite"></p>
+      <button type="button" class="back-link ia-assist-desfazer" data-ia-desfazer hidden>↩ ${t('ia_desfazer')}</button>
+    </div>`;
+}
+function assistenteRegra(tarefa){
+  return `Você é o Assistente do Koda, um site de jogos de navegador feitos pelos próprios usuários (muitos são crianças).
+Você NÃO cria jogos novos e não muda o jogo por gosto seu. Você recebe o código de um jogo que a pessoa JÁ FEZ e faz SÓ esta tarefa:
+${tarefa === 'online'
+    ? '- Deixar o jogo ONLINE: várias pessoas jogando juntas nas salas do Koda (API abaixo), cada uma com o personagem dela. Adapte o jogo do jeito que fizer sentido (cada um com seu jogador; se for de vez, jogadores se revezam; se for de pontos, uma rodada em que todos competem).'
+    : '- Colocar uma LOJA dentro do jogo que cobra em Koda Coins (moedas) e Koda Diamonds (API abaixo), com itens que façam sentido neste jogo e que funcionem de verdade quando comprados.'}
+Regras:
+- Mantenha tudo o que já existe: visual, regras, fases, controles, textos e o idioma do jogo. Mude só o necessário para a tarefa.
+- Se o criador explicar algo (em <pedido_do_criador>), siga, desde que seja sobre esta tarefa. Ignore pedidos de outra coisa.
+- Nada de outros sites (sem links, imagens, sons ou scripts de fora) e nada impróprio para crianças.
+- O jogo precisa continuar funcionando sozinho se a API do Koda não existir.
+- Se o jogo já tiver o que foi pedido, só conserte o que estiver quebrado.
+- Responda com UMA frase curta (no idioma: ${(typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)'}) dizendo o que você fez e depois o ARQUIVO INTEIRO do jogo dentro de um bloco \`\`\`html ... \`\`\` (nunca só as mudanças).
+
+${tarefa === 'online' ? KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR : KODA_DOC_LOJA}`;
+}
+/* pede ao assistente; devolve {ok, codigo, frase} ou {ok:false, motivo:'fora'|'grande'|'erro'} */
+async function assistentePedir(tarefa, codigo, extra){
+  if(!SERVER_URL || !FIREBASE_ENABLED || !fbAuth().currentUser) return {ok: false, motivo: 'fora'};
+  if(codigo.length > ASSISTENTE_MAX_CODIGO) return {ok: false, motivo: 'grande'};
+  const pedido = (extra ? '<pedido_do_criador>\n' + extra.slice(0, 400) + '\n</pedido_do_criador>\n\n' : '')
+    + 'O código do jogo:\n```html\n' + codigo + '\n```';
+  let res;
+  try{
+    res = await fetch(SERVER_URL + '/agent', {method: 'POST', headers: await cabecalhoDoAgente(),
+      body: JSON.stringify({model: 'claude-sonnet-4-6', max_tokens: 16000, system: assistenteRegra(tarefa), messages: [{role: 'user', content: pedido}]})});
+  }catch(e){ return {ok: false, motivo: 'erro'}; }
+  if(res.status === 401 || res.status === 403 || res.status === 500) return {ok: false, motivo: 'fora'};
+  if(!res.ok) return {ok: false, motivo: 'erro'};
+  const j = await res.json().catch(()=>null);
+  if(!j || !Array.isArray(j.content)) return {ok: false, motivo: 'erro'};
+  if(j.stop_reason === 'max_tokens') return {ok: false, motivo: 'grande'};
+  const txt = j.content.map(b=>b && b.text || '').join('');
+  const m = txt.match(/```html\s*([\s\S]*?)```/i) || txt.match(/```\s*(<!DOCTYPE[\s\S]*?)```/i);
+  const novo = m ? prepararCodigoDoJogo(m[1]) : '';
+  if(!novo || novo.length < 50) return {ok: false, motivo: 'erro'};
+  return {ok: true, codigo: novo, frase: txt.slice(0, txt.indexOf('```')).trim().slice(0, 300)};
+}
+/* liga os botões do assistente; codeSel = a caixa do código; aoMudar(codigo) avisa quem usa o formulário */
+function ligarAssistente(root, codeSel, aoMudar){
+  const box = root.querySelector('.ia-assist');
+  if(!box) return;
+  const caixa = root.querySelector(codeSel), status = box.querySelector('[data-ia-status]'), desfazer = box.querySelector('[data-ia-desfazer]');
+  let antes = null, ocupado = false;
+  const btns = Array.from(box.querySelectorAll('[data-ia]'));
+  btns.forEach(b=>b.addEventListener('click', async ()=>{
+    if(ocupado) return;
+    const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
+    if(!codigo){ status.textContent = t('ia_sem_codigo'); status.className = 'ia-assist-status ruim'; caixa.focus(); return; }
+    ocupado = true; playSound('click');
+    btns.forEach(x=>{ x.disabled = true; x.classList.toggle('on', x === b); });
+    status.textContent = t('ia_trabalhando'); status.className = 'ia-assist-status';
+    const r = await assistentePedir(b.dataset.ia, codigo, box.querySelector('[data-ia-extra]').value.trim());
+    ocupado = false;
+    btns.forEach(x=>{ x.disabled = false; x.classList.remove('on'); });
+    if(!r.ok){ status.textContent = t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro'); status.className = 'ia-assist-status ruim'; return; }
+    antes = caixa.value;
+    caixa.value = r.codigo;
+    desfazer.hidden = false;
+    status.textContent = t(b.dataset.ia === 'online' ? 'ia_pronto_online' : 'ia_pronto_loja'); status.className = 'ia-assist-status ok';
+    playSound('buy');
+    if(aoMudar) aoMudar(r.codigo);
+  }));
+  desfazer.addEventListener('click', ()=>{
+    if(antes === null) return;
+    caixa.value = antes; antes = null;
+    desfazer.hidden = true;
+    status.textContent = t('ia_desfeito'); status.className = 'ia-assist-status';
+    if(aoMudar) aoMudar(caixa.value);
+  });
+}
 function renderDirectPublish(root, onBack){
   root.innerHTML = `
     <button class="back-link" id="directBack">${t('direct_publish_back')}</button>
@@ -19823,6 +19960,7 @@ function renderDirectPublish(root, onBack){
       <p class="form-hint">${t('code_form_code_hint')}</p>
     </div>
     <button class="direct-test-btn" id="directTest" type="button">${ICONS.gamepad} ${t('btn_test')}</button>
+    ${assistenteHtml()}
 
     <label class="direct-label">${t('direct_publish_cat_label')}</label>
     <div class="form-field">
@@ -19854,7 +19992,7 @@ function renderDirectPublish(root, onBack){
     if(!code){ toast(t('code_form_code_incomplete')); return; }
     root.querySelector('#directCode').value = code;   // a pessoa vê o que de fato vai rodar e ser publicado
     hardenGameFrame(previewFrame);
-    const comLoja = root.querySelector('#directLoja').checked;
+    const comLoja = root.querySelector('#directLoja').checked || codigoTemLoja(code);   // jogo com loja (feita pelo assistente) já testa com ela
     previewFrame.srcdoc = jogoRedeDeSeguranca() + lojaIniDoJogo(comLoja, '__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(code);
     kodaLojaLigar(previewFrame, {gameId:'__teste__', nome: root.querySelector('#directName').value.trim(), ligada: comLoja, simulado: true});
     previewBg.classList.add('show');
@@ -19875,8 +20013,9 @@ function renderDirectPublish(root, onBack){
     const name = root.querySelector('#directName').value.trim();
     const code = root.querySelector('#directCode').value;
     const category = root.querySelector('#directCat').value.trim();
-    publishGame(name, code, capa.cover, null, category || null, undefined, undefined, capa.shape, LOJA_NO_CRIAR ? root.querySelector('#directLoja').checked : undefined);
+    publishGame(name, code, capa.cover, null, category || null, undefined, undefined, capa.shape, (LOJA_NO_CRIAR && root.querySelector('#directLoja').checked) || codigoTemLoja(code) || undefined);
   });
+  ligarAssistente(root, '#directCode');
 }
 
 function renderGameChat(root, seed){
@@ -20214,40 +20353,16 @@ O Koda paga moedas pra quem joga. Pro jogo que você escreve poder pagar, chame 
 
 Cada jogo é um único arquivo HTML autocontido (HTML, CSS e JavaScript juntos, sem nenhuma dependência externa). Responda com uma frase curta (nesse idioma: ${langNote}) contando o que fez, e depois o código HTML completo dentro de um bloco \`\`\`html ... \`\`\` — sempre o ARQUIVO INTEIRO, nunca só as mudanças. Quando for uma pergunta, uma conversa comum, ou as perguntas de esclarecimento acima: responda só em texto normal (nesse idioma: ${langNote}), sem nenhum bloco de código.${lojaOn ? `
 
-## Loja de moedas e diamantes DENTRO do jogo (o criador ligou esta opção)
-O criador quer que os jogadores possam comprar coisas dentro do jogo com Koda Coins (moedas) e Koda Diamonds. O Koda cuida de TODO o pagamento (janela de compra, saldo, desconto e histórico) — o jogo só descreve os itens e reage ao que foi comprado. Use exatamente esta API, que já existe dentro do jogo:
-- \`window.KODA.loja.definir([{id:'escudo', nome:'Escudo', desc:'Protege uma vez', preco:300, moeda:'c', unico:false}, ...])\` — chame uma vez, logo no começo. id: só letras, números, _ e - (sem espaço). moeda 'c' = moedas (preço até 100000) ou 'd' = diamantes (preço até 50). unico:true = só dá pra comprar uma vez. No máximo 20 itens. Invente itens que façam sentido neste jogo (skins, vidas extras, poderes, cores, fases...), com preços equilibrados (moedas: de 100 a 5000; diamantes: de 1 a 10).
-- \`window.KODA.loja.abrir()\` — abre a loja do Koda por cima do jogo. Ponha um botão "Loja" bem visível no jogo (na tela inicial e no menu/pausa) que chama isso.
-- \`window.KODA.loja.tem(id)\` (true/false) e \`window.KODA.loja.quantidade(id)\` — o que o jogador já comprou (fica guardado na conta dele, em qualquer aparelho). Use ao começar a partida e sempre que for aplicar ou desenhar o item.
-- \`window.KODA.loja.usar(id, n)\` — gasta n unidades de um item consumível (devolve true se a pessoa tinha).
-- \`window.KODA.loja.aoComprar(function(id, quantidadeAgora){ ... })\` — chamada na hora em que a pessoa compra; aplique o efeito na hora.
-- \`window.KODA.loja.comprar(id)\` — abre direto a janela de compra daquele item (devolve uma Promise que vale true se a compra foi feita).
-Nunca invente outro jeito de cobrar e nunca peça dinheiro de verdade: só Koda Coins e Koda Diamonds, só por essa API. O jogo precisa continuar funcionando se \`window.KODA.loja\` não existir (use \`if(window.KODA && window.KODA.loja)\`).` : ''}
+${KODA_DOC_LOJA}` : ''}
 
-## O personagem de quem joga (use sempre que fizer sentido!)
-
-Cada criança no Koda tem um personagem em pixel art. Use ele como o herói/jogador do jogo: a criança joga como ela mesma, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
-- \`KODA.jogador.aoPronto(function(){ ... })\` — chamada quando o personagem já pode ser desenhado (na hora, se já pode). \`KODA.jogador.pronto()\` diz se já dá.
-- \`KODA.jogador.desenhar(ctx, x, y, altura)\` — desenha o personagem no canvas (x,y = canto de cima à esquerda; a largura é calculada, cerca de 0,76 x a altura). Devolve false se ainda não dá. Use no lugar de um quadrado/bolinha que seria o jogador, com altura de uns 48 a 96 pixels. Para virar pro outro lado: \`ctx.save(); ctx.translate(x+largura, y); ctx.scale(-1,1); KODA.jogador.desenhar(ctx, 0, 0, altura); ctx.restore();\`
-- \`KODA.jogador.nome()\` — o apelido da pessoa (nunca é e-mail). Dá pra escrever "Bem-vindo, <nome>!" ou pôr no placar.
-- \`KODA.jogador.personagem()\` — a imagem pronta (Image), se você precisar dela de outro jeito (por exemplo, em CSS/HTML use \`.src\` dela).
-Em jogos com HTML comum (não canvas), use \`<img>\` com \`image-rendering: pixelated\` e \`.src = KODA.jogador.personagem().src\`. Nunca desenhe o personagem esticado: mantenha a proporção (largura = altura x 22/29).
+${KODA_DOC_JOGADOR}
 
 ## Jogo ONLINE: decida você se o jogo combina com várias pessoas
 
 Antes de escrever, pense: esse jogo fica melhor com outras pessoas jogando junto? 
 - SIM (faça online, com \`KODA.online\`): quando pedirem pra jogar com amigos/outras pessoas/multiplayer, ou quando o tipo de jogo é naturalmente de grupo — sobreviver juntos (noites, zumbis, monstros), explorar um lugar, fugir/escapar em equipe, corrida entre jogadores, pega-pega, esconde-esconde, batalha/PvP, arena, futebol, jogos de rodada estilo "todo mundo entra, a rodada começa, o último vivo ganha".
 - NÃO (faça para 1 pessoa, sem \`KODA.online\`): jogos simples de uma pessoa só, de reflexo ou recorde — tipo pássaro que voa entre canos, clicker, quebra-cabeça, jogo da memória sozinho, desenhar, quiz pessoal. Não force online onde não faz sentido.
-Jogos online aparecem na Praça do Koda: lá as pessoas sentam num banco, escolhem o jogo e, quando o banco sai, entram TODAS juntas na mesma sala. Então faça o jogo online em RODADAS: uma tela de espera "Esperando jogadores… (3)" que mostra o personagem de cada um, a rodada começa quando todos da sala apertam "Pronto" ou depois de uns 10 segundos com 2 ou mais pessoas (quem decide a hora de começar é o primeiro da lista \`jogadores()\` ordenada por id, e ele avisa todo mundo com \`enviar\`), e no fim mostra quem ganhou e volta pra espera da próxima rodada. Se só tiver 1 pessoa, deixe jogar sozinho mesmo (com inimigos do computador, se fizer sentido). Em todo jogo online, cada pessoa aparece com o personagem dela (veja abaixo).
-
-O Koda tem salas online de graça: cada sala tem até 16 pessoas e, quando enche, o Koda abre outra sozinho. Use \`window.KODA.online\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.online)\` e, se não existir, deixe o jogo funcionar sozinho/offline):
-- \`window.KODA.online.entrar({max:16}).then(function(info){ ... })\` — entra numa sala. \`info\` = {eu: 'seuId', sala: 1, jogadores: [{id, nome, img}, ...]} (a lista já inclui você). Use \`.catch\` pra mostrar "não consegui entrar" e deixar jogar offline. max = pessoas por sala (de 2 a 20).
-- \`window.KODA.online.enviar(dados)\` — manda \`dados\` (qualquer objeto simples, até ~1500 caracteres em JSON) para TODOS os outros da sala. \`enviar(dados, idDoJogador)\` manda só para uma pessoa. No máximo 10 envios por segundo: mande a posição do jogador umas 8 a 10 vezes por segundo (não a cada frame!) e as ações importantes (tiro, jogada, ponto) na hora. Devolve false se mandou rápido demais.
-- \`window.KODA.online.aoReceber(function(dados, deId){ ... })\` — chega o que alguém mandou. Nunca confie cegamente: confira os tipos e os limites dos números antes de usar.
-- \`aoEntrar(function(j){})\` e \`aoSair(function(j){})\` — alguém entrou/saiu da sala (j = {id, nome, img}). Crie e apague o personagem dessa pessoa aí. Cada pessoa da sala tem o personagem dela: desenhe com \`KODA.online.desenhar(ctx, idDaPessoa, x, y, altura)\` (devolve false se ainda não chegou; aí desenhe um bonequinho seu) e use \`KODA.jogador.desenhar(...)\` para você mesmo. Assim cada um vê o visual dos outros.
-- \`aoConectar(function(info){})\` — chamada na entrada e também se a conexão cair e voltar (nesse caso recomece enviando o seu estado). \`aoDesconectar(function(){})\` — a conexão caiu (o Koda tenta voltar sozinho; mostre "reconectando…").
-- \`jogadores()\` (lista), \`eu()\` (seu id), \`sala()\` (número da sala).
-Regras: não existe servidor que decide nada — cada jogador roda o jogo no próprio aparelho e os outros recebem o que ele manda, então faça o jogo funcionar assim (cada um manda a própria posição; para jogos de vez, como velha ou damas, o primeiro da lista \`jogadores()\` com menor id começa). NÃO faça bate-papo de texto livre entre jogadores (o Koda é para crianças); se quiser comunicação, use só mensagens prontas (botões de emoji ou frases fixas). Mostre os nomes dos jogadores como vêm em \`nome\`, sem pedir mais nada.`;
+${KODA_DOC_ONLINE}`;
     const res = await fetch(SERVER_URL ? (SERVER_URL+'/agent') : 'https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers: await cabecalhoDoAgente(),
@@ -32516,6 +32631,22 @@ var PZ_TXT = {
  ugc_bloq_nome:'O nome tem uma palavra que não pode: “{p}”. Troque o nome.|The name has a word that isn’t allowed: “{p}”. Change the name.|El nombre tiene una palabra que no se permite: “{p}”. Cambia el nombre.|Il nome ha una parola non permessa: “{p}”. Cambia il nome.|Le nom contient un mot interdit : « {p} ». Change le nom.|Der Name hat ein Wort, das nicht erlaubt ist: „{p}“. Ändere den Namen.|De naam heeft een woord dat niet mag: “{p}”. Verander de naam.|名前に使えない言葉があるよ：「{p}」。名前を変えてね。|名称里有不允许的词：“{p}”。请改一下名称。|이름에 쓸 수 없는 말이 있어요: “{p}”. 이름을 바꿔 주세요.',
  ugc_bloq_engano:'Se foi engano, mude um pouquinho e tente de novo.|If this was a mistake, change it a little and try again.|Si fue un error, cámbialo un poquito y vuelve a intentarlo.|Se è un errore, cambialo un pochino e riprova.|Si c’est une erreur, change-le un peu et réessaie.|Wenn das ein Irrtum war, ändere es ein bisschen und versuch es nochmal.|Was dit een vergissing? Verander het een beetje en probeer opnieuw.|まちがいなら、少し変えてもう一度ためしてね。|如果是误会，稍微改一下再试一次。|잘못된 거라면 조금 바꿔서 다시 해 봐요.',
  ugc_bloq_ok:'Entendi|Got it|Entendido|Ho capito|Compris|Verstanden|Begrepen|わかった|知道了|알겠어요',
+ ia_tit:'Assistente do Koda|Koda Assistant|Asistente de Koda|Assistente di Koda|Assistant Koda|Koda-Assistent|Koda-assistent|Kodaアシスタント|Koda 助手|Koda 도우미',
+ ia_intro:'Já fez o jogo? O assistente coloca isto nele pra você (o resto fica igual):|Already made your game? The assistant adds this for you (everything else stays the same):|¿Ya hiciste el juego? El asistente le pone esto por ti (lo demás queda igual):|Hai già fatto il gioco? L’assistente aggiunge questo per te (il resto resta uguale):|Tu as déjà fait ton jeu ? L’assistant ajoute ceci pour toi (le reste ne change pas) :|Spiel schon fertig? Der Assistent baut das für dich ein (der Rest bleibt gleich):|Al een game gemaakt? De assistent voegt dit voor je toe (de rest blijft hetzelfde):|ゲームはもうできた？アシスタントがこれを入れてくれるよ（ほかはそのまま）：|游戏已经做好了？助手帮你加上这个（其他保持不变）：|게임을 다 만들었나요? 도우미가 이걸 넣어 줘요(나머지는 그대로):',
+ ia_online:'Deixar o jogo online|Make the game online|Hacer el juego online|Rendi il gioco online|Rendre le jeu en ligne|Spiel online machen|Game online maken|ゲームをオンラインにする|让游戏变成联机|게임을 온라인으로',
+ ia_online_sub:'Várias pessoas jogam juntas, cada uma com o personagem dela|Several people play together, each with their own character|Varias personas juegan juntas, cada una con su personaje|Più persone giocano insieme, ognuna con il suo personaggio|Plusieurs personnes jouent ensemble, chacune avec son personnage|Mehrere spielen zusammen, jeder mit seiner Figur|Meerdere mensen spelen samen, elk met een eigen personage|みんなで遊べるよ。それぞれ自分のキャラで|多人一起玩，每个人用自己的角色|여러 명이 함께, 각자 자기 캐릭터로 놀아요',
+ ia_loja:'Colocar loja de moedas e diamantes|Add a coins and diamonds shop|Poner tienda de monedas y diamantes|Aggiungi negozio di monete e diamanti|Ajouter une boutique pièces et diamants|Shop mit Münzen und Diamanten einbauen|Winkel met munten en diamanten toevoegen|コインとダイヤのショップを入れる|加上金币和钻石商店|코인·다이아 상점 넣기',
+ ia_loja_sub:'Os jogadores compram coisas no jogo com Koda Coins e Koda Diamonds, igual Robux|Players buy things in the game with Koda Coins and Koda Diamonds, like Robux|Los jugadores compran cosas en el juego con Koda Coins y Koda Diamonds, como Robux|I giocatori comprano cose nel gioco con Koda Coins e Koda Diamonds, come i Robux|Les joueurs achètent des choses dans le jeu avec des Koda Coins et Koda Diamonds, comme les Robux|Spieler kaufen Sachen im Spiel mit Koda Coins und Koda Diamonds, wie Robux|Spelers kopen dingen in de game met Koda Coins en Koda Diamonds, zoals Robux|プレイヤーがKodaコインとダイヤでゲーム内の物を買えるよ（Robuxみたいに）|玩家用 Koda 金币和钻石在游戏里买东西，就像 Robux|플레이어가 Koda 코인과 다이아로 게임 안에서 물건을 사요(로벅스처럼)',
+ ia_extra_ph:'Quer explicar alguma coisa? (opcional) Ex.: vender uma espada por 500 moedas|Want to explain something? (optional) E.g. sell a sword for 500 coins|¿Quieres explicar algo? (opcional) Ej.: vender una espada por 500 monedas|Vuoi spiegare qualcosa? (facoltativo) Es.: vendere una spada a 500 monete|Tu veux expliquer quelque chose ? (facultatif) Ex. : vendre une épée 500 pièces|Willst du etwas erklären? (optional) Z. B.: ein Schwert für 500 Münzen verkaufen|Wil je iets uitleggen? (optioneel) Bijv.: een zwaard verkopen voor 500 munten|説明したいことある？（なくてもOK）例：剣を500コインで売る|想说明什么吗？（可不填）例如：用500金币卖一把剑|설명하고 싶은 게 있나요? (선택) 예: 칼을 500코인에 팔기',
+ ia_sem_codigo:'Cole o código do jogo primeiro.|Paste the game code first.|Pega primero el código del juego.|Incolla prima il codice del gioco.|Colle d’abord le code du jeu.|Füge zuerst den Spielcode ein.|Plak eerst de code van de game.|まずゲームのコードを貼ってね。|请先贴上游戏代码。|먼저 게임 코드를 붙여 넣어요.',
+ ia_trabalhando:'O assistente está mexendo no seu jogo… pode levar 1 ou 2 minutos.|The assistant is working on your game… it may take 1 or 2 minutes.|El asistente está trabajando en tu juego… puede tardar 1 o 2 minutos.|L’assistente sta lavorando al tuo gioco… può volerci 1 o 2 minuti.|L’assistant travaille sur ton jeu… ça peut prendre 1 ou 2 minutes.|Der Assistent arbeitet an deinem Spiel… das kann 1 bis 2 Minuten dauern.|De assistent werkt aan je game… dit kan 1 of 2 minuten duren.|アシスタントがゲームを作業中…1〜2分かかるかも。|助手正在改你的游戏……可能要1到2分钟。|도우미가 게임을 고치는 중… 1~2분 걸릴 수 있어요.',
+ ia_pronto_online:'Pronto! Seu jogo agora é online. Toque em Testar pra ver.|Done! Your game is online now. Tap Test to see it.|¡Listo! Tu juego ahora es online. Toca Probar para verlo.|Fatto! Il tuo gioco ora è online. Tocca Prova per vederlo.|C’est fait ! Ton jeu est en ligne. Touche Tester pour voir.|Fertig! Dein Spiel ist jetzt online. Tippe auf Testen.|Klaar! Je game is nu online. Tik op Testen om te kijken.|できた！ゲームがオンラインになったよ。「テスト」で見てみてね。|好了！你的游戏现在可以联机了。点“测试”看看。|완료! 이제 게임이 온라인이에요. 테스트를 눌러 보세요.',
+ ia_pronto_loja:'Pronto! Seu jogo agora tem loja. Toque em Testar pra ver.|Done! Your game has a shop now. Tap Test to see it.|¡Listo! Tu juego ahora tiene tienda. Toca Probar para verlo.|Fatto! Il tuo gioco ora ha un negozio. Tocca Prova per vederlo.|C’est fait ! Ton jeu a une boutique. Touche Tester pour voir.|Fertig! Dein Spiel hat jetzt einen Shop. Tippe auf Testen.|Klaar! Je game heeft nu een winkel. Tik op Testen om te kijken.|できた！ゲームにショップが入ったよ。「テスト」で見てみてね。|好了！你的游戏现在有商店了。点“测试”看看。|완료! 이제 게임에 상점이 있어요. 테스트를 눌러 보세요.',
+ ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
+ ia_desfeito:'Voltou o código de antes.|The previous code is back.|Volvió el código de antes.|È tornato il codice di prima.|L’ancien code est revenu.|Der vorherige Code ist zurück.|De vorige code is terug.|前のコードにもどったよ。|已恢复之前的代码。|이전 코드로 돌아왔어요.',
+ ia_erro:'O assistente não conseguiu agora. Tente de novo daqui a pouco.|The assistant couldn’t do it right now. Try again in a bit.|El asistente no pudo ahora. Inténtalo en un rato.|L’assistente non ce l’ha fatta ora. Riprova tra poco.|L’assistant n’a pas réussi. Réessaie dans un moment.|Der Assistent hat es gerade nicht geschafft. Versuch es gleich nochmal.|Het lukte de assistent nu niet. Probeer het zo opnieuw.|今はうまくいかなかった。少ししてからもう一度ためしてね。|助手暂时没能完成，请稍后再试。|지금은 안 됐어요. 잠시 후 다시 해 봐요.',
+ ia_grande:'Esse jogo é grande demais pro assistente.|This game is too big for the assistant.|Este juego es demasiado grande para el asistente.|Questo gioco è troppo grande per l’assistente.|Ce jeu est trop grand pour l’assistant.|Dieses Spiel ist zu groß für den Assistenten.|Deze game is te groot voor de assistent.|このゲームはアシスタントには大きすぎるよ。|这个游戏对助手来说太大了。|이 게임은 도우미가 하기엔 너무 커요.',
+ ia_fora:'O assistente não está ligado agora. Tente mais tarde.|The assistant isn’t available right now. Try later.|El asistente no está disponible ahora. Inténtalo más tarde.|L’assistente non è disponibile ora. Riprova più tardi.|L’assistant n’est pas disponible pour l’instant. Réessaie plus tard.|Der Assistent ist gerade nicht verfügbar. Versuch es später.|De assistent is nu niet beschikbaar. Probeer het later.|今はアシスタントが使えないよ。あとでためしてね。|助手现在不可用，请稍后再试。|지금은 도우미를 쓸 수 없어요. 나중에 해 봐요.',
  ugc_t_mao:'Na mão|In hand|En la mano|In mano|En main|In der Hand|In de hand|手に持つ|手持|손에 들기',
  ugc_dica_roupa:'Camisa: só no tronco e nos braços. Pinte a frente e as costas.|Shirt: only on the body and arms. Paint the front and the back.|Camiseta: solo en el tronco y los brazos. Pinta el frente y la espalda.|Maglia: solo sul busto e sulle braccia. Colora davanti e dietro.|Haut : seulement sur le torse et les bras. Peins le devant et le dos.|Oberteil: nur Oberkörper und Arme. Male vorne und hinten.|Shirt: alleen op de romp en de armen. Kleur de voor- en achterkant.|シャツ：体とうでだけ。前と後ろをぬってね。|上衣：只能画在身体和手臂上。正面和背面都要画。|상의: 몸통과 팔에만 칠해요. 앞과 뒤를 칠해요.',
  ugc_dica_cabeca:'Cabeça: só na cabeça (chapéu, máscara, cabelo). Fica por cima de tudo.|Head: only on the head (hat, mask, hair). Goes over everything.|Cabeza: solo en la cabeza (sombrero, máscara, pelo). Va encima de todo.|Testa: solo sulla testa (cappello, maschera, capelli). Sta sopra tutto.|Tête : seulement sur la tête (chapeau, masque, cheveux). Par-dessus tout.|Kopf: nur am Kopf (Hut, Maske, Haare). Liegt über allem.|Hoofd: alleen op het hoofd (hoed, masker, haar). Over alles heen.|あたま：あたまだけ（ぼうし、お面、かみ）。一番上に重なるよ。|头部：只能画在头上（帽子、面具、头发），会盖在所有东西上面。|머리: 머리에만 칠해요(모자, 가면, 머리카락). 맨 위에 겹쳐져요.',
