@@ -3381,22 +3381,16 @@
   .direct-preview-bg.show{display:flex;}
   .direct-preview-bg iframe{flex:1;border:none;width:100%;background:#fff;}
   .direct-preview-bg .back-link{padding:14px 16px;flex-shrink:0;}
-  /* o Assistente do Koda (deixar online / pôr loja) */
-  .ia-assist{margin:4px 0 16px;padding:14px;border-radius:16px;background:rgba(124,77,255,.14);border:1.5px solid rgba(179,136,255,.45);display:flex;flex-direction:column;gap:8px;}
-  .ia-assist-tit{margin:0;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1rem;}
-  .ia-assist .form-hint{margin:0;}
-  .ia-assist-btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(179,136,255,.6);background:rgba(255,255,255,.06);color:inherit;cursor:pointer;text-align:left;font-family:'Baloo 2',sans-serif;}
-  .ia-assist-btn b{font-weight:800;font-size:.95rem;}
-  .ia-assist-btn small{font-family:'Nunito Sans',sans-serif;font-size:.74rem;opacity:.8;line-height:1.3;}
-  .ia-assist-btn:disabled{opacity:.5;cursor:default;}
-  .ia-assist-btn.on{opacity:1;border-color:#00e5ff;box-shadow:0 0 0 2px rgba(0,229,255,.35);}
-  .ia-assist-btn:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
-  .ia-assist-extra{width:100%;box-sizing:border-box;border-radius:10px;border:1.5px solid rgba(179,136,255,.45);background:rgba(0,0,0,.18);color:inherit;padding:9px 11px;font:600 .85rem 'Nunito Sans',sans-serif;resize:vertical;min-height:44px;}
-  .ia-assist-status{margin:0;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;min-height:0;}
+  /* o botãozinho "Agente Koda" (deixar online / pôr loja) */
+  .ia-assist{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:-6px 0 14px;}
+  .ia-assist-abrir{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1.5px solid rgba(179,136,255,.7);background:rgba(124,77,255,.18);color:inherit;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;}
+  .ia-assist-abrir:disabled{opacity:.7;cursor:default;}
+  .ia-assist-abrir:focus-visible,.ia-assist-desfazer:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ia-assist-desfazer{border:none;background:none;color:#ff62c9;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;padding:6px 2px;}
+  .ia-assist-desfazer[hidden]{display:none;}
+  .ia-assist-status{flex-basis:100%;margin:0;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.82rem;}
   .ia-assist-status:empty{display:none;}
   .ia-assist-status.ok{color:#5ef2b0;} .ia-assist-status.ruim{color:#ff8a8a;}
-  .ia-assist-desfazer{align-self:flex-start;margin:0;}
-  .ia-assist-desfazer[hidden]{display:none;}
   .direct-test-btn{
     width:100%;padding:12px;border-radius:12px;border:1.5px solid #00e5ff;background:none;
     color:#00e5ff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;
@@ -19853,15 +19847,12 @@ Regras: não existe servidor que decide nada — cada jogador roda o jogo no pr�
 ============================================================ */
 const ASSISTENTE_MAX_CODIGO = 120000;
 function codigoTemLoja(code){ return /KODA\s*\.\s*loja\s*\.\s*definir\s*\(/.test(String(code || '')); }
+/* só um botãozinho "Agente Koda"; tocando, abre um menu com as duas opções */
 function assistenteHtml(){
   return `<div class="ia-assist">
-      <p class="ia-assist-tit">✨ ${t('ia_tit')}</p>
-      <p class="form-hint">${t('ia_intro')}</p>
-      <button type="button" class="ia-assist-btn" data-ia="online"><b>🌐 ${t('ia_online')}</b><small>${t('ia_online_sub')}</small></button>
-      <button type="button" class="ia-assist-btn" data-ia="loja"><b>🛒 ${t('ia_loja')}</b><small>${t('ia_loja_sub')}</small></button>
-      <textarea class="ia-assist-extra" data-ia-extra maxlength="400" rows="2" placeholder="${chatListEscape(t('ia_extra_ph'))}"></textarea>
+      <button type="button" class="ia-assist-abrir" data-ia-abrir>✨ <span>${t('ia_tit')}</span></button>
+      <button type="button" class="ia-assist-desfazer" data-ia-desfazer hidden>↩ ${t('ia_desfazer')}</button>
       <p class="ia-assist-status" data-ia-status aria-live="polite"></p>
-      <button type="button" class="back-link ia-assist-desfazer" data-ia-desfazer hidden>↩ ${t('ia_desfazer')}</button>
     </div>`;
 }
 function assistenteRegra(tarefa){
@@ -19902,37 +19893,52 @@ async function assistentePedir(tarefa, codigo, extra){
   if(!novo || novo.length < 50) return {ok: false, motivo: 'erro'};
   return {ok: true, codigo: novo, frase: txt.slice(0, txt.indexOf('```')).trim().slice(0, 300)};
 }
-/* liga os botões do assistente; codeSel = a caixa do código; aoMudar(codigo) avisa quem usa o formulário */
-function ligarAssistente(root, codeSel, aoMudar){
+/* liga o botão do assistente; codeSel = a caixa do código */
+function ligarAssistente(root, codeSel){
   const box = root.querySelector('.ia-assist');
   if(!box) return;
-  const caixa = root.querySelector(codeSel), status = box.querySelector('[data-ia-status]'), desfazer = box.querySelector('[data-ia-desfazer]');
+  const caixa = root.querySelector(codeSel), abrir = box.querySelector('[data-ia-abrir]'), status = box.querySelector('[data-ia-status]'), desfazer = box.querySelector('[data-ia-desfazer]');
   let antes = null, ocupado = false;
-  const btns = Array.from(box.querySelectorAll('[data-ia]'));
-  btns.forEach(b=>b.addEventListener('click', async ()=>{
-    if(ocupado) return;
+  const mostrar = (txt, tipo)=>{ status.textContent = txt || ''; status.className = 'ia-assist-status' + (tipo ? ' ' + tipo : ''); };
+  const fazer = async tarefa=>{
     const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
-    if(!codigo){ status.textContent = t('ia_sem_codigo'); status.className = 'ia-assist-status ruim'; caixa.focus(); return; }
-    ocupado = true; playSound('click');
-    btns.forEach(x=>{ x.disabled = true; x.classList.toggle('on', x === b); });
-    status.textContent = t('ia_trabalhando'); status.className = 'ia-assist-status';
-    const r = await assistentePedir(b.dataset.ia, codigo, box.querySelector('[data-ia-extra]').value.trim());
+    if(!codigo){ mostrar(t('ia_sem_codigo'), 'ruim'); caixa.focus(); return; }
+    ocupado = true;
+    abrir.disabled = true; abrir.querySelector('span').textContent = t('ia_trabalhando');
+    mostrar('');
+    const r = await assistentePedir(tarefa, codigo, '');
     ocupado = false;
-    btns.forEach(x=>{ x.disabled = false; x.classList.remove('on'); });
-    if(!r.ok){ status.textContent = t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro'); status.className = 'ia-assist-status ruim'; return; }
+    abrir.disabled = false; abrir.querySelector('span').textContent = t('ia_tit');
+    if(!r.ok){ mostrar(t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro'), 'ruim'); return; }
     antes = caixa.value;
     caixa.value = r.codigo;
     desfazer.hidden = false;
-    status.textContent = t(b.dataset.ia === 'online' ? 'ia_pronto_online' : 'ia_pronto_loja'); status.className = 'ia-assist-status ok';
+    mostrar(t(tarefa === 'online' ? 'ia_pronto_online' : 'ia_pronto_loja'), 'ok');
     playSound('buy');
-    if(aoMudar) aoMudar(r.codigo);
-  }));
+  };
+  abrir.addEventListener('click', ()=>{
+    if(ocupado) return;
+    playSound('click');
+    const bg = document.createElement('div');
+    bg.className = 'game-menu-bg';
+    bg.innerHTML = `<div class="game-menu-sheet">
+        <div class="game-menu-title">✨ ${t('ia_tit')}</div>
+        <button class="game-menu-item" data-ia="online">🌐 ${t('ia_online')}</button>
+        <button class="game-menu-item" data-ia="loja">🛒 ${t('ia_loja')}</button>
+        <button class="game-menu-cancel">${t('menu_cancel')}</button>
+      </div>`;
+    document.body.appendChild(bg);
+    requestAnimationFrame(()=>bg.classList.add('show'));
+    const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 200); };
+    bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
+    bg.querySelector('.game-menu-cancel').addEventListener('click', fechar);
+    bg.querySelectorAll('[data-ia]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); fechar(); fazer(b.dataset.ia); }));
+  });
   desfazer.addEventListener('click', ()=>{
     if(antes === null) return;
     caixa.value = antes; antes = null;
     desfazer.hidden = true;
-    status.textContent = t('ia_desfeito'); status.className = 'ia-assist-status';
-    if(aoMudar) aoMudar(caixa.value);
+    mostrar(t('ia_desfeito'));
   });
 }
 function renderDirectPublish(root, onBack){
@@ -32631,15 +32637,11 @@ var PZ_TXT = {
  ugc_bloq_nome:'O nome tem uma palavra que não pode: “{p}”. Troque o nome.|The name has a word that isn’t allowed: “{p}”. Change the name.|El nombre tiene una palabra que no se permite: “{p}”. Cambia el nombre.|Il nome ha una parola non permessa: “{p}”. Cambia il nome.|Le nom contient un mot interdit : « {p} ». Change le nom.|Der Name hat ein Wort, das nicht erlaubt ist: „{p}“. Ändere den Namen.|De naam heeft een woord dat niet mag: “{p}”. Verander de naam.|名前に使えない言葉があるよ：「{p}」。名前を変えてね。|名称里有不允许的词：“{p}”。请改一下名称。|이름에 쓸 수 없는 말이 있어요: “{p}”. 이름을 바꿔 주세요.',
  ugc_bloq_engano:'Se foi engano, mude um pouquinho e tente de novo.|If this was a mistake, change it a little and try again.|Si fue un error, cámbialo un poquito y vuelve a intentarlo.|Se è un errore, cambialo un pochino e riprova.|Si c’est une erreur, change-le un peu et réessaie.|Wenn das ein Irrtum war, ändere es ein bisschen und versuch es nochmal.|Was dit een vergissing? Verander het een beetje en probeer opnieuw.|まちがいなら、少し変えてもう一度ためしてね。|如果是误会，稍微改一下再试一次。|잘못된 거라면 조금 바꿔서 다시 해 봐요.',
  ugc_bloq_ok:'Entendi|Got it|Entendido|Ho capito|Compris|Verstanden|Begrepen|わかった|知道了|알겠어요',
- ia_tit:'Assistente do Koda|Koda Assistant|Asistente de Koda|Assistente di Koda|Assistant Koda|Koda-Assistent|Koda-assistent|Kodaアシスタント|Koda 助手|Koda 도우미',
- ia_intro:'Já fez o jogo? O assistente coloca isto nele pra você (o resto fica igual):|Already made your game? The assistant adds this for you (everything else stays the same):|¿Ya hiciste el juego? El asistente le pone esto por ti (lo demás queda igual):|Hai già fatto il gioco? L’assistente aggiunge questo per te (il resto resta uguale):|Tu as déjà fait ton jeu ? L’assistant ajoute ceci pour toi (le reste ne change pas) :|Spiel schon fertig? Der Assistent baut das für dich ein (der Rest bleibt gleich):|Al een game gemaakt? De assistent voegt dit voor je toe (de rest blijft hetzelfde):|ゲームはもうできた？アシスタントがこれを入れてくれるよ（ほかはそのまま）：|游戏已经做好了？助手帮你加上这个（其他保持不变）：|게임을 다 만들었나요? 도우미가 이걸 넣어 줘요(나머지는 그대로):',
+ ia_tit:'Agente Koda|Koda Agent|Agente Koda|Agente Koda|Agent Koda|Koda-Agent|Koda-agent|Kodaエージェント|Koda 助手|Koda 에이전트',
  ia_online:'Deixar o jogo online|Make the game online|Hacer el juego online|Rendi il gioco online|Rendre le jeu en ligne|Spiel online machen|Game online maken|ゲームをオンラインにする|让游戏变成联机|게임을 온라인으로',
- ia_online_sub:'Várias pessoas jogam juntas, cada uma com o personagem dela|Several people play together, each with their own character|Varias personas juegan juntas, cada una con su personaje|Più persone giocano insieme, ognuna con il suo personaggio|Plusieurs personnes jouent ensemble, chacune avec son personnage|Mehrere spielen zusammen, jeder mit seiner Figur|Meerdere mensen spelen samen, elk met een eigen personage|みんなで遊べるよ。それぞれ自分のキャラで|多人一起玩，每个人用自己的角色|여러 명이 함께, 각자 자기 캐릭터로 놀아요',
  ia_loja:'Colocar loja de moedas e diamantes|Add a coins and diamonds shop|Poner tienda de monedas y diamantes|Aggiungi negozio di monete e diamanti|Ajouter une boutique pièces et diamants|Shop mit Münzen und Diamanten einbauen|Winkel met munten en diamanten toevoegen|コインとダイヤのショップを入れる|加上金币和钻石商店|코인·다이아 상점 넣기',
- ia_loja_sub:'Os jogadores compram coisas no jogo com Koda Coins e Koda Diamonds, igual Robux|Players buy things in the game with Koda Coins and Koda Diamonds, like Robux|Los jugadores compran cosas en el juego con Koda Coins y Koda Diamonds, como Robux|I giocatori comprano cose nel gioco con Koda Coins e Koda Diamonds, come i Robux|Les joueurs achètent des choses dans le jeu avec des Koda Coins et Koda Diamonds, comme les Robux|Spieler kaufen Sachen im Spiel mit Koda Coins und Koda Diamonds, wie Robux|Spelers kopen dingen in de game met Koda Coins en Koda Diamonds, zoals Robux|プレイヤーがKodaコインとダイヤでゲーム内の物を買えるよ（Robuxみたいに）|玩家用 Koda 金币和钻石在游戏里买东西，就像 Robux|플레이어가 Koda 코인과 다이아로 게임 안에서 물건을 사요(로벅스처럼)',
- ia_extra_ph:'Quer explicar alguma coisa? (opcional) Ex.: vender uma espada por 500 moedas|Want to explain something? (optional) E.g. sell a sword for 500 coins|¿Quieres explicar algo? (opcional) Ej.: vender una espada por 500 monedas|Vuoi spiegare qualcosa? (facoltativo) Es.: vendere una spada a 500 monete|Tu veux expliquer quelque chose ? (facultatif) Ex. : vendre une épée 500 pièces|Willst du etwas erklären? (optional) Z. B.: ein Schwert für 500 Münzen verkaufen|Wil je iets uitleggen? (optioneel) Bijv.: een zwaard verkopen voor 500 munten|説明したいことある？（なくてもOK）例：剣を500コインで売る|想说明什么吗？（可不填）例如：用500金币卖一把剑|설명하고 싶은 게 있나요? (선택) 예: 칼을 500코인에 팔기',
  ia_sem_codigo:'Cole o código do jogo primeiro.|Paste the game code first.|Pega primero el código del juego.|Incolla prima il codice del gioco.|Colle d’abord le code du jeu.|Füge zuerst den Spielcode ein.|Plak eerst de code van de game.|まずゲームのコードを貼ってね。|请先贴上游戏代码。|먼저 게임 코드를 붙여 넣어요.',
- ia_trabalhando:'O assistente está mexendo no seu jogo… pode levar 1 ou 2 minutos.|The assistant is working on your game… it may take 1 or 2 minutes.|El asistente está trabajando en tu juego… puede tardar 1 o 2 minutos.|L’assistente sta lavorando al tuo gioco… può volerci 1 o 2 minuti.|L’assistant travaille sur ton jeu… ça peut prendre 1 ou 2 minutes.|Der Assistent arbeitet an deinem Spiel… das kann 1 bis 2 Minuten dauern.|De assistent werkt aan je game… dit kan 1 of 2 minuten duren.|アシスタントがゲームを作業中…1〜2分かかるかも。|助手正在改你的游戏……可能要1到2分钟。|도우미가 게임을 고치는 중… 1~2분 걸릴 수 있어요.',
+ ia_trabalhando:'Trabalhando… (1 ou 2 minutos)|Working… (1 or 2 minutes)|Trabajando… (1 o 2 minutos)|Al lavoro… (1 o 2 minuti)|Ça travaille… (1 ou 2 minutes)|Arbeitet… (1–2 Minuten)|Bezig… (1 of 2 minuten)|作業中…（1〜2分）|处理中……（1到2分钟）|작업 중… (1~2분)',
  ia_pronto_online:'Pronto! Seu jogo agora é online. Toque em Testar pra ver.|Done! Your game is online now. Tap Test to see it.|¡Listo! Tu juego ahora es online. Toca Probar para verlo.|Fatto! Il tuo gioco ora è online. Tocca Prova per vederlo.|C’est fait ! Ton jeu est en ligne. Touche Tester pour voir.|Fertig! Dein Spiel ist jetzt online. Tippe auf Testen.|Klaar! Je game is nu online. Tik op Testen om te kijken.|できた！ゲームがオンラインになったよ。「テスト」で見てみてね。|好了！你的游戏现在可以联机了。点“测试”看看。|완료! 이제 게임이 온라인이에요. 테스트를 눌러 보세요.',
  ia_pronto_loja:'Pronto! Seu jogo agora tem loja. Toque em Testar pra ver.|Done! Your game has a shop now. Tap Test to see it.|¡Listo! Tu juego ahora tiene tienda. Toca Probar para verlo.|Fatto! Il tuo gioco ora ha un negozio. Tocca Prova per vederlo.|C’est fait ! Ton jeu a une boutique. Touche Tester pour voir.|Fertig! Dein Spiel hat jetzt einen Shop. Tippe auf Testen.|Klaar! Je game heeft nu een winkel. Tik op Testen om te kijken.|できた！ゲームにショップが入ったよ。「テスト」で見てみてね。|好了！你的游戏现在有商店了。点“测试”看看。|완료! 이제 게임에 상점이 있어요. 테스트를 눌러 보세요.',
  ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
