@@ -450,7 +450,7 @@ const LEXICO = {
     grave: [
       'crioulo','crioula','ticao','picole de asfalto','cabelo de bombril','servico de preto','volta pra senzala','volta para senzala',
       'lugar de preto','preto sujo','negro sujo','preto imundo','macaco imundo','raca inferior','raca pura','supremacia branca','orgulho branco',
-      'white power','white pride','white supremacy','master race','heil hitler','sieg heil','1488','14 88','ku klux klan','kukluxklan',
+      'white power','white pride','white supremacy','master race','heil hitler','sieg heil','ku klux klan','kukluxklan',
       'morte aos judeus','holocausto nao existiu','holocaust never happened','gas the jews','kill all jews','kill all blacks','kill all gays',
       'matar negros','matar gays','matar judeus','baianada','nordestino burro','paraiba burro','viado','boiola','baitola','traveco','retardado','retardada',
       'mongoloide','nigger','niggers','nigga','niggas','faggot','faggots','fag','fags','retard','retards','retarded','tranny','trannies','chink','chinks','gook','gooks',
@@ -1228,6 +1228,8 @@ PRINCÍPIO 1 — NÃO BARRAR O QUE É INOCENTE. Recusar um jogo inocente também
 - Pedir só um apelido para o placar ("digite seu nome") sem guardar nem enviar para fora.
 - Moedas, lojas, pontos e prêmios de faz de conta dentro do jogo (sem dinheiro de verdade e sem imitar cassino ou aposta).
 - Jogos de cartas e tabuleiro tradicionais (truco, uno, paciência, xadrez, damas, dominó, bingo infantil), sem apostas.
+- Esportes e times: nomes, camisas, uniformes, cores e números de times e jogadores (Golden State Warriors, Lakers, Flamengo, Real Madrid...) e nomes de time como "Warriors", "Indians", "Chiefs", "Braves" NÃO são ódio nem preconceito. (Usar o escudo ou o nome de um time famoso é, no máximo, "propriedade_intelectual" leve — nunca "odio".)
+- Números no código (coordenadas, cores, tamanhos, listas de pixels) não são mensagens: "14", "88" ou "1488" dentro de contas e listas não são símbolo de nada.
 - Fatos neutros e educativos de história, geografia e ciências (quiz de capitais, bandeiras de países, datas históricas), sem tomar partido.
 - Festas e referências culturais ou religiosas respeitosas (Natal, Páscoa, festa junina, Diwali, Ramadã), sem atacar ninguém.
 - Amizade, carinho e romance infantil (coraçõezinhos, casamento de bichinhos), sem nada sexual.
