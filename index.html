@@ -12181,6 +12181,7 @@ function resetLocalAccountData(){
   localStorage.removeItem('jogodromo_passe');       // e o Koda Pass
   localStorage.removeItem('jogodromo_aboboras');    // e as abóboras e os repetidos do evento
   localStorage.removeItem('koda_loja_jogos');       // e o que foi comprado dentro dos jogos
+  localStorage.removeItem('koda_salvos');           // e a jornada salva de cada jogo
   localStorage.removeItem('jogodromo_evento');
   localStorage.removeItem('jogodromo_ab_ev');
   localStorage.removeItem('koda_tutoriais_vistos');   // as aulas já vistas também são da conta
@@ -12256,6 +12257,8 @@ function collectLocalData(){
   try{ const tg = localStorage.getItem('jogodromo_ab_ev'); if(tg !== null) dados.abEv = tg; }catch(e){}
   /* compras dentro dos jogos (só de quem já comprou alguma) */
   try{ const lj = lojaCarregar(); if(Object.keys(lj).length) dados.lojaJogos = lj; }catch(e){}
+  /* jornadas salvas dentro dos jogos (só de quem já salvou alguma) */
+  try{ const sv = salvosEnxutos(salvosLer()); if(Object.keys(sv).length) dados.salvos = sv; }catch(e){}
   try{ const ev = JSON.parse(localStorage.getItem('jogodromo_evento')); if(ev && typeof ev === 'object' && !Array.isArray(ev)) dados.evento = ev; }catch(e){}
   /* mini-tutoriais já vistos (só de quem já viu algum) */
   try{ const tv = tutLer(); if(Object.keys(tv).length) dados.tutoriais = tv; }catch(e){}
@@ -12293,6 +12296,10 @@ function applyRemoteData(data){
       localStorage.setItem(LOJA_JOGO_KEY, JSON.stringify(aqui));
     }catch(e){}
   }
+  /* jornadas salvas dos jogos: as de lá e as daqui se juntam (vale a mais nova de cada jogo) e isso não conta como "mudou" */
+  if(data.salvos && typeof data.salvos === 'object' && !Array.isArray(data.salvos)){
+    try{ salvosGravar(salvosMesclar(salvosLer(), data.salvos)); }catch(e){}
+  }
   /* missões: as de lá e as daqui se JUNTAM (ninguém perde progresso) e isso não
      conta como "mudou": a tela das missões lê o progresso na hora que abre */
   if(data.missoes && typeof data.missoes === 'object'){
@@ -12313,7 +12320,7 @@ function applyRemoteData(data){
   if(data.tutoriais && typeof data.tutoriais === 'object'){
     try{ localStorage.setItem(TUT_KEY, JSON.stringify(tutMesclar(tutLer(), data.tutoriais))); }catch(e){}
   }
-  const semMissoes = o => { const c = Object.assign({}, o); delete c.missoes; delete c.turbos; delete c.passe; delete c.tutoriais; delete c.rotina; return c; };
+  const semMissoes = o => { const c = Object.assign({}, o); delete c.missoes; delete c.turbos; delete c.passe; delete c.tutoriais; delete c.rotina; delete c.salvos; return c; };
   const current = collectLocalData();
   if(JSON.stringify(semMissoes(current)) === JSON.stringify(semMissoes(data))) return false;
   localStorage.setItem('jogodromo_custom_games', JSON.stringify(data.customGames||[]));
@@ -18553,10 +18560,10 @@ function initCustomGame(root, game, opts){
   hardenGameFrame(iframe);
   const safetyNet = jogoRedeDeSeguranca();
   if(opts){
-    const inject = safetyNet + lojaIniDoJogo(comLoja, game.id) + KODA_BRIDGE + '<script>window.JOGODROMO_DIFFICULTY='+JSON.stringify(opts.diff||null)+';window.JOGODROMO_PLAYER_COUNT='+JSON.stringify(opts.playerCount||1)+';<\/script>';
+    const inject = safetyNet + lojaIniDoJogo(comLoja, game.id) + salvoIniDoJogo(game.id) + KODA_BRIDGE + '<script>window.JOGODROMO_DIFFICULTY='+JSON.stringify(opts.diff||null)+';window.JOGODROMO_PLAYER_COUNT='+JSON.stringify(opts.playerCount||1)+';<\/script>';
     iframe.srcdoc = inject + tradutorDoJogo(game.trad, currentLang) + codeText;
   } else {
-    iframe.srcdoc = safetyNet + lojaIniDoJogo(comLoja, game.id) + KODA_BRIDGE + tradutorDoJogo(game.trad, currentLang) + codeText;
+    iframe.srcdoc = safetyNet + lojaIniDoJogo(comLoja, game.id) + salvoIniDoJogo(game.id) + KODA_BRIDGE + tradutorDoJogo(game.trad, currentLang) + codeText;
   }
   root.appendChild(iframe);
   iniciarPontePublicada(iframe, game, opts);   // a partir daqui esse jogo pode pagar moedas
@@ -19843,6 +19850,14 @@ O criador quer que os jogadores possam comprar coisas dentro do jogo com Koda Co
 - \`window.KODA.loja.aoComprar(function(id, quantidadeAgora){ ... })\` — chamada na hora em que a pessoa compra; aplique o efeito na hora.
 - \`window.KODA.loja.comprar(id)\` — abre direto a janela de compra daquele item (devolve uma Promise que vale true se a compra foi feita).
 Nunca invente outro jeito de cobrar e nunca peça dinheiro de verdade: só Koda Coins e Koda Diamonds, só por essa API. O jogo precisa continuar funcionando se \`window.KODA.loja\` não existir (use \`if(window.KODA && window.KODA.loja)\`).`;
+/* quanto cabe numa jornada salva (em caracteres do JSON), quantos jogos guardam jornada por conta e o total */
+const SALVO_MAX = 6000, SALVO_MAX_JOGOS = 30, SALVO_MAX_TOTAL = 120000;
+const KODA_DOC_SALVAR = `## Salvar a jornada de quem joga (o criador pediu esta opção)
+O criador quer que a pessoa possa parar e voltar depois exatamente de onde parou (por exemplo, num jogo de piratas: fase, ouro, itens, vida, lugar no mapa). O Koda guarda tudo na conta da pessoa, por jogo, e vale em qualquer aparelho. NÃO use localStorage, sessionStorage, cookies nem IndexedDB: o jogo roda num quadro isolado e eles não guardam nada de verdade. Use só esta API, que já existe dentro do jogo:
+- \`window.KODA.salvar.guardar(dados)\` — guarda \`dados\` (objeto, lista, número ou texto simples; vira JSON). Cabem no máximo ${SALVO_MAX} caracteres: guarde só o necessário pra voltar ao ponto (números, textos curtinhos, listas pequenas), nunca imagens, canvas ou o jogo inteiro. Devolve true se guardou e false se não coube. Pode chamar com frequência (o Koda junta as chamadas): chame ao mudar de fase, pegar um item, ganhar ou gastar algo importante, ao pausar e de tempos em tempos (a cada 5 a 10 segundos) durante a partida.
+- \`window.KODA.salvar.carregar()\` — devolve o que foi guardado, ou null se a pessoa nunca salvou. Chame ao abrir o jogo, antes de mostrar o menu.
+- \`window.KODA.salvar.existe()\` — true se tem jornada salva. \`window.KODA.salvar.apagar()\` — apaga a jornada (use em "Novo jogo" e quando a pessoa zerar o jogo).
+Como fazer: na tela inicial, se existe jornada salva, mostre os botões "Continuar" (volta de onde parou) e "Novo jogo" (apaga a jornada e recomeça); se não existe, só o botão de jogar. Ao carregar, VALIDE tudo: confira os tipos e limites dos números, e o que faltar volta ao valor padrão (uma jornada salva por uma versão antiga do jogo não pode quebrar nada). Salve sempre num ponto seguro (nunca no meio de um estado impossível ou sem saída, como com 0 de vida). O jogo precisa continuar funcionando se \`window.KODA.salvar\` não existir (use \`if(window.KODA && window.KODA.salvar)\`).`;
 const KODA_DOC_JOGADOR = `## O personagem de quem joga (use sempre que fizer sentido!)
 
 Cada criança no Koda tem um personagem em pixel art. Use ele como o herói/jogador do jogo: a criança joga como ela mesma, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
@@ -19863,9 +19878,10 @@ O Koda tem salas online de graça: cada sala tem até 16 pessoas e, quando enche
 Regras: não existe servidor que decide nada — cada jogador roda o jogo no próprio aparelho e os outros recebem o que ele manda, então faça o jogo funcionar assim (cada um manda a própria posição; para jogos de vez, como velha ou damas, o primeiro da lista \`jogadores()\` com menor id começa). NÃO faça bate-papo de texto livre entre jogadores (o Koda é para crianças); se quiser comunicação, use só mensagens prontas (botões de emoji ou frases fixas). Mostre os nomes dos jogadores como vêm em \`nome\`, sem pedir mais nada.`;
 /* ============================================================
    ASSISTENTE DO KODA (no Koda Studio e no "Editar" do jogo)
-   A IA do Koda não cria jogo do zero: a pessoa cola o jogo que já fez e o assistente faz só uma de duas coisas:
+   A IA do Koda não cria jogo do zero: a pessoa cola o jogo que já fez e o assistente faz só uma de três coisas:
    - "online": deixa o jogo para várias pessoas, com as salas do Koda (KODA.online) e o personagem de cada um;
-   - "loja":   põe uma loja dentro do jogo que cobra em Koda Coins e Koda Diamonds (KODA.loja), igual Robux no Roblox.
+   - "loja":   põe uma loja dentro do jogo que cobra em Koda Coins e Koda Diamonds (KODA.loja), igual Robux no Roblox;
+   - "salvar": faz o jogo guardar até onde a pessoa chegou, na conta dela (KODA.salvar).
    (A tradução do site e dos jogos é automática, em outra parte.) O resto do jogo fica igual, e dá pra desfazer.
 ============================================================ */
 const ASSISTENTE_MAX_CODIGO = 120000;
@@ -19874,7 +19890,7 @@ function codigoTemLoja(code){ return /KODA\s*\.\s*loja\b|KODA\s*\[\s*['"]loja['"
 /* o robozinho do Agente Koda (símbolo do assistente) */
 const ICONE_AGENTE_KODA = 'data:image/png;base64,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';
 const iconeAgenteKoda = ()=>`<img class="ia-ico" src="${ICONE_AGENTE_KODA}" alt="" width="20" height="28" decoding="async">`;
-/* só um botãozinho "Agente Koda"; tocando, abre um menu com as duas opções */
+/* só um botãozinho "Agente Koda"; tocando, abre um menu com as três opções */
 function assistenteHtml(){
   return `<div class="ia-assist">
       <button type="button" class="ia-assist-abrir" data-ia-abrir>${iconeAgenteKoda()}<span>${t('ia_tit')}</span></button>
@@ -19887,6 +19903,8 @@ function assistenteRegra(tarefa){
 Você NÃO cria jogos novos e não muda o jogo por gosto seu. Você recebe o código de um jogo que a pessoa JÁ FEZ e faz SÓ esta tarefa:
 ${tarefa === 'online'
     ? '- Deixar o jogo ONLINE: várias pessoas jogando juntas nas salas do Koda (API abaixo), cada uma com o personagem dela. Adapte o jogo do jeito que fizer sentido (cada um com seu jogador; se for de vez, jogadores se revezam; se for de pontos, uma rodada em que todos competem).'
+    : tarefa === 'salvar'
+    ? '- Fazer o jogo SALVAR A JORNADA de quem joga (API abaixo): a pessoa sai e, quando volta, continua de onde parou. Escolha o que faz sentido guardar neste jogo (fase, pontos, itens, vida, lugar no mapa...) e ponha "Continuar" e "Novo jogo" na tela inicial.'
     : '- Colocar uma LOJA dentro do jogo que cobra em Koda Coins (moedas) e Koda Diamonds (API abaixo), com itens que façam sentido neste jogo e que funcionem de verdade quando comprados.'}
 Regras:
 - Mantenha tudo o que já existe: visual, regras, fases, controles, textos e o idioma do jogo. Mude só o necessário para a tarefa.
@@ -19896,7 +19914,7 @@ Regras:
 - Se o jogo já tiver o que foi pedido, só conserte o que estiver quebrado.
 - Responda com UMA frase curta (no idioma: ${(typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)'}) dizendo o que você fez e depois o ARQUIVO INTEIRO do jogo dentro de um bloco \`\`\`html ... \`\`\` (nunca só as mudanças).
 
-${tarefa === 'online' ? KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR : KODA_DOC_LOJA}`;
+${tarefa === 'online' ? KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR : tarefa === 'salvar' ? KODA_DOC_SALVAR : KODA_DOC_LOJA}`;
 }
 /* pede ao assistente; devolve {ok, codigo, frase} ou {ok:false, motivo:'fora'|'grande'|'erro'} */
 async function assistentePedir(tarefa, codigo, extra){
@@ -19940,7 +19958,7 @@ function ligarAssistente(root, codeSel){
     antes = caixa.value;
     caixa.value = r.codigo;
     desfazer.hidden = false;
-    mostrar(t(tarefa === 'online' ? 'ia_pronto_online' : 'ia_pronto_loja'), 'ok');
+    mostrar(t(tarefa === 'online' ? 'ia_pronto_online' : tarefa === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'), 'ok');
     playSound('buy');
   };
   abrir.addEventListener('click', ()=>{
@@ -19952,6 +19970,7 @@ function ligarAssistente(root, codeSel){
         <div class="game-menu-title ia-menu-tit">${iconeAgenteKoda()} ${t('ia_tit')}</div>
         <button class="game-menu-item" data-ia="online">🌐 ${t('ia_online')}</button>
         <button class="game-menu-item" data-ia="loja">🛒 ${t('ia_loja')}</button>
+        <button class="game-menu-item" data-ia="salvar">💾 ${t('ia_salvar')}</button>
         <button class="game-menu-cancel">${t('menu_cancel')}</button>
       </div>`;
     document.body.appendChild(bg);
@@ -20026,7 +20045,7 @@ function renderDirectPublish(root, onBack){
     root.querySelector('#directCode').value = code;   // a pessoa vê o que de fato vai rodar e ser publicado
     hardenGameFrame(previewFrame);
     const comLoja = root.querySelector('#directLoja').checked || codigoTemLoja(code);   // jogo com loja (feita pelo assistente) já testa com ela
-    previewFrame.srcdoc = jogoRedeDeSeguranca() + lojaIniDoJogo(comLoja, '__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(code);
+    previewFrame.srcdoc = jogoRedeDeSeguranca() + lojaIniDoJogo(comLoja, '__teste__', true) + salvoIniDoJogo('__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(code);
     kodaLojaLigar(previewFrame, {gameId:'__teste__', nome: root.querySelector('#directName').value.trim(), ligada: comLoja, simulado: true});
     previewBg.classList.add('show');
   });
@@ -20170,7 +20189,7 @@ function renderGameChat(root, seed){
   function openPreview(){
     if(!pendingGameCode) return;
     hardenGameFrame(previewFrame); // testar o jogo também roda isolado
-    previewFrame.srcdoc = jogoRedeDeSeguranca() + lojaIniDoJogo(lojaOn, '__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(prepararCodigoDoJogo(pendingGameCode) || pendingGameCode);
+    previewFrame.srcdoc = jogoRedeDeSeguranca() + lojaIniDoJogo(lojaOn, '__teste__', true) + salvoIniDoJogo('__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(prepararCodigoDoJogo(pendingGameCode) || pendingGameCode);
     kodaLojaLigar(previewFrame, {gameId:'__teste__', nome: (seed && seed.name) || '', ligada: lojaOn, simulado: true});
     previewEl.style.display = 'flex';
   }
@@ -20874,7 +20893,7 @@ const MOEDA_DIV = 3;
 const ESCALA_MOEDAS = 3;
 const ESCALA_KEY = 'koda_escala_moedas';
 /* o que foi gravado na nuvem ANTES desta hora (presente de moedas ainda não aberto, peça e venda dos jogadores) está na escala antiga */
-const MOEDA_CORTE = Date.UTC(2026, 9, 24, 2, 30, 0);
+const MOEDA_CORTE = Date.UTC(2026, 9, 24, 2, 0, 0);
 /* arredonda um preço antigo pra um número "de gente" na escala nova: 7, 35, 120, 1.150, 12.000 */
 function moedaNova(n){
   n = Number(n) || 0;
@@ -23647,6 +23666,19 @@ const KODA_BRIDGE = '<script>(function(){'
   +   'aoComprar:function(f){ if(typeof f==="function") lojaOuv.push(f); },'
   +   'itens:function(){ return lojaItens.slice(); }'
   + '};'
+  /* salvar a jornada: o jogo guarda "até onde chegou" e o Koda leva pra conta (o jogo roda isolado, sem localStorage de verdade).
+     carregar() é na hora: o texto da última jornada já vem dentro do quadro (ver salvoIniDoJogo). */
+  + 'var SINI=window.__KODA_SALVO_INI||{}, salvoTxt=(typeof SINI.d==="string"&&SINI.d)?SINI.d:"", salvoUlt=0, salvoTm=null, salvoPend=null;'
+  + 'function salvoEnviar(){ salvoTm=null; if(salvoPend===null) return; var v=salvoPend; salvoPend=null; salvoUlt=Date.now(); manda(v===""?"salvoApagar":"salvoGuardar", v); }'
+  + 'function salvoAgendar(v){ salvoPend=v; var falta=300-(Date.now()-salvoUlt); if(falta<=0) salvoEnviar(); else if(!salvoTm) salvoTm=setTimeout(salvoEnviar, falta); }'
+  + 'window.addEventListener("pagehide", salvoEnviar);'
+  + 'document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="hidden") salvoEnviar(); });'
+  + 'window.KODA.salvar={'
+  +   'guardar:function(dados){ var t; try{ t=JSON.stringify(dados); }catch(e){ return false; } if(typeof t!=="string"||!t||t.length>' + SALVO_MAX + ') return false; salvoTxt=t; salvoAgendar(t); return true; },'
+  +   'carregar:function(){ if(!salvoTxt) return null; try{ return JSON.parse(salvoTxt); }catch(e){ return null; } },'
+  +   'existe:function(){ return !!salvoTxt; },'
+  +   'apagar:function(){ salvoTxt=""; salvoAgendar(""); }'
+  + '};'
   /* Conta o que a pessoa realmente faz dentro do jogo: toque, clique,
      tecla (só evento de verdade, ver kodaEntradaReal). É isso que vai pro site,
      não o tempo — quem deixa o jogo aberto e sai pra tomar café manda zero e não ganha nada. */
@@ -23795,6 +23827,7 @@ function lojaAbrir(L){
 /* liga a loja a um quadro de jogo. simulado = tela de "Testar" do criador: nada é cobrado nem guardado */
 function kodaLojaLigar(frame, ctx){
   kodaLojaDesligar();
+  salvoAtivo = {frame, gameId: String(ctx.gameId || '').slice(0, 150), simulado: !!ctx.simulado, pend: null, tm: null, avisou: false};   // a jornada salva anda junto com o quadro do jogo
   const L = {frame, gameId: ctx.gameId, criador: ctx.criador || null, nome: ctx.nome || '', ligada: !!ctx.ligada, simulado: !!ctx.simulado, itens: [], simCompras: {}, ocupado: false, botao: null};
   lojaAtiva = L;
   if(!L.ligada) return;
@@ -23814,6 +23847,7 @@ function kodaLojaLigar(frame, ctx){
   }
 }
 function kodaLojaDesligar(){
+  if(salvoAtivo){ salvoPersistir(salvoAtivo); salvoAtivo = null; if(salvoSyncTm){ clearTimeout(salvoSyncTm); salvoSyncTm = null; try{ syncToServer(); }catch(e){} } }   // saiu do jogo: o que faltava gravar vai agora
   const L = lojaAtiva;
   lojaAtiva = null;
   if(L && L.botao && L.botao.parentNode) L.botao.parentNode.removeChild(L.botao);
@@ -23843,6 +23877,89 @@ function lojaIniDoJogo(ligada, gameId, simulado){
   const o = {ligada: !!ligada, compras: (ligada && !simulado) ? lojaComprasDoJogo(gameId) : {}};
   return '<script>window.__KODA_LOJA_INI=' + JSON.stringify(o).replace(/</g, '\\u003c') + ';<\/script>';
 }
+
+/* ============================================================
+   SALVAR A JORNADA (KODA.salvar)
+   O jogo guarda "até onde a pessoa chegou" (fase, itens, ouro...) com KODA.salvar.guardar(dados) e pega de volta ao abrir
+   com KODA.salvar.carregar(). O Koda guarda por conta e por jogo (vale em qualquer aparelho) e nunca olha o que tem dentro:
+   só devolve pro mesmo jogo, pra mesma pessoa. Limites: SALVO_MAX caracteres por jogo, SALVO_MAX_JOGOS jogos por conta.
+   No "Testar" do criador a jornada fica só na memória da página (não vai pra conta).
+   Em 'koda_salvos': {idDoJogo: {d: o JSON (texto vazio = apagou), t: quando}}. Juntar dois aparelhos: vale o mais novo.
+============================================================ */
+const SALVOS_KEY = 'koda_salvos';
+let salvoAtivo = null;                // {frame, gameId, simulado, pend, tm, avisou}: o jogo aberto agora
+let salvoTeste = {};                  // jornadas do "Testar" (só enquanto a página está aberta)
+let salvoSyncTm = null;
+function salvosLer(){
+  try{ const o = JSON.parse(localStorage.getItem(SALVOS_KEY)); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; }
+  catch(e){ return {}; }
+}
+function salvosGravar(o){ try{ localStorage.setItem(SALVOS_KEY, JSON.stringify(o)); }catch(e){} }
+/* só o que cabe: os mais novos primeiro (e some o "apagado" de mais de 60 dias) */
+function salvosEnxutos(o){
+  const limite = Date.now() - 60 * 86400000, out = {};
+  let total = 0, n = 0;
+  Object.keys(o).filter(id=>{
+    const e = o[id];
+    return id.length <= 150 && e && typeof e === 'object' && typeof e.d === 'string' && e.d.length <= SALVO_MAX && Number.isFinite(e.t) && !(e.d === '' && e.t < limite);
+  }).sort((a, b)=>o[b].t - o[a].t).forEach(id=>{
+    if(n >= SALVO_MAX_JOGOS || total + o[id].d.length > SALVO_MAX_TOTAL) return;
+    out[id] = {d: o[id].d, t: o[id].t}; n++; total += o[id].d.length;
+  });
+  return out;
+}
+function salvosMesclar(a, b){
+  const out = Object.assign({}, a || {});
+  Object.keys(b || {}).forEach(id=>{
+    const e = b[id];
+    if(!e || typeof e !== 'object' || typeof e.d !== 'string' || !Number.isFinite(e.t)) return;
+    if(!out[id] || !(out[id].t >= e.t)) out[id] = e;
+  });
+  return salvosEnxutos(out);
+}
+/* o texto da última jornada deste jogo ('' se não tem) */
+function salvoDoJogo(gameId, simulado){
+  const e = simulado ? salvoTeste[gameId] : salvosLer()[gameId];
+  return (e && typeof e.d === 'string') ? e.d : '';
+}
+/* entra no quadro do jogo junto com a ponte: carregar() responde na hora */
+function salvoIniDoJogo(gameId, simulado){
+  const o = {d: souVisitante() && !simulado ? '' : salvoDoJogo(gameId, simulado)};
+  return '<script>window.__KODA_SALVO_INI=' + JSON.stringify(o).replace(/</g, '\\u003c') + ';<\/script>';
+}
+function salvoSincronizar(){
+  clearTimeout(salvoSyncTm);
+  salvoSyncTm = setTimeout(()=>{ salvoSyncTm = null; try{ syncToServer(); }catch(e){} }, 4000);
+}
+/* o que o jogo mandou chega aqui (já conferido): guarda no aparelho e leva pra conta daqui a pouco */
+function salvoPersistir(S){
+  clearTimeout(S.tm); S.tm = null;
+  if(S.pend === null || S.pend === undefined) return;
+  const texto = S.pend; S.pend = null;
+  if(S.simulado){ salvoTeste[S.gameId] = {d: texto, t: Date.now()}; }
+  else {
+    if(souVisitante()) return;
+    const o = salvosLer();
+    o[S.gameId] = {d: texto, t: Date.now()};
+    salvosGravar(salvosEnxutos(o));
+    salvoSincronizar();
+  }
+  if(texto && !S.avisou){ S.avisou = true; try{ toast(t('salvo_ok')); }catch(e){} }
+}
+window.addEventListener('message', function(ev){
+  const S = salvoAtivo;
+  if(!S || !S.frame || ev.source !== S.frame.contentWindow) return;
+  const d = ev.data;
+  if(!d || d.__koda !== 1 || (d.tipo !== 'salvoGuardar' && d.tipo !== 'salvoApagar')) return;
+  if(d.tipo === 'salvoGuardar'){
+    const v = d.valor;
+    if(typeof v !== 'string' || !v || v.length > SALVO_MAX) return;
+    try{ JSON.parse(v); }catch(e){ return; }
+    S.pend = v;
+  } else S.pend = '';
+  if(!S.tm) S.tm = setTimeout(()=>salvoPersistir(S), 400);      // o jogo pode mandar toda hora: junta e grava de pouco em pouco
+});
+window.addEventListener('pagehide', ()=>{ if(salvoAtivo) salvoPersistir(salvoAtivo); });
 
 /* ---------- o criador RECEBE o que os jogadores gastam na loja do jogo ----------
    Quem compra grava uma "venda" no banco (gameSales); o criador, ao entrar no site (ou enquanto estiver
@@ -32736,6 +32853,9 @@ var PZ_TXT = {
  ia_trabalhando:'Trabalhando… (1 ou 2 minutos)|Working… (1 or 2 minutes)|Trabajando… (1 o 2 minutos)|Al lavoro… (1 o 2 minuti)|Ça travaille… (1 ou 2 minutes)|Arbeitet… (1–2 Minuten)|Bezig… (1 of 2 minuten)|作業中…（1〜2分）|处理中……（1到2分钟）|작업 중… (1~2분)',
  ia_pronto_online:'Pronto! Seu jogo agora é online. Toque em Testar pra ver.|Done! Your game is online now. Tap Test to see it.|¡Listo! Tu juego ahora es online. Toca Probar para verlo.|Fatto! Il tuo gioco ora è online. Tocca Prova per vederlo.|C’est fait ! Ton jeu est en ligne. Touche Tester pour voir.|Fertig! Dein Spiel ist jetzt online. Tippe auf Testen.|Klaar! Je game is nu online. Tik op Testen om te kijken.|できた！ゲームがオンラインになったよ。「テスト」で見てみてね。|好了！你的游戏现在可以联机了。点“测试”看看。|완료! 이제 게임이 온라인이에요. 테스트를 눌러 보세요.',
  ia_pronto_loja:'Pronto! Seu jogo agora tem loja. Toque em Testar pra ver.|Done! Your game has a shop now. Tap Test to see it.|¡Listo! Tu juego ahora tiene tienda. Toca Probar para verlo.|Fatto! Il tuo gioco ora ha un negozio. Tocca Prova per vederlo.|C’est fait ! Ton jeu a une boutique. Touche Tester pour voir.|Fertig! Dein Spiel hat jetzt einen Shop. Tippe auf Testen.|Klaar! Je game heeft nu een winkel. Tik op Testen om te kijken.|できた！ゲームにショップが入ったよ。「テスト」で見てみてね。|好了！你的游戏现在有商店了。点“测试”看看。|완료! 이제 게임에 상점이 있어요. 테스트를 눌러 보세요.',
+ ia_salvar:'Salvar a jornada de quem joga|Save the player’s journey|Guardar el progreso de quien juega|Salva i progressi di chi gioca|Sauvegarder la progression du joueur|Spielstand speichern|Voortgang van de speler opslaan|プレイの続きをセーブする|保存玩家的游戏进度|플레이 진행 상황 저장하기',
+ ia_pronto_salvar:'Pronto! Seu jogo agora salva a jornada. Toque em Testar pra ver.|Done! Your game now saves the player’s journey. Tap Test to see it.|¡Listo! Tu juego ahora guarda el progreso. Toca Probar para verlo.|Fatto! Il tuo gioco ora salva i progressi. Tocca Prova per vederlo.|C’est fait ! Ton jeu sauvegarde la progression. Touche Tester pour voir.|Fertig! Dein Spiel speichert jetzt den Spielstand. Tippe auf Testen.|Klaar! Je game slaat de voortgang nu op. Tik op Testen om te kijken.|できた！ゲームがプレイの続きをセーブするようになったよ。「テスト」で見てみてね。|好了！你的游戏现在可以保存进度了。点“测试”看看。|완료! 이제 게임이 진행 상황을 저장해요. 테스트를 눌러 보세요.',
+ salvo_ok:'Jornada salva!|Progress saved!|¡Progreso guardado!|Progressi salvati!|Progression sauvegardée !|Spielstand gespeichert!|Voortgang opgeslagen!|セーブしたよ！|进度已保存！|저장했어요!',
  ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
  ia_desfeito:'Voltou o código de antes.|The previous code is back.|Volvió el código de antes.|È tornato il codice di prima.|L’ancien code est revenu.|Der vorherige Code ist zurück.|De vorige code is terug.|前のコードにもどったよ。|已恢复之前的代码。|이전 코드로 돌아왔어요.',
  ia_erro:'O assistente não conseguiu agora. Tente de novo daqui a pouco.|The assistant couldn’t do it right now. Try again in a bit.|El asistente no pudo ahora. Inténtalo en un rato.|L’assistente non ce l’ha fatta ora. Riprova tra poco.|L’assistant n’a pas réussi. Réessaie dans un moment.|Der Assistent hat es gerade nicht geschafft. Versuch es gleich nochmal.|Het lukte de assistent nu niet. Probeer het zo opnieuw.|今はうまくいかなかった。少ししてからもう一度ためしてね。|助手暂时没能完成，请稍后再试。|지금은 안 됐어요. 잠시 후 다시 해 봐요.',
