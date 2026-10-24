@@ -20873,6 +20873,8 @@ const COINS_MIGRATED_KEY = 'jogodromo_moedas_migradas';
 const MOEDA_DIV = 3;
 const ESCALA_MOEDAS = 3;
 const ESCALA_KEY = 'koda_escala_moedas';
+/* o que foi gravado na nuvem ANTES desta hora (presente de moedas ainda não aberto, peça e venda dos jogadores) está na escala antiga */
+const MOEDA_CORTE = Date.UTC(2026, 9, 24, 2, 0, 0);
 /* arredonda um preço antigo pra um número "de gente" na escala nova: 7, 35, 120, 1.150, 12.000 */
 function moedaNova(n){
   n = Number(n) || 0;
@@ -26159,7 +26161,7 @@ function presenteTemChave(o, k){ return Object.prototype.hasOwnProperty.call(o, 
 function presenteValorLimpo(g){
   if(!g || typeof g !== 'object') return null;
   const n = Math.floor(Number(g.price));
-  if(g.tipo === 'moedas') return (n >= 1 && n <= GIFT_MAX_MOEDAS) ? {tipo:'moedas', n} : null;
+  if(g.tipo === 'moedas') return (n >= 1 && n <= GIFT_MAX_MOEDAS) ? {tipo:'moedas', n: (Number(g.createdAt) || 0) < MOEDA_CORTE ? moedaNova(n) : n} : null;   // presente mandado antes da escala nova: ÷MOEDA_DIV
   if(g.tipo === 'diamantes') return (n >= 1 && n <= KSHOP_MAX) ? {tipo:'diamantes', n} : null;
   if(g.tipo === 'aboboras') return (n >= 1 && n <= GIFT_MAX_AB) ? {tipo:'aboboras', n} : null;
   if(g.tipo === 'passe'){                                            // o valor é sempre o do passe, não o que está escrito
@@ -31334,10 +31336,10 @@ function ugcMascara(tipo){
 var UGC_ALF = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';   // 63 cores por peça ('.' = vazio)
 var UGC_PRECO_MAX = 3300, UGC_PARTE_CRIADOR = 0.7, UGC_MIN_PX = 8;
 /* peça (e venda) de antes da escala nova das moedas: o preço gravado está na escala antiga (podia chegar a 10.000) */
-var UGC_PRECO_MAX_ANTIGO = 10000, UGC_CORTE_ESCALA = Date.UTC(2026, 9, 24, 2, 0, 0);
+var UGC_PRECO_MAX_ANTIGO = 10000;
 function ugcPrecoDe(preco, quando){
   preco = Math.max(0, Math.floor(Number(preco) || 0));
-  if((Number(quando) || 0) < UGC_CORTE_ESCALA) preco = moedaNova(preco);
+  if((Number(quando) || 0) < MOEDA_CORTE) preco = moedaNova(preco);
   return Math.min(UGC_PRECO_MAX, preco);
 }
 var UGC_CACHE_KEY = 'koda_ugc_cache', UGC_VENDAS_PEND = 'koda_ugc_vendas_pend';
