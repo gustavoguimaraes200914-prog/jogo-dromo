@@ -2127,6 +2127,23 @@
   .feed-time{font-size:.7rem;color:#7a8c85;margin-top:2px;}
   .feed-cover{width:42px;height:42px;border-radius:11px;flex-shrink:0;background-size:cover;background-position:center;}
 
+  /* jornal: o símbolo das Novidades (a cor vem do texto, então combina com todos os temas) */
+  .jn-ico{display:inline-block;height:1.3em;width:.82em;vertical-align:-.2em;background:currentColor;
+    -webkit-mask:var(--jn) center/contain no-repeat;mask:var(--jn) center/contain no-repeat;}
+  .jn-pub{--jn:url(data:image/png;base64,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);}
+  .jn-upd{--jn:url(data:image/png;base64,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);}
+  .feed-item.jn{align-items:flex-start;}
+  .feed-item.jn .feed-line{display:flex;gap:8px;align-items:flex-start;font-weight:600;}
+  .feed-item.jn .feed-line .jn-ico{height:40px;width:25px;flex-shrink:0;margin-top:1px;vertical-align:baseline;color:var(--ink);}
+  .feed-item.jn.upd .feed-line .jn-ico{color:#12a37f;}
+  .feed-jogo{font-size:.78rem;color:#4d6a62;margin-top:3px;}
+  .feed-jogo b{font-family:'Baloo 2',sans-serif;font-weight:800;color:var(--ink);}
+  .feed-notas{font-size:.78rem;color:var(--ink);background:rgba(8,50,43,.07);border-radius:10px;padding:6px 9px;margin-top:6px;white-space:pre-line;word-break:break-word;line-height:1.35;}
+  .feed-del{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:0;background:rgba(190,60,60,.1);color:#b03a3a;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .feed-del:active{transform:scale(.9);}
+  .feed-del svg{width:1.05em;height:1.05em;}
+  .notas-campo{width:100%;box-sizing:border-box;min-height:62px;resize:vertical;border-radius:12px;border:2px solid rgba(8,50,43,.15);padding:9px 11px;font:inherit;font-size:.9rem;}
+
   /* ---------- comentários: curtir e responder ---------- */
   .comment-actions{display:flex;align-items:center;gap:12px;margin-top:5px;}
   .comment-like, .comment-reply{
@@ -3009,6 +3026,15 @@
   .pres-passe b{display:block;font-family:'Baloo 2',sans-serif;font-size:1.1rem;color:#FFD86B;}
   .pres-passe span svg{width:1em !important;height:1em !important;vertical-align:-2px !important;}
   .modal.app-embed .modal-head{flex-shrink:0;}
+  /* "só o jogo": sem título nem barra de curtir/comentar, o jogo ocupa tudo */
+  .modal.so-jogo .modal-head,.modal.so-jogo .game-info-bar{display:none !important;}
+  .modal.so-jogo{border-radius:0;max-width:none;max-height:none;}
+  .so-jogo-x{position:fixed;z-index:3400;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:38px;height:38px;padding:0;border:none;border-radius:50%;
+    background:rgba(0,0,0,.42);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.7;transition:opacity .15s,transform .1s;
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  .so-jogo-x:active{opacity:1;transform:scale(.9);}
+  .so-jogo-x svg{width:18px;height:18px;}
+  .so-jogo-x:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;opacity:1;}
   .modal.app-embed .modal-body{
     flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
     display:flex;flex-direction:column;
@@ -3426,9 +3452,32 @@
     background:#1b1f4a;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer;text-align:left;transition:transform .25s,opacity .25s;}
   .ia-aviso.show{transform:translate(-50%,0);opacity:1;}
   .ia-aviso .ia-ico{height:32px;}
-  .ask-sheet{display:flex;flex-direction:column;max-height:88vh;max-height:88dvh;}
-  .ask-lista{flex:1;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:8px 2px;-webkit-overflow-scrolling:touch;}
-  .ask-msg{max-width:86%;padding:9px 12px;border-radius:16px;font-family:'Nunito',sans-serif;font-size:.95rem;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#08322B;}
+  .ask-tela{position:fixed;inset:0;z-index:3300;background:#F1F7F5;color:#13312A;display:flex;flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:0;transform:translateY(14px);transition:opacity .2s,transform .22s;}
+  .ask-tela.show{opacity:1;transform:none;}
+  .ask-topo{flex:none;display:flex;align-items:center;gap:6px;padding:8px 10px;background:#fff;border-bottom:1px solid rgba(8,50,43,.1);}
+  .ask-tit{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;}
+  .ask-tit span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ask-tit .ia-ico{height:30px;}
+  .ask-ib{flex:none;width:42px;height:42px;border:none;border-radius:12px;background:#F1F7F5;color:#13312A;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .ask-ib svg{width:22px;height:22px;}
+  .ask-ib:active{transform:scale(.92);}
+  .ask-ib:focus-visible,.ask-nova-grande:focus-visible,.ask-conv-ab:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ask-vista{flex:1;min-height:0;width:100%;max-width:760px;margin:0 auto;padding:0 12px 10px;display:flex;flex-direction:column;}
+  .ask-vista[hidden]{display:none;}
+  .ask-nova-grande{flex:none;display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0;padding:13px;border:none;border-radius:14px;background:#7C4DFF;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;}
+  .ask-nova-grande svg{width:20px;height:20px;}
+  .ask-conversas{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;}
+  .ask-conv{display:flex;align-items:stretch;background:#fff;border-radius:14px;border:2px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .ask-conv.on{border-color:#7C4DFF;}
+  .ask-conv-ab{flex:1;min-width:0;text-align:left;border:none;background:none;padding:12px 14px;cursor:pointer;color:#13312A;font-family:'Baloo 2',sans-serif;}
+  .ask-conv-ab b{display:block;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ask-conv-ab small{opacity:.6;font-size:.8rem;font-weight:700;}
+  .ask-conv-x{flex:none;width:48px;border:none;background:none;color:#B3261E;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .ask-conv-x svg{width:20px;height:20px;}
+  .ask-vazio{text-align:center;opacity:.6;margin:30px 0;}
+  .ask-lista{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:12px 2px;-webkit-overflow-scrolling:touch;}
+  .ask-msg{max-width:min(86%,560px);padding:9px 12px;border-radius:16px;font-family:'Nunito',sans-serif;font-size:.95rem;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#08322B;}
   .ask-msg.ele{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
   .ask-msg.eu{align-self:flex-end;background:#7C4DFF;color:#fff;border-bottom-right-radius:4px;}
   .ask-msg.pensando{padding:7px 12px;}
@@ -3436,7 +3485,7 @@
   .ask-sug{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px;}
   .ask-sug[hidden]{display:none;}
   .ask-sug button{border:1.5px solid rgba(124,77,255,.5);background:rgba(124,77,255,.1);color:#3A1F8F;border-radius:999px;padding:7px 12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
-  .ask-form{display:flex;gap:8px;align-items:flex-end;}
+  .ask-form{flex:none;display:flex;gap:8px;align-items:flex-end;}
   .ask-form textarea{flex:1;min-width:0;resize:none;border:1.5px solid rgba(8,50,43,.2);border-radius:14px;padding:9px 11px;font-family:'Nunito',sans-serif;font-size:16px;color:#08322B;background:#fff;}
   .ask-enviar{border:none;border-radius:14px;padding:11px 14px;background:#17C79E;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;}
   .ask-enviar:disabled{opacity:.6;cursor:default;}
@@ -5417,6 +5466,7 @@
     <div class="game-info-bar hidden" id="gameInfoBar">
       <div class="game-info-left" id="gameInfoLeft"></div>
       <div class="game-controls-bar" id="gameControlsBar">
+        <button class="game-controls-btn" id="gcCheio" type="button"></button>
         <button class="game-controls-btn gc-ajuda" id="gcAjuda"></button>
         <button class="game-controls-btn" id="gcReport"></button>
         <button class="game-controls-btn" id="gcRank"></button>
@@ -5488,6 +5538,7 @@ const ICONS = {
   doorIn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`,
   pause: `<svg viewBox="0 0 24 24" fill="currentColor" style="width:.8em;height:.8em;vertical-align:-1px;"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>`,
   stop: `<svg viewBox="0 0 24 24" fill="currentColor" style="width:1.05em;height:1.05em;vertical-align:-3px;"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`,
+  jornal: `<span class="jn-ico jn-pub" aria-hidden="true"></span>`,
   trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-2px;"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>`,
   code: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.1em;height:1.1em;vertical-align:-3px;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
   expand: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.05em;height:1.05em;"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
@@ -17230,7 +17281,7 @@ function applyFilters(query){
 ============================================================ */
 const CATEGORIAS = [
   {id:'home',      chave:'cat_home',           icone:'grid'},
-  {id:'feed',      chave:'cat_feed',           icone:'people',         titulo:'feed_title'},
+  {id:'feed',      chave:'cat_feed',           icone:'jornal',         titulo:'nv_titulo'},
   {id:'season',    chave:'cat_season',         icone:'trophy',         titulo:'season_title'},
   {id:'liked',     chave:'cat_most_liked',     icone:'heartFilled',    titulo:'rank_title_liked',     campo:'likes'},
   {id:'saved',     chave:'cat_most_saved',     icone:'bookmarkFilled', titulo:'rank_title_saved',     campo:'saves'},
@@ -18683,9 +18734,28 @@ function formatCompactCount(n){
   if(n<1000000) return (n/1000).toFixed(n%1000>=100?1:0).replace(/\.0$/,'')+'K';
   return (n/1000000).toFixed(1).replace(/\.0$/,'')+'M';
 }
+/* "só o jogo": some o título e a barra de curtir/comentar e a tela fica toda do jogo; sobra só um X pequeno pra sair.
+   Vale só pra este jogo (cada jogo abre com a barra de sempre). */
+function soJogoLigar(ligar){
+  const card = document.getElementById('modalCard');
+  if(card) card.classList.toggle('so-jogo', !!ligar);
+  let x = document.getElementById('soJogoX');
+  if(!ligar){ if(x) x.remove(); return; }
+  if(x) return;
+  x = document.createElement('button');
+  x.type = 'button'; x.id = 'soJogoX'; x.className = 'so-jogo-x';
+  x.setAttribute('aria-label', t('x_fechar')); x.title = t('x_fechar');
+  x.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
+  x.addEventListener('click', ()=>{ try{ playSound('click'); }catch(e){} closeModal(); });
+  document.body.appendChild(x);
+  try{ toast(t('sj_dica')); }catch(e){}
+}
 function setupGameControlsBar(g, displayName){
   const infoBar = document.getElementById('gameInfoBar');
   infoBar.classList.remove('hidden');
+  soJogoLigar(false);
+  const cheioBtn = document.getElementById('gcCheio');
+  if(cheioBtn){ cheioBtn.innerHTML = ICONS.expand; cheioBtn.title = t('sj_btn'); cheioBtn.setAttribute('aria-label', t('sj_btn')); cheioBtn.onclick = ()=>{ try{ playSound('click'); }catch(e){} soJogoLigar(true); }; }
   const infoLeft = document.getElementById('gameInfoLeft');
   const reportBtn = document.getElementById('gcReport');
   const likeBtn = document.getElementById('gcLike');
@@ -18803,6 +18873,7 @@ function closeModal(){
   try{ msSairDoJogo(); }catch(e){}
   try{ if(histJogoAberto){ histJogoSaiu(); setTimeout(()=>{ try{ inicioAtualizar(); }catch(e){} }, 300); } }catch(e){}   // missões: guarda o tempo que ficou faltando
   modalBackAction = null;
+  try{ soJogoLigar(false); }catch(e){}
   overlay.classList.add('hidden');
   overlay.classList.remove('fullscreen-mode');
   document.getElementById('modalCard').classList.remove('windowed', 'center-content');
@@ -19221,6 +19292,7 @@ async function publicarDireto(rec){
   }
   marcarAnaliseLocal(rec.id, {status:'aprovado', em: Date.now(), tradEnviada: assinaturaTrad(rec.trad), categorias:[], motivo:'', detalhes:[]});
   if(eraNovo){ try{ pushActivity('publicou', {gameId: rec.id, gameName: rec.name, gameCover: rec.cover || null}); }catch(e){} }
+  else anunciarAtualizacao(rec.id);
   try{ applyFilters(document.getElementById('search').value); }catch(e){}
   return {status:'aprovado'};
 }
@@ -19256,6 +19328,7 @@ function marcarAnaliseLocal(id, dados){
    (o servidor confere só os textos novos) */
 function aoMudarAnalise(m){
   if(!m || !m.depois) return;
+  if(m.depois.status === 'aprovado' && m.rec) anunciarAtualizacao(m.rec.id, m.depois.em);
   if(m.depois.status === 'aprovado' && m.rec && m.rec.trad && m.rec.trad.status === 'pendente' && telaAnaliseDe !== m.rec.id){
     setTimeout(()=>{ try{ rodarFilaDeTraducao(); }catch(e){} }, 1500);
   }
@@ -19694,8 +19767,10 @@ async function openModeracaoView(){
 /* o link "O que não pode ter no jogo" dos formulários de publicar */
 document.addEventListener('click', e=>{ const b = e.target && e.target.closest && e.target.closest('.mod-regras-link'); if(b){ e.preventDefault(); abrirRegrasDePublicar(); } });
 
-function publishGame(name, code, coverDataUri, editingId, category, hasDifficulty, multiplayerCounts, shape, loja){
+function publishGame(name, code, coverDataUri, editingId, category, hasDifficulty, multiplayerCounts, shape, loja, notas){
   if(!name){ toast(t('code_form_name_needed')); return false; }
+  notas = String(notas || '').trim().slice(0, 140);
+  if(notas && (ugcPalavraRuim(notas) || containsIllicitContent(notas))){ toast(t('nv_notas_ruim')); return false; }
   code = prepararCodigoDoJogo(code);   // qualquer IA: tira a conversa, junta html/css/js, vira uma página só
   if(!code || !code.trim() || code.trim().length<20 || !code.includes('<')){ toast(t('code_form_code_incomplete')); return false; }
   if(containsIllicitContent(name) || containsIllicitContent(code)){
@@ -19709,6 +19784,11 @@ function publishGame(name, code, coverDataUri, editingId, category, hasDifficult
     if(idx>=0){
       const newCat = category!==undefined ? category : list[idx].category;
       const codigoMudou = list[idx].codeB64 !== utf8ToB64(code);
+      /* jogo que já estava no catálogo e mudou (ou ganhou uma nota): depois da aprovação vira "Jogo atualizado" nas Novidades */
+      const jaNoCatalogo = !!(list[idx].atualizar || (list[idx].analise && list[idx].analise.status === 'aprovado'));
+      const atualizar = jaNoCatalogo && (codigoMudou || notas)
+        ? {notas: notas || (list[idx].atualizar && list[idx].atualizar.notas) || '', em: Date.now()}
+        : (list[idx].atualizar || null);
       list[idx] = {
         ...list[idx], name, category:newCat, cover: coverDataUri || list[idx].cover || null, shape: shape || list[idx].shape || null, codeB64: utf8ToB64(code),
         hasDifficulty: hasDifficulty!==undefined ? hasDifficulty : !!list[idx].hasDifficulty,
@@ -19717,6 +19797,7 @@ function publishGame(name, code, coverDataUri, editingId, category, hasDifficult
         /* código novo = textos novos: a tradução recomeça */
         trad: codigoMudou || !list[idx].trad ? {status:'pendente', linguas:{}} : list[idx].trad
       };
+      if(atualizar) list[idx].atualizar = atualizar;
       const ok = saveCustomGames(list);
       if(!ok){ toast(t('code_form_too_big')); return false; }
       GAMES = GAMES.map(g=> g.id===editingId ? toRenderableCustomGame(list[idx]) : g);
@@ -19810,7 +19891,9 @@ function ligarCapa(root, o){
 }
 
 function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
-  const formatoAtual = (editingId && (loadCustomGames().find(r=>r.id===editingId)||{}).shape) || 'square';
+  const recEditado = editingId && loadCustomGames().find(r=>r.id===editingId);
+  const formatoAtual = (recEditado && recEditado.shape) || 'square';
+  const editandoJogoPublicado = !!(recEditado && (recEditado.atualizar || (recEditado.analise && recEditado.analise.status === 'aprovado')));
   root.innerHTML = `
     <button class="back-link" id="backToChoice">${t('back_arrow')}</button>
     <div class="arcade-marquee">${ICONS.save} ${t('code_form_title')}</div>
@@ -19835,6 +19918,10 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
       <p class="form-hint">${t('code_form_code_hint')}</p>
     </div>
     ${assistenteHtml()}
+    ${editandoJogoPublicado ? `<div class="form-field">
+      <label>${t('nv_notas_label')}</label>
+      <textarea class="notas-campo" id="fNotas" maxlength="140" placeholder="${t('nv_notas_ph')}"></textarea>
+    </div>` : ''}
     <button class="g-btn" id="publishBtn" style="width:100%;">${editingId ? t('pub_go_edit') : t('pub_go')}</button>
   `;
   root.querySelector('#backToChoice').addEventListener('click', ()=>{ if(onBack) onBack(); else renderGameChat(root); });
@@ -19846,7 +19933,8 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
   root.querySelector('#publishBtn').addEventListener('click', ()=>{
     const name = root.querySelector('#fName').value.trim();
     const code = root.querySelector('#fCode').value;
-    publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape, codigoTemLoja(code) || undefined);
+    const campoNotas = root.querySelector('#fNotas');
+    publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape, codigoTemLoja(code) || undefined, campoNotas ? campoNotas.value : '');
   });
   ligarAssistente(root, '#fCode', editingId);
 }
@@ -19965,45 +20053,113 @@ async function ajudaPedir(historico, codigo){
   const txt = j && Array.isArray(j.content) ? j.content.map(b=>b && b.text || '').join('').trim() : '';
   return txt ? {ok: true, txt: txt.slice(0, 3000)} : {ok: false, motivo: 'erro'};
 }
-/* a conversa: um quadrinho com as mensagens, 3 sugestões prontas e a caixa de escrever */
+/* a conversa com o Agente Koda: tela cheia, com VÁRIAS conversas guardadas no aparelho (a lista fica a um toque) */
+const AJUDA_CHATS_KEY = 'koda_ajuda_conversas', AJUDA_MAX_CHATS = 20, AJUDA_MAX_MSGS = 40;
+function ajudaLerChats(){
+  try{
+    const a = JSON.parse(localStorage.getItem(AJUDA_CHATS_KEY));
+    return Array.isArray(a) ? a.filter(c=>c && typeof c.id === 'string' && Array.isArray(c.msgs)).slice(0, AJUDA_MAX_CHATS) : [];
+  }catch(e){ return []; }
+}
+function ajudaGravarChats(a){ try{ localStorage.setItem(AJUDA_CHATS_KEY, JSON.stringify(a.slice(0, AJUDA_MAX_CHATS))); }catch(e){} }
 function abrirPerguntas(codigo){
-  const esc = chatListEscape, hist = [];
-  let ocupado = false;
-  const bg = document.createElement('div');
-  bg.className = 'game-menu-bg';
-  bg.innerHTML = `<div class="game-menu-sheet ask-sheet" role="dialog" aria-modal="true">
-      <div class="game-menu-title ia-menu-tit">${iconeAgenteKoda()} ${esc(t('ia_perguntar'))}</div>
-      <div class="ask-lista" aria-live="polite"><div class="ask-msg ele">${esc(t('ask_oi'))}</div></div>
+  const esc = chatListEscape;
+  let chats = ajudaLerChats(), atual = null, ocupado = false;     // atual = a conversa aberta (null = uma nova, ainda vazia)
+  const ICO_LISTA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6.5h16M4 12h16M4 17.5h10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  const ICO_MAIS = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  const ICO_X = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  const tela = document.createElement('div');
+  tela.className = 'ask-tela';
+  tela.setAttribute('role', 'dialog'); tela.setAttribute('aria-modal', 'true');
+  tela.innerHTML = `<div class="ask-topo">
+      <button type="button" class="ask-ib" data-fechar aria-label="${esc(t('x_fechar'))}" title="${esc(t('x_fechar'))}">${ICO_X}</button>
+      <b class="ask-tit">${iconeAgenteKoda()}<span data-tit>${esc(t('ia_perguntar'))}</span></b>
+      <button type="button" class="ask-ib" data-nova aria-label="${esc(t('ask_nova'))}" title="${esc(t('ask_nova'))}">${ICO_MAIS}</button>
+      <button type="button" class="ask-ib" data-lista-btn aria-label="${esc(t('ask_conversas'))}" title="${esc(t('ask_conversas'))}">${ICO_LISTA}</button>
+    </div>
+    <div class="ask-vista" data-chat>
+      <div class="ask-lista" aria-live="polite"></div>
       <div class="ask-sug">${['ask_s1', 'ask_s2', 'ask_s3'].map(k=>`<button type="button" data-sug="${k}">${esc(t(k))}</button>`).join('')}</div>
       <form class="ask-form"><textarea maxlength="500" rows="2" placeholder="${esc(t('ask_ph'))}"></textarea><button type="submit" class="ask-enviar">${esc(t('ask_enviar'))}</button></form>
-      <button class="game-menu-cancel" type="button">${esc(t('menu_cancel'))}</button>
+    </div>
+    <div class="ask-vista" data-vista-lista hidden>
+      <button type="button" class="ask-nova-grande" data-nova>${ICO_MAIS}<span>${esc(t('ask_nova'))}</span></button>
+      <div class="ask-conversas" data-conversas></div>
     </div>`;
-  document.body.appendChild(bg);
-  requestAnimationFrame(()=>bg.classList.add('show'));
-  const lista = bg.querySelector('.ask-lista'), caixa = bg.querySelector('textarea'), enviar = bg.querySelector('.ask-enviar');
-  const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 200); };
+  document.body.appendChild(tela);
+  requestAnimationFrame(()=>tela.classList.add('show'));
+  const q = s=>tela.querySelector(s);
+  const lista = q('.ask-lista'), caixa = q('textarea'), enviar = q('.ask-enviar'), sug = q('.ask-sug'), vChat = q('[data-chat]'), vLista = q('[data-vista-lista]'), tit = q('[data-tit]');
+  const fechar = ()=>{ document.removeEventListener('keydown', teclas); tela.classList.remove('show'); tela.style.pointerEvents = 'none'; setTimeout(()=>tela.remove(), 220); };
+  const teclas = e=>{ if(e.key === 'Escape' && tela.isConnected && !document.querySelector('.ugc-conf, .kbs-dlg-bg')){ e.stopPropagation(); fechar(); } };
+  document.addEventListener('keydown', teclas);
   const poe = (txt, classe)=>{ const d = document.createElement('div'); d.className = 'ask-msg ' + classe; d.textContent = txt; lista.appendChild(d); lista.scrollTop = lista.scrollHeight; return d; };
+  /* mostra uma conversa (ou uma nova, vazia) */
+  function abrirChat(c){
+    atual = c;
+    vLista.hidden = true; vChat.hidden = false;
+    tit.textContent = c ? c.titulo : t('ia_perguntar');
+    lista.innerHTML = '';
+    poe(t('ask_oi'), 'ele');
+    if(c) c.msgs.forEach(m=>poe(m.txt, m.eu ? 'eu' : 'ele'));
+    sug.hidden = !!(c && c.msgs.length);
+    caixa.value = '';
+    lista.scrollTop = lista.scrollHeight;
+    if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) setTimeout(()=>{ try{ caixa.focus(); }catch(e){} }, 60);
+  }
+  function desenhaLista(){
+    chats.sort((a, b)=>b.t - a.t);
+    vChat.hidden = true; vLista.hidden = false;
+    tit.textContent = t('ask_conversas');
+    const box = q('[data-conversas]');
+    box.innerHTML = chats.length ? chats.map(c=>`<div class="ask-conv${atual && atual.id === c.id ? ' on' : ''}" data-id="${esc(c.id)}">
+        <button type="button" class="ask-conv-ab" data-abrir><b>${esc(c.titulo)}</b><small>${esc(relativeTimeAgo(c.t))}</small></button>
+        <button type="button" class="ask-conv-x" data-apagar aria-label="${esc(t('menu_remove'))}" title="${esc(t('menu_remove'))}">${ICONS.trash}</button>
+      </div>`).join('') : `<p class="ask-vazio">${esc(t('ask_vazio'))}</p>`;
+    box.querySelectorAll('.ask-conv').forEach(el=>{
+      const c = chats.find(x=>x.id === el.dataset.id);
+      el.querySelector('[data-abrir]').addEventListener('click', ()=>{ playSound('click'); abrirChat(c); });
+      el.querySelector('[data-apagar]').addEventListener('click', ()=>{
+        if(!confirm(t('ask_apagar_conf'))) return;
+        playSound('click');
+        chats = chats.filter(x=>x !== c); ajudaGravarChats(chats);
+        if(atual === c) atual = null;
+        desenhaLista();
+      });
+    });
+  }
   async function perguntar(txt){
     txt = String(txt || '').trim().slice(0, 500);
     if(!txt || ocupado) return;
     ocupado = true; enviar.disabled = true; caixa.value = '';
-    bg.querySelector('.ask-sug').hidden = true;
+    sug.hidden = true;
     poe(txt, 'eu');
-    hist.push({eu: true, txt});
+    const hist = (atual ? atual.msgs : []).concat([{eu: true, txt}]);
     const pensando = poe('', 'ele pensando');
     pensando.innerHTML = iaCriandoHtml();
     lista.scrollTop = lista.scrollHeight;
     const r = await ajudaPedir(hist, codigo);
     pensando.remove();
-    if(r.ok){ hist.push({eu: false, txt: r.txt}); await iaDigitar(poe('', 'ele'), r.txt, lista); }
-    else { hist.pop(); poe(t(r.motivo === 'fora' ? 'ia_fora' : 'ia_erro'), 'ele ruim'); }
+    if(r.ok){
+      if(!atual){ atual = {id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: Date.now(), titulo: txt.slice(0, 40), msgs: []}; chats.unshift(atual); tit.textContent = atual.titulo; }
+      atual.msgs.push({eu: true, txt}, {eu: false, txt: r.txt});
+      if(atual.msgs.length > AJUDA_MAX_MSGS) atual.msgs = atual.msgs.slice(-AJUDA_MAX_MSGS);
+      atual.t = Date.now();
+      chats.sort((a, b)=>b.t - a.t);
+      ajudaGravarChats(chats);
+      ocupado = false; enviar.disabled = false;       // dá pra escrever a próxima enquanto a resposta aparece
+      await iaDigitar(poe('', 'ele'), r.txt, lista);
+      return;
+    } else poe(t(r.motivo === 'fora' ? 'ia_fora' : 'ia_erro'), 'ele ruim');
     ocupado = false; enviar.disabled = false;
   }
-  bg.querySelector('.ask-form').addEventListener('submit', e=>{ e.preventDefault(); perguntar(caixa.value); });
+  q('.ask-form').addEventListener('submit', e=>{ e.preventDefault(); perguntar(caixa.value); });
   caixa.addEventListener('keydown', e=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); perguntar(caixa.value); } });
-  bg.querySelectorAll('[data-sug]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); perguntar(t(b.dataset.sug)); }));
-  bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
-  bg.querySelector('.game-menu-cancel').addEventListener('click', fechar);
+  tela.querySelectorAll('[data-sug]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); perguntar(t(b.dataset.sug)); }));
+  tela.querySelectorAll('[data-nova]').forEach(b=>b.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); abrirChat(null); }));
+  q('[data-lista-btn]').addEventListener('click', ()=>{ playSound('click'); if(vLista.hidden) desenhaLista(); else abrirChat(atual); });
+  q('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+  abrirChat(chats.length ? chats[0] : null);      // abre na última conversa (ou numa nova, se nunca teve)
 }
 /* pede ao assistente; devolve {ok, codigo, frase} ou {ok:false, motivo:'fora'|'grande'|'erro'} */
 async function assistentePedir(tarefa, codigo, extra){
@@ -33126,6 +33282,24 @@ var PZ_TXT = {
  ia_terminou:'O Agente Koda terminou! Toque pra ver.|Koda Agent is done! Tap to see.|¡El Agente Koda terminó! Toca para ver.|L’Agente Koda ha finito! Tocca per vedere.|L’Agent Koda a fini ! Touche pour voir.|Der Koda-Agent ist fertig! Tippe zum Ansehen.|De Koda-agent is klaar! Tik om te kijken.|Kodaエージェントができたよ！タップして見てね。|Koda 助手完成了！点一下查看。|Koda 에이전트가 끝냈어요! 눌러서 봐요.',
  ia_terminou_nome:'O Agente Koda terminou “{nome}”! Toque pra ver.|Koda Agent finished “{nome}”! Tap to see.|¡El Agente Koda terminó “{nome}”! Toca para ver.|L’Agente Koda ha finito “{nome}”! Tocca per vedere.|L’Agent Koda a fini « {nome} » ! Touche pour voir.|Der Koda-Agent ist mit „{nome}“ fertig! Tippe zum Ansehen.|De Koda-agent is klaar met “{nome}”! Tik om te kijken.|Kodaエージェントが「{nome}」をしあげたよ！タップして見てね。|Koda 助手完成了“{nome}”！点一下查看。|Koda 에이전트가 “{nome}”을(를) 끝냈어요! 눌러서 봐요.',
  ia_pronto_varios:'Pronto! Toque em Testar pra ver o que mudou.|Done! Tap Test to see what changed.|¡Listo! Toca Probar para ver qué cambió.|Fatto! Tocca Prova per vedere cosa è cambiato.|C’est fait ! Touche Tester pour voir ce qui a changé.|Fertig! Tippe auf Testen, um die Änderungen zu sehen.|Klaar! Tik op Testen om te zien wat er veranderd is.|できた！「テスト」で変わったところを見てみてね。|好了！点“测试”看看有什么变化。|완료! 테스트를 눌러 뭐가 바뀌었는지 봐요.',
+ sj_btn:'Só o jogo (tela toda)|Game only (full screen)|Solo el juego (pantalla completa)|Solo il gioco (schermo intero)|Jeu seul (plein écran)|Nur das Spiel (Vollbild)|Alleen de game (volledig scherm)|ゲームだけ（全画面）|只显示游戏（全屏）|게임만 보기(전체 화면)',
+ sj_dica:'Toque no X pra sair do jogo.|Tap the X to leave the game.|Toca la X para salir del juego.|Tocca la X per uscire dal gioco.|Touche la croix pour quitter le jeu.|Tippe auf das X, um das Spiel zu verlassen.|Tik op het kruisje om de game te verlaten.|Xをタップするとゲームを出られるよ。|点 X 退出游戏。|X를 누르면 게임에서 나가요.',
+ nv_titulo:'Novidades dos jogos|Game news|Novedades de los juegos|Novità dei giochi|Nouveautés des jeux|Neues bei den Spielen|Nieuws over games|ゲームの新着|游戏新鲜事|게임 새 소식',
+ nv_vazio:'Nada por aqui ainda. Quando alguém postar ou atualizar um jogo, aparece aqui.|Nothing here yet. When someone posts or updates a game, it shows up here.|Nada por aquí todavía. Cuando alguien publique o actualice un juego, aparecerá aquí.|Ancora niente qui. Quando qualcuno pubblica o aggiorna un gioco, comparirà qui.|Rien ici pour l’instant. Quand quelqu’un publie ou met à jour un jeu, ça apparaît ici.|Hier ist noch nichts. Wenn jemand ein Spiel postet oder aktualisiert, erscheint es hier.|Hier is nog niets. Als iemand een game plaatst of bijwerkt, verschijnt het hier.|まだ何もないよ。誰かがゲームを投稿・更新すると、ここに出るよ。|这里还空着。有人发布或更新游戏时，就会出现在这里。|아직 아무것도 없어요. 누가 게임을 올리거나 업데이트하면 여기에 나와요.',
+ nv_postou:'<b>{name}</b> postou um jogo novo|<b>{name}</b> posted a new game|<b>{name}</b> publicó un juego nuevo|<b>{name}</b> ha pubblicato un gioco nuovo|<b>{name}</b> a publié un nouveau jeu|<b>{name}</b> hat ein neues Spiel gepostet|<b>{name}</b> heeft een nieuwe game geplaatst|<b>{name}</b> が新しいゲームを投稿したよ|<b>{name}</b> 发布了一个新游戏|<b>{name}</b>님이 새 게임을 올렸어요',
+ nv_atualizou:'Jogo atualizado, teste as novas atualizações|Game updated, try out the new updates|Juego actualizado, prueba las novedades|Gioco aggiornato, prova le novità|Jeu mis à jour, teste les nouveautés|Spiel aktualisiert, probier die Neuerungen aus|Game bijgewerkt, probeer de nieuwe updates|ゲームが更新されたよ、新しい更新を試してみて|游戏已更新，快来试试新更新|게임이 업데이트됐어요, 새 업데이트를 해 보세요',
+ nv_de:'de {name}|by {name}|de {name}|di {name}|par {name}|von {name}|van {name}|{name} さんの作品|{name} 的作品|{name}님의 게임',
+ nv_notas_label:'O que você mudou? (opcional, aparece nas Novidades)|What did you change? (optional, shows up in the news)|¿Qué cambiaste? (opcional, aparece en Novedades)|Cosa hai cambiato? (facoltativo, compare nelle Novità)|Qu’as-tu changé ? (facultatif, apparaît dans les Nouveautés)|Was hast du geändert? (optional, erscheint in den Neuigkeiten)|Wat heb je veranderd? (optioneel, komt in het nieuws)|何を変えた？（書かなくてもOK、新着に出るよ）|你改了什么？（可不填，会显示在新鲜事里）|무엇을 바꿨나요? (안 써도 돼요, 새 소식에 나와요)',
+ nv_notas_ph:'Ex.: fase nova, jogo mais rápido, bug consertado|E.g. new level, faster game, bug fixed|Ej.: nivel nuevo, juego más rápido, error arreglado|Es.: livello nuovo, gioco più veloce, bug risolto|Ex. : nouveau niveau, jeu plus rapide, bug corrigé|Z. B. neues Level, schnelleres Spiel, Fehler behoben|Bijv. nieuw level, sneller spel, bug opgelost|例：新しいステージ、もっと速く、バグ修正|例如：新关卡、更快、修复了问题|예: 새 단계, 더 빠르게, 버그 고침',
+ nv_notas_ruim:'Tire as palavras feias do texto das novidades.|Remove the bad words from the news text.|Quita las palabras feas del texto de novedades.|Togli le parolacce dal testo delle novità.|Enlève les gros mots du texte des nouveautés.|Entferne die schlimmen Wörter aus dem Neuigkeiten-Text.|Haal de lelijke woorden uit de nieuwstekst.|新着のテキストから悪い言葉を消してね。|请去掉新鲜事文字里的脏话。|새 소식 글에서 나쁜 말을 빼 주세요.',
+ nv_apagar:'Apagar esta novidade|Delete this news|Borrar esta novedad|Elimina questa novità|Supprimer cette nouveauté|Diese Neuigkeit löschen|Dit nieuws verwijderen|この新着を消す|删除这条新鲜事|이 새 소식 지우기',
+ nv_apagar_conf:'Apagar esta novidade? Ela some pra todo mundo.|Delete this news? It disappears for everyone.|¿Borrar esta novedad? Desaparece para todos.|Eliminare questa novità? Sparisce per tutti.|Supprimer cette nouveauté ? Elle disparaît pour tout le monde.|Diese Neuigkeit löschen? Sie verschwindet für alle.|Dit nieuws verwijderen? Het verdwijnt voor iedereen.|この新着を消す？ みんなから見えなくなるよ。|删除这条新鲜事？所有人都看不到了。|이 새 소식을 지울까요? 모두에게서 사라져요.',
+ nv_apagar_ok:'Apagar|Delete|Borrar|Elimina|Supprimer|Löschen|Verwijderen|消す|删除|지우기',
+ nv_apagada:'Novidade apagada.|News deleted.|Novedad borrada.|Novità eliminata.|Nouveauté supprimée.|Neuigkeit gelöscht.|Nieuws verwijderd.|新着を消したよ。|已删除。|새 소식을 지웠어요.',
+ ask_conversas:'Conversas|Chats|Conversaciones|Conversazioni|Conversations|Unterhaltungen|Gesprekken|会話|对话|대화',
+ ask_nova:'Nova conversa|New chat|Nueva conversación|Nuova conversazione|Nouvelle conversation|Neue Unterhaltung|Nieuw gesprek|新しい会話|新对话|새 대화',
+ ask_vazio:'Você ainda não tem conversas.|You don’t have any chats yet.|Todavía no tienes conversaciones.|Non hai ancora conversazioni.|Tu n’as pas encore de conversation.|Du hast noch keine Unterhaltungen.|Je hebt nog geen gesprekken.|まだ会話がないよ。|你还没有对话。|아직 대화가 없어요.',
+ ask_apagar_conf:'Apagar esta conversa?|Delete this chat?|¿Borrar esta conversación?|Eliminare questa conversazione?|Supprimer cette conversation ?|Diese Unterhaltung löschen?|Dit gesprek verwijderen?|この会話を消す？|删除这个对话？|이 대화를 지울까요?',
  ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
  ia_desfeito:'Voltou o código de antes.|The previous code is back.|Volvió el código de antes.|È tornato il codice di prima.|L’ancien code est revenu.|Der vorherige Code ist zurück.|De vorige code is terug.|前のコードにもどったよ。|已恢复之前的代码。|이전 코드로 돌아왔어요.',
  ia_erro:'O assistente não conseguiu agora. Tente de novo daqui a pouco.|The assistant couldn’t do it right now. Try again in a bit.|El asistente no pudo ahora. Inténtalo en un rato.|L’assistente non ce l’ha fatta ora. Riprova tra poco.|L’assistant n’a pas réussi. Réessaie dans un moment.|Der Assistent hat es gerade nicht geschafft. Versuch es gleich nochmal.|Het lukte de assistent nu niet. Probeer het zo opnieuw.|今はうまくいかなかった。少ししてからもう一度ためしてね。|助手暂时没能完成，请稍后再试。|지금은 안 됐어요. 잠시 후 다시 해 봐요.',
@@ -39631,15 +39805,41 @@ async function fetchFeed(){
   try{
     const [seguindoSnap, novidadesSnap] = await Promise.all([
       fbDb().collection('follows').where('followerEmail','==',user.email).get(),
-      fbDb().collection('activities').get()
+      fbDb().collection('activities').orderBy('createdAt','desc').limit(150).get()
     ]);
     const sigo = {};
     seguindoSnap.docs.forEach(d=>{ const f=d.data()||{}; if(f.followingEmail) sigo[f.followingEmail]=true; });
+    /* jogo novo e jogo atualizado: todo mundo vê (é o jornal do Koda); recordes: só de quem você segue */
     return novidadesSnap.docs.map(d=>Object.assign({id:d.id}, d.data()))
-      .filter(a=>a && a.authorEmail && sigo[a.authorEmail])
+      .filter(a=>a && a.authorEmail && (a.type==='publicou' || a.type==='atualizou' || sigo[a.authorEmail]))
       .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
-      .slice(0,40);
+      .slice(0,50);
   }catch(e){ return []; }
+}
+/* quando um jogo foi aprovado depois de uma edição, vira a notícia "Jogo atualizado" (e só uma vez) */
+function anunciarAtualizacao(id, quando){
+  try{
+    const list = loadCustomGames();
+    const rec = list.find(r=>r.id===id);
+    if(!rec || !rec.atualizar) return;
+    const a = rec.atualizar;
+    if((quando || Date.now()) < (a.em || 0) - 60000) return;   // essa aprovação é da versão de antes
+    delete rec.atualizar;
+    saveCustomGames(list);
+    pushActivity('atualizou', {gameId: rec.id, gameName: rec.name, gameCover: rec.cover || null, notas: String(a.notas || '').slice(0, 140)});
+  }catch(e){}
+}
+async function apagarNovidade(id, item){
+  try{
+    await fbDb().collection('activities').doc(id).delete();
+    if(item && item.parentNode){
+      const lista = item.parentNode;
+      item.remove();
+      lista.dataset.assinatura = '';
+      if(!lista.querySelector('.feed-item')) lista.innerHTML = `<p class="rank-empty">${t('nv_vazio')}</p>`;
+    }
+    toast(t('nv_apagada'));
+  }catch(e){ toast(t('pub_cloud_error')); }
 }
 async function renderFeed(opts){
   opts = opts || {};
@@ -39658,20 +39858,41 @@ async function renderFeed(opts){
     rank.innerHTML = `<p class="rank-empty">${t('feed_empty')}</p>`;
     return;
   }
+  const euEmail = String((fbAuth().currentUser || {}).email || '').toLowerCase();
   rank.innerHTML = lista.map((a,i)=>{
     const quando = relativeTimeAgo(a.createdAt);
-    const texto = a.type==='publicou'
-      ? t('feed_published', {name:chatListEscape(a.authorName||a.authorEmail), game:chatListEscape(a.gameName||'')})
-      : t('feed_record', {name:chatListEscape(a.authorName||a.authorEmail), game:chatListEscape(a.gameName||''), n:formatCompactCount(a.score||0)});
+    const nome = chatListEscape(a.authorName||a.authorEmail);
+    const jogo = chatListEscape(a.gameName||'');
     const capa = a.gameId ? gameMiniCoverHtml({id:a.gameId, name:a.gameName, cover:a.gameCover||null}, 'feed-cover') : '';
-    return `
-      <div class="feed-item" data-game="${chatListEscape(a.gameId||'')}" data-email="${chatListEscape(a.authorEmail)}" style="animation-delay:${Math.min(i*35,300)}ms">
-        ${pzAv(a.authorAvatar, a.authorEmail, 'feed-avatar')}
+    const meu = euEmail && String(a.authorEmail||'').toLowerCase() === euEmail;
+    /* só quem fez o jogo pode apagar a notícia dele */
+    const apagar = meu && (a.type==='publicou' || a.type==='atualizou')
+      ? `<button type="button" class="feed-del" data-del="${chatListEscape(a.id)}" aria-label="${t('nv_apagar')}" title="${t('nv_apagar')}">${ICONS.trash}</button>` : '';
+    let miolo;
+    if(a.type==='publicou' || a.type==='atualizou'){
+      const atu = a.type==='atualizou';
+      const notas = atu && a.notas ? `<div class="feed-notas">${chatListEscape(String(a.notas).slice(0,140))}</div>` : '';
+      miolo = `
         <div class="feed-text">
-          <div class="feed-line">${a.type==='publicou' ? ICONS.rocket : ICONS.trophy} ${texto}</div>
+          <div class="feed-line"><span class="jn-ico ${atu?'jn-upd':'jn-pub'}" aria-hidden="true"></span><span>${atu ? t('nv_atualizou') : t('nv_postou', {name:nome})}</span></div>
+          <div class="feed-jogo"><b>${jogo}</b>${atu ? ' · ' + t('nv_de', {name:nome}) : ''}</div>
+          ${notas}
           <div class="feed-time">${quando}</div>
-        </div>
+        </div>`;
+    } else {
+      const texto = t('feed_record', {name:nome, game:jogo, n:formatCompactCount(a.score||0)});
+      miolo = `
+        <div class="feed-text">
+          <div class="feed-line">${ICONS.trophy} ${texto}</div>
+          <div class="feed-time">${quando}</div>
+        </div>`;
+    }
+    return `
+      <div class="feed-item${a.type==='publicou'||a.type==='atualizou' ? ' jn' : ''}${a.type==='atualizou' ? ' upd' : ''}" data-game="${chatListEscape(a.gameId||'')}" data-email="${chatListEscape(a.authorEmail)}" style="animation-delay:${Math.min(i*35,300)}ms">
+        ${pzAv(a.authorAvatar, a.authorEmail, 'feed-avatar')}
+        ${miolo}
         ${capa}
+        ${apagar}
       </div>`;
   }).join('');
   rank.querySelectorAll('.feed-item').forEach(item=>{
@@ -39679,6 +39900,12 @@ async function renderFeed(opts){
       const g = GAMES.find(x=>x.id===item.dataset.game);
       if(g) openGame(g.id, g.name);
       else if(item.dataset.email) openOtherProfilePage(item.dataset.email);
+    });
+  });
+  rank.querySelectorAll('.feed-del').forEach(b=>{
+    b.addEventListener('click', e=>{
+      e.stopPropagation();
+      showConfirm(t('nv_apagar_conf'), t('nv_apagar_ok'), ()=>apagarNovidade(b.dataset.del, b.closest('.feed-item')));
     });
   });
 }
