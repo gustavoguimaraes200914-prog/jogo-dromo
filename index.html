@@ -3009,6 +3009,15 @@
   .pres-passe b{display:block;font-family:'Baloo 2',sans-serif;font-size:1.1rem;color:#FFD86B;}
   .pres-passe span svg{width:1em !important;height:1em !important;vertical-align:-2px !important;}
   .modal.app-embed .modal-head{flex-shrink:0;}
+  /* "só o jogo": sem título nem barra de curtir/comentar, o jogo ocupa tudo */
+  .modal.so-jogo .modal-head,.modal.so-jogo .game-info-bar{display:none !important;}
+  .modal.so-jogo{border-radius:0;max-width:none;max-height:none;}
+  .so-jogo-x{position:fixed;z-index:3400;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:38px;height:38px;padding:0;border:none;border-radius:50%;
+    background:rgba(0,0,0,.42);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.7;transition:opacity .15s,transform .1s;
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  .so-jogo-x:active{opacity:1;transform:scale(.9);}
+  .so-jogo-x svg{width:18px;height:18px;}
+  .so-jogo-x:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;opacity:1;}
   .modal.app-embed .modal-body{
     flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
     display:flex;flex-direction:column;
@@ -3426,9 +3435,32 @@
     background:#1b1f4a;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer;text-align:left;transition:transform .25s,opacity .25s;}
   .ia-aviso.show{transform:translate(-50%,0);opacity:1;}
   .ia-aviso .ia-ico{height:32px;}
-  .ask-sheet{display:flex;flex-direction:column;max-height:88vh;max-height:88dvh;}
-  .ask-lista{flex:1;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:8px 2px;-webkit-overflow-scrolling:touch;}
-  .ask-msg{max-width:86%;padding:9px 12px;border-radius:16px;font-family:'Nunito',sans-serif;font-size:.95rem;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#08322B;}
+  .ask-tela{position:fixed;inset:0;z-index:3300;background:#F1F7F5;color:#13312A;display:flex;flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:0;transform:translateY(14px);transition:opacity .2s,transform .22s;}
+  .ask-tela.show{opacity:1;transform:none;}
+  .ask-topo{flex:none;display:flex;align-items:center;gap:6px;padding:8px 10px;background:#fff;border-bottom:1px solid rgba(8,50,43,.1);}
+  .ask-tit{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;}
+  .ask-tit span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ask-tit .ia-ico{height:30px;}
+  .ask-ib{flex:none;width:42px;height:42px;border:none;border-radius:12px;background:#F1F7F5;color:#13312A;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .ask-ib svg{width:22px;height:22px;}
+  .ask-ib:active{transform:scale(.92);}
+  .ask-ib:focus-visible,.ask-nova-grande:focus-visible,.ask-conv-ab:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ask-vista{flex:1;min-height:0;width:100%;max-width:760px;margin:0 auto;padding:0 12px 10px;display:flex;flex-direction:column;}
+  .ask-vista[hidden]{display:none;}
+  .ask-nova-grande{flex:none;display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0;padding:13px;border:none;border-radius:14px;background:#7C4DFF;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;}
+  .ask-nova-grande svg{width:20px;height:20px;}
+  .ask-conversas{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;}
+  .ask-conv{display:flex;align-items:stretch;background:#fff;border-radius:14px;border:2px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .ask-conv.on{border-color:#7C4DFF;}
+  .ask-conv-ab{flex:1;min-width:0;text-align:left;border:none;background:none;padding:12px 14px;cursor:pointer;color:#13312A;font-family:'Baloo 2',sans-serif;}
+  .ask-conv-ab b{display:block;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ask-conv-ab small{opacity:.6;font-size:.8rem;font-weight:700;}
+  .ask-conv-x{flex:none;width:48px;border:none;background:none;color:#B3261E;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .ask-conv-x svg{width:20px;height:20px;}
+  .ask-vazio{text-align:center;opacity:.6;margin:30px 0;}
+  .ask-lista{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:12px 2px;-webkit-overflow-scrolling:touch;}
+  .ask-msg{max-width:min(86%,560px);padding:9px 12px;border-radius:16px;font-family:'Nunito',sans-serif;font-size:.95rem;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#08322B;}
   .ask-msg.ele{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
   .ask-msg.eu{align-self:flex-end;background:#7C4DFF;color:#fff;border-bottom-right-radius:4px;}
   .ask-msg.pensando{padding:7px 12px;}
@@ -3436,7 +3468,7 @@
   .ask-sug{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px;}
   .ask-sug[hidden]{display:none;}
   .ask-sug button{border:1.5px solid rgba(124,77,255,.5);background:rgba(124,77,255,.1);color:#3A1F8F;border-radius:999px;padding:7px 12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
-  .ask-form{display:flex;gap:8px;align-items:flex-end;}
+  .ask-form{flex:none;display:flex;gap:8px;align-items:flex-end;}
   .ask-form textarea{flex:1;min-width:0;resize:none;border:1.5px solid rgba(8,50,43,.2);border-radius:14px;padding:9px 11px;font-family:'Nunito',sans-serif;font-size:16px;color:#08322B;background:#fff;}
   .ask-enviar{border:none;border-radius:14px;padding:11px 14px;background:#17C79E;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;}
   .ask-enviar:disabled{opacity:.6;cursor:default;}
@@ -5417,6 +5449,7 @@
     <div class="game-info-bar hidden" id="gameInfoBar">
       <div class="game-info-left" id="gameInfoLeft"></div>
       <div class="game-controls-bar" id="gameControlsBar">
+        <button class="game-controls-btn" id="gcCheio" type="button"></button>
         <button class="game-controls-btn gc-ajuda" id="gcAjuda"></button>
         <button class="game-controls-btn" id="gcReport"></button>
         <button class="game-controls-btn" id="gcRank"></button>
@@ -18683,9 +18716,28 @@ function formatCompactCount(n){
   if(n<1000000) return (n/1000).toFixed(n%1000>=100?1:0).replace(/\.0$/,'')+'K';
   return (n/1000000).toFixed(1).replace(/\.0$/,'')+'M';
 }
+/* "só o jogo": some o título e a barra de curtir/comentar e a tela fica toda do jogo; sobra só um X pequeno pra sair.
+   Vale só pra este jogo (cada jogo abre com a barra de sempre). */
+function soJogoLigar(ligar){
+  const card = document.getElementById('modalCard');
+  if(card) card.classList.toggle('so-jogo', !!ligar);
+  let x = document.getElementById('soJogoX');
+  if(!ligar){ if(x) x.remove(); return; }
+  if(x) return;
+  x = document.createElement('button');
+  x.type = 'button'; x.id = 'soJogoX'; x.className = 'so-jogo-x';
+  x.setAttribute('aria-label', t('x_fechar')); x.title = t('x_fechar');
+  x.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
+  x.addEventListener('click', ()=>{ try{ playSound('click'); }catch(e){} closeModal(); });
+  document.body.appendChild(x);
+  try{ toast(t('sj_dica')); }catch(e){}
+}
 function setupGameControlsBar(g, displayName){
   const infoBar = document.getElementById('gameInfoBar');
   infoBar.classList.remove('hidden');
+  soJogoLigar(false);
+  const cheioBtn = document.getElementById('gcCheio');
+  if(cheioBtn){ cheioBtn.innerHTML = ICONS.expand; cheioBtn.title = t('sj_btn'); cheioBtn.setAttribute('aria-label', t('sj_btn')); cheioBtn.onclick = ()=>{ try{ playSound('click'); }catch(e){} soJogoLigar(true); }; }
   const infoLeft = document.getElementById('gameInfoLeft');
   const reportBtn = document.getElementById('gcReport');
   const likeBtn = document.getElementById('gcLike');
@@ -18803,6 +18855,7 @@ function closeModal(){
   try{ msSairDoJogo(); }catch(e){}
   try{ if(histJogoAberto){ histJogoSaiu(); setTimeout(()=>{ try{ inicioAtualizar(); }catch(e){} }, 300); } }catch(e){}   // missões: guarda o tempo que ficou faltando
   modalBackAction = null;
+  try{ soJogoLigar(false); }catch(e){}
   overlay.classList.add('hidden');
   overlay.classList.remove('fullscreen-mode');
   document.getElementById('modalCard').classList.remove('windowed', 'center-content');
@@ -19965,45 +20018,113 @@ async function ajudaPedir(historico, codigo){
   const txt = j && Array.isArray(j.content) ? j.content.map(b=>b && b.text || '').join('').trim() : '';
   return txt ? {ok: true, txt: txt.slice(0, 3000)} : {ok: false, motivo: 'erro'};
 }
-/* a conversa: um quadrinho com as mensagens, 3 sugestões prontas e a caixa de escrever */
+/* a conversa com o Agente Koda: tela cheia, com VÁRIAS conversas guardadas no aparelho (a lista fica a um toque) */
+const AJUDA_CHATS_KEY = 'koda_ajuda_conversas', AJUDA_MAX_CHATS = 20, AJUDA_MAX_MSGS = 40;
+function ajudaLerChats(){
+  try{
+    const a = JSON.parse(localStorage.getItem(AJUDA_CHATS_KEY));
+    return Array.isArray(a) ? a.filter(c=>c && typeof c.id === 'string' && Array.isArray(c.msgs)).slice(0, AJUDA_MAX_CHATS) : [];
+  }catch(e){ return []; }
+}
+function ajudaGravarChats(a){ try{ localStorage.setItem(AJUDA_CHATS_KEY, JSON.stringify(a.slice(0, AJUDA_MAX_CHATS))); }catch(e){} }
 function abrirPerguntas(codigo){
-  const esc = chatListEscape, hist = [];
-  let ocupado = false;
-  const bg = document.createElement('div');
-  bg.className = 'game-menu-bg';
-  bg.innerHTML = `<div class="game-menu-sheet ask-sheet" role="dialog" aria-modal="true">
-      <div class="game-menu-title ia-menu-tit">${iconeAgenteKoda()} ${esc(t('ia_perguntar'))}</div>
-      <div class="ask-lista" aria-live="polite"><div class="ask-msg ele">${esc(t('ask_oi'))}</div></div>
+  const esc = chatListEscape;
+  let chats = ajudaLerChats(), atual = null, ocupado = false;     // atual = a conversa aberta (null = uma nova, ainda vazia)
+  const ICO_LISTA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6.5h16M4 12h16M4 17.5h10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  const ICO_MAIS = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  const ICO_X = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  const tela = document.createElement('div');
+  tela.className = 'ask-tela';
+  tela.setAttribute('role', 'dialog'); tela.setAttribute('aria-modal', 'true');
+  tela.innerHTML = `<div class="ask-topo">
+      <button type="button" class="ask-ib" data-fechar aria-label="${esc(t('x_fechar'))}" title="${esc(t('x_fechar'))}">${ICO_X}</button>
+      <b class="ask-tit">${iconeAgenteKoda()}<span data-tit>${esc(t('ia_perguntar'))}</span></b>
+      <button type="button" class="ask-ib" data-nova aria-label="${esc(t('ask_nova'))}" title="${esc(t('ask_nova'))}">${ICO_MAIS}</button>
+      <button type="button" class="ask-ib" data-lista-btn aria-label="${esc(t('ask_conversas'))}" title="${esc(t('ask_conversas'))}">${ICO_LISTA}</button>
+    </div>
+    <div class="ask-vista" data-chat>
+      <div class="ask-lista" aria-live="polite"></div>
       <div class="ask-sug">${['ask_s1', 'ask_s2', 'ask_s3'].map(k=>`<button type="button" data-sug="${k}">${esc(t(k))}</button>`).join('')}</div>
       <form class="ask-form"><textarea maxlength="500" rows="2" placeholder="${esc(t('ask_ph'))}"></textarea><button type="submit" class="ask-enviar">${esc(t('ask_enviar'))}</button></form>
-      <button class="game-menu-cancel" type="button">${esc(t('menu_cancel'))}</button>
+    </div>
+    <div class="ask-vista" data-vista-lista hidden>
+      <button type="button" class="ask-nova-grande" data-nova>${ICO_MAIS}<span>${esc(t('ask_nova'))}</span></button>
+      <div class="ask-conversas" data-conversas></div>
     </div>`;
-  document.body.appendChild(bg);
-  requestAnimationFrame(()=>bg.classList.add('show'));
-  const lista = bg.querySelector('.ask-lista'), caixa = bg.querySelector('textarea'), enviar = bg.querySelector('.ask-enviar');
-  const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 200); };
+  document.body.appendChild(tela);
+  requestAnimationFrame(()=>tela.classList.add('show'));
+  const q = s=>tela.querySelector(s);
+  const lista = q('.ask-lista'), caixa = q('textarea'), enviar = q('.ask-enviar'), sug = q('.ask-sug'), vChat = q('[data-chat]'), vLista = q('[data-vista-lista]'), tit = q('[data-tit]');
+  const fechar = ()=>{ document.removeEventListener('keydown', teclas); tela.classList.remove('show'); tela.style.pointerEvents = 'none'; setTimeout(()=>tela.remove(), 220); };
+  const teclas = e=>{ if(e.key === 'Escape' && tela.isConnected && !document.querySelector('.ugc-conf, .kbs-dlg-bg')){ e.stopPropagation(); fechar(); } };
+  document.addEventListener('keydown', teclas);
   const poe = (txt, classe)=>{ const d = document.createElement('div'); d.className = 'ask-msg ' + classe; d.textContent = txt; lista.appendChild(d); lista.scrollTop = lista.scrollHeight; return d; };
+  /* mostra uma conversa (ou uma nova, vazia) */
+  function abrirChat(c){
+    atual = c;
+    vLista.hidden = true; vChat.hidden = false;
+    tit.textContent = c ? c.titulo : t('ia_perguntar');
+    lista.innerHTML = '';
+    poe(t('ask_oi'), 'ele');
+    if(c) c.msgs.forEach(m=>poe(m.txt, m.eu ? 'eu' : 'ele'));
+    sug.hidden = !!(c && c.msgs.length);
+    caixa.value = '';
+    lista.scrollTop = lista.scrollHeight;
+    if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) setTimeout(()=>{ try{ caixa.focus(); }catch(e){} }, 60);
+  }
+  function desenhaLista(){
+    chats.sort((a, b)=>b.t - a.t);
+    vChat.hidden = true; vLista.hidden = false;
+    tit.textContent = t('ask_conversas');
+    const box = q('[data-conversas]');
+    box.innerHTML = chats.length ? chats.map(c=>`<div class="ask-conv${atual && atual.id === c.id ? ' on' : ''}" data-id="${esc(c.id)}">
+        <button type="button" class="ask-conv-ab" data-abrir><b>${esc(c.titulo)}</b><small>${esc(relativeTimeAgo(c.t))}</small></button>
+        <button type="button" class="ask-conv-x" data-apagar aria-label="${esc(t('menu_remove'))}" title="${esc(t('menu_remove'))}">${ICONS.trash}</button>
+      </div>`).join('') : `<p class="ask-vazio">${esc(t('ask_vazio'))}</p>`;
+    box.querySelectorAll('.ask-conv').forEach(el=>{
+      const c = chats.find(x=>x.id === el.dataset.id);
+      el.querySelector('[data-abrir]').addEventListener('click', ()=>{ playSound('click'); abrirChat(c); });
+      el.querySelector('[data-apagar]').addEventListener('click', ()=>{
+        if(!confirm(t('ask_apagar_conf'))) return;
+        playSound('click');
+        chats = chats.filter(x=>x !== c); ajudaGravarChats(chats);
+        if(atual === c) atual = null;
+        desenhaLista();
+      });
+    });
+  }
   async function perguntar(txt){
     txt = String(txt || '').trim().slice(0, 500);
     if(!txt || ocupado) return;
     ocupado = true; enviar.disabled = true; caixa.value = '';
-    bg.querySelector('.ask-sug').hidden = true;
+    sug.hidden = true;
     poe(txt, 'eu');
-    hist.push({eu: true, txt});
+    const hist = (atual ? atual.msgs : []).concat([{eu: true, txt}]);
     const pensando = poe('', 'ele pensando');
     pensando.innerHTML = iaCriandoHtml();
     lista.scrollTop = lista.scrollHeight;
     const r = await ajudaPedir(hist, codigo);
     pensando.remove();
-    if(r.ok){ hist.push({eu: false, txt: r.txt}); await iaDigitar(poe('', 'ele'), r.txt, lista); }
-    else { hist.pop(); poe(t(r.motivo === 'fora' ? 'ia_fora' : 'ia_erro'), 'ele ruim'); }
+    if(r.ok){
+      if(!atual){ atual = {id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: Date.now(), titulo: txt.slice(0, 40), msgs: []}; chats.unshift(atual); tit.textContent = atual.titulo; }
+      atual.msgs.push({eu: true, txt}, {eu: false, txt: r.txt});
+      if(atual.msgs.length > AJUDA_MAX_MSGS) atual.msgs = atual.msgs.slice(-AJUDA_MAX_MSGS);
+      atual.t = Date.now();
+      chats.sort((a, b)=>b.t - a.t);
+      ajudaGravarChats(chats);
+      ocupado = false; enviar.disabled = false;       // dá pra escrever a próxima enquanto a resposta aparece
+      await iaDigitar(poe('', 'ele'), r.txt, lista);
+      return;
+    } else poe(t(r.motivo === 'fora' ? 'ia_fora' : 'ia_erro'), 'ele ruim');
     ocupado = false; enviar.disabled = false;
   }
-  bg.querySelector('.ask-form').addEventListener('submit', e=>{ e.preventDefault(); perguntar(caixa.value); });
+  q('.ask-form').addEventListener('submit', e=>{ e.preventDefault(); perguntar(caixa.value); });
   caixa.addEventListener('keydown', e=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); perguntar(caixa.value); } });
-  bg.querySelectorAll('[data-sug]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); perguntar(t(b.dataset.sug)); }));
-  bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
-  bg.querySelector('.game-menu-cancel').addEventListener('click', fechar);
+  tela.querySelectorAll('[data-sug]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); perguntar(t(b.dataset.sug)); }));
+  tela.querySelectorAll('[data-nova]').forEach(b=>b.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); abrirChat(null); }));
+  q('[data-lista-btn]').addEventListener('click', ()=>{ playSound('click'); if(vLista.hidden) desenhaLista(); else abrirChat(atual); });
+  q('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+  abrirChat(chats.length ? chats[0] : null);      // abre na última conversa (ou numa nova, se nunca teve)
 }
 /* pede ao assistente; devolve {ok, codigo, frase} ou {ok:false, motivo:'fora'|'grande'|'erro'} */
 async function assistentePedir(tarefa, codigo, extra){
@@ -33126,6 +33247,12 @@ var PZ_TXT = {
  ia_terminou:'O Agente Koda terminou! Toque pra ver.|Koda Agent is done! Tap to see.|¡El Agente Koda terminó! Toca para ver.|L’Agente Koda ha finito! Tocca per vedere.|L’Agent Koda a fini ! Touche pour voir.|Der Koda-Agent ist fertig! Tippe zum Ansehen.|De Koda-agent is klaar! Tik om te kijken.|Kodaエージェントができたよ！タップして見てね。|Koda 助手完成了！点一下查看。|Koda 에이전트가 끝냈어요! 눌러서 봐요.',
  ia_terminou_nome:'O Agente Koda terminou “{nome}”! Toque pra ver.|Koda Agent finished “{nome}”! Tap to see.|¡El Agente Koda terminó “{nome}”! Toca para ver.|L’Agente Koda ha finito “{nome}”! Tocca per vedere.|L’Agent Koda a fini « {nome} » ! Touche pour voir.|Der Koda-Agent ist mit „{nome}“ fertig! Tippe zum Ansehen.|De Koda-agent is klaar met “{nome}”! Tik om te kijken.|Kodaエージェントが「{nome}」をしあげたよ！タップして見てね。|Koda 助手完成了“{nome}”！点一下查看。|Koda 에이전트가 “{nome}”을(를) 끝냈어요! 눌러서 봐요.',
  ia_pronto_varios:'Pronto! Toque em Testar pra ver o que mudou.|Done! Tap Test to see what changed.|¡Listo! Toca Probar para ver qué cambió.|Fatto! Tocca Prova per vedere cosa è cambiato.|C’est fait ! Touche Tester pour voir ce qui a changé.|Fertig! Tippe auf Testen, um die Änderungen zu sehen.|Klaar! Tik op Testen om te zien wat er veranderd is.|できた！「テスト」で変わったところを見てみてね。|好了！点“测试”看看有什么变化。|완료! 테스트를 눌러 뭐가 바뀌었는지 봐요.',
+ sj_btn:'Só o jogo (tela toda)|Game only (full screen)|Solo el juego (pantalla completa)|Solo il gioco (schermo intero)|Jeu seul (plein écran)|Nur das Spiel (Vollbild)|Alleen de game (volledig scherm)|ゲームだけ（全画面）|只显示游戏（全屏）|게임만 보기(전체 화면)',
+ sj_dica:'Toque no X pra sair do jogo.|Tap the X to leave the game.|Toca la X para salir del juego.|Tocca la X per uscire dal gioco.|Touche la croix pour quitter le jeu.|Tippe auf das X, um das Spiel zu verlassen.|Tik op het kruisje om de game te verlaten.|Xをタップするとゲームを出られるよ。|点 X 退出游戏。|X를 누르면 게임에서 나가요.',
+ ask_conversas:'Conversas|Chats|Conversaciones|Conversazioni|Conversations|Unterhaltungen|Gesprekken|会話|对话|대화',
+ ask_nova:'Nova conversa|New chat|Nueva conversación|Nuova conversazione|Nouvelle conversation|Neue Unterhaltung|Nieuw gesprek|新しい会話|新对话|새 대화',
+ ask_vazio:'Você ainda não tem conversas.|You don’t have any chats yet.|Todavía no tienes conversaciones.|Non hai ancora conversazioni.|Tu n’as pas encore de conversation.|Du hast noch keine Unterhaltungen.|Je hebt nog geen gesprekken.|まだ会話がないよ。|你还没有对话。|아직 대화가 없어요.',
+ ask_apagar_conf:'Apagar esta conversa?|Delete this chat?|¿Borrar esta conversación?|Eliminare questa conversazione?|Supprimer cette conversation ?|Diese Unterhaltung löschen?|Dit gesprek verwijderen?|この会話を消す？|删除这个对话？|이 대화를 지울까요?',
  ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
  ia_desfeito:'Voltou o código de antes.|The previous code is back.|Volvió el código de antes.|È tornato il codice di prima.|L’ancien code est revenu.|Der vorherige Code ist zurück.|De vorige code is terug.|前のコードにもどったよ。|已恢复之前的代码。|이전 코드로 돌아왔어요.',
  ia_erro:'O assistente não conseguiu agora. Tente de novo daqui a pouco.|The assistant couldn’t do it right now. Try again in a bit.|El asistente no pudo ahora. Inténtalo en un rato.|L’assistente non ce l’ha fatta ora. Riprova tra poco.|L’assistant n’a pas réussi. Réessaie dans un moment.|Der Assistent hat es gerade nicht geschafft. Versuch es gleich nochmal.|Het lukte de assistent nu niet. Probeer het zo opnieuw.|今はうまくいかなかった。少ししてからもう一度ためしてね。|助手暂时没能完成，请稍后再试。|지금은 안 됐어요. 잠시 후 다시 해 봐요.',
