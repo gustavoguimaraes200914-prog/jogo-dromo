@@ -3184,6 +3184,11 @@
   }
   .create-tile .art{position:static;display:flex;align-items:center;justify-content:center;height:60%;}
   .create-plus{font-size:2.6rem;font-weight:800;color:#08322B;opacity:.55;line-height:1;}
+  .create-roda{display:none;position:absolute;top:10px;right:10px;z-index:2;width:22px;height:22px;border-radius:50%;
+    border:3px solid rgba(8,50,43,.18);border-top-color:#17C79E;animation:createRoda .8s linear infinite;}
+  .create-tile.traduzindo .create-roda{display:block;}
+  @keyframes createRoda{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .create-roda{animation-duration:2.4s;} }
   .create-tile .cardname{background:none;text-shadow:none;color:#08322B;opacity:.75;text-align:center;padding:0;}
   .fallback-glyph{
     width:100%;height:100%;display:flex;align-items:center;justify-content:center;
@@ -3392,6 +3397,20 @@
   .ia-assist-abrir:focus-visible,.ia-assist-desfazer:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
   .ia-assist-desfazer{border:none;background:none;color:#ff62c9;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;padding:6px 2px;}
   .ia-assist-desfazer[hidden]{display:none;}
+  .ask-sheet{display:flex;flex-direction:column;max-height:88vh;max-height:88dvh;}
+  .ask-lista{flex:1;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:8px 2px;-webkit-overflow-scrolling:touch;}
+  .ask-msg{max-width:86%;padding:9px 12px;border-radius:16px;font-family:'Nunito',sans-serif;font-size:.95rem;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#08322B;}
+  .ask-msg.ele{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .ask-msg.eu{align-self:flex-end;background:#7C4DFF;color:#fff;border-bottom-right-radius:4px;}
+  .ask-msg.pensando{opacity:.6;font-style:italic;}
+  .ask-msg.ruim{background:#FFE3E3;color:#8A1C1C;}
+  .ask-sug{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px;}
+  .ask-sug[hidden]{display:none;}
+  .ask-sug button{border:1.5px solid rgba(124,77,255,.5);background:rgba(124,77,255,.1);color:#3A1F8F;border-radius:999px;padding:7px 12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
+  .ask-form{display:flex;gap:8px;align-items:flex-end;}
+  .ask-form textarea{flex:1;min-width:0;resize:none;border:1.5px solid rgba(8,50,43,.2);border-radius:14px;padding:9px 11px;font-family:'Nunito',sans-serif;font-size:16px;color:#08322B;background:#fff;}
+  .ask-enviar{border:none;border-radius:14px;padding:11px 14px;background:#17C79E;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;}
+  .ask-enviar:disabled{opacity:.6;cursor:default;}
   .ia-assist-status{flex-basis:100%;margin:0;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.82rem;}
   .ia-assist-status:empty{display:none;}
   .ia-assist-status.ok{color:#5ef2b0;} .ia-assist-status.ruim{color:#ff8a8a;}
@@ -16600,7 +16619,8 @@ let freshGameIds = new Set();     // jogos que acabaram de aparecer no servidor
 function createTileEl(){
   const el = document.createElement('div');
   el.className = 'card create-tile';
-  el.innerHTML = `<div class="art"><span class="create-plus">＋</span></div><div class="cardname">${t('create_tile')}</div>`;
+  el.innerHTML = `<div class="art"><span class="create-plus">＋</span><span class="create-roda" aria-hidden="true"></span></div><div class="cardname">${t('create_tile')}</div>`;
+  try{ if(tradPendentes().length) el.classList.add('traduzindo'); }catch(e){}     // traduzindo algum jogo: a rodinha gira
   el.addEventListener('click', openCreateModal);
   return el;
 }
@@ -18427,8 +18447,6 @@ async function tradTrabalharNoJogo(id){
   }
   tradSalvar(id, assinatura, {status: 'pronto'});
   tradUI.fase = 'pronto'; tradUI.lingua = null;
-  const final = loadCustomGames().find(r=>r.id === id);
-  if(final && !tradUI.aberta) toast(t('trad_done_toast', {name: final.name, n: LANGS.length}));
   tradAtualizarTela();
 }
 async function rodarFilaDeTraducao(){
@@ -18459,9 +18477,8 @@ async function rodarFilaDeTraducao(){
     tradAtualizarTela();
   }
 }
-/* chamado depois de publicar: abre a tela e começa */
+/* chamado depois de publicar: começa (a rodinha do Koda Studio mostra que está trabalhando) */
 function comecarTraducao(id){
-  tradUI.aberta = true;
   tradUI.jogoId = id;
   tradUI.fase = 'lendo';
   tradUI.erro = false;
@@ -18472,74 +18489,14 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState === 'visible') setTimeout(()=>{ try{ rodarFilaDeTraducao(); }catch(e){} }, 800);
 });
 
-/* ---------- 3) a tela de carregamento e o selinho de progresso ---------- */
+/* ---------- 3) a rodinha no cartão do Koda Studio ----------
+   Nada de tela nem de aviso de "traduzindo": enquanto falta traduzir algum jogo, o cartão do Koda Studio mostra uma
+   rodinha girando (como se estivesse carregando) e ela some sozinha quando termina. */
 function tradAtualizarTela(){
-  const pend = tradPendentes();
-  const id = tradUI.jogoId || (pend[0] && pend[0].id);
-  const rec = id ? loadCustomGames().find(r=>r.id === id) : null;
-  let tela = document.getElementById('tradTela');
-  let chip = document.getElementById('tradChip');
-  const trad = rec && rec.trad;
-  const alvo = trad && Array.isArray(trad.textos) ? tradLinguasAlvo(trad) : LANGS.map(l=>l.id);
-  const total = alvo.length;
-  const feitas = tradFeitas(trad);
-  const pronto = !!trad && trad.status === 'pronto';
-  const pct = pronto ? 100 : Math.round(((Array.isArray(trad && trad.textos) ? 1 : 0) + feitas) / (total + 1) * 100);
-
-  /* selinho: aparece enquanto falta alguma coisa e a tela está fechada */
-  const mostrarChip = !tradUI.aberta && pend.length > 0;
-  if(mostrarChip){
-    if(!chip){
-      chip = document.createElement('button');
-      chip.id = 'tradChip';
-      chip.className = 'trad-chip';
-      chip.type = 'button';
-      chip.addEventListener('click', ()=>{ tradUI.aberta = true; tradAtualizarTela(); rodarFilaDeTraducao(); });
-      document.body.appendChild(chip);
-    }
-    const r0 = pend[0], f0 = tradFeitas(r0.trad), t0 = Array.isArray(r0.trad.textos) ? tradLinguasAlvo(r0.trad).length : LANGS.length;
-    chip.innerHTML = `<span class="trad-chip-globo">${TRAD_GLOBO}</span><span>${t('trad_chip', {a: f0, b: t0})}</span>`;
-  } else if(chip){ chip.remove(); }
-
-  if(!tradUI.aberta || !rec){ if(tela) tela.remove(); return; }
-  if(!tela){
-    tela = document.createElement('div');
-    tela.id = 'tradTela';
-    tela.className = 'trad-tela';
-    document.body.appendChild(tela);
-  }
-  const statusDe = id=>{
-    if(trad && Array.isArray(trad.linguas && trad.linguas[id])) return 'ok';
-    if(!pronto && tradUI.fase === 'traduzindo' && tradUI.lingua === id && tradRodando) return 'agora';
-    return 'espera';
-  };
-  const subtitulo = pronto ? t('trad_done_sub', {n: LANGS.length})
-    : tradUI.erro ? t('trad_error_retry')
-    : (!trad || !Array.isArray(trad.textos)) ? t('trad_step_read')
-    : t('trad_progress', {a: feitas, b: total});
-  tela.innerHTML = `
-    <div class="trad-card ${pronto ? 'pronto' : ''}">
-      <div class="trad-globo ${pronto ? 'parado' : ''}">${pronto ? ICONS.checkCircle : TRAD_GLOBO}</div>
-      <div class="trad-titulo">${pronto ? t('trad_done_title') : t('trad_title')}</div>
-      <div class="trad-jogo">${chatListEscape(rec.name || '')}</div>
-      <div class="trad-barra"><i style="width:${pct}%"></i></div>
-      <div class="trad-sub ${tradUI.erro && !pronto ? 'erro' : ''}">${subtitulo}</div>
-      <div class="trad-linguas">
-        ${LANGS.map(l=>{
-          const ehOrig = trad && trad.orig === l.id;
-          const st = ehOrig ? 'orig' : statusDe(l.id);
-          return `<div class="trad-lingua ${st}"><span>${chatListEscape(l.nome)}</span><i>${
-            st === 'ok' || st === 'orig' ? ICONS.checkCircle : st === 'agora' ? '<b class="trad-roda"></b>' : '•'}</i>${ehOrig ? `<small>${t('trad_original')}</small>` : ''}</div>`;
-        }).join('')}
-      </div>
-      ${pronto ? '' : `<p class="trad-dica">${t('trad_tip')}</p>`}
-      ${pronto ? xFecharBtn('', 'tradFechar') : `<button class="g-btn" id="tradFechar" style="width:100%;">${t('trad_minimize')}</button>`}
-    </div>`;
-  tela.querySelector('#tradFechar').addEventListener('click', ()=>{
-    tradUI.aberta = false;
-    if(pronto) tradUI.jogoId = null;
-    tradAtualizarTela();
-  });
+  let traduzindo = false;
+  try{ traduzindo = tradPendentes().length > 0; }catch(e){}
+  document.querySelectorAll('.create-tile').forEach(el=>el.classList.toggle('traduzindo', traduzindo));
+  ['tradTela', 'tradChip'].forEach(id=>{ const el = document.getElementById(id); if(el) el.remove(); });
 }
 const TRAD_GLOBO = `<svg viewBox="0 0 64 64" class="trad-globo-svg"><defs><clipPath id="tradGloboClip"><circle cx="32" cy="32" r="27"/></clipPath></defs>
   <circle cx="32" cy="32" r="27" fill="#2FD8A8"/>
@@ -19890,7 +19847,7 @@ function codigoTemLoja(code){ return /KODA\s*\.\s*loja\b|KODA\s*\[\s*['"]loja['"
 /* o robozinho do Agente Koda (símbolo do assistente) */
 const ICONE_AGENTE_KODA = 'data:image/png;base64,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';
 const iconeAgenteKoda = ()=>`<img class="ia-ico" src="${ICONE_AGENTE_KODA}" alt="" width="20" height="28" decoding="async">`;
-/* só um botãozinho "Agente Koda"; tocando, abre um menu com as três opções */
+/* só um botãozinho "Agente Koda"; tocando, abre um menu: perguntar alguma coisa e as três ajudas no código */
 function assistenteHtml(){
   return `<div class="ia-assist">
       <button type="button" class="ia-assist-abrir" data-ia-abrir>${iconeAgenteKoda()}<span>${t('ia_tit')}</span></button>
@@ -19915,6 +19872,74 @@ Regras:
 - Responda com UMA frase curta (no idioma: ${(typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)'}) dizendo o que você fez e depois o ARQUIVO INTEIRO do jogo dentro de um bloco \`\`\`html ... \`\`\` (nunca só as mudanças).
 
 ${tarefa === 'online' ? KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR : tarefa === 'salvar' ? KODA_DOC_SALVAR : KODA_DOC_LOJA}`;
+}
+/* ---------- PERGUNTAR: tirar dúvida com o Agente Koda (por que o jogo não funciona, como criar um jogo, ideias...) ---------- */
+const AJUDA_REGRA = `Você é o Agente Koda, o ajudante do Koda: um site de jogos de navegador onde as próprias pessoas (muitas são crianças) criam e publicam jogos. Responda dúvidas sobre o Koda e sobre criar jogos.
+O que você sabe do Koda:
+- Criar um jogo: no Koda Studio a pessoa cola o CÓDIGO do jogo (um arquivo HTML só, com HTML, CSS e JavaScript juntos). Pra ter esse código ela pode: pedir pra uma IA (como o Claude ou o ChatGPT) escrever o jogo, escrever o código ela mesma (dá pra aprender HTML e JavaScript aos poucos) ou pedir ajuda pra alguém que sabe programar.
+- Botão "Testar": roda o jogo antes de publicar. Ao publicar, o jogo passa por uma análise de segurança e depois é traduzido sozinho pra todas as línguas do Koda (uma rodinha girando no Koda Studio mostra que a tradução está acontecendo).
+- O Agente Koda (o robozinho no Koda Studio) pode: deixar o jogo online (várias pessoas juntas), colocar uma loja de moedas e diamantes no jogo e fazer o jogo salvar a jornada (continuar de onde parou).
+- Não pode ter no jogo: preconceito, bullying, política, conteúdo sexual, violência pesada, drogas, apostas, palavrões, pedir senha ou dados pessoais, contato fora do Koda, personagens e marcas famosas, nem imagens, sons ou códigos de outros sites (tudo precisa estar dentro do próprio jogo).
+- Jogo que não funciona ou fica com a tela preta/branca: primeiro atualize a página (ou feche e abra o Koda de novo), feche e abra o jogo, confira a internet e use o "Testar". Depois confira se o código está inteiro (do <!DOCTYPE html> até o </html>), se não usa nada de outro site e se não é grande demais. localStorage não guarda nada dentro dos jogos do Koda: pra salvar use o botão "salvar a jornada" do Agente Koda. Se ainda assim não der, peça pro Agente Koda arrumar ou pra quem fez o código.
+- Ideias de jogos: dê ideias curtas, divertidas e fáceis de fazer (com o nome, como se joga em uma frase e o que deixa legal).
+Se a pessoa mandar o código do jogo (em <codigo_do_jogo>), use pra achar o problema e explique em palavras simples onde está e como arrumar (só mostre um pedacinho de código se precisar).
+Regras: responda curto e simples (no máximo uns 6 itens ou 120 palavras), com carinho e sem termos difíceis, no idioma: [LINGUA]. Fale só sobre o Koda, jogos e programação de jogos; pra outros assuntos diga com gentileza que só ajuda com isso. Nunca peça senha, e-mail, telefone ou dados pessoais. Nada impróprio pra crianças. Se não souber, diga que não sabe.`;
+async function ajudaPedir(historico, codigo){
+  if(!SERVER_URL || !FIREBASE_ENABLED || !fbAuth().currentUser) return {ok: false, motivo: 'fora'};
+  const msgs = historico.slice(-10).map(m=>({role: m.eu ? 'user' : 'assistant', content: m.txt}));
+  if(codigo && msgs.length){
+    const c = codigo.length > 30000 ? codigo.slice(0, 30000) + '\n<!-- (o resto do código foi cortado) -->' : codigo;
+    msgs[msgs.length - 1] = {role: 'user', content: '<codigo_do_jogo>\n' + c + '\n</codigo_do_jogo>\n\n' + msgs[msgs.length - 1].content};
+  }
+  const lingua = (typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)';
+  let res;
+  try{
+    res = await fetch(SERVER_URL + '/agent', {method: 'POST', headers: await cabecalhoDoAgente(),
+      body: JSON.stringify({model: 'claude-haiku-4-5', max_tokens: 900, system: AJUDA_REGRA.replace('[LINGUA]', lingua), messages: msgs})});
+  }catch(e){ return {ok: false, motivo: 'erro'}; }
+  if(res.status === 401 || res.status === 403 || res.status === 500) return {ok: false, motivo: 'fora'};
+  if(!res.ok) return {ok: false, motivo: 'erro'};
+  const j = await res.json().catch(()=>null);
+  const txt = j && Array.isArray(j.content) ? j.content.map(b=>b && b.text || '').join('').trim() : '';
+  return txt ? {ok: true, txt: txt.slice(0, 3000)} : {ok: false, motivo: 'erro'};
+}
+/* a conversa: um quadrinho com as mensagens, 3 sugestões prontas e a caixa de escrever */
+function abrirPerguntas(codigo){
+  const esc = chatListEscape, hist = [];
+  let ocupado = false;
+  const bg = document.createElement('div');
+  bg.className = 'game-menu-bg';
+  bg.innerHTML = `<div class="game-menu-sheet ask-sheet" role="dialog" aria-modal="true">
+      <div class="game-menu-title ia-menu-tit">${iconeAgenteKoda()} ${esc(t('ia_perguntar'))}</div>
+      <div class="ask-lista" aria-live="polite"><div class="ask-msg ele">${esc(t('ask_oi'))}</div></div>
+      <div class="ask-sug">${['ask_s1', 'ask_s2', 'ask_s3'].map(k=>`<button type="button" data-sug="${k}">${esc(t(k))}</button>`).join('')}</div>
+      <form class="ask-form"><textarea maxlength="500" rows="2" placeholder="${esc(t('ask_ph'))}"></textarea><button type="submit" class="ask-enviar">${esc(t('ask_enviar'))}</button></form>
+      <button class="game-menu-cancel" type="button">${esc(t('menu_cancel'))}</button>
+    </div>`;
+  document.body.appendChild(bg);
+  requestAnimationFrame(()=>bg.classList.add('show'));
+  const lista = bg.querySelector('.ask-lista'), caixa = bg.querySelector('textarea'), enviar = bg.querySelector('.ask-enviar');
+  const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 200); };
+  const poe = (txt, classe)=>{ const d = document.createElement('div'); d.className = 'ask-msg ' + classe; d.textContent = txt; lista.appendChild(d); lista.scrollTop = lista.scrollHeight; return d; };
+  async function perguntar(txt){
+    txt = String(txt || '').trim().slice(0, 500);
+    if(!txt || ocupado) return;
+    ocupado = true; enviar.disabled = true; caixa.value = '';
+    bg.querySelector('.ask-sug').hidden = true;
+    poe(txt, 'eu');
+    hist.push({eu: true, txt});
+    const pensando = poe(t('ask_pensando'), 'ele pensando');
+    const r = await ajudaPedir(hist, codigo);
+    pensando.remove();
+    if(r.ok){ hist.push({eu: false, txt: r.txt}); poe(r.txt, 'ele'); }
+    else { hist.pop(); poe(t(r.motivo === 'fora' ? 'ia_fora' : 'ia_erro'), 'ele ruim'); }
+    ocupado = false; enviar.disabled = false;
+  }
+  bg.querySelector('.ask-form').addEventListener('submit', e=>{ e.preventDefault(); perguntar(caixa.value); });
+  caixa.addEventListener('keydown', e=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); perguntar(caixa.value); } });
+  bg.querySelectorAll('[data-sug]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); perguntar(t(b.dataset.sug)); }));
+  bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
+  bg.querySelector('.game-menu-cancel').addEventListener('click', fechar);
 }
 /* pede ao assistente; devolve {ok, codigo, frase} ou {ok:false, motivo:'fora'|'grande'|'erro'} */
 async function assistentePedir(tarefa, codigo, extra){
@@ -19968,6 +19993,7 @@ function ligarAssistente(root, codeSel){
     bg.className = 'game-menu-bg';
     bg.innerHTML = `<div class="game-menu-sheet">
         <div class="game-menu-title ia-menu-tit">${iconeAgenteKoda()} ${t('ia_tit')}</div>
+        <button class="game-menu-item" data-ia="perguntar">❓ ${t('ia_perguntar')}</button>
         <button class="game-menu-item" data-ia="online">🌐 ${t('ia_online')}</button>
         <button class="game-menu-item" data-ia="loja">🛒 ${t('ia_loja')}</button>
         <button class="game-menu-item" data-ia="salvar">💾 ${t('ia_salvar')}</button>
@@ -19978,7 +20004,11 @@ function ligarAssistente(root, codeSel){
     const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 200); };
     bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
     bg.querySelector('.game-menu-cancel').addEventListener('click', fechar);
-    bg.querySelectorAll('[data-ia]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); fechar(); fazer(b.dataset.ia); }));
+    bg.querySelectorAll('[data-ia]').forEach(b=>b.addEventListener('click', ()=>{
+      playSound('click'); fechar();
+      if(b.dataset.ia === 'perguntar') abrirPerguntas(prepararCodigoDoJogo(caixa.value) || caixa.value.trim());   // a dúvida pode ser sobre o jogo que está na caixa
+      else fazer(b.dataset.ia);
+    }));
   });
   desfazer.addEventListener('click', ()=>{
     if(antes === null) return;
@@ -32856,6 +32886,14 @@ var PZ_TXT = {
  ia_salvar:'Salvar a jornada de quem joga|Save the player’s journey|Guardar el progreso de quien juega|Salva i progressi di chi gioca|Sauvegarder la progression du joueur|Spielstand speichern|Voortgang van de speler opslaan|プレイの続きをセーブする|保存玩家的游戏进度|플레이 진행 상황 저장하기',
  ia_pronto_salvar:'Pronto! Seu jogo agora salva a jornada. Toque em Testar pra ver.|Done! Your game now saves the player’s journey. Tap Test to see it.|¡Listo! Tu juego ahora guarda el progreso. Toca Probar para verlo.|Fatto! Il tuo gioco ora salva i progressi. Tocca Prova per vederlo.|C’est fait ! Ton jeu sauvegarde la progression. Touche Tester pour voir.|Fertig! Dein Spiel speichert jetzt den Spielstand. Tippe auf Testen.|Klaar! Je game slaat de voortgang nu op. Tik op Testen om te kijken.|できた！ゲームがプレイの続きをセーブするようになったよ。「テスト」で見てみてね。|好了！你的游戏现在可以保存进度了。点“测试”看看。|완료! 이제 게임이 진행 상황을 저장해요. 테스트를 눌러 보세요.',
  salvo_ok:'Jornada salva!|Progress saved!|¡Progreso guardado!|Progressi salvati!|Progression sauvegardée !|Spielstand gespeichert!|Voortgang opgeslagen!|セーブしたよ！|进度已保存！|저장했어요!',
+ ia_perguntar:'Perguntar alguma coisa|Ask something|Preguntar algo|Chiedi qualcosa|Poser une question|Etwas fragen|Iets vragen|なにか質問する|问点什么|뭐든 물어보기',
+ ask_oi:'Oi! Pode perguntar o que quiser sobre o Koda e sobre criar jogos: por que um jogo não funciona, como fazer um jogo ou ideias de jogos.|Hi! Ask me anything about Koda and making games: why a game isn’t working, how to make a game, or game ideas.|¡Hola! Pregúntame lo que quieras sobre Koda y sobre crear juegos: por qué un juego no funciona, cómo hacer un juego o ideas de juegos.|Ciao! Chiedimi quello che vuoi su Koda e sul creare giochi: perché un gioco non funziona, come fare un gioco o idee di giochi.|Salut ! Demande-moi ce que tu veux sur Koda et sur la création de jeux : pourquoi un jeu ne marche pas, comment faire un jeu ou des idées de jeux.|Hallo! Frag mich alles über Koda und das Spielemachen: warum ein Spiel nicht geht, wie man ein Spiel macht oder Spielideen.|Hoi! Vraag me alles over Koda en games maken: waarom een game niet werkt, hoe je een game maakt of game-ideeën.|こんにちは！Kodaやゲーム作りのこと、なんでも聞いてね。ゲームが動かない理由、ゲームの作り方、ゲームのアイデアなど。|你好！关于 Koda 和做游戏的问题都可以问我：游戏为什么不能玩、怎么做游戏，或者游戏点子。|안녕! Koda와 게임 만들기에 대해 뭐든 물어봐요. 게임이 안 되는 이유, 게임 만드는 법, 게임 아이디어 등.',
+ ask_s1:'Meu jogo não funciona|My game isn’t working|Mi juego no funciona|Il mio gioco non funziona|Mon jeu ne marche pas|Mein Spiel geht nicht|Mijn game werkt niet|ゲームが動かない|我的游戏不能玩|게임이 안 돼요',
+ ask_s2:'Como eu crio um jogo?|How do I make a game?|¿Cómo creo un juego?|Come creo un gioco?|Comment je crée un jeu ?|Wie mache ich ein Spiel?|Hoe maak ik een game?|ゲームはどうやって作るの？|我怎么做一个游戏？|게임은 어떻게 만들어요?',
+ ask_s3:'Me dá ideias de jogos|Give me game ideas|Dame ideas de juegos|Dammi idee di giochi|Donne-moi des idées de jeux|Gib mir Spielideen|Geef me game-ideeën|ゲームのアイデアをちょうだい|给我一些游戏点子|게임 아이디어 알려 줘요',
+ ask_ph:'Escreva sua pergunta…|Type your question…|Escribe tu pregunta…|Scrivi la tua domanda…|Écris ta question…|Schreib deine Frage…|Typ je vraag…|質問を書いてね…|写下你的问题……|질문을 써 주세요…',
+ ask_enviar:'Enviar|Send|Enviar|Invia|Envoyer|Senden|Sturen|送る|发送|보내기',
+ ask_pensando:'Pensando…|Thinking…|Pensando…|Ci penso…|Je réfléchis…|Ich denke nach…|Even denken…|考え中…|思考中……|생각 중…',
  ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
  ia_desfeito:'Voltou o código de antes.|The previous code is back.|Volvió el código de antes.|È tornato il codice di prima.|L’ancien code est revenu.|Der vorherige Code ist zurück.|De vorige code is terug.|前のコードにもどったよ。|已恢复之前的代码。|이전 코드로 돌아왔어요.',
  ia_erro:'O assistente não conseguiu agora. Tente de novo daqui a pouco.|The assistant couldn’t do it right now. Try again in a bit.|El asistente no pudo ahora. Inténtalo en un rato.|L’assistente non ce l’ha fatta ora. Riprova tra poco.|L’assistant n’a pas réussi. Réessaie dans un moment.|Der Assistent hat es gerade nicht geschafft. Versuch es gleich nochmal.|Het lukte de assistent nu niet. Probeer het zo opnieuw.|今はうまくいかなかった。少ししてからもう一度ためしてね。|助手暂时没能完成，请稍后再试。|지금은 안 됐어요. 잠시 후 다시 해 봐요.',
