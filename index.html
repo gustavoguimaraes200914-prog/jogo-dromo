@@ -3397,12 +3397,41 @@
   .ia-assist-abrir:focus-visible,.ia-assist-desfazer:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
   .ia-assist-desfazer{border:none;background:none;color:#ff62c9;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;padding:6px 2px;}
   .ia-assist-desfazer[hidden]{display:none;}
+  .ia-ico.mexe{animation:iaMexe 2.6s ease-in-out infinite;transform-origin:50% 50%;}
+  @keyframes iaMexe{0%,100%{transform:rotate(-9deg) translateY(0) scale(1);}50%{transform:rotate(9deg) translateY(-2px) scale(1.06);}}
+  .ia-criando{display:inline-flex;align-items:center;gap:8px;}
+  .ia-creating{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1rem;letter-spacing:.2px;
+    background:linear-gradient(90deg,#b388ff 0%,#b388ff 38%,#ffffff 50%,#b388ff 62%,#b388ff 100%);background-size:260% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:iaBrilho 2s linear infinite;}
+  .ia-creating::after{content:'…';}
+  .ask-msg .ia-creating{background-image:linear-gradient(90deg,#5b2fd6 0%,#5b2fd6 38%,#c9b3ff 50%,#5b2fd6 62%,#5b2fd6 100%);}
+  @keyframes iaBrilho{from{background-position:100% 0;}to{background-position:-160% 0;}}
+  @media (prefers-reduced-motion: reduce){ .ia-ico.mexe{animation-duration:6s;} .ia-creating{animation:none;background-position:50% 0;} }
+  .ia-assist-status.criando{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}
+  .ia-sair{border:1.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.1);color:inherit;border-radius:999px;padding:6px 12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;}
+  .ia-sheet .ia-perguntar{display:flex;align-items:center;gap:10px;width:100%;margin:4px 0 10px;padding:12px 14px;border:none;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1rem;color:#08322B;text-align:left;}
+  .ia-q{flex:none;width:26px;height:26px;border-radius:50%;background:#3D6FE0;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;}
+  .ia-escolha{margin:6px 2px 8px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;color:#08322B;opacity:.7;}
+  .ia-opcoes{display:flex;flex-direction:column;gap:8px;}
+  .ia-opcao{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:13px 14px;border-radius:14px;border:2px solid rgba(8,50,43,.14);background:#fff;cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1rem;color:#08322B;text-align:left;transition:border-color .15s,background .15s;}
+  .ia-opcao.on{border-color:#7C4DFF;background:rgba(124,77,255,.1);}
+  .ia-marca{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid rgba(8,50,43,.3);display:inline-flex;align-items:center;justify-content:center;font-style:normal;}
+  .ia-opcao.on .ia-marca{background:#7C4DFF;border-color:#7C4DFF;}
+  .ia-opcao.on .ia-marca::after{content:'✓';color:#fff;font-weight:800;font-size:.85rem;}
+  .ia-confirmar{display:block;width:100%;margin-top:12px;padding:14px;border:none;border-radius:14px;background:#7C4DFF;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;}
+  .ia-confirmar:disabled{opacity:.4;cursor:default;}
+  .ia-opcao:focus-visible,.ia-confirmar:focus-visible,.ia-perguntar:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ia-aviso{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:3500;
+    display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:10px 16px 10px 10px;border:none;border-radius:999px;
+    background:#1b1f4a;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer;text-align:left;transition:transform .25s,opacity .25s;}
+  .ia-aviso.show{transform:translate(-50%,0);opacity:1;}
+  .ia-aviso .ia-ico{height:32px;}
   .ask-sheet{display:flex;flex-direction:column;max-height:88vh;max-height:88dvh;}
   .ask-lista{flex:1;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:8px 2px;-webkit-overflow-scrolling:touch;}
   .ask-msg{max-width:86%;padding:9px 12px;border-radius:16px;font-family:'Nunito',sans-serif;font-size:.95rem;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#08322B;}
   .ask-msg.ele{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
   .ask-msg.eu{align-self:flex-end;background:#7C4DFF;color:#fff;border-bottom-right-radius:4px;}
-  .ask-msg.pensando{opacity:.6;font-style:italic;}
+  .ask-msg.pensando{padding:7px 12px;}
   .ask-msg.ruim{background:#FFE3E3;color:#8A1C1C;}
   .ask-sug{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px;}
   .ask-sug[hidden]{display:none;}
@@ -4951,6 +4980,46 @@
   .ugc-ferrs{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
   .ugc-ferr{width:40px;height:40px;border-radius:12px;border:2px solid transparent;background:#fff;font-size:1.1rem;cursor:pointer;padding:0;}
   .ugc-ferr.on{border-color:#17C79E;background:#DDF7EF;}
+  .ugc-ferr svg{width:24px;height:24px;display:block;margin:auto;}
+  .ugc-foto-modos button svg{width:18px;height:18px;vertical-align:-4px;margin-right:2px;}
+  /* ---------- a tela de conferir a peça ---------- */
+  .ugc-conf{position:fixed;inset:0;z-index:3200;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,30,26,.55);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .2s;}
+  .ugc-conf.show{opacity:1;}
+  .ugc-conf-card{width:100%;max-width:380px;max-height:100%;overflow-y:auto;background:#fff;border-radius:26px;padding:22px 20px 18px;color:#13312A;text-align:center;
+    box-shadow:0 18px 50px rgba(0,0,0,.3);transform:translateY(14px) scale(.97);transition:transform .25s cubic-bezier(.2,.9,.3,1.2);}
+  .ugc-conf.show .ugc-conf-card{transform:none;}
+  .ugc-conf-previa{position:relative;display:flex;justify-content:center;gap:12px;margin:0 auto 14px;width:max-content;padding:10px;border-radius:20px;background:#F1F7F5;overflow:hidden;}
+  .ugc-conf-previa .pz-mini{width:84px;height:110px;border-radius:14px;display:flex;align-items:center;justify-content:center;}
+  .ugc-conf-previa .pz-mini svg{width:76%;height:auto;}
+  .ugc-conf-scan{position:absolute;left:0;right:0;top:0;height:34%;background:linear-gradient(180deg,rgba(23,199,158,0),rgba(23,199,158,.32) 80%,#17C79E);
+    border-bottom:2px solid #17C79E;animation:ugcScan 1.6s ease-in-out infinite alternate;pointer-events:none;}
+  .ugc-conf-card.aprovada .ugc-conf-scan,.ugc-conf-card.recusada .ugc-conf-scan{display:none;}
+  @keyframes ugcScan{from{transform:translateY(-100%);}to{transform:translateY(300%);}}
+  .ugc-conf-selo{display:none;width:58px;height:58px;margin:-6px auto 6px;border-radius:50%;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:900;animation:ugcPop .35s cubic-bezier(.2,.9,.3,1.4);}
+  .ugc-conf-card.aprovada .ugc-conf-selo{display:flex;background:#17C79E;box-shadow:0 0 0 8px rgba(23,199,158,.18);}
+  .ugc-conf-card.recusada .ugc-conf-selo{display:flex;background:#E8413C;box-shadow:0 0 0 8px rgba(232,65,60,.16);}
+  @keyframes ugcPop{from{transform:scale(.3);opacity:0;}to{transform:none;opacity:1;}}
+  .ugc-conf-tit{margin:0 0 12px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.3rem;line-height:1.2;}
+  .ugc-conf-etapas{list-style:none;margin:0 auto;padding:0;display:flex;flex-direction:column;gap:9px;text-align:left;max-width:290px;}
+  .ugc-conf-etapas li{display:flex;align-items:center;gap:10px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.95rem;color:rgba(19,49,42,.45);}
+  .ugc-conf-etapas li i{flex:none;width:22px;height:22px;border-radius:50%;border:2.5px solid rgba(19,49,42,.18);display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:.75rem;font-weight:900;color:#fff;}
+  .ugc-conf-etapas li.agora{color:#13312A;}
+  .ugc-conf-etapas li.agora i{border-color:rgba(23,199,158,.25);border-top-color:#17C79E;animation:createRoda .8s linear infinite;}
+  .ugc-conf-etapas li.ok{color:#13312A;}
+  .ugc-conf-etapas li.ok i{background:#17C79E;border-color:#17C79E;}
+  .ugc-conf-etapas li.ok i::after{content:'✓';}
+  .ugc-conf-etapas li.ruim{color:#B3261E;}
+  .ugc-conf-etapas li.ruim i{background:#E8413C;border-color:#E8413C;}
+  .ugc-conf-etapas li.ruim i::after{content:'✕';}
+  .ugc-conf-fim:empty{display:none;}
+  .ugc-conf-fim{margin-top:14px;}
+  .ugc-conf-fim p{margin:0 0 8px;font-size:.95rem;line-height:1.4;}
+  .ugc-conf-fim p.leve{opacity:.65;font-size:.85rem;}
+  .ugc-conf-fim button{display:block;width:100%;margin-top:10px;padding:13px;border:none;border-radius:14px;background:#17C79E;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;}
+  .ugc-conf-card.recusada .ugc-conf-fim button{background:#13312A;color:#fff;}
+  @media (prefers-reduced-motion: reduce){ .ugc-conf-scan{animation:none;opacity:.5;} }
+  @media (max-height: 640px){ .ugc-conf-card{padding:14px 16px;} .ugc-conf-previa{margin-bottom:8px;padding:6px;} .ugc-conf-previa .pz-mini{width:62px;height:80px;} .ugc-conf-selo{width:46px;height:46px;font-size:24px;} .ugc-conf-tit{font-size:1.1rem;margin-bottom:8px;} }
   .ugc-ed-dir{display:flex;flex-direction:column;gap:8px;padding:6px 12px 16px;}
   .ugc-cor-atual{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .ugc-cor-atual i{width:38px;height:38px;border-radius:10px;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(0,0,0,.18);flex-shrink:0;}
@@ -11836,6 +11905,9 @@ var CONTA_TXT = {
  cad_q_conf:'Escreva a senha de novo|Type the password again|Escribe la contraseña otra vez|Scrivi di nuovo la password|Écris le mot de passe encore une fois|Gib das Passwort noch einmal ein|Typ het wachtwoord nog een keer|もう一度パスワードを入力|再输入一次密码|비밀번호를 한 번 더 입력해요',
  cad_conf_dica:'Pra ter certeza de que você escreveu certo.|Just to make sure you typed it right.|Para asegurarnos de que la escribiste bien.|Per essere sicuri che sia scritta giusta.|Pour être sûr que tu l’as bien écrit.|Damit sicher ist, dass du dich nicht vertippt hast.|Om zeker te weten dat je het goed typte.|まちがえていないか確認するためだよ。|确认一下你没有输错。|제대로 입력했는지 확인하려고요.',
  cad_conf_erro:'As senhas não são iguais. Tente de novo.|The passwords don’t match. Try again.|Las contraseñas no coinciden. Inténtalo otra vez.|Le password non sono uguali. Riprova.|Les mots de passe ne sont pas pareils. Réessaie.|Die Passwörter stimmen nicht überein. Versuch es nochmal.|De wachtwoorden zijn niet hetzelfde. Probeer opnieuw.|パスワードが同じじゃないよ。もう一度。|两次密码不一样，再试一次。|비밀번호가 서로 달라요. 다시 해 봐요.',
+ cad_seg_opc_tit:'Quer proteger sua conta?|Want to protect your account?|¿Quieres proteger tu cuenta?|Vuoi proteggere il tuo account?|Tu veux protéger ton compte ?|Willst du dein Konto schützen?|Wil je je account beschermen?|アカウントを守る？|要保护你的账号吗？|계정을 지킬까요?',
+ cad_seg_opc_txt:'Se quiser, ligue sua conta ao Google ou ao seu celular: assim dá pra entrar por eles e recuperar a conta se esquecer a senha. É opcional, dá pra fazer depois no perfil.|If you want, link your account to Google or your phone: then you can sign in with them and get your account back if you forget the password. It’s optional, you can do it later in your profile.|Si quieres, vincula tu cuenta a Google o a tu celular: así puedes entrar con ellos y recuperar la cuenta si olvidas la contraseña. Es opcional, puedes hacerlo después en el perfil.|Se vuoi, collega l’account a Google o al tuo cellulare: così puoi entrare con loro e recuperare l’account se dimentichi la password. È facoltativo, puoi farlo dopo nel profilo.|Si tu veux, relie ton compte à Google ou à ton téléphone : tu pourras te connecter avec eux et récupérer ton compte si tu oublies le mot de passe. C’est facultatif, tu peux le faire plus tard dans ton profil.|Wenn du willst, verbinde dein Konto mit Google oder deinem Handy: Dann kannst du dich damit anmelden und dein Konto zurückholen, wenn du das Passwort vergisst. Es ist freiwillig, du kannst es später im Profil machen.|Als je wilt, koppel je account aan Google of je telefoon: dan kun je daarmee inloggen en je account terugkrijgen als je je wachtwoord vergeet. Het is niet verplicht, je kunt het later in je profiel doen.|よかったら、アカウントをGoogleかスマホにつなげよう。それで入れるし、パスワードを忘れてもアカウントを取りもどせるよ。やらなくてもOK、あとでプロフィールからもできるよ。|如果你愿意，可以把账号连接到 Google 或手机：这样就能用它们登录，忘记密码时也能找回账号。这是可选的，之后也可以在个人资料里设置。|원하면 계정을 Google이나 휴대폰에 연결하세요. 그러면 그걸로 들어올 수 있고 비밀번호를 잊어도 계정을 되찾을 수 있어요. 선택이에요, 나중에 프로필에서 해도 돼요.',
+ cad_pular:'Agora não, continuar|Not now, continue|Ahora no, continuar|Non ora, continua|Pas maintenant, continuer|Jetzt nicht, weiter|Nu niet, doorgaan|今はいい、つづける|暂时不要，继续|지금은 안 할래요, 계속',
  cad_q_seg:'Deixe sua conta segura|Keep your account safe|Mantén tu cuenta segura|Proteggi il tuo account|Protège ton compte|Schütze dein Konto|Houd je account veilig|アカウントを安全にしよう|保护你的账号|계정을 안전하게 지켜요',
  cad_seg_texto:'Coloque um e-mail (pode ser o do seu pai ou da sua mãe). Se um dia você esquecer a senha, a gente manda um código de 6 números pra ele.|Add an email (it can be your mom’s or dad’s). If you ever forget your password, we’ll send a 6-digit code to it.|Pon un correo (puede ser el de tu papá o tu mamá). Si algún día olvidas la contraseña, te enviamos un código de 6 números.|Metti un’email (anche quella di mamma o papà). Se un giorno dimentichi la password, ti mandiamo un codice di 6 cifre.|Mets un e-mail (ça peut être celui de ton père ou de ta mère). Si un jour tu oublies ton mot de passe, on y envoie un code à 6 chiffres.|Gib eine E-Mail an (auch die von Mama oder Papa). Wenn du dein Passwort vergisst, schicken wir einen 6-stelligen Code dorthin.|Vul een e-mail in (mag die van je vader of moeder zijn). Vergeet je ooit je wachtwoord, dan sturen we er een code van 6 cijfers naartoe.|メールを入れてね（お父さんかお母さんのでもOK）。パスワードを忘れたら、6けたのコードを送るよ。|填一个邮箱（爸爸或妈妈的也可以）。如果哪天忘了密码，我们会发一个6位验证码过去。|이메일을 넣어 주세요(엄마나 아빠 것도 괜찮아요). 비밀번호를 잊으면 6자리 코드를 보내 드려요.',
  cad_seg_velha:'Agora toda conta precisa de um e-mail, do Google ou de um celular. Assim, se você esquecer a senha, dá pra recuperar.|Every account now needs an email, Google or a phone number. That way you can get it back if you forget your password.|Ahora toda cuenta necesita un correo, Google o un celular. Así puedes recuperarla si olvidas la contraseña.|Ora ogni account ha bisogno di un’email, di Google o di un cellulare. Così puoi recuperarlo se dimentichi la password.|Maintenant chaque compte a besoin d’un e-mail, de Google ou d’un téléphone. Comme ça, tu peux le récupérer si tu oublies ton mot de passe.|Jedes Konto braucht jetzt eine E-Mail, Google oder eine Handynummer. So bekommst du es zurück, wenn du dein Passwort vergisst.|Elk account heeft nu een e-mail, Google of een telefoonnummer nodig. Zo krijg je het terug als je je wachtwoord vergeet.|これからはどのアカウントにもメール、Google、または電話番号が必要です。パスワードを忘れても取りもどせます。|现在每个账号都需要邮箱、Google 或手机号。这样忘了密码也能找回来。|이제 모든 계정에 이메일, 구글 또는 휴대폰 번호가 필요해요. 비밀번호를 잊어도 되찾을 수 있어요.',
@@ -15294,8 +15366,9 @@ const ICONE_GOOGLE = '<svg width="18" height="18" viewBox="0 0 48 48"><path fill
 const ICONE_CELULAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>';
 const ICONE_CARTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>';
 /* as etapas do "Criar conta", uma tela de cada vez (o celular e o código contam como a etapa do e-mail) */
-const CAD_PASSOS = ['nome', 'senha', 'conf', 'seg', 'cod', 'nasc', 'gen'];
-const CAD_NUM_DO = {nome: 1, senha: 2, conf: 3, seg: 4, cel: 4, cod: 5, nasc: 6, gen: 7};
+/* 'seg' (Google ou celular) é opcional: dá pra pular. 'cel' e 'cod' só aparecem se a pessoa escolher o celular (o código do SMS é do próprio celular) */
+const CAD_PASSOS = ['nome', 'senha', 'conf', 'seg', 'nasc', 'gen'];
+const CAD_NUM_DO = {nome: 1, senha: 2, conf: 3, seg: 4, cel: 4, cod: 4, nasc: 5, gen: 6};
 /* o código do país do celular (o primeiro da lista é o do idioma do site) */
 const PAISES_CEL = [['BR', '55', '🇧🇷'], ['PT', '351', '🇵🇹'], ['US', '1', '🇺🇸'], ['GB', '44', '🇬🇧'], ['ES', '34', '🇪🇸'], ['MX', '52', '🇲🇽'], ['AR', '54', '🇦🇷'],
   ['CO', '57', '🇨🇴'], ['CL', '56', '🇨🇱'], ['PE', '51', '🇵🇪'], ['UY', '598', '🇺🇾'], ['PY', '595', '🇵🇾'], ['AO', '244', '🇦🇴'], ['MZ', '258', '🇲🇿'],
@@ -15360,11 +15433,8 @@ function cadastroRetomar(user, etapa, velha){
     cadastroIr(etapa);
   });
 }
-/* conta pelo nome de usuário sem e-mail, Google nem celular: agora é obrigatório */
-function exigirSeguranca(user){
-  if(contaProtegida(user) || document.querySelector('#authGate:not(.hidden)')) return;
-  cadastroRetomar(user, 'seg', true).then(()=>{ const g = document.getElementById('authGate'); if(g) g.classList.add('hidden'); });
-}
+/* proteger a conta (Google, celular ou e-mail de segurança) é opcional: quem quiser faz no cadastro ou no perfil, ninguém é obrigado */
+function exigirSeguranca(user){}
 function cadastroIr(passo){
   const gate = document.getElementById('authGate');
   if(!gate) return;
@@ -15394,7 +15464,7 @@ function cadastroIr(passo){
   const sair = document.getElementById('cadSair');
   if(sair) sair.hidden = !logado || ['seg', 'cel', 'cod'].indexOf(passo) < 0;
   const txt = document.getElementById('cadSegTxt');
-  if(txt) txt.textContent = t(CAD.velha ? 'cad_seg_velha' : 'cad_seg_texto');
+  if(txt) txt.textContent = t('cad_seg_opc_txt');
   gate.querySelectorAll('#authPaineis .auth-error').forEach(e=>{ e.textContent = ''; });
   if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)){
     const primeiro = gate.querySelector('.cad-passo:not([hidden]) input, .cad-passo:not([hidden]) select');
@@ -15446,14 +15516,11 @@ function portaoHtml(){
       <p class="auth-dica" id="cadConfDica">${esc(t('cad_conf_dica'))}</p>
     </div>
     <div class="cad-passo" data-cad="seg" hidden>
-      <div class="cad-q">${esc(t('cad_q_seg'))}</div>
-      <p class="auth-texto" id="cadSegTxt">${esc(t('cad_seg_texto'))}</p>
-      <input class="auth-input" id="cadEmail" type="email" inputmode="email" autocomplete="email" maxlength="120" ${semCorrecao} placeholder="${esc(t('seg_email_ph'))}" aria-label="${esc(t('seg_email_ph'))}">
-      <button class="auth-go" id="cadEmailGo" type="button">${esc(t('rec_pedir'))}</button>
-      <div class="auth-or"><span>${esc(t('auth_or'))}</span></div>
+      <div class="cad-q">${esc(t('cad_seg_opc_tit'))}</div>
+      <p class="auth-texto" id="cadSegTxt">${esc(t('cad_seg_opc_txt'))}</p>
       <button class="auth-google" id="cadGoogle" type="button">${ICONE_GOOGLE}<span>${esc(t('cad_google'))}</span></button>
       <button class="auth-alt" id="cadCelBtn" type="button">${ICONE_CELULAR}<span>${esc(t('cad_cel_btn'))}</span></button>
-      <p class="auth-dica cad-obrig">${esc(t('cad_seg_obrig'))}</p>
+      <button class="auth-go" id="cadPular" type="button">${esc(t('cad_pular'))}</button>
     </div>
     <div class="cad-passo" data-cad="cel" hidden>
       <label class="cad-q" for="cadCel">${esc(t('cad_q_cel'))}</label>
@@ -15714,7 +15781,7 @@ function renderAuthForm(){
     else if(p === 'senha') cadastroIr('nome');
     else if(p === 'conf') cadastroIr('senha');
     else if(p === 'cel') cadastroIr('seg');
-    else if(p === 'cod') cadastroIr(cad.modo === 'sms' ? 'cel' : 'seg');
+    else if(p === 'cod') cadastroIr('cel');
     else if(p === 'gen') cadastroIr('nasc');
   });
   /* sair no meio (escreveu o nome errado, quer outra conta...): a conta fica sem terminar e volta pro início */
@@ -15726,27 +15793,14 @@ function renderAuthForm(){
     cadTerminar();
     authPainel('inicio');
   });
-  /* e-mail: manda o código (o mesmo do "Proteger conta") */
-  const mandarEmail = async ()=>{
-    const email = $('cadEmail').value.trim();
+  /* pular: a conta fica sem Google nem celular (dá pra ligar depois, no perfil) */
+  $('cadPular').addEventListener('click', ()=>{
+    playSound('click');
     erroPortao('');
-    if(!/^[^\s@<>"']{1,64}@[^\s@<>"']+\.[a-z]{2,24}$/i.test(email)){ erroPortao(t('seg_email_invalido')); return; }
-    const u = fbAuth().currentUser;
-    if(!u){ erroPortao(t('cod_indisponivel')); return; }
-    const btn = $('cadEmailGo');
-    btn.disabled = true;
-    let token = '';
-    try{ token = await u.getIdToken(); }catch(e){}
-    const j = await contaPedir('/conta/seguranca', {email, lang: currentLang}, token);
-    btn.disabled = false;
-    if(!j.ok){ erroPortao(msgDeConta(j)); return; }
-    cad.modo = 'email'; cad.email = email;
-    $('cadCodTxt').textContent = t('seg_conf_texto', {email: j.mascara || ''});
-    $('cadCodigo').value = '';
-    cadastroIr('cod');
-  };
-  $('cadEmailGo').addEventListener('click', mandarEmail);
-  enter('cadEmail', mandarEmail);
+    if(CAD.velha){ CAD.velha = false; try{ localStorage.removeItem(CADASTRO_KEY); }catch(e){} cadTerminar(); return; }
+    cadastroGuardar({etapa: 'nasc', seg: ''});
+    cadastroIr('nasc');
+  });
   /* Google: liga a conta do Google nesta conta (depois dá pra entrar com ele também) */
   $('cadGoogle').addEventListener('click', async ()=>{
     erroPortao('');
@@ -15764,7 +15818,7 @@ function renderAuthForm(){
   });
   /* celular: código por SMS (é o próprio Firebase que manda) */
   $('cadCelBtn').addEventListener('click', ()=>{ playSound('click'); cadastroIr('cel'); });
-  $('cadUsarEmail').addEventListener('click', ()=>{ playSound('click'); cadastroIr('seg'); });
+  $('cadUsarEmail').addEventListener('click', ()=>{ playSound('click'); cadastroIr('seg'); });   // volta pras opções (Google, celular ou pular)
   const verificador = (caixa, guardar)=>{
     if(guardar.verif) return guardar.verif;
     guardar.verif = new firebase.auth.RecaptchaVerifier(caixa, {size: 'invisible'});
@@ -15819,7 +15873,7 @@ function renderAuthForm(){
   };
   $('cadCodGo').addEventListener('click', confirmarCodigo);
   enter('cadCodigo', confirmarCodigo);
-  $('cadCodOutro').addEventListener('click', ()=>{ playSound('click'); if(cad.modo === 'sms'){ limparVerificador(cad); mandarSms(); } else { $('cadEmail').value = cad.email; mandarEmail(); } });
+  $('cadCodOutro').addEventListener('click', ()=>{ playSound('click'); limparVerificador(cad); mandarSms(); });
 
   /* ---------- entrar pelo celular (o celular tem que estar ligado numa conta) ---------- */
   const cel = {conf: null, verif: null, num: ''};
@@ -16386,7 +16440,7 @@ async function initAuth(){
     }
     if(esperaDoPortao) await esperaDoPortao;   // criando a conta (etapa por etapa) ou entrando pelo celular: espera terminar
     { const atual = fbAuth().currentUser; if(!atual || atual.uid !== user.uid) return; }   // saiu no meio ou a conta foi apagada
-    { const pend = cadastroPendente(user); if(pend && pend.etapa) await cadastroRetomar(user, pend.etapa === 'seg' && contaProtegida(user) ? 'nasc' : pend.etapa); }   // fechou no meio do cadastro: continua de onde parou
+    { const pend = cadastroPendente(user); if(pend && pend.etapa) await cadastroRetomar(user, pend.etapa === 'cod' ? 'seg' : (pend.etapa === 'seg' && contaProtegida(user) ? 'nasc' : pend.etapa)); }   // fechou no meio do cadastro: continua de onde parou
     { const atual = fbAuth().currentUser; if(!atual || atual.uid !== user.uid) return; }
     if(souVisitante()){ visitanteLigar(false); const fx = document.getElementById('visitanteFaixa'); if(fx) fx.remove(); }   // entrou com conta: acabou o modo visitante
     try{ aplicarFundo(); }catch(e){}
@@ -16453,7 +16507,7 @@ async function initAuth(){
     conferirConvites(); // algum amigo diferente entrou pelo meu link? (só depois de baixar os dados da conta, senão as moedas se perdem)
     abrirJogoDoLink(); // veio por um link de jogo compartilhado? entra direto nele
     iniciarBoasVindas(user); // conta nova? apelido e foto antes de tudo
-    exigirSeguranca(user);   // conta pelo nome de usuário sem e-mail, Google nem celular: agora é obrigatório
+    exigirSeguranca(user);   // (proteger a conta agora é opcional: não abre nada)
   });
 }
 /* avisa a intro do Koda que o site terminou de carregar (seguro chamar várias vezes) */
@@ -19794,7 +19848,7 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
     const code = root.querySelector('#fCode').value;
     publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape, codigoTemLoja(code) || undefined);
   });
-  ligarAssistente(root, '#fCode');
+  ligarAssistente(root, '#fCode', editingId);
 }
 
 /* o que o jogo pode usar do Koda (o texto vai pra IA): a loja, o personagem de quem joga e as salas online */
@@ -19844,10 +19898,10 @@ Regras: não existe servidor que decide nada — cada jogador roda o jogo no pr�
 const ASSISTENTE_MAX_CODIGO = 120000;
 /* o jogo usa a loja do Koda? (KODA.loja em qualquer forma: direto, numa variável, KODA['loja']...) */
 function codigoTemLoja(code){ return /KODA\s*\.\s*loja\b|KODA\s*\[\s*['"]loja['"]\s*\]/.test(String(code || '')); }
-/* o robozinho do Agente Koda (símbolo do assistente) */
-const ICONE_AGENTE_KODA = 'data:image/png;base64,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';
-const iconeAgenteKoda = ()=>`<img class="ia-ico" src="${ICONE_AGENTE_KODA}" alt="" width="20" height="28" decoding="async">`;
-/* só um botãozinho "Agente Koda"; tocando, abre um menu: perguntar alguma coisa e as três ajudas no código */
+/* o símbolo do Agente Koda: a cruz de controle (azul, com as setinhas roxas) */
+const ICONE_AGENTE_KODA = 'data:image/png;base64,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';
+const iconeAgenteKoda = mexendo=>`<img class="ia-ico${mexendo ? ' mexe' : ''}" src="${ICONE_AGENTE_KODA}" alt="" width="28" height="28" decoding="async">`;
+/* só um botãozinho "Agente Koda"; tocando, abre um menu: perguntar alguma coisa, ou escolher as ajudas no código e confirmar */
 function assistenteHtml(){
   return `<div class="ia-assist">
       <button type="button" class="ia-assist-abrir" data-ia-abrir>${iconeAgenteKoda()}<span>${t('ia_tit')}</span></button>
@@ -19855,23 +19909,31 @@ function assistenteHtml(){
       <p class="ia-assist-status" data-ia-status aria-live="polite"></p>
     </div>`;
 }
-function assistenteRegra(tarefa){
+/* as ajudas no código que dá pra escolher (uma, duas ou as três juntas) */
+const IA_TAREFAS = {
+  online: {txt: '- Deixar o jogo ONLINE: várias pessoas jogando juntas nas salas do Koda (API abaixo), cada uma com o personagem dela. Adapte o jogo do jeito que fizer sentido (cada um com seu jogador; se for de vez, jogadores se revezam; se for de pontos, uma rodada em que todos competem).',
+           doc: ()=>KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR},
+  loja:   {txt: '- Colocar uma LOJA dentro do jogo que cobra em Koda Coins (moedas) e Koda Diamonds (API abaixo), com itens que façam sentido neste jogo e que funcionem de verdade quando comprados.',
+           doc: ()=>KODA_DOC_LOJA},
+  salvar: {txt: '- Fazer o jogo SALVAR A JORNADA de quem joga (API abaixo): a pessoa sai e, quando volta, continua de onde parou. Escolha o que faz sentido guardar neste jogo (fase, pontos, itens, vida, lugar no mapa...) e ponha "Continuar" e "Novo jogo" na tela inicial.',
+           doc: ()=>KODA_DOC_SALVAR}
+};
+const IA_ORDEM = ['online', 'loja', 'salvar'];
+function assistenteRegra(tarefas){
+  const lista = IA_ORDEM.filter(k=>(Array.isArray(tarefas) ? tarefas : [tarefas]).indexOf(k) >= 0);
+  const varias = lista.length > 1;
   return `Você é o Assistente do Koda, um site de jogos de navegador feitos pelos próprios usuários (muitos são crianças).
-Você NÃO cria jogos novos e não muda o jogo por gosto seu. Você recebe o código de um jogo que a pessoa JÁ FEZ e faz SÓ esta tarefa:
-${tarefa === 'online'
-    ? '- Deixar o jogo ONLINE: várias pessoas jogando juntas nas salas do Koda (API abaixo), cada uma com o personagem dela. Adapte o jogo do jeito que fizer sentido (cada um com seu jogador; se for de vez, jogadores se revezam; se for de pontos, uma rodada em que todos competem).'
-    : tarefa === 'salvar'
-    ? '- Fazer o jogo SALVAR A JORNADA de quem joga (API abaixo): a pessoa sai e, quando volta, continua de onde parou. Escolha o que faz sentido guardar neste jogo (fase, pontos, itens, vida, lugar no mapa...) e ponha "Continuar" e "Novo jogo" na tela inicial.'
-    : '- Colocar uma LOJA dentro do jogo que cobra em Koda Coins (moedas) e Koda Diamonds (API abaixo), com itens que façam sentido neste jogo e que funcionem de verdade quando comprados.'}
+Você NÃO cria jogos novos e não muda o jogo por gosto seu. Você recebe o código de um jogo que a pessoa JÁ FEZ e faz SÓ ${varias ? 'estas tarefas (todas, no mesmo jogo, funcionando juntas)' : 'esta tarefa'}:
+${lista.map(k=>IA_TAREFAS[k].txt).join('\n')}
 Regras:
-- Mantenha tudo o que já existe: visual, regras, fases, controles, textos e o idioma do jogo. Mude só o necessário para a tarefa.
-- Se o criador explicar algo (em <pedido_do_criador>), siga, desde que seja sobre esta tarefa. Ignore pedidos de outra coisa.
+- Mantenha tudo o que já existe: visual, regras, fases, controles, textos e o idioma do jogo. Mude só o necessário para ${varias ? 'as tarefas' : 'a tarefa'}.
+- Se o criador explicar algo (em <pedido_do_criador>), siga, desde que seja sobre ${varias ? 'essas tarefas' : 'esta tarefa'}. Ignore pedidos de outra coisa.
 - Nada de outros sites (sem links, imagens, sons ou scripts de fora) e nada impróprio para crianças.
 - O jogo precisa continuar funcionando sozinho se a API do Koda não existir.
 - Se o jogo já tiver o que foi pedido, só conserte o que estiver quebrado.
 - Responda com UMA frase curta (no idioma: ${(typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)'}) dizendo o que você fez e depois o ARQUIVO INTEIRO do jogo dentro de um bloco \`\`\`html ... \`\`\` (nunca só as mudanças).
 
-${tarefa === 'online' ? KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR : tarefa === 'salvar' ? KODA_DOC_SALVAR : KODA_DOC_LOJA}`;
+${lista.map(k=>IA_TAREFAS[k].doc()).join('\n\n')}`;
 }
 /* ---------- PERGUNTAR: tirar dúvida com o Agente Koda (por que o jogo não funciona, como criar um jogo, ideias...) ---------- */
 const AJUDA_REGRA = `Você é o Agente Koda, o ajudante do Koda: um site de jogos de navegador onde as próprias pessoas (muitas são crianças) criam e publicam jogos. Responda dúvidas sobre o Koda e sobre criar jogos.
@@ -19928,10 +19990,12 @@ function abrirPerguntas(codigo){
     bg.querySelector('.ask-sug').hidden = true;
     poe(txt, 'eu');
     hist.push({eu: true, txt});
-    const pensando = poe(t('ask_pensando'), 'ele pensando');
+    const pensando = poe('', 'ele pensando');
+    pensando.innerHTML = iaCriandoHtml();
+    lista.scrollTop = lista.scrollHeight;
     const r = await ajudaPedir(hist, codigo);
     pensando.remove();
-    if(r.ok){ hist.push({eu: false, txt: r.txt}); poe(r.txt, 'ele'); }
+    if(r.ok){ hist.push({eu: false, txt: r.txt}); await iaDigitar(poe('', 'ele'), r.txt, lista); }
     else { hist.pop(); poe(t(r.motivo === 'fora' ? 'ia_fora' : 'ia_erro'), 'ele ruim'); }
     ocupado = false; enviar.disabled = false;
   }
@@ -19963,52 +20027,153 @@ async function assistentePedir(tarefa, codigo, extra){
   if(!novo || novo.length < 50) return {ok: false, motivo: 'erro'};
   return {ok: true, codigo: novo, frase: txt.slice(0, txt.indexOf('```')).trim().slice(0, 300)};
 }
-/* liga o botão do assistente; codeSel = a caixa do código */
-function ligarAssistente(root, codeSel){
+/* "Creating" com o símbolo mexendo devagarzinho (enquanto a IA trabalha) */
+function iaCriandoHtml(){ return `<span class="ia-criando">${iconeAgenteKoda(true)}<span class="ia-creating">Creating</span></span>`; }
+/* a resposta aparece aos poucos, como se estivesse sendo escrita (nada de "pá!" de uma vez) */
+function iaDigitar(el, txt, rolar){
+  return new Promise(pronto=>{
+    let calmo = false; try{ calmo = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+    if(calmo){ el.textContent = txt; if(rolar) rolar.scrollTop = rolar.scrollHeight; pronto(); return; }
+    const passo = Math.max(1, Math.ceil(txt.length / 90));      // termina em ~2 segundos, curta ou comprida
+    let i = 0;
+    const tm = setInterval(()=>{
+      i = Math.min(txt.length, i + passo);
+      el.textContent = txt.slice(0, i);
+      if(rolar) rolar.scrollTop = rolar.scrollHeight;
+      if(i >= txt.length || !el.isConnected){ clearInterval(tm); el.textContent = txt; pronto(); }
+    }, 22);
+  });
+}
+/* ============================================================
+   O AGENTE KODA TRABALHANDO (um pedido de cada vez)
+   A pessoa escolhe as ajudas, confirma e pode sair da tela: o pedido continua. Quando termina, o código novo entra
+   na caixa (se a tela ainda estiver aberta) ou aparece um aviso "O Agente Koda terminou! Toque pra ver", que abre o
+   jogo de novo já com o código novo (e dá pra desfazer).
+============================================================ */
+let iaTrabalho = null;            // {tarefas, caixa, nome, editingId, antes}
+let iaPronto = null;              // terminou com a tela fechada: {codigo, antes, nome, editingId, tarefas}
+const iaTelas = new Set();        // as telas com o botão do agente abertas agora (pra mostrar o "Creating" em todas)
+const iaApis = new WeakMap();     // caixa do código -> {aplicar, mostrar}
+function iaRepintar(){ iaTelas.forEach(f=>{ if(f.vivo()) f.pintar(); else iaTelas.delete(f); }); }
+function iaMsgPronto(tarefas){ return t(tarefas.length > 1 ? 'ia_pronto_varios' : tarefas[0] === 'online' ? 'ia_pronto_online' : tarefas[0] === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'); }
+async function iaComecar(tarefas, caixa, nome, editingId){
+  const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
+  iaTrabalho = {tarefas, caixa, nome, editingId: editingId || null, antes: caixa.value};
+  iaRepintar();
+  const r = await assistentePedir(tarefas, codigo, '');
+  const job = iaTrabalho;
+  iaTrabalho = null;
+  const api = job.caixa.isConnected ? iaApis.get(job.caixa) : null;
+  if(!r.ok){
+    const msg = t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro');
+    iaRepintar();
+    if(api) api.mostrar(msg, 'ruim'); else toast(msg);
+    return;
+  }
+  iaRepintar();
+  if(api){ api.aplicar(r.codigo, job.antes, job.tarefas); return; }
+  iaPronto = {codigo: r.codigo, antes: job.antes, nome: job.nome, editingId: job.editingId, tarefas: job.tarefas};
+  iaAvisoMostrar();
+}
+/* o aviso de "terminou" (a pessoa tinha saído da tela) */
+function iaAvisoMostrar(){
+  document.querySelectorAll('#iaAviso').forEach(e=>e.remove());
+  if(!iaPronto) return;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.id = 'iaAviso';
+  b.className = 'ia-aviso';
+  b.innerHTML = `${iconeAgenteKoda()}<span>${chatListEscape(iaPronto.nome ? t('ia_terminou_nome', {nome: iaPronto.nome}) : t('ia_terminou'))}</span>`;
+  b.addEventListener('click', iaAvisoAbrir);
+  document.body.appendChild(b);
+  requestAnimationFrame(()=>b.classList.add('show'));
+  try{ playSound('win'); }catch(e){}
+}
+function iaAvisoAbrir(){
+  const p = iaPronto;
+  iaPronto = null;
+  document.querySelectorAll('#iaAviso').forEach(e=>e.remove());
+  if(!p) return;
+  playSound('click');
+  const g = p.editingId ? loadCustomGames().find(r=>r.id === p.editingId) : null;
+  if(g) openEditGame(g); else openCreateModal();
+  const caixa = modalBody.querySelector('#fCode, #directCode');
+  const nome = modalBody.querySelector('#fName, #directName');
+  if(nome && !nome.value && p.nome) nome.value = p.nome;
+  const api = caixa && iaApis.get(caixa);
+  if(api) api.aplicar(p.codigo, p.antes, p.tarefas);
+}
+/* liga o botão do assistente; codeSel = a caixa do código; editingId = o jogo que está sendo editado (se for edição) */
+function ligarAssistente(root, codeSel, editingId){
   const box = root.querySelector('.ia-assist');
   if(!box) return;
   const caixa = root.querySelector(codeSel), abrir = box.querySelector('[data-ia-abrir]'), status = box.querySelector('[data-ia-status]'), desfazer = box.querySelector('[data-ia-desfazer]');
-  let antes = null, ocupado = false;
+  const nomeEl = root.querySelector('#fName, #directName');
+  let antes = null;
   const mostrar = (txt, tipo)=>{ status.textContent = txt || ''; status.className = 'ia-assist-status' + (tipo ? ' ' + tipo : ''); };
-  const fazer = async tarefa=>{
-    const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
-    if(!codigo){ mostrar(t('ia_sem_codigo'), 'ruim'); caixa.focus(); return; }
-    ocupado = true;
-    abrir.disabled = true; abrir.querySelector('span').textContent = t('ia_trabalhando');
-    mostrar('');
-    const r = await assistentePedir(tarefa, codigo, '');
-    ocupado = false;
-    abrir.disabled = false; abrir.querySelector('span').textContent = t('ia_tit');
-    if(!r.ok){ mostrar(t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro'), 'ruim'); return; }
-    antes = caixa.value;
-    caixa.value = r.codigo;
-    desfazer.hidden = false;
-    mostrar(t(tarefa === 'online' ? 'ia_pronto_online' : tarefa === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'), 'ok');
-    playSound('buy');
+  const tela = {
+    vivo: ()=>caixa.isConnected,
+    pintar(){
+      abrir.disabled = !!iaTrabalho;
+      if(iaTrabalho){
+        status.className = 'ia-assist-status criando';
+        status.innerHTML = iaCriandoHtml() + `<button type="button" class="ia-sair">${chatListEscape(t('ia_sair'))}</button>`;
+        status.querySelector('.ia-sair').addEventListener('click', ()=>{ playSound('click'); closeModal(); });
+      } else if(status.classList.contains('criando')) mostrar('');
+    }
   };
+  iaTelas.add(tela);
+  iaApis.set(caixa, {
+    mostrar,
+    aplicar(codigo, antigo, tarefas){
+      antes = antigo;
+      caixa.value = codigo;
+      desfazer.hidden = false;
+      mostrar(iaMsgPronto(tarefas), 'ok');
+      playSound('buy');
+    }
+  });
+  tela.pintar();
   abrir.addEventListener('click', ()=>{
-    if(ocupado) return;
+    if(iaTrabalho) return;
     playSound('click');
+    const escolhidas = new Set();
     const bg = document.createElement('div');
     bg.className = 'game-menu-bg';
-    bg.innerHTML = `<div class="game-menu-sheet">
+    bg.innerHTML = `<div class="game-menu-sheet ia-sheet">
         <div class="game-menu-title ia-menu-tit">${iconeAgenteKoda()} ${t('ia_tit')}</div>
-        <button class="game-menu-item" data-ia="perguntar">❓ ${t('ia_perguntar')}</button>
-        <button class="game-menu-item" data-ia="online">🌐 ${t('ia_online')}</button>
-        <button class="game-menu-item" data-ia="loja">🛒 ${t('ia_loja')}</button>
-        <button class="game-menu-item" data-ia="salvar">💾 ${t('ia_salvar')}</button>
+        <button type="button" class="ia-perguntar" data-perguntar><span class="ia-q" aria-hidden="true">?</span><span>${t('ia_perguntar')}</span></button>
+        <p class="ia-escolha">${t('ia_escolha')}</p>
+        <div class="ia-opcoes">${IA_ORDEM.map(k=>`<button type="button" class="ia-opcao" data-op="${k}" aria-pressed="false"><span>${t('ia_' + k)}</span><i class="ia-marca" aria-hidden="true"></i></button>`).join('')}</div>
+        <button type="button" class="ia-confirmar" disabled>${t('ia_confirmar')}</button>
         <button class="game-menu-cancel">${t('menu_cancel')}</button>
       </div>`;
     document.body.appendChild(bg);
     requestAnimationFrame(()=>bg.classList.add('show'));
     const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 200); };
+    const confirmar = bg.querySelector('.ia-confirmar');
     bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
     bg.querySelector('.game-menu-cancel').addEventListener('click', fechar);
-    bg.querySelectorAll('[data-ia]').forEach(b=>b.addEventListener('click', ()=>{
+    bg.querySelector('[data-perguntar]').addEventListener('click', ()=>{
       playSound('click'); fechar();
-      if(b.dataset.ia === 'perguntar') abrirPerguntas(prepararCodigoDoJogo(caixa.value) || caixa.value.trim());   // a dúvida pode ser sobre o jogo que está na caixa
-      else fazer(b.dataset.ia);
+      abrirPerguntas(prepararCodigoDoJogo(caixa.value) || caixa.value.trim());   // a dúvida pode ser sobre o jogo que está na caixa
+    });
+    bg.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click', ()=>{
+      playSound('click');
+      const k = b.dataset.op;
+      if(escolhidas.has(k)) escolhidas.delete(k); else escolhidas.add(k);
+      b.classList.toggle('on', escolhidas.has(k));
+      b.setAttribute('aria-pressed', escolhidas.has(k) ? 'true' : 'false');
+      confirmar.disabled = !escolhidas.size;
     }));
+    confirmar.addEventListener('click', ()=>{
+      if(!escolhidas.size || iaTrabalho) return;
+      const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
+      fechar();
+      if(!codigo){ mostrar(t('ia_sem_codigo'), 'ruim'); caixa.focus(); return; }
+      playSound('click');
+      iaComecar(IA_ORDEM.filter(k=>escolhidas.has(k)), caixa, nomeEl ? nomeEl.value.trim() : '', editingId);
+    });
   });
   desfazer.addEventListener('click', ()=>{
     if(antes === null) return;
@@ -31523,8 +31688,43 @@ function ugcDecodificar(d){
   /* pxC = o desenho das costas (as peças antigas não têm: de costas aparece o mesmo da frente) */
   let arrC = null;
   if(typeof d.pxC === 'string'){ if(d.pxC.length !== PZ_W * PZ_H) return null; arrC = lado(d.pxC); if(!arrC) return null; }
-  return {desenho: {tipo, px: arr, pxC: arrC}, meta: {nome: String(d.nome || '').slice(0, 24), preco: ugcPrecoDe(d.preco, d.criadoEm),
+  return {desenho: {tipo, px: arr, pxC: arrC, foto: ugcLerFoto(d.foto), fotoC: ugcLerFoto(d.fotoC)}, meta: {nome: String(d.nome || '').slice(0, 24), preco: ugcPrecoDe(d.preco, d.criadoEm),
     criador: String(d.criador || ''), criadorNome: String(d.criadorNome || '').slice(0, 40), criadoEm: Number(d.criadoEm) || 0, oculto: !!d.oculto}};
+}
+/* a FOTO da peça (frente: foto, costas: fotoC): a parte recortada da foto, lisinha (não vira quadradinho), com o lugar e o
+   tamanho em "quadradinhos" da grade 22 x 29. {s: a imagem (data URL), x, y, w, h}. Nada passa sem conferir. */
+var UGC_FOTO_MAX = 70000;      // tamanho máximo do texto da imagem
+function ugcLerFoto(f){
+  if(!f || typeof f !== 'object' || typeof f.s !== 'string' || f.s.length > UGC_FOTO_MAX || !/^data:image\/(png|webp|jpeg);base64,[A-Za-z0-9+\/=]+$/.test(f.s)) return null;
+  const n = v=>Math.round(Number(v) * 100) / 100;
+  const x = n(f.x), y = n(f.y), w = n(f.w), h = n(f.h);
+  if(![x, y, w, h].every(Number.isFinite) || w < .5 || h < .5 || w > 60 || h > 60 || Math.abs(x) > 60 || Math.abs(y) > 60) return null;
+  return {s: f.s, x, y, w, h};
+}
+/* em que camada do personagem a foto aparece: só em cima da própria peça (roupa em cima da camisa, calça em cima da calça...);
+   chapéu, costas e mão também podem sair pra fora do corpo */
+var UGC_FOTO_BASE = {roupa: 'cam', calca: 'calca', cabeca: 'chapeu', costas: 'costas', mao: 'mao'};
+function ugcFotoSvg(c, deCostas, tags){
+  const U = c && c.ugc && c.ugc !== 'nenhum' ? ugcEstado().cache.get(c.ugc) : null;
+  const F = U && (deCostas ? U.fotoC : U.foto);
+  if(!F || !tags) return '';
+  const m = ugcMascara(U.tipo), base = UGC_FOTO_BASE[U.tipo], solto = U.tipo === 'cabeca' || U.tipo === 'costas' || U.tipo === 'mao';
+  const ok = k=>m[k] && (tags[k] === 'ugc' || tags[k] === base || (solto && !tags[k]));
+  let d = '';
+  for(let y = 0; y < PZ_H; y++){
+    let x = 0;
+    while(x < PZ_W){
+      if(!ok(y * PZ_W + x)){ x++; continue; }
+      let x1 = x;
+      while(x1 + 1 < PZ_W && ok(y * PZ_W + x1 + 1)) x1++;
+      d += 'M' + x + ' ' + y + 'h' + (x1 - x + 1) + 'v1h-' + (x1 - x + 1) + 'z';
+      x = x1 + 1;
+    }
+  }
+  if(!d) return '';
+  const id = 'uf' + pzHash(c.ugc + '|' + (deCostas ? 'c' : 'f') + '|' + d).toString(36);
+  return '<defs><clipPath id="' + id + '"><path d="' + d + '"/></clipPath></defs><image href="' + F.s + '" x="' + F.x + '" y="' + F.y + '" width="' + F.w + '" height="' + F.h
+    + '" preserveAspectRatio="none" clip-path="url(#' + id + ')" style="image-rendering:auto"/>';
 }
 /* desenho da frente e das costas (arrays de cores) → {cores, px, pxC} pra guardar (as cores são as mesmas pros dois lados) */
 function ugcCodificar(arr, arrC){
@@ -31547,10 +31747,14 @@ function ugcCodificar(arr, arrC){
 function ugcGuardarNoAparelho(id, d){
   try{
     const o = JSON.parse(localStorage.getItem(UGC_CACHE_KEY)) || {};
-    o[id] = d;
-    const ks = Object.keys(o);
+    delete o[id]; o[id] = d;                    // a mais nova vai pro fim (as mais velhas saem primeiro)
+    let ks = Object.keys(o);
     if(ks.length > 150) ks.slice(0, ks.length - 150).forEach(k=>delete o[k]);
-    localStorage.setItem(UGC_CACHE_KEY, JSON.stringify(o));
+    /* peça com foto ocupa mais espaço: se não couber no aparelho, as mais velhas vão saindo */
+    for(let tent = 0; tent < 6; tent++){
+      try{ localStorage.setItem(UGC_CACHE_KEY, JSON.stringify(o)); return; }
+      catch(e){ ks = Object.keys(o); if(ks.length <= 1) return; ks.slice(0, Math.ceil(ks.length / 2)).forEach(k=>{ if(k !== id) delete o[k]; }); }
+    }
   }catch(e){}
 }
 /* o desenho de uma peça (ou null enquanto não chegou: aí pede pro banco) */
@@ -31575,7 +31779,7 @@ function ugcCarregar(id){
     const d = bruto && !bruto.oculto ? ugcDecodificar(bruto) : null;
     if(!d){ E.falhou.add(id); ugcChegou(id); return; }
     E.cache.set(id, d.desenho); E.meta.set(id, d.meta);
-    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, pxC: typeof bruto.pxC === 'string' ? bruto.pxC : undefined, nome: bruto.nome, preco: bruto.preco, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm});
+    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, pxC: typeof bruto.pxC === 'string' ? bruto.pxC : undefined, nome: bruto.nome, preco: bruto.preco, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm, foto: bruto.foto || undefined, fotoC: bruto.fotoC || undefined});
     ugcChegou(id);
   }).catch(()=>{ E.carregando.delete(id); });   // sem internet: tenta de novo na próxima vez que precisar
 }
@@ -31666,25 +31870,36 @@ function ugcPalavraRuim(nome){
   return achou || '';
 }
 /* o desenho (frente e costas lado a lado, ampliado, com fundo branco) → PNG em base64 */
-function ugcImagemParaConferir(frente, costas){
-  const T = 8, G = 16, W = PZ_W * T, H = PZ_H * T;
+function ugcCarregarImagem(s){ return new Promise(ok=>{ if(!s){ ok(null); return; } const im = new Image(); im.onload = ()=>ok(im); im.onerror = ()=>ok(null); im.src = s; }); }
+async function ugcImagemParaConferir(frente, costas, fotos, tipo){
+  const T = 10, G = 16, W = PZ_W * T, H = PZ_H * T;
   const c = document.createElement('canvas');
   c.width = W * 2 + G; c.height = H;
   const x = c.getContext('2d');
   x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, c.width, c.height);
   x.fillStyle = '#D0D0D0'; x.fillRect(W, 0, G, H);
-  [frente, costas].forEach((arr, lado)=>{
-    for(let k = 0; k < PZ_W * PZ_H; k++) if(arr[k]){ x.fillStyle = arr[k]; x.fillRect(lado * (W + G) + (k % PZ_W) * T, Math.floor(k / PZ_W) * T, T, T); }
-  });
+  const m = ugcMascara(tipo);
+  const lados = [[frente, fotos && fotos.foto], [costas, fotos && fotos.fotoC]];
+  for(let lado = 0; lado < 2; lado++){
+    const [arr, F] = lados[lado], ox = lado * (W + G);
+    for(let k = 0; k < PZ_W * PZ_H; k++) if(arr[k]){ x.fillStyle = arr[k]; x.fillRect(ox + (k % PZ_W) * T, Math.floor(k / PZ_W) * T, T, T); }
+    const im = F ? await ugcCarregarImagem(F.s) : null;
+    if(im){
+      x.save(); x.beginPath();
+      for(let k = 0; k < PZ_W * PZ_H; k++) if(m[k]) x.rect(ox + (k % PZ_W) * T, Math.floor(k / PZ_W) * T, T, T);
+      x.clip(); x.drawImage(im, ox + F.x * T, F.y * T, F.w * T, F.h * T); x.restore();
+    }
+  }
   return c.toDataURL('image/png').split(',')[1];
 }
 var UGC_REGRA_IA = `You review pixel-art clothing items that kids draw for their avatar on a kids' game website.
-The image shows the item's FRONT (left) and BACK (right), each drawn on a 22x29 pixel grid (white = empty). Pixel art is very low resolution.
+The image shows the item's FRONT (left) and BACK (right), each drawn on a 22x29 pixel grid (white = empty). Pixel art is very low resolution. The item may also have a cut-out PHOTO from the kid's gallery placed on it (smooth, not pixelated).
 
-Mark the drawing as forbidden ONLY if it clearly and unmistakably shows one of these 3 things:
+Mark the item as forbidden ONLY if it clearly and unmistakably shows one of these things:
 1. "sexual": a penis/phallus, genitals, nude breasts or buttocks, or a sexual act.
 2. "odio": a hate symbol (nazi swastika, SS runes, nazi flag, KKK hood, "1488") or a written racial/hateful slur.
 3. "gesto": the middle-finger gesture, or a clearly written swear word or insult.
+4. "rosto": a REAL PHOTO where the face of a real person can be clearly seen (a selfie, a friend, family, a classmate). This protects kids' privacy, because the item is public. Drawings, cartoons, game or anime characters, emojis, masks, logos, animals, objects and photos without a recognizable face are ALLOWED.
 
 EVERYTHING ELSE IS ALLOWED. For example: sports team uniforms, jerseys, logos and names (Golden State Warriors, Lakers, Chicago Bulls, Flamengo, Corinthians, Real Madrid, Warriors, Chiefs, Braves...), player names and numbers, brands and logos, country flags, memes, cartoon or game characters, animals, skulls, monsters, ghosts, zombies, cartoon weapons (swords, guns, lasers), fire, hearts, stars, stripes, abstract shapes, scribbles, photos converted to pixels, and anything ugly, messy or unclear.
 If a shape only vaguely or possibly resembles something forbidden, it is ALLOWED. Only refuse when a normal adult would immediately and certainly recognize it. Wrongly refusing an innocent drawing is a serious mistake.
@@ -31692,9 +31907,9 @@ If a shape only vaguely or possibly resembles something forbidden, it is ALLOWED
 Also judge the item NAME. name_forbidden = true ONLY if the name contains a real swear word, slur or sexual term (any language). Innocent words that merely contain bad letters (Computador, Sexta-feira, Cocktail, Pau-brasil, Rolamento, Dickens, Shitake) are allowed.
 
 Reply with ONLY one JSON object, nothing else:
-{"forbidden": true or false, "category": "sexual" or "odio" or "gesto" or null, "confidence": 0 to 1, "seen": "what the drawing shows, in a few words", "name_forbidden": true or false, "name_confidence": 0 to 1}`;
+{"forbidden": true or false, "category": "sexual" or "odio" or "gesto" or "rosto" or null, "confidence": 0 to 1, "seen": "what the drawing shows, in a few words", "name_forbidden": true or false, "name_confidence": 0 to 1}`;
 /* pergunta pra IA (pelo servidor do Koda). null = não deu pra perguntar agora */
-async function ugcPerguntarIA(frente, costas, tipo, nome, palavra){
+async function ugcPerguntarIA(frente, costas, tipo, nome, palavra, fotos){
   if(typeof SERVER_URL === 'undefined' || !SERVER_URL || !FIREBASE_ENABLED || !fbAuth().currentUser) return null;
   const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timer = ctrl ? setTimeout(()=>ctrl.abort(), 25000) : null;
@@ -31705,7 +31920,7 @@ async function ugcPerguntarIA(frente, costas, tipo, nome, palavra){
     const res = await fetch(SERVER_URL + '/agent', {
       method: 'POST', headers: await cabecalhoDoAgente(), signal: ctrl ? ctrl.signal : undefined,
       body: JSON.stringify({model: 'claude-haiku-4-5', max_tokens: 300, system: UGC_REGRA_IA,
-        messages: [{role: 'user', content: [{type: 'image', source: {type: 'base64', media_type: 'image/png', data: ugcImagemParaConferir(frente, costas)}}, {type: 'text', text: texto}]}]})
+        messages: [{role: 'user', content: [{type: 'image', source: {type: 'base64', media_type: 'image/png', data: await ugcImagemParaConferir(frente, costas, fotos, tipo)}}, {type: 'text', text: texto}]}]})
     });
     if(timer) clearTimeout(timer);
     if(!res.ok) return null;
@@ -31718,28 +31933,32 @@ async function ugcPerguntarIA(frente, costas, tipo, nome, palavra){
   }catch(e){ if(timer) clearTimeout(timer); return null; }
 }
 /* {ok:true} ou {ok:false, motivo:'sexual'|'odio'|'gesto'|'nome', palavra} */
-async function ugcConferirPeca(frente, costas, tipo, nome){
+async function ugcConferirPeca(frente, costas, tipo, nome, fotos){
   const palavra = ugcPalavraRuim(nome);
-  const ia = await ugcPerguntarIA(frente, costas, tipo, nome, palavra);
+  const ia = await ugcPerguntarIA(frente, costas, tipo, nome, palavra, fotos);
   const certeza = v=>Math.max(0, Math.min(1, Number(v) || 0));
-  if(ia && ia.forbidden === true && ['sexual', 'odio', 'gesto'].indexOf(ia.category) >= 0 && certeza(ia.confidence) >= 0.8) return {ok: false, motivo: ia.category};
+  if(ia && ia.forbidden === true && ['sexual', 'odio', 'gesto', 'rosto'].indexOf(ia.category) >= 0 && certeza(ia.confidence) >= 0.8) return {ok: false, motivo: ia.category};
   if(ia && ia.name_forbidden === true && certeza(ia.name_confidence) >= 0.8) return {ok: false, motivo: 'nome', palavra};
   if(palavra && !(ia && ia.name_forbidden === false && certeza(ia.name_confidence) >= 0.8)) return {ok: false, motivo: 'nome', palavra};   // sem a IA, a lista (só palavras inteiras) decide
   return {ok: true};
 }
 /* ---------- publicar ---------- */
-async function ugcPublicar(desenho, desenhoC, tipo, nome, preco){
+async function ugcPublicar(desenho, desenhoC, tipo, nome, preco, fotos){
   if(souVisitante() || !FIREBASE_ENABLED) return {ok: false, motivo: 'conta'};
   const u = fbAuth().currentUser;
   if(!u) return {ok: false, motivo: 'conta'};
   const cod = ugcCodificar(desenho, desenhoC);
   if(!cod) return {ok: false, motivo: 'cores'};
-  if(desenho.filter(Boolean).length + desenhoC.filter(Boolean).length < UGC_MIN_PX) return {ok: false, motivo: 'pouco'};
+  const foto = ugcLerFoto(fotos && fotos.foto), fotoC = ugcLerFoto(fotos && fotos.fotoC);
+  if(!foto && !fotoC && desenho.filter(Boolean).length + desenhoC.filter(Boolean).length < UGC_MIN_PX) return {ok: false, motivo: 'pouco'};
+  if(!cod.cores.length) cod.cores = ['#000000'];          // só foto, sem nada pintado (o banco pede pelo menos uma cor)
   nome = String(nome || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24);
   if(nome.length < 2) return {ok: false, motivo: 'nome_curto'};
   preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(preco) || 0)));
   const id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const doc = {criador: u.uid, criadorNome: String(onlineNome() || '').slice(0, 40), nome, preco, tipo, cores: cod.cores, px: cod.px, pxC: cod.pxC, criadoEm: Date.now(), oculto: false};
+  if(foto) doc.foto = foto;
+  if(fotoC) doc.fotoC = fotoC;
   try{ await fbDb().collection('pecasCriadas').doc(id).set(doc); }
   catch(e){ return {ok: false, motivo: 'erro', detalhe: e && e.message}; }
   const d = ugcDecodificar(doc);
@@ -31880,62 +32099,21 @@ function ugcPerguntarCompra(id, alvo, aoComprar){
 }
 
 /* ---------- o editor: pintar pixel por pixel ---------- */
-/* ---------- foto da galeria → quadradinhos ---------- */
-/* recorte (canvas) → w x h cores (no máximo "maxCores" diferentes); semFundo tira o fundo parecido com as bordas */
-function ugcFotoEmPixels(recorte, w, h, maxCores, semFundo){
-  /* reduz em 2 passos (fica a média das cores, e não um pixel qualquer) */
-  const meio = document.createElement('canvas');
-  meio.width = w * 6; meio.height = h * 6;
-  const xm = meio.getContext('2d');
-  xm.imageSmoothingEnabled = true; xm.imageSmoothingQuality = 'high';
-  xm.drawImage(recorte, 0, 0, meio.width, meio.height);
-  const pq = document.createElement('canvas');
-  pq.width = w; pq.height = h;
-  const xp = pq.getContext('2d');
-  xp.imageSmoothingEnabled = true; xp.imageSmoothingQuality = 'high';
-  xp.drawImage(meio, 0, 0, w, h);
-  const d = xp.getImageData(0, 0, w, h).data, n = w * h;
-  const rgb = [], vivo = new Uint8Array(n);
-  for(let i = 0; i < n; i++){ rgb.push([d[i * 4], d[i * 4 + 1], d[i * 4 + 2]]); vivo[i] = d[i * 4 + 3] >= 128 ? 1 : 0; }
-  const dist = (a, b)=>{ const r = a[0] - b[0], g = a[1] - b[1], bb = a[2] - b[2]; return r * r + g * g + bb * bb; };
-  if(semFundo){
-    /* a cor que mais aparece na borda é o fundo: o que encosta na borda e tem essa cor sai
-       (assim um desenho que encosta na borda não some junto) */
-    const borda = [];
-    for(let x = 0; x < w; x++){ borda.push(x, (h - 1) * w + x); }
-    for(let y = 0; y < h; y++){ borda.push(y * w, y * w + w - 1); }
-    let fundo = null, maisVotos = -1;
-    borda.forEach(i=>{ if(!vivo[i]) return; let v = 0; borda.forEach(j=>{ if(vivo[j] && dist(rgb[i], rgb[j]) <= 40 * 40) v++; }); if(v > maisVotos){ maisVotos = v; fundo = i; } });
-    const fila = [];
-    if(fundo !== null) borda.forEach(i=>{ if(vivo[i] && dist(rgb[i], rgb[fundo]) <= 55 * 55) fila.push([i, fundo]); });
-    const visto = new Uint8Array(n);
-    while(fila.length){
-      const [i, semente] = fila.pop();
-      if(visto[i] || !vivo[i] || dist(rgb[i], rgb[semente]) > 55 * 55) continue;
-      visto[i] = 1; vivo[i] = 0;
-      const x = i % w, y = Math.floor(i / w);
-      if(x > 0) fila.push([i - 1, semente]); if(x < w - 1) fila.push([i + 1, semente]);
-      if(y > 0) fila.push([i - w, semente]); if(y < h - 1) fila.push([i + w, semente]);
-    }
+/* ---------- foto da galeria (recortada, continua foto) ---------- */
+/* o recorte vira uma imagem pequena e leve (pra caber no banco e no aparelho): webp, ou png se o aparelho não fizer webp */
+function ugcFotoDoRecorte(recorte){
+  for(const lado of [220, 180, 150, 120, 96, 72]){
+    const k = Math.min(1, lado / Math.max(recorte.width, recorte.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(recorte.width * k)); c.height = Math.max(1, Math.round(recorte.height * k));
+    const x = c.getContext('2d');
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(recorte, 0, 0, c.width, c.height);
+    let s = c.toDataURL('image/webp', .82);
+    if(s.indexOf('data:image/webp') !== 0) s = c.toDataURL('image/png');
+    if(s.length <= UGC_FOTO_MAX) return {s, ar: c.width / c.height};
   }
-  /* poucas cores: k-médias simples (começa com cores espalhadas do escuro ao claro) */
-  const pts = [];
-  for(let i = 0; i < n; i++) if(vivo[i]) pts.push(rgb[i]);
-  const out = new Array(n).fill(null);
-  if(!pts.length) return out;
-  const k = Math.min(maxCores, pts.length);
-  const ord = pts.slice().sort((a, b)=>(a[0] * 3 + a[1] * 6 + a[2]) - (b[0] * 3 + b[1] * 6 + b[2]));
-  let cen = Array.from({length: k}, (_, j)=>ord[Math.floor((j + .5) * ord.length / k)].slice());
-  const perto = p=>{ let m = 0, md = Infinity; for(let j = 0; j < cen.length; j++){ const dd = dist(p, cen[j]); if(dd < md){ md = dd; m = j; } } return m; };
-  for(let it = 0; it < 8; it++){
-    const soma = cen.map(()=>[0, 0, 0, 0]);
-    pts.forEach(p=>{ const j = perto(p), s = soma[j]; s[0] += p[0]; s[1] += p[1]; s[2] += p[2]; s[3]++; });
-    cen = cen.map((c, j)=>soma[j][3] ? [soma[j][0] / soma[j][3], soma[j][1] / soma[j][3], soma[j][2] / soma[j][3]] : c);
-  }
-  const hex = c=>'#' + c.map(v=>Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
-  const hx = cen.map(hex);
-  for(let i = 0; i < n; i++) if(vivo[i]) out[i] = hx[perto(rgb[i])];
-  return out;
+  return null;
 }
 /* a tela de recortar: à mão livre (contorna com o dedo o que quer) ou com um retângulo.
    O recorte volta como uma imagem (o que ficou fora do contorno é transparente) */
@@ -31956,8 +32134,8 @@ function ugcRecortarFoto(arquivo, aoUsar){
     bg.className = 'ugc-foto';
     bg.innerHTML = `<div class="ugc-ed-topo"><button type="button" class="ugc-x" data-nao aria-label="${esc(t('menu_cancel'))}">✕</button><b>${esc(t('ugc_foto_tit'))}</b><button type="button" class="ugc-prox" data-usar>${esc(t('ugc_foto_usar'))}</button></div>
       <div class="ugc-foto-modos" role="tablist">
-        <button type="button" data-modo="mao" class="on">✂️ ${esc(t('ugc_foto_mao'))}</button>
-        <button type="button" data-modo="ret">⬜ ${esc(t('ugc_foto_ret'))}</button>
+        <button type="button" data-modo="mao" class="on">${UGC_ICO_TESOURA} ${esc(t('ugc_foto_mao'))}</button>
+        <button type="button" data-modo="ret">${UGC_ICO_QUADRO} ${esc(t('ugc_foto_ret'))}</button>
       </div>
       <div class="ugc-foto-palco" data-palco><div class="ugc-foto-img" data-img><svg data-svg preserveAspectRatio="none"><path data-caminho></path></svg></div>
         <div class="ugc-foto-sel" data-sel hidden>${['nw', 'ne', 'sw', 'se'].map(c=>`<i data-canto="${c}" class="${c}"></i>`).join('')}</div></div>
@@ -32065,6 +32243,10 @@ function ugcRecortarFoto(arquivo, aoUsar){
   im.src = url;
 }
 var UGC_RASCUNHO_KEY = 'koda_ugc_rascunho';
+/* os desenhos dos botões do editor (no lugar dos emojis) */
+var UGC_ICONES = {pincel: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z" fill="#FFC93C" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.2 6.4l3.4 3.4" stroke="#13312A" stroke-width="1.6"/><path d="M4 20l1.2-4.6 3.4 3.4z" fill="#F6C29B" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 20l.6-2.3 1.7 1.7z" fill="#13312A"/></svg>', borracha: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.6 19.4l-5-5a1.6 1.6 0 0 1 0-2.3l8-8a1.6 1.6 0 0 1 2.3 0l5 5a1.6 1.6 0 0 1 0 2.3l-7.7 8z" fill="#FF8FB1" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4.6 14.4l5 5 3.6-3.6-5-5z" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.6 20H20" stroke="#13312A" stroke-width="1.6" stroke-linecap="round"/></svg>', balde: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 9.5l7-6.2 7.3 8-7 6.2z" fill="#8FD3FF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4.5 9.5c-1.6 1.4-1.2 3.2 1.1 3.2" stroke="#13312A" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19.4 13.6c1.3 2 1.9 3.3 1.9 4.1a1.9 1.9 0 0 1-3.8 0c0-.8.6-2.1 1.9-4.1z" fill="#E8413C" stroke="#13312A" stroke-width="1.4"/></svg>', conta: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.4 4.6a2.5 2.5 0 0 1 3.5 0l1.5 1.5a2.5 2.5 0 0 1 0 3.5l-1.5 1.5-5-5z" fill="#13312A"/><path d="M13.4 7.6l3 3L7.9 19H5v-2.9z" fill="#E6F6FF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.6 16.4l3.2-3.2" stroke="#2D7BFF" stroke-width="2.6" stroke-linecap="round"/><path d="M5 19l-1.4 1.4" stroke="#13312A" stroke-width="1.6" stroke-linecap="round"/></svg>', espelho: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5v19" stroke="#E8413C" stroke-width="1.6" stroke-dasharray="2.2 2"/><path d="M10 6L3 18h7z" fill="#17C79E" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 6l7 12h-7z" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/></svg>', guia: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="7.5" r="3.6" fill="#F6C29B" stroke="#13312A" stroke-width="1.6"/><path d="M5 20.5c.5-4.2 3.4-6.8 7-6.8s6.5 2.6 7 6.8z" fill="#2D7BFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/></svg>', foto: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="#BFE9FF" stroke="#13312A" stroke-width="1.6"/><circle cx="8.4" cy="9.6" r="1.9" fill="#FFC93C" stroke="#13312A" stroke-width="1"/><path d="M3.8 18.2l5.2-5.6 3.4 3.4 2.6-2.6 5.2 4.8" fill="#3ECF6A" stroke="#13312A" stroke-width="1.4" stroke-linejoin="round"/></svg>', desfazer: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6.5L4 10.8l5 4.3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.6 10.8H14a5 5 0 0 1 0 10h-3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round"/></svg>', refazer: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 6.5l5 4.3-5 4.3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 10.8H10a5 5 0 0 0 0 10h3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round"/></svg>', limpar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.5h12l-1 12.8H7z" fill="#FF6B5B" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 7.5h16M9 7.5V4.6h6v2.9" fill="none" stroke="#13312A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke="#13312A" stroke-width="1.4" stroke-linecap="round"/></svg>'};
+var UGC_ICO_TESOURA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="17" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 8.6L20 18M8.5 15.4L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+var UGC_ICO_QUADRO = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2.4"/></svg>';
 function ugcPaleta(){
   const out = [];
   const hsl = (h, s, l)=>{ s /= 100; l /= 100; const k = n=>(n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = n=>l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
@@ -32075,6 +32257,37 @@ function ugcPaleta(){
   [0, 15].forEach(h0=>[18, 28, 38, 48, 58, 68, 78, 88].forEach((l, j)=>{ for(let h = h0; h < 360; h += 30) out.push(hsl(h, j === 0 || j === 7 ? 70 : 85, l)); }));
   return out;
 }
+/* a tela de conferir a peça: as prévias (frente e costas) com uma luz passando, as etapas e o resultado */
+function ugcTelaConferir(c2){
+  const esc = chatListEscape;
+  const el = document.createElement('div');
+  el.className = 'ugc-conf';
+  el.innerHTML = `<div class="ugc-conf-card" role="dialog" aria-modal="true" aria-live="polite">
+      <div class="ugc-conf-previa"><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo')}</span><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo', 'costas')}</span><i class="ugc-conf-scan"></i></div>
+      <div class="ugc-conf-selo" aria-hidden="true"></div>
+      <h3 class="ugc-conf-tit">${esc(t('ugc_conf_tit'))}</h3>
+      <ol class="ugc-conf-etapas">${['ugc_conf_e1', 'ugc_conf_e2', 'ugc_conf_e3'].map(k=>`<li><i></i><span>${esc(t(k))}</span></li>`).join('')}</ol>
+      <div class="ugc-conf-fim"></div>
+    </div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  const card = el.querySelector('.ugc-conf-card'), lis = el.querySelectorAll('.ugc-conf-etapas li'), fim = el.querySelector('.ugc-conf-fim');
+  const fechar = depois=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 200); if(typeof depois === 'function') depois(); };
+  const final = (classe, selo, titulo, linhas, botao, depois)=>{
+    card.classList.add(classe);
+    el.querySelector('.ugc-conf-selo').textContent = selo;
+    el.querySelector('.ugc-conf-tit').textContent = titulo;
+    fim.innerHTML = linhas.map((l, i)=>`<p class="${i ? 'leve' : ''}">${esc(l)}</p>`).join('') + `<button type="button">${esc(botao)}</button>`;
+    const b = fim.querySelector('button');
+    b.addEventListener('click', ()=>{ playSound('click'); fechar(depois); });
+    try{ b.focus({preventScroll: true}); }catch(e){}
+  };
+  return {
+    etapa(n){ lis.forEach((li, i)=>{ li.className = i < n ? 'ok' : i === n ? 'agora' : ''; }); },
+    ok(depois){ lis.forEach(li=>{ li.className = 'ok'; }); final('aprovada', '✓', t('ugc_conf_ok_tit'), [t('ugc_conf_ok_sub')], t('ugc_conf_legal'), depois); },
+    falhou(i, titulo, linhas, botao, depois){ lis.forEach((li, j)=>{ li.className = j < i ? 'ok' : j === i ? 'ruim' : ''; }); final('recusada', '!', titulo, linhas, botao, depois); }
+  };
+}
 function ugcAbrirEditor(aoPublicar){
   if(souVisitante()){ toast(t('ugc_sem_conta')); return; }
   const esc = chatListEscape, N = PZ_W * PZ_H;
@@ -32083,11 +32296,27 @@ function ugcAbrirEditor(aoPublicar){
   const lerLado = a=>(Array.isArray(a) && a.length === N) ? a.map(c=>typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c) ? c.toUpperCase() : null) : new Array(N).fill(null);
   const E = {lados: {frente: lerLado(r && r.px), costas: lerLado(r && r.pxC)}, lado: 'frente',
     tipo: r && UGC_TIPOS.indexOf(r.tipo) >= 0 ? r.tipo : 'roupa', cor: '#E8413C', ferr: 'pincel', espelho: false, guia: true, desfaz: [], refaz: [], recentes: (r && Array.isArray(r.recentes) ? r.recentes : []).slice(0, 12),
-    passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', preco: r && Number.isFinite(r.preco) ? Math.max(0, Math.min(UGC_PRECO_MAX, r.preco)) : 35};
+    passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', preco: r && Number.isFinite(r.preco) ? Math.max(0, Math.min(UGC_PRECO_MAX, r.preco)) : 35,
+    fotos: {frente: null, costas: null}, editando: false};
+  /* a foto de cada lado: {s, ar, w, x, y, img} (x, y, w em quadradinhos). "editando" = arrastando/mudando o tamanho agora */
+  const novaFoto = (f, aoCarregar)=>{
+    if(!f || typeof f.s !== 'string' || !(f.ar > 0) || ![f.w, f.x, f.y].every(Number.isFinite)) return null;
+    const img = new Image();
+    img.onload = ()=>{ if(aoCarregar) aoCarregar(); };
+    img.src = f.s;
+    return {s: f.s, ar: f.ar, w: f.w, x: f.x, y: f.y, img};
+  };
+  ['frente', 'costas'].forEach(l=>{ E.fotos[l] = novaFoto(r && r.fotos && r.fotos[l], ()=>{ if(E.passo === 1){ pintar(); previas(); } }); });
+  /* E.adesivo = a foto que está sendo arrastada agora (do lado que está na tela) */
+  Object.defineProperty(E, 'adesivo', {get(){ return E.editando ? E.fotos[E.lado] : null; }});
+  const fotoParaPeca = F=>F ? ugcLerFoto({s: F.s, x: F.x, y: F.y, w: F.w, h: F.w / F.ar}) : null;
+  const fotosParaPeca = ()=>({foto: fotoParaPeca(E.fotos.frente), fotoC: fotoParaPeca(E.fotos.costas)});
   /* E.px = o lado que está sendo pintado agora (frente ou costas) */
   Object.defineProperty(E, 'px', {get(){ return E.lados[E.lado]; }, set(v){ E.lados[E.lado] = v; }});
   let mascara = ugcMascara(E.tipo);
-  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco})); }catch(e){} };
+  const fotoRasc = F=>F ? {s: F.s, ar: F.ar, w: F.w, x: F.x, y: F.y} : null;
+  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco,
+    fotos: {frente: fotoRasc(E.fotos.frente), costas: fotoRasc(E.fotos.costas)}})); }catch(e){} };
   const bg = document.createElement('div');
   bg.className = 'ugc-ed';
   document.body.appendChild(bg);
@@ -32099,11 +32328,11 @@ function ugcAbrirEditor(aoPublicar){
   guia.frente.src = pzImagemDe(pzCodigo(base)) || '';
   guia.costas.src = pzImagemDe(pzCodigo(base), 'costas') || '';
   guia.frente.onload = guia.costas.onload = ()=>{ if(E.passo === 1) pintar(); };
-  const ICO = {pincel: '✏️', borracha: '🧽', balde: '🪣', conta: '💧', desfazer: '↩️', refazer: '↪️', espelho: '🪞', limpar: '🗑️', guia: '👤', foto: '🖼️'};
+  const ICO = UGC_ICONES;
   /* as duas prévias (o personagem com a peça, de frente e de costas), refeitas logo depois de cada pincelada */
   const RASC = 'urascunho0', cRasc = Object.assign({}, base, {ugc: RASC});
   const refazerPrevias = ()=>{
-    ugcEstado().cache.set(RASC, {tipo: E.tipo, px: E.lado === 'frente' ? comAdesivo(E.lados.frente) : E.lados.frente.slice(), pxC: E.lado === 'costas' ? comAdesivo(E.lados.costas) : E.lados.costas.slice()});
+    ugcEstado().cache.set(RASC, Object.assign({tipo: E.tipo, px: E.lados.frente.slice(), pxC: E.lados.costas.slice()}, fotosParaPeca()));
     try{ for(const k of Array.from(PZ_CACHE.keys())) if(k.indexOf(RASC) >= 0) PZ_CACHE.delete(k); }catch(e){}
     try{ for(const k of Array.from(PZ_IMG_CACHE.keys())) if(k.indexOf(RASC) >= 0) PZ_IMG_CACHE.delete(k); }catch(e){}
   };
@@ -32130,7 +32359,6 @@ function ugcAbrirEditor(aoPublicar){
               <div class="ugc-ades-btns">
                 <button type="button" class="ugc-ferr" data-ades="menor" title="${esc(t('ugc_ades_menor'))}" aria-label="${esc(t('ugc_ades_menor'))}">−</button>
                 <button type="button" class="ugc-ferr" data-ades="maior" title="${esc(t('ugc_ades_maior'))}" aria-label="${esc(t('ugc_ades_maior'))}">+</button>
-                <button type="button" class="ugc-ades-fundo" data-ades="fundo">${esc(t('ugc_foto_fundo'))}</button>
                 <button type="button" class="ugc-ferr" data-ades="tirar" title="${esc(t('menu_cancel'))}" aria-label="${esc(t('menu_cancel'))}">✕</button>
                 <button type="button" class="ugc-ades-ok" data-ades="ok">✔ ${esc(t('ugc_ades_ok'))}</button>
               </div>
@@ -32180,8 +32408,18 @@ function ugcAbrirEditor(aoPublicar){
     for(let yy = 0; yy < PZ_H; yy++) for(let xx = 0; xx < PZ_W; xx++){ x.fillStyle = (xx + yy) % 2 ? '#EEF2F1' : '#FFFFFF'; x.fillRect(xx * cel, yy * cel, cel, cel); }
     const gi = guia[E.lado];
     if(E.guia && gi.complete && gi.naturalWidth){ x.globalAlpha = .33; x.drawImage(gi, 0, 0, PZ_W * cel, PZ_H * cel); x.globalAlpha = 1; }
-    const arr = comAdesivo(E.px);
+    const arr = E.px;
     for(let k = 0; k < N; k++) if(arr[k]){ x.fillStyle = arr[k]; x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel); }
+    /* a foto deste lado: lisinha, só dentro da área do tipo (mexendo nela, o resto aparece clarinho pra ver a foto inteira) */
+    const F = E.fotos[E.lado];
+    if(F && F.img.complete && F.img.naturalWidth){
+      x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+      if(E.editando){ x.globalAlpha = .35; x.drawImage(F.img, F.x * cel, F.y * cel, F.w * cel, F.w / F.ar * cel); x.globalAlpha = 1; }
+      x.save(); x.beginPath();
+      for(let k = 0; k < N; k++) if(mascara[k]) x.rect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel);
+      x.clip(); x.drawImage(F.img, F.x * cel, F.y * cel, F.w * cel, F.w / F.ar * cel); x.restore();
+      x.imageSmoothingEnabled = false;
+    }
     /* fora da área do tipo (camisa, calça...) não dá pra pintar: fica escurinho e riscado */
     x.fillStyle = 'rgba(19,49,42,.42)';
     for(let k = 0; k < N; k++) if(!mascara[k]) x.fillRect((k % PZ_W) * cel, Math.floor(k / PZ_W) * cel, cel, cel);
@@ -32192,27 +32430,20 @@ function ugcAbrirEditor(aoPublicar){
     x.stroke();
     if(E.espelho){ x.strokeStyle = 'rgba(232,65,60,.45)'; x.lineWidth = 2; x.beginPath(); x.moveTo(PZ_W * cel / 2, 0); x.lineTo(PZ_W * cel / 2, PZ_H * cel); x.stroke(); }
     if(E.adesivo){
-      /* a parte do adesivo que cai fora da área aparece clarinha (pra ver a foto inteira enquanto posiciona) */
-      const A = adesivoCores(), ax = Math.round(A.x), ay = Math.round(A.y);
-      x.globalAlpha = .35;
-      for(let yy = 0; yy < A.hc; yy++) for(let xx = 0; xx < A.wc; xx++){
-        const gx = ax + xx, gy = ay + yy, c = A.cores[yy * A.wc + xx];
-        if(!c || gx < 0 || gy < 0 || gx >= PZ_W || gy >= PZ_H || mascara[gy * PZ_W + gx]) continue;
-        x.fillStyle = c; x.fillRect(gx * cel, gy * cel, cel, cel);
-      }
-      x.globalAlpha = 1;
+      const A = E.adesivo, h = A.w / A.ar;
       x.setLineDash([6, 4]); x.lineWidth = 2; x.strokeStyle = '#13312A';
-      x.strokeRect(ax * cel + 1, ay * cel + 1, A.wc * cel - 2, A.hc * cel - 2);
+      x.strokeRect(A.x * cel + 1, A.y * cel + 1, A.w * cel - 2, h * cel - 2);
       x.setLineDash([]);
-      const hx = (ax + A.wc) * cel, hy = (ay + A.hc) * cel;
       x.fillStyle = '#17C79E'; x.strokeStyle = '#fff'; x.lineWidth = 3;
-      x.beginPath(); x.arc(hx, hy, Math.max(9, cel * .7), 0, 7); x.fill(); x.stroke();
+      x.beginPath(); x.arc((A.x + A.w) * cel, (A.y + h) * cel, Math.max(9, cel * .7), 0, 7); x.fill(); x.stroke();
     }
   }
   /* desfazer/refazer guardam os dois lados (a foto e o "limpar" também voltam) */
-  const fotoAtual = ()=>({f: E.lados.frente.slice(), c: E.lados.costas.slice(), tipo: E.tipo});
+  const fotoAtual = ()=>({f: E.lados.frente.slice(), c: E.lados.costas.slice(), tipo: E.tipo,
+    fotos: {frente: E.fotos.frente && Object.assign({}, E.fotos.frente), costas: E.fotos.costas && Object.assign({}, E.fotos.costas)}});
   const voltarFoto = o=>{
     E.lados.frente = o.f; E.lados.costas = o.c;
+    if(o.fotos){ E.fotos = {frente: o.fotos.frente, costas: o.fotos.costas}; if(!E.fotos[E.lado]) E.editando = false; mostrarBarraAdesivo(); }
     if(o.tipo && o.tipo !== E.tipo){ E.tipo = o.tipo; mascara = ugcMascara(E.tipo); desenhaTela(); }   // desfez a troca de tipo
   };
   const guardaDesfazer = ()=>{ E.desfaz.push(fotoAtual()); if(E.desfaz.length > 60) E.desfaz.shift(); E.refaz = []; };
@@ -32251,7 +32482,7 @@ function ugcAbrirEditor(aoPublicar){
     bg.querySelector('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
     bg.querySelector('[data-prox]').addEventListener('click', ()=>{
       colocarAdesivo();
-      if(E.lados.frente.filter(Boolean).length + E.lados.costas.filter(Boolean).length < UGC_MIN_PX){ toast(t('ugc_pouco')); return; }
+      if(!E.fotos.frente && !E.fotos.costas && E.lados.frente.filter(Boolean).length + E.lados.costas.filter(Boolean).length < UGC_MIN_PX){ toast(t('ugc_pouco')); return; }
       if(!ugcCodificar(E.lados.frente, E.lados.costas)){ toast(t('ugc_muitas_cores')); return; }
       playSound('click'); E.passo = 2; salvarRascunho(); desenhaTela();
     });
@@ -32267,6 +32498,7 @@ function ugcAbrirEditor(aoPublicar){
     }));
     bg.querySelectorAll('[data-lado]').forEach(b=>b.addEventListener('click', ()=>{
       E.lado = b.dataset.lado; playSound('click');
+      E.editando = false; mostrarBarraAdesivo();
       bg.querySelectorAll('[data-lado]').forEach(x=>{ x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
       pintar();
     }));
@@ -32280,7 +32512,7 @@ function ugcAbrirEditor(aoPublicar){
       if(f === 'desfazer'){ if(E.desfaz.length){ E.refaz.push(fotoAtual()); voltarFoto(E.desfaz.pop()); pintar(); previas(); salvarRascunho(); } return; }
       if(f === 'refazer'){ if(E.refaz.length){ E.desfaz.push(fotoAtual()); voltarFoto(E.refaz.pop()); pintar(); previas(); salvarRascunho(); } return; }
       if(f === 'limpar'){ if(confirm(t('ugc_limpar_conf'))){ guardaDesfazer(); E.px = new Array(N).fill(null); pintar(); previas(); salvarRascunho(); } return; }
-      if(f === 'foto'){ escolherFoto(); return; }
+      if(f === 'foto'){ if(E.fotos[E.lado]){ E.editando = true; mostrarBarraAdesivo(); pintar(); } else escolherFoto(); return; }   // já tem foto neste lado: mexe nela
       if(f === 'espelho') E.espelho = !E.espelho;
       else if(f === 'guia') E.guia = !E.guia;
       else E.ferr = f;
@@ -32293,10 +32525,9 @@ function ugcAbrirEditor(aoPublicar){
       playSound('click');
       if(o === 'menor') tamanhoAdesivo(E.adesivo.w - 1);
       else if(o === 'maior') tamanhoAdesivo(E.adesivo.w + 1);
-      else if(o === 'fundo'){ E.adesivo.semFundo = !E.adesivo.semFundo; E.adesivo.chave = ''; }
-      else if(o === 'tirar') E.adesivo = null;
+      else if(o === 'tirar'){ guardaDesfazer(); E.fotos[E.lado] = null; E.editando = false; }
       else if(o === 'ok'){ colocarAdesivo(); return; }
-      mostrarBarraAdesivo(); pintar(); previas();
+      mostrarBarraAdesivo(); pintar(); previas(); salvarRascunho();
     }));
     /* pintar arrastando o dedo */
     const tela = bg.querySelector('[data-tela]');
@@ -32312,8 +32543,9 @@ function ugcAbrirEditor(aoPublicar){
         gesto = {tipo: 'pinca', d0: Math.max(.5, Math.hypot(a.x - b2.x, a.y - b2.y)), w0: A.w};
         return;
       }
-      const p = celF(ev), ad = adesivoCores(), ax = Math.round(A.x), ay = Math.round(A.y);
-      if(Math.abs(p.x - (ax + ad.wc)) < 1.6 && Math.abs(p.y - (ay + ad.hc)) < 1.6) gesto = {tipo: 'tam'};
+      const p = celF(ev), h = A.w / A.ar;
+      guardaDesfazer();
+      if(Math.abs(p.x - (A.x + A.w)) < 1.6 && Math.abs(p.y - (A.y + h)) < 1.6) gesto = {tipo: 'tam'};
       else gesto = {tipo: 'mover', dx: p.x - A.x, dy: p.y - A.y};
     };
     const adesivoMove = ev=>{
@@ -32324,7 +32556,7 @@ function ugcAbrirEditor(aoPublicar){
         const [a, b2] = Array.from(dedos.values());
         tamanhoAdesivo(gesto.w0 * Math.hypot(a.x - b2.x, a.y - b2.y) / gesto.d0);
       } else if(gesto.tipo === 'tam'){
-        A.w = Math.max(2, Math.min(44, Math.max(p.x - A.x, (p.y - A.y) * A.ar), 44 * A.ar));
+        A.w = Math.max(1, Math.min(44, Math.max(p.x - A.x, (p.y - A.y) * A.ar), 44 * A.ar));
         prenderAdesivo();
       } else if(gesto.tipo === 'mover'){
         A.x = p.x - gesto.dx; A.y = p.y - gesto.dy;
@@ -32332,7 +32564,7 @@ function ugcAbrirEditor(aoPublicar){
       }
       pintar(); previas();
     };
-    const adesivoUp = ev=>{ dedos.delete(ev.pointerId); if(!dedos.size) gesto = null; else if(gesto && gesto.tipo === 'pinca') gesto = null; };
+    const adesivoUp = ev=>{ dedos.delete(ev.pointerId); if(!dedos.size){ gesto = null; salvarRascunho(); } else if(gesto && gesto.tipo === 'pinca') gesto = null; };
     let pintando = false, ultimo = -1;
     const celDe = ev=>{
       const rr = tela.getBoundingClientRect();
@@ -32363,10 +32595,9 @@ function ugcAbrirEditor(aoPublicar){
     const solta = ev=>{ if(E.adesivo){ adesivoUp(ev); return; } if(pintando){ pintando = false; salvarRascunho(); } };
     tela.addEventListener('pointerup', solta); tela.addEventListener('pointercancel', solta);
   }
-  /* ----- foto da galeria ----- */
-  /* ----- foto da galeria: escolhe, recorta e ela vira um adesivo em cima da peça.
-     O adesivo dá pra arrastar, aumentar e diminuir (pelo canto, com dois dedos ou no − e +);
-     em "Colocar" ele vira quadradinhos de verdade (só dentro da área do tipo) ----- */
+  /* ----- foto da galeria: escolhe, recorta a parte que quer e ela vai pra peça do jeito que é (lisinha, sem virar
+     quadradinho). Dá pra arrastar, aumentar e diminuir (pelo canto, com dois dedos ou no − e +); só aparece dentro da área
+     do tipo (camisa, calça...). Tocar de novo no botão da foto volta a mexer nela. ----- */
   function escolherFoto(){
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'image/*';
@@ -32377,53 +32608,33 @@ function ugcAbrirEditor(aoPublicar){
       inp.remove();
       if(!arq) return;
       ugcRecortarFoto(arq, recorte=>{
+        const f = ugcFotoDoRecorte(recorte);
+        if(!f){ toast(t('ugc_foto_erro')); return; }
         /* começa do tamanho da área do tipo (camisa, calça...), no meio dela */
         const [x0, x1, y0, y1] = (UGC_AREA[E.tipo] || UGC_AREA.costas).foto;
-        const ar = recorte.width / recorte.height, bw = x1 - x0 + 1, bh = y1 - y0 + 1;
-        const w = Math.max(2, Math.min(bw, bh * ar)), h = w / ar;
-        const usadas = new Set(E.lados[E.lado === 'frente' ? 'costas' : 'frente'].filter(Boolean).concat(E.px.filter(Boolean)));
-        E.adesivo = {img: recorte, ar, w, x: x0 + (bw - w) / 2, y: y0 + (bh - h) / 2, semFundo: false, k: Math.max(4, Math.min(32, 63 - usadas.size)), chave: ''};
-        mostrarBarraAdesivo(); pintar(); previas();
+        const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+        const w = Math.max(2, Math.min(bw, bh * f.ar)), h = w / f.ar;
+        guardaDesfazer();
+        E.fotos[E.lado] = novaFoto({s: f.s, ar: f.ar, w, x: x0 + (bw - w) / 2, y: y0 + (bh - h) / 2}, ()=>{ if(E.passo === 1){ pintar(); previas(); } });
+        E.editando = true;
+        mostrarBarraAdesivo(); pintar(); previas(); salvarRascunho();
       });
     });
     inp.click();
   }
-  /* as cores do adesivo no tamanho de agora (refeitas só quando o tamanho muda) */
-  const adesivoCores = ()=>{
-    const A = E.adesivo, wc = Math.max(1, Math.round(A.w)), hc = Math.max(1, Math.round(A.w / A.ar)), chave = wc + 'x' + hc + (A.semFundo ? 'f' : '');
-    if(A.chave !== chave){ A.chave = chave; A.wc = wc; A.hc = hc; A.cores = ugcFotoEmPixels(A.img, wc, hc, A.k, A.semFundo); }
-    return A;
-  };
-  /* um lado do desenho com o adesivo por cima (só onde o tipo deixa pintar) */
-  const comAdesivo = arr=>{
-    if(!E.adesivo) return arr;
-    const A = adesivoCores(), out = arr.slice(), x0 = Math.round(A.x), y0 = Math.round(A.y);
-    for(let yy = 0; yy < A.hc; yy++) for(let xx = 0; xx < A.wc; xx++){
-      const gx = x0 + xx, gy = y0 + yy;
-      if(gx < 0 || gy < 0 || gx >= PZ_W || gy >= PZ_H) continue;
-      const k = gy * PZ_W + gx, c = A.cores[yy * A.wc + xx];
-      if(c && mascara[k]) out[k] = c;
-    }
-    return out;
-  };
-  const mostrarBarraAdesivo = ()=>{
-    bg.classList.toggle('com-adesivo', !!E.adesivo);
-    const f = bg.querySelector('[data-ades="fundo"]');
-    if(f) f.classList.toggle('on', !!(E.adesivo && E.adesivo.semFundo));
-  };
+  const mostrarBarraAdesivo = ()=>{ bg.classList.toggle('com-adesivo', !!E.adesivo); };
   const tamanhoAdesivo = novo=>{
     const A = E.adesivo;
     const cx = A.x + A.w / 2, cy = A.y + A.w / A.ar / 2;
-    A.w = Math.max(2, Math.min(44, novo, 44 * A.ar));
+    A.w = Math.max(1, Math.min(44, novo, 44 * A.ar));
     A.x = cx - A.w / 2; A.y = cy - A.w / A.ar / 2;
     prenderAdesivo();
   };
   const prenderAdesivo = ()=>{ const A = E.adesivo, h = A.w / A.ar; A.x = Math.max(1 - A.w, Math.min(PZ_W - 1, A.x)); A.y = Math.max(1 - h, Math.min(PZ_H - 1, A.y)); };
+  /* "Colocar": a foto fica onde está (continua foto) */
   const colocarAdesivo = ()=>{
-    if(!E.adesivo) return;
-    guardaDesfazer();
-    E.px = comAdesivo(E.px);
-    E.adesivo = null;
+    if(!E.editando) return;
+    E.editando = false;
     mostrarBarraAdesivo(); pintar(); previas(); salvarRascunho();
   };
   function ligarPasso2(){
@@ -32437,34 +32648,38 @@ function ugcAbrirEditor(aoPublicar){
     const pub = bg.querySelector('[data-publicar]');
     pub.addEventListener('click', async ()=>{
       if(pub.disabled) return;
-      pub.disabled = true; pub.textContent = t('ugc_conferindo');
-      /* antes de publicar: o desenho e o nome são conferidos (só barra as 3 coisas proibidas) */
       const nomeLimpo = String(nome.value || '').replace(/\s+/g, ' ').trim();
-      if(nomeLimpo.length < 2){ pub.disabled = false; pub.textContent = t('ugc_publicar'); toast(t('ugc_nome_curto')); return; }
-      const ch = await ugcConferirPeca(E.lados.frente, E.lados.costas, E.tipo, nomeLimpo);
+      if(nomeLimpo.length < 2){ toast(t('ugc_nome_curto')); nome.focus(); return; }
+      pub.disabled = true;
+      playSound('click');
+      /* antes de publicar: o desenho, a foto e o nome são conferidos (numa tela própria, com as etapas) */
+      refazerPrevias();
+      const tela = ugcTelaConferir(cRasc);
+      tela.etapa(0);
+      const ch = await ugcConferirPeca(E.lados.frente, E.lados.costas, E.tipo, nomeLimpo, fotosParaPeca());
       if(!ch.ok){
-        pub.disabled = false; pub.textContent = t('ugc_publicar');
-        const esc2 = chatListEscape;
-        kbsDialogo(`<h3 class="kbs-dlg-tit">${esc2(t('ugc_bloq_tit'))}</h3>
-          <p class="kbs-dlg-dica">${esc2(ch.motivo === 'nome' ? t('ugc_bloq_nome', {p: ch.palavra || ''}) : t('ugc_bloq_' + ch.motivo))}</p>
-          <p class="kbs-dlg-dica">${esc2(t('ugc_bloq_engano'))}</p>
-          <div class="kbs-dlg-btns col"><button type="button" class="kbs-btn" data-ok>${esc2(t('ugc_bloq_ok'))}</button></div>`, (bgd, fechar)=>{
-          bgd.querySelector('[data-ok]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+        const doNome = ch.motivo === 'nome';
+        tela.falhou(doNome ? 1 : 0, t('ugc_bloq_tit'), [doNome ? t('ugc_bloq_nome', {p: ch.palavra || ''}) : t('ugc_bloq_' + ch.motivo), t('ugc_bloq_engano')], t('ugc_conf_arrumar'), ()=>{
+          pub.disabled = false;
+          if(doNome){ try{ nome.focus(); nome.select(); }catch(e){} }
+          else { E.passo = 1; desenhaTela(); }            // volta pro desenho pra arrumar
         });
         return;
       }
-      pub.textContent = t('ugc_publicando');
-      const r = await ugcPublicar(E.lados.frente, E.lados.costas, E.tipo, nome.value, E.preco);
+      tela.etapa(1);
+      await new Promise(r=>setTimeout(r, 380));
+      tela.etapa(2);
+      const r = await ugcPublicar(E.lados.frente, E.lados.costas, E.tipo, nome.value, E.preco, fotosParaPeca());
       if(!r.ok){
-        pub.disabled = false; pub.textContent = t('ugc_publicar');
-        toast(t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', cores: 'ugc_muitas_cores'}[r.motivo] || 'ugc_erro'));
+        tela.falhou(2, t('ugc_conf_erro_tit'), [t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', cores: 'ugc_muitas_cores'}[r.motivo] || 'ugc_erro')], t('ugc_conf_voltar'), ()=>{ pub.disabled = false; });
         return;
       }
       try{ localStorage.removeItem(UGC_RASCUNHO_KEY); }catch(e){}
       playSound('buy');
-      bg.remove(); document.removeEventListener('keydown', teclas);
-      toast(t('ugc_publicou'));
-      if(typeof aoPublicar === 'function') aoPublicar(r.id);
+      tela.ok(()=>{
+        bg.remove(); document.removeEventListener('keydown', teclas);
+        if(typeof aoPublicar === 'function') aoPublicar(r.id);
+      });
     });
   }
   const teclas = ev=>{
@@ -32874,6 +33089,17 @@ var PZ_TXT = {
  ugc_bloq_odio:'O desenho parece ter um símbolo de ódio (como a suástica). Isso não pode no Koda.|The drawing seems to have a hate symbol (like the swastika). That’s not allowed on Koda.|El dibujo parece tener un símbolo de odio (como la esvástica). Eso no se permite en Koda.|Il disegno sembra avere un simbolo d’odio (come la svastica). Non è permesso su Koda.|Le dessin semble contenir un symbole de haine (comme la croix gammée). Ce n’est pas permis sur Koda.|Die Zeichnung scheint ein Hasssymbol zu enthalten (wie das Hakenkreuz). Das ist bei Koda nicht erlaubt.|De tekening lijkt een haatsymbool te bevatten (zoals het hakenkruis). Dat mag niet op Koda.|にくしみのマーク（かぎ十字など）が描かれているみたい。Kodaではダメだよ。|图案看起来有仇恨符号（比如纳粹标志），Koda 不允许。|그림에 혐오 상징(나치 문양 등)이 있는 것 같아요. Koda에서는 안 돼요.',
  ugc_bloq_gesto:'O desenho parece ter um gesto feio ou um palavrão escrito. Isso não pode no Koda.|The drawing seems to have a rude gesture or a written swear word. That’s not allowed on Koda.|El dibujo parece tener un gesto grosero o una grosería escrita. Eso no se permite en Koda.|Il disegno sembra avere un gesto volgare o una parolaccia scritta. Non è permesso su Koda.|Le dessin semble contenir un geste grossier ou un gros mot écrit. Ce n’est pas permis sur Koda.|Die Zeichnung scheint eine unhöfliche Geste oder ein Schimpfwort zu enthalten. Das ist bei Koda nicht erlaubt.|De tekening lijkt een grof gebaar of scheldwoord te bevatten. Dat mag niet op Koda.|下品なジェスチャーか悪口が描かれているみたい。Kodaではダメだよ。|图案看起来有不雅手势或脏话，Koda 不允许。|그림에 나쁜 손동작이나 욕이 있는 것 같아요. Koda에서는 안 돼요.',
  ugc_bloq_nome:'O nome tem uma palavra que não pode: “{p}”. Troque o nome.|The name has a word that isn’t allowed: “{p}”. Change the name.|El nombre tiene una palabra que no se permite: “{p}”. Cambia el nombre.|Il nome ha una parola non permessa: “{p}”. Cambia il nome.|Le nom contient un mot interdit : « {p} ». Change le nom.|Der Name hat ein Wort, das nicht erlaubt ist: „{p}“. Ändere den Namen.|De naam heeft een woord dat niet mag: “{p}”. Verander de naam.|名前に使えない言葉があるよ：「{p}」。名前を変えてね。|名称里有不允许的词：“{p}”。请改一下名称。|이름에 쓸 수 없는 말이 있어요: “{p}”. 이름을 바꿔 주세요.',
+ ugc_bloq_rosto:'A foto mostra o rosto de uma pessoa de verdade. Pra proteger quem aparece, foto de rosto não pode ir pra uma peça (a peça é pública). Desenhos e personagens podem!|The photo shows a real person’s face. To protect them, face photos can’t go on an item (items are public). Drawings and characters are fine!|La foto muestra la cara de una persona real. Para protegerla, las fotos de caras no pueden ir en una prenda (la prenda es pública). ¡Dibujos y personajes sí!|La foto mostra il volto di una persona vera. Per proteggerla, le foto di volti non possono andare su un capo (il capo è pubblico). Disegni e personaggi sì!|La photo montre le visage d’une vraie personne. Pour la protéger, les photos de visage ne peuvent pas aller sur une pièce (la pièce est publique). Les dessins et personnages, oui !|Das Foto zeigt das Gesicht eines echten Menschen. Zum Schutz dürfen Gesichtsfotos nicht auf ein Teil (Teile sind öffentlich). Zeichnungen und Figuren gehen!|De foto laat het gezicht van een echt persoon zien. Om diegene te beschermen mogen gezichtsfoto’s niet op een item (items zijn openbaar). Tekeningen en figuren mogen wel!|写真に本物の人の顔が写っているよ。その人を守るため、顔の写真はアイテムに使えないよ（アイテムはみんなが見られるから）。絵やキャラクターならOK！|照片里有真人的脸。为了保护对方，脸部照片不能放在物品上（物品是公开的）。图画和角色可以！|사진에 실제 사람의 얼굴이 보여요. 그 사람을 지키기 위해 얼굴 사진은 아이템에 넣을 수 없어요 (아이템은 모두가 봐요). 그림이나 캐릭터는 괜찮아요!',
+ ugc_conf_tit:'Conferindo sua peça…|Checking your item…|Revisando tu prenda…|Controllo il tuo capo…|Vérification de ta pièce…|Dein Teil wird geprüft…|Je item wordt gecheckt…|アイテムをチェック中…|正在检查你的物品……|아이템 확인 중…',
+ ugc_conf_e1:'Olhando o desenho e a foto|Looking at the drawing and photo|Mirando el dibujo y la foto|Guardo il disegno e la foto|Je regarde le dessin et la photo|Zeichnung und Foto ansehen|Tekening en foto bekijken|絵と写真を見ているよ|查看图画和照片|그림과 사진 보는 중',
+ ugc_conf_e2:'Conferindo o nome|Checking the name|Revisando el nombre|Controllo il nome|Je vérifie le nom|Namen prüfen|Naam checken|名前をチェック|检查名称|이름 확인',
+ ugc_conf_e3:'Colocando na loja|Putting it in the shop|Poniéndola en la tienda|La metto nel negozio|Je la mets en boutique|Kommt in den Shop|In de winkel zetten|ショップに並べているよ|放进商店|상점에 올리는 중',
+ ugc_conf_ok_tit:'Peça publicada!|Item published!|¡Prenda publicada!|Capo pubblicato!|Pièce publiée !|Teil veröffentlicht!|Item gepubliceerd!|アイテムを公開したよ！|物品已发布！|아이템을 올렸어요!',
+ ugc_conf_ok_sub:'Ela já está na loja, em Criadas.|It’s already in the shop, under Created.|Ya está en la tienda, en Creadas.|È già nel negozio, in Creati.|Elle est déjà en boutique, dans Créées.|Es ist schon im Shop, unter Erstellt.|Het staat al in de winkel, bij Gemaakt.|もうショップの「作られた」にあるよ。|已经在商店的“自制”里了。|이미 상점의 ‘만든 것’에 있어요.',
+ ugc_conf_legal:'Legal!|Cool!|¡Genial!|Fantastico!|Super !|Cool!|Gaaf!|やった！|太好了！|좋아요!',
+ ugc_conf_arrumar:'Arrumar a peça|Fix the item|Arreglar la prenda|Sistema il capo|Corriger la pièce|Teil ändern|Item aanpassen|アイテムを直す|修改物品|아이템 고치기',
+ ugc_conf_erro_tit:'Não deu pra publicar|Couldn’t publish|No se pudo publicar|Non è stato possibile pubblicare|Impossible de publier|Konnte nicht veröffentlicht werden|Publiceren lukte niet|公開できなかったよ|没能发布|올리지 못했어요',
+ ugc_conf_voltar:'Voltar|Go back|Volver|Indietro|Retour|Zurück|Terug|もどる|返回|돌아가기',
  ugc_bloq_engano:'Se foi engano, mude um pouquinho e tente de novo.|If this was a mistake, change it a little and try again.|Si fue un error, cámbialo un poquito y vuelve a intentarlo.|Se è un errore, cambialo un pochino e riprova.|Si c’est une erreur, change-le un peu et réessaie.|Wenn das ein Irrtum war, ändere es ein bisschen und versuch es nochmal.|Was dit een vergissing? Verander het een beetje en probeer opnieuw.|まちがいなら、少し変えてもう一度ためしてね。|如果是误会，稍微改一下再试一次。|잘못된 거라면 조금 바꿔서 다시 해 봐요.',
  ugc_bloq_ok:'Entendi|Got it|Entendido|Ho capito|Compris|Verstanden|Begrepen|わかった|知道了|알겠어요',
  ia_tit:'Agente Koda|Koda Agent|Agente Koda|Agente Koda|Agent Koda|Koda-Agent|Koda-agent|Kodaエージェント|Koda 助手|Koda 에이전트',
@@ -32894,6 +33120,12 @@ var PZ_TXT = {
  ask_ph:'Escreva sua pergunta…|Type your question…|Escribe tu pregunta…|Scrivi la tua domanda…|Écris ta question…|Schreib deine Frage…|Typ je vraag…|質問を書いてね…|写下你的问题……|질문을 써 주세요…',
  ask_enviar:'Enviar|Send|Enviar|Invia|Envoyer|Senden|Sturen|送る|发送|보내기',
  ask_pensando:'Pensando…|Thinking…|Pensando…|Ci penso…|Je réfléchis…|Ich denke nach…|Even denken…|考え中…|思考中……|생각 중…',
+ ia_escolha:'Toque no que você quer que o Agente Koda faça no seu jogo:|Tap what you want Koda Agent to do in your game:|Toca lo que quieres que el Agente Koda haga en tu juego:|Tocca quello che vuoi che l’Agente Koda faccia nel tuo gioco:|Touche ce que tu veux que l’Agent Koda fasse dans ton jeu :|Tippe an, was der Koda-Agent in deinem Spiel machen soll:|Tik aan wat de Koda-agent in je game moet doen:|Kodaエージェントにゲームでしてほしいことをタップしてね：|点选你想让 Koda 助手在游戏里做的事：|Koda 에이전트가 게임에서 할 일을 눌러 골라요:',
+ ia_confirmar:'Confirmar|Confirm|Confirmar|Conferma|Confirmer|Bestätigen|Bevestigen|決定|确认|확인',
+ ia_sair:'Sair da tela (eu aviso quando ficar pronto)|Leave this screen (I’ll let you know when it’s ready)|Salir de la pantalla (te aviso cuando esté listo)|Esci dalla schermata (ti avviso quando è pronto)|Quitter l’écran (je te préviens quand c’est prêt)|Bildschirm verlassen (ich sag Bescheid, wenn’s fertig ist)|Scherm verlaten (ik laat het weten als het klaar is)|画面を出る（できたら知らせるね）|离开这个页面（好了会通知你）|화면 나가기 (다 되면 알려 줄게요)',
+ ia_terminou:'O Agente Koda terminou! Toque pra ver.|Koda Agent is done! Tap to see.|¡El Agente Koda terminó! Toca para ver.|L’Agente Koda ha finito! Tocca per vedere.|L’Agent Koda a fini ! Touche pour voir.|Der Koda-Agent ist fertig! Tippe zum Ansehen.|De Koda-agent is klaar! Tik om te kijken.|Kodaエージェントができたよ！タップして見てね。|Koda 助手完成了！点一下查看。|Koda 에이전트가 끝냈어요! 눌러서 봐요.',
+ ia_terminou_nome:'O Agente Koda terminou “{nome}”! Toque pra ver.|Koda Agent finished “{nome}”! Tap to see.|¡El Agente Koda terminó “{nome}”! Toca para ver.|L’Agente Koda ha finito “{nome}”! Tocca per vedere.|L’Agent Koda a fini « {nome} » ! Touche pour voir.|Der Koda-Agent ist mit „{nome}“ fertig! Tippe zum Ansehen.|De Koda-agent is klaar met “{nome}”! Tik om te kijken.|Kodaエージェントが「{nome}」をしあげたよ！タップして見てね。|Koda 助手完成了“{nome}”！点一下查看。|Koda 에이전트가 “{nome}”을(를) 끝냈어요! 눌러서 봐요.',
+ ia_pronto_varios:'Pronto! Toque em Testar pra ver o que mudou.|Done! Tap Test to see what changed.|¡Listo! Toca Probar para ver qué cambió.|Fatto! Tocca Prova per vedere cosa è cambiato.|C’est fait ! Touche Tester pour voir ce qui a changé.|Fertig! Tippe auf Testen, um die Änderungen zu sehen.|Klaar! Tik op Testen om te zien wat er veranderd is.|できた！「テスト」で変わったところを見てみてね。|好了！点“测试”看看有什么变化。|완료! 테스트를 눌러 뭐가 바뀌었는지 봐요.',
  ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
  ia_desfeito:'Voltou o código de antes.|The previous code is back.|Volvió el código de antes.|È tornato il codice di prima.|L’ancien code est revenu.|Der vorherige Code ist zurück.|De vorige code is terug.|前のコードにもどったよ。|已恢复之前的代码。|이전 코드로 돌아왔어요.',
  ia_erro:'O assistente não conseguiu agora. Tente de novo daqui a pouco.|The assistant couldn’t do it right now. Try again in a bit.|El asistente no pudo ahora. Inténtalo en un rato.|L’assistente non ce l’ha fatta ora. Riprova tra poco.|L’assistant n’a pas réussi. Réessaie dans un moment.|Der Assistent hat es gerade nicht geschafft. Versuch es gleich nochmal.|Het lukte de assistent nu niet. Probeer het zo opnieuw.|今はうまくいかなかった。少ししてからもう一度ためしてね。|助手暂时没能完成，请稍后再试。|지금은 안 됐어요. 잠시 후 다시 해 봐요.',
@@ -32920,7 +33152,7 @@ var PZ_TXT = {
  ugc_nome:'Nome da peça|Item name|Nombre de la prenda|Nome del capo|Nom de la pièce|Name des Teils|Naam van het item|アイテム名|作品名称|아이템 이름',
  ugc_preco:'Preço (moedas)|Price (coins)|Precio (monedas)|Prezzo (monete)|Prix (pièces)|Preis (Münzen)|Prijs (munten)|値段（コイン）|价格（金币）|가격(코인)',
  ugc_70:'Você ganha 70% de cada venda. Quem compra vê seu nome na peça.|You get 70% of every sale. Buyers see your name on the item.|Ganas el 70% de cada venta. Quien compra ve tu nombre en la prenda.|Ricevi il 70% di ogni vendita. Chi compra vede il tuo nome.|Tu gagnes 70 % de chaque vente. Les acheteurs voient ton nom.|Du bekommst 70 % jedes Verkaufs. Käufer sehen deinen Namen.|Je krijgt 70% van elke verkoop. Kopers zien jouw naam.|売れるたびに70%がもらえます。買った人にはあなたの名前が見えます。|每卖出一件你得到70%，买家能看到你的名字。|팔릴 때마다 70%를 받아요. 구매자에게 내 이름이 보여요.',
- ugc_regras:'Pode desenhar quase tudo: times, marcas, bandeiras, memes, monstros… Só não pode: partes íntimas, símbolos de ódio (como a suástica) e gesto ou palavrão.|You can draw almost anything: teams, brands, flags, memes, monsters… Just not: private parts, hate symbols (like the swastika) or rude gestures and swear words.|Puedes dibujar casi todo: equipos, marcas, banderas, memes, monstruos… Solo no: partes íntimas, símbolos de odio (como la esvástica) ni gestos o groserías.|Puoi disegnare quasi tutto: squadre, marchi, bandiere, meme, mostri… Solo no: parti intime, simboli d’odio (come la svastica) o gesti e parolacce.|Tu peux dessiner presque tout : équipes, marques, drapeaux, mèmes, monstres… Sauf : parties intimes, symboles de haine (comme la croix gammée) ou gestes et gros mots.|Du darfst fast alles malen: Teams, Marken, Flaggen, Memes, Monster… Nur nicht: Intimbereiche, Hasssymbole (wie das Hakenkreuz) oder Gesten und Schimpfwörter.|Je mag bijna alles tekenen: teams, merken, vlaggen, memes, monsters… Alleen niet: intieme delen, haatsymbolen (zoals het hakenkruis) of gebaren en scheldwoorden.|ほとんど何でも描けるよ：チーム、ブランド、国旗、ミーム、モンスター…。ダメなのは、体の大事なところ、にくしみのマーク（かぎ十字など）、下品なジェスチャーや悪口だけ。|几乎什么都能画：球队、品牌、国旗、表情包、怪物……只是不能画：私密部位、仇恨符号（比如纳粹标志）、不雅手势或脏话。|거의 다 그려도 돼요: 팀, 브랜드, 국기, 밈, 괴물… 안 되는 건 신체 은밀한 부위, 혐오 상징(나치 문양 등), 욕이나 나쁜 손동작뿐이에요.',
+ ugc_regras:'Pode desenhar quase tudo: times, marcas, bandeiras, memes, monstros… Só não pode: partes íntimas, símbolos de ódio (como a suástica), gesto ou palavrão, e foto do rosto de pessoas de verdade.|You can draw almost anything: teams, brands, flags, memes, monsters… Just not: private parts, hate symbols (like the swastika), rude gestures or swear words, or photos of real people’s faces.|Puedes dibujar casi todo: equipos, marcas, banderas, memes, monstruos… Solo no: partes íntimas, símbolos de odio (como la esvástica), gestos o groserías, ni fotos de caras de personas reales.|Puoi disegnare quasi tutto: squadre, marchi, bandiere, meme, mostri… Solo no: parti intime, simboli d’odio (come la svastica), gesti o parolacce, né foto di volti di persone vere.|Tu peux dessiner presque tout : équipes, marques, drapeaux, mèmes, monstres… Sauf : parties intimes, symboles de haine (comme la croix gammée), gestes ou gros mots, ni photos du visage de vraies personnes.|Du darfst fast alles malen: Teams, Marken, Flaggen, Memes, Monster… Nur nicht: Intimbereiche, Hasssymbole (wie das Hakenkreuz), Gesten oder Schimpfwörter und keine Fotos von Gesichtern echter Menschen.|Je mag bijna alles tekenen: teams, merken, vlaggen, memes, monsters… Alleen niet: intieme delen, haatsymbolen (zoals het hakenkruis), gebaren of scheldwoorden, en geen foto’s van gezichten van echte mensen.|ほとんど何でも描けるよ：チーム、ブランド、国旗、ミーム、モンスター…。ダメなのは、体の大事なところ、にくしみのマーク（かぎ十字など）、下品なジェスチャーや悪口、本物の人の顔の写真だけ。|几乎什么都能画：球队、品牌、国旗、表情包、怪物……只是不能画：私密部位、仇恨符号（比如纳粹标志）、不雅手势或脏话，也不能放真人脸部的照片。|거의 다 그려도 돼요: 팀, 브랜드, 국기, 밈, 괴물… 안 되는 건 신체 은밀한 부위, 혐오 상징(나치 문양 등), 욕이나 나쁜 손동작, 그리고 실제 사람 얼굴 사진이에요.',
  ugc_publicar:'Publicar na loja|Publish to the shop|Publicar en la tienda|Pubblica nel negozio|Publier dans la boutique|Im Shop veröffentlichen|Publiceren in de winkel|ショップに出す|发布到商店|상점에 올리기',
  ugc_publicando:'Publicando…|Publishing…|Publicando…|Pubblicazione…|Publication…|Wird veröffentlicht…|Publiceren…|公開中…|发布中…|올리는 중…',
  ugc_publicou:'Publicada! Sua peça já está na loja.|Published! Your item is in the shop.|¡Publicada! Tu prenda ya está en la tienda.|Pubblicato! Il tuo capo è nel negozio.|Publiée ! Ta pièce est dans la boutique.|Veröffentlicht! Dein Teil ist im Shop.|Gepubliceerd! Je item staat in de winkel.|公開しました！ショップに並んでいます。|发布成功！作品已经上架。|올렸어요! 아이템이 상점에 있어요.',
@@ -34240,6 +34472,7 @@ function pzGrade(c, variante){
     if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
     pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
     pintaU('cabeca');
+    g.tags = tags;            // pra foto da peça saber em cima de quê ela pode aparecer
     return g;
   }
   const olho = pzHexDe('cor', c.corOlhos);
@@ -34253,6 +34486,7 @@ function pzGrade(c, variante){
   if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
   pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
   pintaU('cabeca');
+  g.tags = tags;
   return g;
 }
 const PZ_CACHE = new Map();
@@ -34279,7 +34513,9 @@ function pzSvg(c, modo, variante){
   if(pronto) return pronto;
   const faltaUgc = ugcFalta(c);       // a peça da comunidade ainda está chegando: desenha sem ela e não guarda
   const passo = /^(p|costas)([12])$/.exec(variante || '');
-  let g = pzGrade(pzNorm(c), passo ? (passo[1] === 'costas' ? 'costas' : undefined) : variante);
+  const cn = pzNorm(c), deCostas = variante === 'costas' || !!(passo && passo[1] === 'costas');
+  let g = pzGrade(cn, passo ? (passo[1] === 'costas' ? 'costas' : undefined) : variante);
+  const fotoU = ugcFotoSvg(cn, deCostas, g.tags);      // a foto da peça da comunidade (lisinha, por cima)
   if(passo) g = pzAndar(g, Number(passo[2]));
   const g2 = g.slice(), cont = PZ_FIXAS.o;
   for(let y = 0; y < PZ_H; y++) for(let x = 0; x < PZ_W; x++){       // contorno: em volta de tudo que tem cor
@@ -34299,7 +34535,7 @@ function pzSvg(c, modo, variante){
       x = x1 + 1;
     }
   }
-  const s = '<svg viewBox="' + (modo === 'rosto' ? '2.5 1.5 17 17' : '0 0 22 29') + '" shape-rendering="crispEdges" aria-hidden="true" focusable="false">' + out.join('') + '</svg>';
+  const s = '<svg viewBox="' + (modo === 'rosto' ? '2.5 1.5 17 17' : '0 0 22 29') + '" shape-rendering="crispEdges" aria-hidden="true" focusable="false">' + out.join('') + fotoU + '</svg>';
   if(PZ_CACHE.size > 600) PZ_CACHE.clear();
   if(!faltaUgc) PZ_CACHE.set(chave, s);
   return s;
