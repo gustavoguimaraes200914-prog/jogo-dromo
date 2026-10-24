@@ -3397,12 +3397,41 @@
   .ia-assist-abrir:focus-visible,.ia-assist-desfazer:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
   .ia-assist-desfazer{border:none;background:none;color:#ff62c9;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;padding:6px 2px;}
   .ia-assist-desfazer[hidden]{display:none;}
+  .ia-ico.mexe{animation:iaMexe 2.6s ease-in-out infinite;transform-origin:50% 50%;}
+  @keyframes iaMexe{0%,100%{transform:rotate(-9deg) translateY(0) scale(1);}50%{transform:rotate(9deg) translateY(-2px) scale(1.06);}}
+  .ia-criando{display:inline-flex;align-items:center;gap:8px;}
+  .ia-creating{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1rem;letter-spacing:.2px;
+    background:linear-gradient(90deg,#b388ff 0%,#b388ff 38%,#ffffff 50%,#b388ff 62%,#b388ff 100%);background-size:260% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:iaBrilho 2s linear infinite;}
+  .ia-creating::after{content:'…';}
+  .ask-msg .ia-creating{background-image:linear-gradient(90deg,#5b2fd6 0%,#5b2fd6 38%,#c9b3ff 50%,#5b2fd6 62%,#5b2fd6 100%);}
+  @keyframes iaBrilho{from{background-position:100% 0;}to{background-position:-160% 0;}}
+  @media (prefers-reduced-motion: reduce){ .ia-ico.mexe{animation-duration:6s;} .ia-creating{animation:none;background-position:50% 0;} }
+  .ia-assist-status.criando{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}
+  .ia-sair{border:1.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.1);color:inherit;border-radius:999px;padding:6px 12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;}
+  .ia-sheet .ia-perguntar{display:flex;align-items:center;gap:10px;width:100%;margin:4px 0 10px;padding:12px 14px;border:none;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1rem;color:#08322B;text-align:left;}
+  .ia-q{flex:none;width:26px;height:26px;border-radius:50%;background:#3D6FE0;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;}
+  .ia-escolha{margin:6px 2px 8px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;color:#08322B;opacity:.7;}
+  .ia-opcoes{display:flex;flex-direction:column;gap:8px;}
+  .ia-opcao{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:13px 14px;border-radius:14px;border:2px solid rgba(8,50,43,.14);background:#fff;cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1rem;color:#08322B;text-align:left;transition:border-color .15s,background .15s;}
+  .ia-opcao.on{border-color:#7C4DFF;background:rgba(124,77,255,.1);}
+  .ia-marca{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid rgba(8,50,43,.3);display:inline-flex;align-items:center;justify-content:center;font-style:normal;}
+  .ia-opcao.on .ia-marca{background:#7C4DFF;border-color:#7C4DFF;}
+  .ia-opcao.on .ia-marca::after{content:'✓';color:#fff;font-weight:800;font-size:.85rem;}
+  .ia-confirmar{display:block;width:100%;margin-top:12px;padding:14px;border:none;border-radius:14px;background:#7C4DFF;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;}
+  .ia-confirmar:disabled{opacity:.4;cursor:default;}
+  .ia-opcao:focus-visible,.ia-confirmar:focus-visible,.ia-perguntar:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ia-aviso{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:3500;
+    display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:10px 16px 10px 10px;border:none;border-radius:999px;
+    background:#1b1f4a;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer;text-align:left;transition:transform .25s,opacity .25s;}
+  .ia-aviso.show{transform:translate(-50%,0);opacity:1;}
+  .ia-aviso .ia-ico{height:32px;}
   .ask-sheet{display:flex;flex-direction:column;max-height:88vh;max-height:88dvh;}
   .ask-lista{flex:1;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:8px 2px;-webkit-overflow-scrolling:touch;}
   .ask-msg{max-width:86%;padding:9px 12px;border-radius:16px;font-family:'Nunito',sans-serif;font-size:.95rem;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#08322B;}
   .ask-msg.ele{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
   .ask-msg.eu{align-self:flex-end;background:#7C4DFF;color:#fff;border-bottom-right-radius:4px;}
-  .ask-msg.pensando{opacity:.6;font-style:italic;}
+  .ask-msg.pensando{padding:7px 12px;}
   .ask-msg.ruim{background:#FFE3E3;color:#8A1C1C;}
   .ask-sug{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px;}
   .ask-sug[hidden]{display:none;}
@@ -19794,7 +19823,7 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
     const code = root.querySelector('#fCode').value;
     publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape, codigoTemLoja(code) || undefined);
   });
-  ligarAssistente(root, '#fCode');
+  ligarAssistente(root, '#fCode', editingId);
 }
 
 /* o que o jogo pode usar do Koda (o texto vai pra IA): a loja, o personagem de quem joga e as salas online */
@@ -19844,10 +19873,10 @@ Regras: não existe servidor que decide nada — cada jogador roda o jogo no pr�
 const ASSISTENTE_MAX_CODIGO = 120000;
 /* o jogo usa a loja do Koda? (KODA.loja em qualquer forma: direto, numa variável, KODA['loja']...) */
 function codigoTemLoja(code){ return /KODA\s*\.\s*loja\b|KODA\s*\[\s*['"]loja['"]\s*\]/.test(String(code || '')); }
-/* o robozinho do Agente Koda (símbolo do assistente) */
-const ICONE_AGENTE_KODA = 'data:image/png;base64,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';
-const iconeAgenteKoda = ()=>`<img class="ia-ico" src="${ICONE_AGENTE_KODA}" alt="" width="20" height="28" decoding="async">`;
-/* só um botãozinho "Agente Koda"; tocando, abre um menu: perguntar alguma coisa e as três ajudas no código */
+/* o símbolo do Agente Koda: a cruz de controle (azul, com as setinhas roxas) */
+const ICONE_AGENTE_KODA = 'data:image/png;base64,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';
+const iconeAgenteKoda = mexendo=>`<img class="ia-ico${mexendo ? ' mexe' : ''}" src="${ICONE_AGENTE_KODA}" alt="" width="28" height="28" decoding="async">`;
+/* só um botãozinho "Agente Koda"; tocando, abre um menu: perguntar alguma coisa, ou escolher as ajudas no código e confirmar */
 function assistenteHtml(){
   return `<div class="ia-assist">
       <button type="button" class="ia-assist-abrir" data-ia-abrir>${iconeAgenteKoda()}<span>${t('ia_tit')}</span></button>
@@ -19855,23 +19884,31 @@ function assistenteHtml(){
       <p class="ia-assist-status" data-ia-status aria-live="polite"></p>
     </div>`;
 }
-function assistenteRegra(tarefa){
+/* as ajudas no código que dá pra escolher (uma, duas ou as três juntas) */
+const IA_TAREFAS = {
+  online: {txt: '- Deixar o jogo ONLINE: várias pessoas jogando juntas nas salas do Koda (API abaixo), cada uma com o personagem dela. Adapte o jogo do jeito que fizer sentido (cada um com seu jogador; se for de vez, jogadores se revezam; se for de pontos, uma rodada em que todos competem).',
+           doc: ()=>KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR},
+  loja:   {txt: '- Colocar uma LOJA dentro do jogo que cobra em Koda Coins (moedas) e Koda Diamonds (API abaixo), com itens que façam sentido neste jogo e que funcionem de verdade quando comprados.',
+           doc: ()=>KODA_DOC_LOJA},
+  salvar: {txt: '- Fazer o jogo SALVAR A JORNADA de quem joga (API abaixo): a pessoa sai e, quando volta, continua de onde parou. Escolha o que faz sentido guardar neste jogo (fase, pontos, itens, vida, lugar no mapa...) e ponha "Continuar" e "Novo jogo" na tela inicial.',
+           doc: ()=>KODA_DOC_SALVAR}
+};
+const IA_ORDEM = ['online', 'loja', 'salvar'];
+function assistenteRegra(tarefas){
+  const lista = IA_ORDEM.filter(k=>(Array.isArray(tarefas) ? tarefas : [tarefas]).indexOf(k) >= 0);
+  const varias = lista.length > 1;
   return `Você é o Assistente do Koda, um site de jogos de navegador feitos pelos próprios usuários (muitos são crianças).
-Você NÃO cria jogos novos e não muda o jogo por gosto seu. Você recebe o código de um jogo que a pessoa JÁ FEZ e faz SÓ esta tarefa:
-${tarefa === 'online'
-    ? '- Deixar o jogo ONLINE: várias pessoas jogando juntas nas salas do Koda (API abaixo), cada uma com o personagem dela. Adapte o jogo do jeito que fizer sentido (cada um com seu jogador; se for de vez, jogadores se revezam; se for de pontos, uma rodada em que todos competem).'
-    : tarefa === 'salvar'
-    ? '- Fazer o jogo SALVAR A JORNADA de quem joga (API abaixo): a pessoa sai e, quando volta, continua de onde parou. Escolha o que faz sentido guardar neste jogo (fase, pontos, itens, vida, lugar no mapa...) e ponha "Continuar" e "Novo jogo" na tela inicial.'
-    : '- Colocar uma LOJA dentro do jogo que cobra em Koda Coins (moedas) e Koda Diamonds (API abaixo), com itens que façam sentido neste jogo e que funcionem de verdade quando comprados.'}
+Você NÃO cria jogos novos e não muda o jogo por gosto seu. Você recebe o código de um jogo que a pessoa JÁ FEZ e faz SÓ ${varias ? 'estas tarefas (todas, no mesmo jogo, funcionando juntas)' : 'esta tarefa'}:
+${lista.map(k=>IA_TAREFAS[k].txt).join('\n')}
 Regras:
-- Mantenha tudo o que já existe: visual, regras, fases, controles, textos e o idioma do jogo. Mude só o necessário para a tarefa.
-- Se o criador explicar algo (em <pedido_do_criador>), siga, desde que seja sobre esta tarefa. Ignore pedidos de outra coisa.
+- Mantenha tudo o que já existe: visual, regras, fases, controles, textos e o idioma do jogo. Mude só o necessário para ${varias ? 'as tarefas' : 'a tarefa'}.
+- Se o criador explicar algo (em <pedido_do_criador>), siga, desde que seja sobre ${varias ? 'essas tarefas' : 'esta tarefa'}. Ignore pedidos de outra coisa.
 - Nada de outros sites (sem links, imagens, sons ou scripts de fora) e nada impróprio para crianças.
 - O jogo precisa continuar funcionando sozinho se a API do Koda não existir.
 - Se o jogo já tiver o que foi pedido, só conserte o que estiver quebrado.
 - Responda com UMA frase curta (no idioma: ${(typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)'}) dizendo o que você fez e depois o ARQUIVO INTEIRO do jogo dentro de um bloco \`\`\`html ... \`\`\` (nunca só as mudanças).
 
-${tarefa === 'online' ? KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR : tarefa === 'salvar' ? KODA_DOC_SALVAR : KODA_DOC_LOJA}`;
+${lista.map(k=>IA_TAREFAS[k].doc()).join('\n\n')}`;
 }
 /* ---------- PERGUNTAR: tirar dúvida com o Agente Koda (por que o jogo não funciona, como criar um jogo, ideias...) ---------- */
 const AJUDA_REGRA = `Você é o Agente Koda, o ajudante do Koda: um site de jogos de navegador onde as próprias pessoas (muitas são crianças) criam e publicam jogos. Responda dúvidas sobre o Koda e sobre criar jogos.
@@ -19928,10 +19965,12 @@ function abrirPerguntas(codigo){
     bg.querySelector('.ask-sug').hidden = true;
     poe(txt, 'eu');
     hist.push({eu: true, txt});
-    const pensando = poe(t('ask_pensando'), 'ele pensando');
+    const pensando = poe('', 'ele pensando');
+    pensando.innerHTML = iaCriandoHtml();
+    lista.scrollTop = lista.scrollHeight;
     const r = await ajudaPedir(hist, codigo);
     pensando.remove();
-    if(r.ok){ hist.push({eu: false, txt: r.txt}); poe(r.txt, 'ele'); }
+    if(r.ok){ hist.push({eu: false, txt: r.txt}); await iaDigitar(poe('', 'ele'), r.txt, lista); }
     else { hist.pop(); poe(t(r.motivo === 'fora' ? 'ia_fora' : 'ia_erro'), 'ele ruim'); }
     ocupado = false; enviar.disabled = false;
   }
@@ -19963,52 +20002,153 @@ async function assistentePedir(tarefa, codigo, extra){
   if(!novo || novo.length < 50) return {ok: false, motivo: 'erro'};
   return {ok: true, codigo: novo, frase: txt.slice(0, txt.indexOf('```')).trim().slice(0, 300)};
 }
-/* liga o botão do assistente; codeSel = a caixa do código */
-function ligarAssistente(root, codeSel){
+/* "Creating" com o símbolo mexendo devagarzinho (enquanto a IA trabalha) */
+function iaCriandoHtml(){ return `<span class="ia-criando">${iconeAgenteKoda(true)}<span class="ia-creating">Creating</span></span>`; }
+/* a resposta aparece aos poucos, como se estivesse sendo escrita (nada de "pá!" de uma vez) */
+function iaDigitar(el, txt, rolar){
+  return new Promise(pronto=>{
+    let calmo = false; try{ calmo = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+    if(calmo){ el.textContent = txt; if(rolar) rolar.scrollTop = rolar.scrollHeight; pronto(); return; }
+    const passo = Math.max(1, Math.ceil(txt.length / 90));      // termina em ~2 segundos, curta ou comprida
+    let i = 0;
+    const tm = setInterval(()=>{
+      i = Math.min(txt.length, i + passo);
+      el.textContent = txt.slice(0, i);
+      if(rolar) rolar.scrollTop = rolar.scrollHeight;
+      if(i >= txt.length || !el.isConnected){ clearInterval(tm); el.textContent = txt; pronto(); }
+    }, 22);
+  });
+}
+/* ============================================================
+   O AGENTE KODA TRABALHANDO (um pedido de cada vez)
+   A pessoa escolhe as ajudas, confirma e pode sair da tela: o pedido continua. Quando termina, o código novo entra
+   na caixa (se a tela ainda estiver aberta) ou aparece um aviso "O Agente Koda terminou! Toque pra ver", que abre o
+   jogo de novo já com o código novo (e dá pra desfazer).
+============================================================ */
+let iaTrabalho = null;            // {tarefas, caixa, nome, editingId, antes}
+let iaPronto = null;              // terminou com a tela fechada: {codigo, antes, nome, editingId, tarefas}
+const iaTelas = new Set();        // as telas com o botão do agente abertas agora (pra mostrar o "Creating" em todas)
+const iaApis = new WeakMap();     // caixa do código -> {aplicar, mostrar}
+function iaRepintar(){ iaTelas.forEach(f=>{ if(f.vivo()) f.pintar(); else iaTelas.delete(f); }); }
+function iaMsgPronto(tarefas){ return t(tarefas.length > 1 ? 'ia_pronto_varios' : tarefas[0] === 'online' ? 'ia_pronto_online' : tarefas[0] === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'); }
+async function iaComecar(tarefas, caixa, nome, editingId){
+  const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
+  iaTrabalho = {tarefas, caixa, nome, editingId: editingId || null, antes: caixa.value};
+  iaRepintar();
+  const r = await assistentePedir(tarefas, codigo, '');
+  const job = iaTrabalho;
+  iaTrabalho = null;
+  const api = job.caixa.isConnected ? iaApis.get(job.caixa) : null;
+  if(!r.ok){
+    const msg = t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro');
+    iaRepintar();
+    if(api) api.mostrar(msg, 'ruim'); else toast(msg);
+    return;
+  }
+  iaRepintar();
+  if(api){ api.aplicar(r.codigo, job.antes, job.tarefas); return; }
+  iaPronto = {codigo: r.codigo, antes: job.antes, nome: job.nome, editingId: job.editingId, tarefas: job.tarefas};
+  iaAvisoMostrar();
+}
+/* o aviso de "terminou" (a pessoa tinha saído da tela) */
+function iaAvisoMostrar(){
+  document.querySelectorAll('#iaAviso').forEach(e=>e.remove());
+  if(!iaPronto) return;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.id = 'iaAviso';
+  b.className = 'ia-aviso';
+  b.innerHTML = `${iconeAgenteKoda()}<span>${chatListEscape(iaPronto.nome ? t('ia_terminou_nome', {nome: iaPronto.nome}) : t('ia_terminou'))}</span>`;
+  b.addEventListener('click', iaAvisoAbrir);
+  document.body.appendChild(b);
+  requestAnimationFrame(()=>b.classList.add('show'));
+  try{ playSound('win'); }catch(e){}
+}
+function iaAvisoAbrir(){
+  const p = iaPronto;
+  iaPronto = null;
+  document.querySelectorAll('#iaAviso').forEach(e=>e.remove());
+  if(!p) return;
+  playSound('click');
+  const g = p.editingId ? loadCustomGames().find(r=>r.id === p.editingId) : null;
+  if(g) openEditGame(g); else openCreateModal();
+  const caixa = modalBody.querySelector('#fCode, #directCode');
+  const nome = modalBody.querySelector('#fName, #directName');
+  if(nome && !nome.value && p.nome) nome.value = p.nome;
+  const api = caixa && iaApis.get(caixa);
+  if(api) api.aplicar(p.codigo, p.antes, p.tarefas);
+}
+/* liga o botão do assistente; codeSel = a caixa do código; editingId = o jogo que está sendo editado (se for edição) */
+function ligarAssistente(root, codeSel, editingId){
   const box = root.querySelector('.ia-assist');
   if(!box) return;
   const caixa = root.querySelector(codeSel), abrir = box.querySelector('[data-ia-abrir]'), status = box.querySelector('[data-ia-status]'), desfazer = box.querySelector('[data-ia-desfazer]');
-  let antes = null, ocupado = false;
+  const nomeEl = root.querySelector('#fName, #directName');
+  let antes = null;
   const mostrar = (txt, tipo)=>{ status.textContent = txt || ''; status.className = 'ia-assist-status' + (tipo ? ' ' + tipo : ''); };
-  const fazer = async tarefa=>{
-    const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
-    if(!codigo){ mostrar(t('ia_sem_codigo'), 'ruim'); caixa.focus(); return; }
-    ocupado = true;
-    abrir.disabled = true; abrir.querySelector('span').textContent = t('ia_trabalhando');
-    mostrar('');
-    const r = await assistentePedir(tarefa, codigo, '');
-    ocupado = false;
-    abrir.disabled = false; abrir.querySelector('span').textContent = t('ia_tit');
-    if(!r.ok){ mostrar(t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro'), 'ruim'); return; }
-    antes = caixa.value;
-    caixa.value = r.codigo;
-    desfazer.hidden = false;
-    mostrar(t(tarefa === 'online' ? 'ia_pronto_online' : tarefa === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'), 'ok');
-    playSound('buy');
+  const tela = {
+    vivo: ()=>caixa.isConnected,
+    pintar(){
+      abrir.disabled = !!iaTrabalho;
+      if(iaTrabalho){
+        status.className = 'ia-assist-status criando';
+        status.innerHTML = iaCriandoHtml() + `<button type="button" class="ia-sair">${chatListEscape(t('ia_sair'))}</button>`;
+        status.querySelector('.ia-sair').addEventListener('click', ()=>{ playSound('click'); closeModal(); });
+      } else if(status.classList.contains('criando')) mostrar('');
+    }
   };
+  iaTelas.add(tela);
+  iaApis.set(caixa, {
+    mostrar,
+    aplicar(codigo, antigo, tarefas){
+      antes = antigo;
+      caixa.value = codigo;
+      desfazer.hidden = false;
+      mostrar(iaMsgPronto(tarefas), 'ok');
+      playSound('buy');
+    }
+  });
+  tela.pintar();
   abrir.addEventListener('click', ()=>{
-    if(ocupado) return;
+    if(iaTrabalho) return;
     playSound('click');
+    const escolhidas = new Set();
     const bg = document.createElement('div');
     bg.className = 'game-menu-bg';
-    bg.innerHTML = `<div class="game-menu-sheet">
+    bg.innerHTML = `<div class="game-menu-sheet ia-sheet">
         <div class="game-menu-title ia-menu-tit">${iconeAgenteKoda()} ${t('ia_tit')}</div>
-        <button class="game-menu-item" data-ia="perguntar">❓ ${t('ia_perguntar')}</button>
-        <button class="game-menu-item" data-ia="online">🌐 ${t('ia_online')}</button>
-        <button class="game-menu-item" data-ia="loja">🛒 ${t('ia_loja')}</button>
-        <button class="game-menu-item" data-ia="salvar">💾 ${t('ia_salvar')}</button>
+        <button type="button" class="ia-perguntar" data-perguntar><span class="ia-q" aria-hidden="true">?</span><span>${t('ia_perguntar')}</span></button>
+        <p class="ia-escolha">${t('ia_escolha')}</p>
+        <div class="ia-opcoes">${IA_ORDEM.map(k=>`<button type="button" class="ia-opcao" data-op="${k}" aria-pressed="false"><span>${t('ia_' + k)}</span><i class="ia-marca" aria-hidden="true"></i></button>`).join('')}</div>
+        <button type="button" class="ia-confirmar" disabled>${t('ia_confirmar')}</button>
         <button class="game-menu-cancel">${t('menu_cancel')}</button>
       </div>`;
     document.body.appendChild(bg);
     requestAnimationFrame(()=>bg.classList.add('show'));
     const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 200); };
+    const confirmar = bg.querySelector('.ia-confirmar');
     bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
     bg.querySelector('.game-menu-cancel').addEventListener('click', fechar);
-    bg.querySelectorAll('[data-ia]').forEach(b=>b.addEventListener('click', ()=>{
+    bg.querySelector('[data-perguntar]').addEventListener('click', ()=>{
       playSound('click'); fechar();
-      if(b.dataset.ia === 'perguntar') abrirPerguntas(prepararCodigoDoJogo(caixa.value) || caixa.value.trim());   // a dúvida pode ser sobre o jogo que está na caixa
-      else fazer(b.dataset.ia);
+      abrirPerguntas(prepararCodigoDoJogo(caixa.value) || caixa.value.trim());   // a dúvida pode ser sobre o jogo que está na caixa
+    });
+    bg.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click', ()=>{
+      playSound('click');
+      const k = b.dataset.op;
+      if(escolhidas.has(k)) escolhidas.delete(k); else escolhidas.add(k);
+      b.classList.toggle('on', escolhidas.has(k));
+      b.setAttribute('aria-pressed', escolhidas.has(k) ? 'true' : 'false');
+      confirmar.disabled = !escolhidas.size;
     }));
+    confirmar.addEventListener('click', ()=>{
+      if(!escolhidas.size || iaTrabalho) return;
+      const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
+      fechar();
+      if(!codigo){ mostrar(t('ia_sem_codigo'), 'ruim'); caixa.focus(); return; }
+      playSound('click');
+      iaComecar(IA_ORDEM.filter(k=>escolhidas.has(k)), caixa, nomeEl ? nomeEl.value.trim() : '', editingId);
+    });
   });
   desfazer.addEventListener('click', ()=>{
     if(antes === null) return;
@@ -32894,6 +33034,12 @@ var PZ_TXT = {
  ask_ph:'Escreva sua pergunta…|Type your question…|Escribe tu pregunta…|Scrivi la tua domanda…|Écris ta question…|Schreib deine Frage…|Typ je vraag…|質問を書いてね…|写下你的问题……|질문을 써 주세요…',
  ask_enviar:'Enviar|Send|Enviar|Invia|Envoyer|Senden|Sturen|送る|发送|보내기',
  ask_pensando:'Pensando…|Thinking…|Pensando…|Ci penso…|Je réfléchis…|Ich denke nach…|Even denken…|考え中…|思考中……|생각 중…',
+ ia_escolha:'Toque no que você quer que o Agente Koda faça no seu jogo:|Tap what you want Koda Agent to do in your game:|Toca lo que quieres que el Agente Koda haga en tu juego:|Tocca quello che vuoi che l’Agente Koda faccia nel tuo gioco:|Touche ce que tu veux que l’Agent Koda fasse dans ton jeu :|Tippe an, was der Koda-Agent in deinem Spiel machen soll:|Tik aan wat de Koda-agent in je game moet doen:|Kodaエージェントにゲームでしてほしいことをタップしてね：|点选你想让 Koda 助手在游戏里做的事：|Koda 에이전트가 게임에서 할 일을 눌러 골라요:',
+ ia_confirmar:'Confirmar|Confirm|Confirmar|Conferma|Confirmer|Bestätigen|Bevestigen|決定|确认|확인',
+ ia_sair:'Sair da tela (eu aviso quando ficar pronto)|Leave this screen (I’ll let you know when it’s ready)|Salir de la pantalla (te aviso cuando esté listo)|Esci dalla schermata (ti avviso quando è pronto)|Quitter l’écran (je te préviens quand c’est prêt)|Bildschirm verlassen (ich sag Bescheid, wenn’s fertig ist)|Scherm verlaten (ik laat het weten als het klaar is)|画面を出る（できたら知らせるね）|离开这个页面（好了会通知你）|화면 나가기 (다 되면 알려 줄게요)',
+ ia_terminou:'O Agente Koda terminou! Toque pra ver.|Koda Agent is done! Tap to see.|¡El Agente Koda terminó! Toca para ver.|L’Agente Koda ha finito! Tocca per vedere.|L’Agent Koda a fini ! Touche pour voir.|Der Koda-Agent ist fertig! Tippe zum Ansehen.|De Koda-agent is klaar! Tik om te kijken.|Kodaエージェントができたよ！タップして見てね。|Koda 助手完成了！点一下查看。|Koda 에이전트가 끝냈어요! 눌러서 봐요.',
+ ia_terminou_nome:'O Agente Koda terminou “{nome}”! Toque pra ver.|Koda Agent finished “{nome}”! Tap to see.|¡El Agente Koda terminó “{nome}”! Toca para ver.|L’Agente Koda ha finito “{nome}”! Tocca per vedere.|L’Agent Koda a fini « {nome} » ! Touche pour voir.|Der Koda-Agent ist mit „{nome}“ fertig! Tippe zum Ansehen.|De Koda-agent is klaar met “{nome}”! Tik om te kijken.|Kodaエージェントが「{nome}」をしあげたよ！タップして見てね。|Koda 助手完成了“{nome}”！点一下查看。|Koda 에이전트가 “{nome}”을(를) 끝냈어요! 눌러서 봐요.',
+ ia_pronto_varios:'Pronto! Toque em Testar pra ver o que mudou.|Done! Tap Test to see what changed.|¡Listo! Toca Probar para ver qué cambió.|Fatto! Tocca Prova per vedere cosa è cambiato.|C’est fait ! Touche Tester pour voir ce qui a changé.|Fertig! Tippe auf Testen, um die Änderungen zu sehen.|Klaar! Tik op Testen om te zien wat er veranderd is.|できた！「テスト」で変わったところを見てみてね。|好了！点“测试”看看有什么变化。|완료! 테스트를 눌러 뭐가 바뀌었는지 봐요.',
  ia_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기',
  ia_desfeito:'Voltou o código de antes.|The previous code is back.|Volvió el código de antes.|È tornato il codice di prima.|L’ancien code est revenu.|Der vorherige Code ist zurück.|De vorige code is terug.|前のコードにもどったよ。|已恢复之前的代码。|이전 코드로 돌아왔어요.',
  ia_erro:'O assistente não conseguiu agora. Tente de novo daqui a pouco.|The assistant couldn’t do it right now. Try again in a bit.|El asistente no pudo ahora. Inténtalo en un rato.|L’assistente non ce l’ha fatta ora. Riprova tra poco.|L’assistant n’a pas réussi. Réessaie dans un moment.|Der Assistent hat es gerade nicht geschafft. Versuch es gleich nochmal.|Het lukte de assistent nu niet. Probeer het zo opnieuw.|今はうまくいかなかった。少ししてからもう一度ためしてね。|助手暂时没能完成，请稍后再试。|지금은 안 됐어요. 잠시 후 다시 해 봐요.',
