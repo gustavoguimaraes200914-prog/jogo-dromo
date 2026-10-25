@@ -5123,6 +5123,29 @@
     .pz-sortear{top:6px;right:6px;padding:4px 9px;}
     .pz-loja{grid-template-columns:180px minmax(0,1fr);}
   }
+  /* ---------- o clima da apresentação no Koda todo: contorno escuro, botões gordinhos que afundam, janelas com pulinho ---------- */
+  :root{--kc:#24140F;}
+  .koda-aviso{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));z-index:9600;display:flex;align-items:center;gap:9px;
+    max-width:min(92vw,420px);box-sizing:border-box;padding:6px 15px 6px 6px;background:#fff;color:#13312A;border:3px solid var(--kc);border-radius:20px;
+    box-shadow:0 5px 0 rgba(0,0,0,.2),0 14px 30px rgba(0,0,0,.28);font:700 .9rem/1.3 'Nunito Sans',sans-serif;pointer-events:none;
+    opacity:0;transform:translate(-50%,16px) scale(.85);transition:opacity .18s ease,transform .32s cubic-bezier(.34,1.56,.64,1);}
+  .koda-aviso.on{opacity:1;transform:translate(-50%,0) scale(1);}
+  .koda-aviso-cara{flex:none;width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(160deg,#C9F9EA,#7CE3C5);border:2px solid var(--kc);}
+  .koda-aviso-cara svg{width:100%;height:100%;display:block;}
+  .koda-aviso.on .koda-aviso-cara{animation:kodaAvisoCara .5s cubic-bezier(.3,1.6,.5,1) .1s;}
+  @keyframes kodaAvisoCara{0%{transform:scale(.6) rotate(-12deg);}100%{transform:none;}}
+  .koda-aviso-txt{min-width:0;}
+  .confirm-card{border:3px solid var(--kc);border-radius:22px;box-shadow:0 7px 0 rgba(0,0,0,.2),0 18px 44px rgba(0,0,0,.35);animation:kodaPop .34s cubic-bezier(.34,1.56,.64,1);}
+  .confirm-actions button{border-radius:14px;box-shadow:inset 0 0 0 2.5px var(--kc),0 4px 0 var(--kc);font-weight:800;transition:transform .08s ease,box-shadow .08s ease;}
+  .confirm-actions button:active{transform:translateY(3px);box-shadow:inset 0 0 0 2.5px var(--kc),0 1px 0 var(--kc);}
+  .g-btn{box-shadow:inset 0 0 0 2.5px var(--kc),0 4px 0 var(--kc);font-weight:800;transition:transform .08s ease,box-shadow .08s ease;}
+  .g-btn.secondary{box-shadow:inset 0 0 0 2.5px var(--kc),0 4px 0 var(--kc);}
+  .g-btn:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 0 0 2.5px var(--kc),0 1px 0 var(--kc);}
+  .g-btn:disabled{box-shadow:inset 0 0 0 2.5px rgba(36,20,15,.35);}
+  .game-menu-bg.show .game-menu-sheet{transition-timing-function:cubic-bezier(.34,1.25,.64,1);}
+  .tour-tit{display:block;margin:0 0 3px;font:800 1.02rem/1.2 'Baloo 2',sans-serif;color:#159E78;}
+  @keyframes kodaPop{0%{opacity:0;transform:scale(.6);}100%{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){ .confirm-card,.koda-aviso.on .koda-aviso-cara{animation:none;} .koda-aviso{transition:opacity .15s ease;} }
   /* ---------- guarda-roupa: só o personagem sendo vestido, e as reações dele ---------- */
   .pz-palco.pz-guarda{display:block;height:180px;min-height:0;padding:0;background:#F3E3C3;--u:4.7px;isolation:isolate;flex:none;}
   .pz-loja > .pz-palco.pz-guarda{position:sticky;top:0;z-index:5;box-shadow:0 6px 14px rgba(0,0,0,.14);}
@@ -6410,7 +6433,7 @@ const I18N = {
     tut_msg_3:"Toque numa mensagem para responder ou apagar.", tut_perfil_t:"Seu perfil",
     tut_perfil_1:"Toque em Editar para mudar o apelido e o personagem quando quiser.", tut_perfil_2:"Os botões redondos abrem a personalização, a privacidade e a escolha do aparelho.",
     tut_perfil_3:"Seus jogos publicados, salvos e curtidos ficam nas abas.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"Descreva o jogo que você imagina e a IA monta para você.", tut_criar_2:"Teste, peça ajustes e só publique quando estiver do seu jeito.",
+    tut_criar_1:"Peça um jogo pra qualquer IA, copie o código e cole aqui. Ou escreva o seu próprio código!", tut_criar_2:"O Agente Koda te ajuda: deixa o jogo online, põe uma loja ou faz o jogo salvar. Teste antes de publicar!",
     tut_criar_3:"Depois de publicar, o jogo aparece na tela inicial e no seu perfil.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"Abóboras", pres_tipo_passe:"Koda Pass",
@@ -7085,7 +7108,7 @@ const I18N = {
     tut_msg_3:"Tap a message to reply or delete it.", tut_perfil_t:"Your profile",
     tut_perfil_1:"Tap Edit to change your nickname and character whenever you like.", tut_perfil_2:"The round buttons open customization, privacy and the device choice.",
     tut_perfil_3:"Your published, saved and liked games live in the tabs.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"Describe the game you imagine and the AI builds it for you.", tut_criar_2:"Test it, ask for tweaks and publish only when it's just right.",
+    tut_criar_1:"Ask any AI for a game, copy the code and paste it here. Or write your own code!", tut_criar_2:"Koda Agent helps you: it makes the game online, adds a shop or makes it save progress. Test before publishing!",
     tut_criar_3:"Once published, the game shows on the home screen and on your profile.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"Pumpkins", pres_tipo_passe:"Koda Pass",
@@ -7714,7 +7737,7 @@ const I18N = {
     tut_msg_3:"Tocca un messaggio per rispondere o eliminarlo.", tut_perfil_t:"Il tuo profilo",
     tut_perfil_1:"Tocca Modifica per cambiare soprannome e personaggio quando vuoi.", tut_perfil_2:"I pulsanti rotondi aprono personalizzazione, privacy e scelta del dispositivo.",
     tut_perfil_3:"I tuoi giochi pubblicati, salvati e piaciuti sono nelle schede.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"Descrivi il gioco che immagini e l'IA lo costruisce per te.", tut_criar_2:"Provalo, chiedi modifiche e pubblica solo quando è perfetto.",
+    tut_criar_1:"Chiedi un gioco a qualsiasi IA, copia il codice e incollalo qui. Oppure scrivi il tuo codice!", tut_criar_2:"L'Agente Koda ti aiuta: rende il gioco online, aggiunge un negozio o fa salvare i progressi. Provalo prima di pubblicare!",
     tut_criar_3:"Una volta pubblicato, il gioco appare nella schermata iniziale e nel tuo profilo.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"Zucche", pres_tipo_passe:"Koda Pass",
@@ -8343,7 +8366,7 @@ const I18N = {
     tut_msg_3:"Tik op een bericht om te antwoorden of te verwijderen.", tut_perfil_t:"Je profiel",
     tut_perfil_1:"Tik op Bewerken om je bijnaam en personage te wijzigen wanneer je wilt.", tut_perfil_2:"De ronde knoppen openen aanpassen, privacy en de apparaatkeuze.",
     tut_perfil_3:"Je gepubliceerde, opgeslagen en gelikete spellen staan in de tabbladen.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"Beschrijf het spel dat je bedenkt en de AI bouwt het voor je.", tut_criar_2:"Test het, vraag aanpassingen en publiceer pas als het goed is.",
+    tut_criar_1:"Vraag een AI om een spel, kopieer de code en plak hem hier. Of schrijf je eigen code!", tut_criar_2:"De Koda-agent helpt je: hij maakt de game online, zet er een winkel in of laat hem opslaan. Test voor je publiceert!",
     tut_criar_3:"Na het publiceren staat het spel op het startscherm en op je profiel.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"Pompoenen", pres_tipo_passe:"Koda Pass",
@@ -8984,7 +9007,7 @@ const I18N = {
     tut_msg_3:"Tippe auf eine Nachricht, um zu antworten oder sie zu löschen.", tut_perfil_t:"Dein Profil",
     tut_perfil_1:"Tippe auf Bearbeiten, um Spitzname und Figur jederzeit zu ändern.", tut_perfil_2:"Die runden Knöpfe öffnen Anpassung, Datenschutz und die Geräteauswahl.",
     tut_perfil_3:"Deine veröffentlichten, gespeicherten und gelikten Spiele findest du in den Tabs.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"Beschreibe das Spiel, das du dir vorstellst, und die KI baut es für dich.", tut_criar_2:"Teste es, bitte um Änderungen und veröffentliche erst, wenn es passt.",
+    tut_criar_1:"Bitte eine beliebige KI um ein Spiel, kopiere den Code und füge ihn hier ein. Oder schreib deinen eigenen Code!", tut_criar_2:"Der Koda-Agent hilft dir: Er macht das Spiel online, baut einen Shop ein oder lässt es speichern. Teste vor dem Veröffentlichen!",
     tut_criar_3:"Nach dem Veröffentlichen erscheint das Spiel auf dem Startbildschirm und in deinem Profil.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"Kürbisse", pres_tipo_passe:"Koda Pass",
@@ -9620,7 +9643,7 @@ const I18N = {
     tut_msg_3:"Touche un message pour répondre ou le supprimer.", tut_perfil_t:"Ton profil",
     tut_perfil_1:"Touche Modifier pour changer ton surnom et ton personnage quand tu veux.", tut_perfil_2:"Les boutons ronds ouvrent la personnalisation, la confidentialité et le choix de l'appareil.",
     tut_perfil_3:"Tes jeux publiés, enregistrés et aimés sont dans les onglets.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"Décris le jeu que tu imagines et l'IA le construit pour toi.", tut_criar_2:"Teste-le, demande des ajustements et ne publie que quand c'est parfait.",
+    tut_criar_1:"Demande un jeu à n'importe quelle IA, copie le code et colle-le ici. Ou écris ton propre code !", tut_criar_2:"L'Agent Koda t'aide : il met le jeu en ligne, ajoute une boutique ou fait sauvegarder la progression. Teste avant de publier !",
     tut_criar_3:"Une fois publié, le jeu apparaît sur l'accueil et sur ton profil.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"Citrouilles", pres_tipo_passe:"Koda Pass",
@@ -10189,7 +10212,7 @@ const I18N = {
     tut_msg_3:"メッセージをタップすると返信や削除ができます。", tut_perfil_t:"あなたのプロフィール",
     tut_perfil_1:"「編集」をタップすると、いつでもニックネームとキャラクターを変えられます。", tut_perfil_2:"丸いボタンで、カスタマイズ・プライバシー・端末の選択を開けます。",
     tut_perfil_3:"公開・保存・いいねしたゲームはタブにまとまっています。", tut_criar_t:"Koda Studio",
-    tut_criar_1:"思い描くゲームを説明すると、AIが作ってくれます。", tut_criar_2:"試して、直してもらって、満足したら公開しよう。",
+    tut_criar_1:"好きなAIにゲームをたのんで、コードをコピーしてここにはりつけよう。自分でコードを書いてもOK！", tut_criar_2:"Kodaエージェントが手伝うよ。オンラインにしたり、お店をつけたり、セーブできるようにしたり。公開する前にテストしてね！",
     tut_criar_3:"公開すると、ホーム画面とプロフィールに表示されます。",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"かぼちゃ", pres_tipo_passe:"Koda Pass",
@@ -10742,7 +10765,7 @@ const I18N = {
     tut_msg_3:"点一下消息即可回复或删除。", tut_perfil_t:"你的资料",
     tut_perfil_1:"点「编辑」可随时修改昵称和角色。", tut_perfil_2:"圆形按钮可打开个性化、隐私和设备选择。",
     tut_perfil_3:"发布、收藏和点赞的游戏都在标签页里。", tut_criar_t:"Koda Studio",
-    tut_criar_1:"描述你想象的游戏，AI 帮你做出来。", tut_criar_2:"先试玩、让 AI 调整，满意了再发布。",
+    tut_criar_1:"让任何 AI 帮你做个游戏，复制代码贴到这里。也可以自己写代码！", tut_criar_2:"Koda 助手会帮你：让游戏联网、加商店，或者让游戏能存档。发布前先试玩一下！",
     tut_criar_3:"发布后，游戏会出现在首页和你的资料里。",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"南瓜", pres_tipo_passe:"Koda Pass",
@@ -11309,7 +11332,7 @@ const I18N = {
     tut_msg_3:"메시지를 누르면 답장하거나 지울 수 있어요.", tut_perfil_t:"내 프로필",
     tut_perfil_1:"편집을 누르면 언제든 닉네임과 캐릭터를 바꿀 수 있어요.", tut_perfil_2:"둥근 버튼으로 꾸미기, 개인정보, 기기 선택을 열어요.",
     tut_perfil_3:"올린 게임, 저장한 게임, 좋아요한 게임은 탭에 있어요.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"상상하는 게임을 설명하면 AI가 만들어 줘요.", tut_criar_2:"테스트하고 고쳐 달라고 한 다음, 마음에 들면 올려요.",
+    tut_criar_1:"아무 AI에게 게임을 부탁하고, 코드를 복사해서 여기에 붙여 넣어요. 직접 코드를 써도 돼요!", tut_criar_2:"Koda 에이전트가 도와줘요. 게임을 온라인으로 만들고, 상점을 넣거나 저장되게 해 줘요. 올리기 전에 테스트해 봐요!",
     tut_criar_3:"올리면 홈 화면과 내 프로필에 나타나요.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"호박", pres_tipo_passe:"Koda Pass",
@@ -11985,7 +12008,7 @@ const I18N = {
     tut_msg_3:"Toca un mensaje para responder o borrarlo.", tut_perfil_t:"Tu perfil",
     tut_perfil_1:"Toca Editar para cambiar tu apodo y tu personaje cuando quieras.", tut_perfil_2:"Los botones redondos abren personalización, privacidad y la elección del dispositivo.",
     tut_perfil_3:"Tus juegos publicados, guardados y con me gusta están en las pestañas.", tut_criar_t:"Koda Studio",
-    tut_criar_1:"Describe el juego que imaginas y la IA lo construye por ti.", tut_criar_2:"Pruébalo, pide ajustes y publica solo cuando esté a tu gusto.",
+    tut_criar_1:"Pídele un juego a cualquier IA, copia el código y pégalo aquí. ¡O escribe tu propio código!", tut_criar_2:"El Agente Koda te ayuda: pone el juego online, agrega una tienda o hace que guarde el progreso. ¡Pruébalo antes de publicar!",
     tut_criar_3:"Al publicarlo, el juego aparece en la pantalla de inicio y en tu perfil.",
     /* ---- presentes: tudo + X ---- */
     pres_tipo_ab:"Calabazas", pres_tipo_passe:"Koda Pass",
@@ -15465,36 +15488,32 @@ const TUTORIAIS = {
 let tutFila = [], tutAberto = false;
 function tutorialPrimeiraVez(chave){
   if(!tutAtivo() || !TUTORIAIS[chave]) return;
-  const vistos = tutLer();
-  if(vistos[chave]) return;
-  vistos[chave] = 1;                       // marca na hora: abrir de novo não repete
+  const vistos = tutLer(), marca = chave + '2';   // '2': agora quem explica é o agente (todo mundo vê uma vez, mesmo quem viu a janelinha antiga)
+  if(vistos[marca]) return;
+  vistos[marca] = 1;                       // marca na hora: abrir de novo não repete
   try{ localStorage.setItem(TUT_KEY, JSON.stringify(vistos)); }catch(e){}
   try{ syncToServer(); }catch(e){}
   if(tourAtivo) return;                    // a apresentação do agente já está explicando
   tutFila.push(chave);
   setTimeout(tutProximo, 450);             // a janela abre primeiro; a aula aparece por cima
 }
+/* o que cada dica aponta (sem o botão na tela, ele explica no meio) */
+const TUT_ALVOS = {
+  loja:      [()=>tourEl('.shop-sheet .pz-guarda') || tourEl('.shop-sheet .shop-row'), ()=>tourEl('.shop-sheet .shop-tabs'), null],
+  kshop:     [()=>tourEl('.kshop-sheet .kshop-offers') || tourEl('.kshop-sheet .kshop-body'), ()=>tourEl('.kshop-sheet .kshop-tabs'), ()=>tourEl('.kshop-sheet .theme-balance')],
+  missoes:   [()=>tourEl('.ms-sheet .ms-list > *'), ()=>tourEl('.ms-sheet .shop-tabs'), ()=>tourEl('.ms-sheet .ms-list')],
+  passe:     [()=>tourEl('.passe-barra'), ()=>tourEl('.passe-trilha'), ()=>tourEl('.passe-trilha')],
+  mensagens: [()=>tourEl('#newConvBtn'), null, ()=>tourEl('.conv-row')],
+  perfil:    [()=>tourEl('#profileEditBtn'), ()=>tourEl('.profile-icon-row'), ()=>tourEl('.profile-tabs')],
+  criar:     [()=>tourEl('#directCode') || tourEl('#choiceAgent'), ()=>tourEl('.ia-assist-abrir'), null]
+};
 function tutProximo(){
   if(tutAberto || !tutFila.length) return;
   if(document.getElementById('onbBg') || document.getElementById('kodaSplash') || document.querySelector('.tour-bg')){ setTimeout(tutProximo, 700); return; }
-  const chave = tutFila.shift(), T = TUTORIAIS[chave];
+  const chave = tutFila.shift(), T = TUTORIAIS[chave], alvos = TUT_ALVOS[chave] || [];
   tutAberto = true;
-  const bg = document.createElement('div');
-  bg.className = 'tut-bg';
-  bg.setAttribute('role', 'dialog');
-  bg.innerHTML = `
-    <div class="tut-card">
-      ${xFecharBtn('', 'tutFechar')}
-      <div class="tut-ic">${ICONS[T.ic] || ''}</div>
-      <h3>${chatListEscape(t('tut_' + T.k + '_t'))}</h3>
-      <ul>${[1, 2, 3].map(n=>`<li><span>${chatListEscape(t('tut_' + T.k + '_' + n))}</span></li>`).join('')}</ul>
-      <button type="button" class="tut-ok" id="tutOk">${chatListEscape(t('tut_ok'))}</button>
-    </div>`;
-  document.body.appendChild(bg);
-  const fechar = ()=>{ if(bg.parentNode) bg.parentNode.removeChild(bg); tutAberto = false; setTimeout(tutProximo, 250); };
-  bg.querySelector('#tutOk').addEventListener('click', fechar);
-  bg.querySelector('#tutFechar').addEventListener('click', fechar);
-  bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
+  const lista = [1, 2, 3].map((n, i)=>({id: 'tut', texto: t('tut_' + T.k + '_' + n), alvo: alvos[i] || undefined, solto: true}));
+  agenteGuiar(lista, {titulo: t('tut_' + T.k + '_t'), fimTxt: t('tut_ok'), aoFim: ()=>{ tutAberto = false; setTimeout(tutProximo, 250); }});
 }
 function firebaseErrorMessage(err){
   if(err && err.code === 'auth/network-request-failed'){ try{ mostrarSemConexao(); }catch(e){} }
@@ -18013,17 +18032,25 @@ function showConfirm(message, confirmLabel, onConfirm){
 /* tiny toast */
 let toastTimer;
 function toast(msg){
-  let t = document.getElementById('toastEl');
-  if(!t){
-    t = document.createElement('div');
-    t.id = 'toastEl';
-    t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#08322B;color:#eafff8;padding:10px 20px;border-radius:999px;font-family:Baloo 2,sans-serif;font-weight:600;z-index:99;box-shadow:0 8px 20px rgba(0,0,0,.3);pointer-events:none;';
-    document.body.appendChild(t);
+  /* o aviso agora é o agente falando: a carinha dele e um balãozinho no estilo da apresentação */
+  let el = document.getElementById('toastEl');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toastEl';
+    el.className = 'koda-aviso';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.innerHTML = '<span class="koda-aviso-cara" aria-hidden="true"></span><span class="koda-aviso-txt"></span>';
+    document.body.appendChild(el);
   }
-  t.textContent = msg;
-  t.style.opacity = '1';
+  try{
+    const cfg = pzNorm(meuAgente().cfg, PZ_PADRAO), cod = pzCodigo(cfg);
+    if(el.dataset.cod !== cod){ el.querySelector('.koda-aviso-cara').innerHTML = pzSvg(cfg, 'rosto'); el.dataset.cod = cod; }
+  }catch(e){}
+  el.querySelector('.koda-aviso-txt').textContent = msg;
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ t.style.opacity='0'; }, 1800);
+  toastTimer = setTimeout(()=>el.classList.remove('on'), Math.max(1900, Math.min(4500, 1100 + String(msg || '').length * 45)));
 }
 
 /* ============================================================
@@ -35778,15 +35805,21 @@ function tourTalvez(){
   })();
 }
 function tourTexto(p, nomeAg, nick){
+  if(p.texto) return p.texto;
   if(p.id === 'oi') return nick ? t('tour_oi', {nome: nick, ag: nomeAg}) : t('tour_oi_sem', {ag: nomeAg});
   let v; try{ v = p.vars ? p.vars() : undefined; }catch(e){}
   return t(p.chave || ('tour_' + p.id), v);
 }
 function tourAbrir(){
-  if(tourAtivo || !document.body) return;
-  const lista = TOUR_PASSOS.slice();
+  agenteGuiar(TOUR_PASSOS.slice(), {principal: true});
+}
+/* o agente grandão guiando: a abertura (principal) e a explicação de cada parte do Koda (lista curta, com título)
+   opts: {principal, titulo, fimTxt (texto do último botão), aoFim} */
+function agenteGuiar(lista, opts){
+  opts = opts || {};
+  if(tourAtivo || !document.body || !lista.length){ if(opts.aoFim) opts.aoFim(); return; }
   tourAtivo = true;
-  tourMarcar();                                   // marca na hora: recarregar a página não repete
+  if(opts.principal) tourMarcar();                // marca na hora: recarregar a página não repete
   try{ agFecharBalao(false); }catch(e){}
   const reduzido = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const esc = chatListEscape;
@@ -35797,7 +35830,7 @@ function tourAbrir(){
   nick = nick.indexOf('@') >= 0 ? '' : nick.split(/\s+/)[0].slice(0, 16);
   /* quantos passos esta pessoa vai ver (sem conta não tem perfil nem curtir) */
   const contaPassos = ['p_curtir', 'p_perfil', 'p_editar', 'editar', 'p_editar_fechar', 'p_fechar_perfil', 'pessoas'];
-  const total = lista.filter(p=>tourComConta() || contaPassos.indexOf(p.id) < 0).length;
+  const total = opts.principal ? lista.filter(p=>tourComConta() || contaPassos.indexOf(p.id) < 0).length : lista.length;
   const camadas = [['n', undefined], ['p', 'pisca'], ['f', 'feliz'], ['w1', 'p1'], ['w2', 'p2']]
     .map(([c, v])=>`<span class="tour-${c}">${pzPoseSvg(cfg, v)}</span>`).join('');
   const bg = document.createElement('div');
@@ -35820,6 +35853,7 @@ function tourAbrir(){
       <span class="tour-nome">${esc(nomeAg)}</span>
       <span class="tour-vez" hidden>${esc(t('tour_vez'))}</span>
       <div class="tour-prog" aria-hidden="true"><i></i></div>
+      ${opts.titulo ? `<b class="tour-tit">${esc(opts.titulo)}</b>` : ''}
       <p class="tour-txt" aria-live="polite"><span class="fantasma"></span><span class="vivo"></span></p>
       <div class="tour-rodape">
         <button type="button" class="tour-pular">${esc(t('tour_pular'))}</button>
@@ -35865,7 +35899,7 @@ function tourAbrir(){
     const bh = bal.offsetHeight;
     const r = el ? rectAlvo(el, p) : null;
     const L = {r, bw, bh, u, H, flip: false, ang: 90, F: null, E: null};
-    const piso = M.vh - S.b - 8, teto = S.t + 8;
+    const piso = M.vh - S.b - 8, teto = S.t + 24;   // (a plaquinha do nome fica acima do balão)
     if(!r){
       const total = agW + gapAg + bw, B = Math.max(H, bh);
       L.agX = Math.max(S.l + pad, (M.vw - total) / 2);
@@ -36053,14 +36087,14 @@ function tourAbrir(){
     try{ serve = !p.so || !!p.so(); }catch(e){ serve = false; }
     let el = null;
     if(serve && p.alvo){
-      for(let n = 0; n < (p.espera || 15); n++){
+      for(let n = 0; n < (p.espera || (p.solto ? 6 : 15)); n++){
         try{ el = p.alvo(); }catch(e){ el = null; }
         if(el && tourVisivel(el)) break;
         el = null;
         await dorme(200);
         if(est.fim || est.i !== i) return;
       }
-      if(!el) serve = false;
+      if(!el && !p.solto) serve = false;          // (solto: sem o botão, explica no meio da tela)
     }
     if(!serve){ irPara(i + 1); return; }
     est.feitos++;
@@ -36070,7 +36104,7 @@ function tourAbrir(){
     vez.hidden = !p.faca;
     bal.classList.toggle('pratica', !!p.faca);
     const ultimo = p.id === 'eu' || i === lista.length - 1;
-    btnProx.textContent = t(p.faca ? 'tour_faz' : ultimo ? 'tour_fim' : 'tour_prox');
+    btnProx.textContent = p.faca ? t('tour_faz') : ultimo ? (opts.fimTxt || t('tour_fim')) : t('tour_prox');
     btnProx.classList.toggle('faz', !!p.faca);
     btnPular.hidden = ultimo;
     agEl.classList.toggle('acena', p.id === 'oi');
@@ -36177,7 +36211,17 @@ function tourAbrir(){
     linha.classList.remove('on');
     const real = document.getElementById('kodaAgente');
     let ms = 450;
-    if(!pulou && tourVisivel(real) && !reduzido && est.L){
+    if(!opts.principal && !reduzido && est.L){
+      /* explicação de uma parte: ele acena e sai andando pela beirada */
+      const praDireita = est.x + 11 * est.L.u > window.innerWidth / 2;
+      agEl.classList.remove('acena', 'fala', 'feliz');
+      agEl.classList.add('anda');
+      agEl.classList.toggle('vira', !praDireita);
+      braco.style.setProperty('--ang', '90deg');
+      porAgente(praDireita ? window.innerWidth + 10 : -30 * est.L.u, est.y, 0.7);
+      setTimeout(()=>bg.classList.add('saindo'), 250);
+      ms = 720;
+    } else if(opts.principal && !pulou && tourVisivel(real) && !reduzido && est.L){
       /* o grandão encolhe e vira o agentezinho do canto */
       const rr = real.getBoundingClientRect(), s = rr.width / (22 * est.L.u);
       agEl.classList.remove('vira', 'acena', 'fala');
@@ -36190,8 +36234,8 @@ function tourAbrir(){
       setTimeout(()=>{ try{ agCarinho(); }catch(e){} }, 880);
       try{ playSound('win'); }catch(e){}
     } else bg.classList.add('saindo');
-    if(window.scrollY > 0 && !tourModal()) window.scrollTo({top: 0, behavior: reduzido ? 'auto' : 'smooth'});
-    setTimeout(()=>{ if(bg.parentNode) bg.parentNode.removeChild(bg); tourAtivo = false; }, ms);
+    if(opts.principal && window.scrollY > 0 && !tourModal()) window.scrollTo({top: 0, behavior: reduzido ? 'auto' : 'smooth'});
+    setTimeout(()=>{ if(bg.parentNode) bg.parentNode.removeChild(bg); tourAtivo = false; if(opts.aoFim) try{ opts.aoFim(); }catch(e){} }, ms);
   }
   function teclas(e){
     if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); fechar(true); return; }
@@ -36218,10 +36262,10 @@ function tourAbrir(){
   document.addEventListener('keydown', teclas, true);
   window.addEventListener('resize', aoGirar);
   const relogio = setInterval(()=>reajustar(false), 400);
-  /* entra andando da beirada da tela */
+  /* entra andando da beirada da tela (nas explicações, do lado do agentezinho do canto) */
   const M0 = medidas();
   agEl.style.setProperty('--u', M0.u + 'px');
-  porAgente(-24 * M0.u, (M0.vh - M0.H) / 2, 0);
+  porAgente(opts.principal ? -24 * M0.u : M0.vw + 2 * M0.u, (M0.vh - M0.H) / 2, 0);
   desenharBloqueio(null, false);
   requestAnimationFrame(()=>{ bg.classList.add('on'); irPara(0); });
 }
