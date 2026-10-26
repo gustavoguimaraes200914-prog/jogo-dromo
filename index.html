@@ -3029,11 +3029,12 @@
   /* "só o jogo": sem título nem barra de curtir/comentar, o jogo ocupa tudo */
   .modal.so-jogo .modal-head,.modal.so-jogo .game-info-bar{display:none !important;}
   .modal.so-jogo{border-radius:0;max-width:none;max-height:none;}
-  .so-jogo-x{position:fixed;z-index:3400;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:38px;height:38px;padding:0;border:none;border-radius:50%;
+  .so-jogo-btns{position:fixed;z-index:3400;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));display:flex;gap:8px;}
+  .so-jogo-x{position:relative;width:38px;height:38px;padding:0;border:none;border-radius:50%;flex:none;
     background:rgba(0,0,0,.42);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.7;transition:opacity .15s,transform .1s;
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
   .so-jogo-x:active{opacity:1;transform:scale(.9);}
-  .so-jogo-x svg{width:18px;height:18px;}
+  .so-jogo-x svg{width:18px !important;height:18px !important;}
   .so-jogo-x:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;opacity:1;}
   .modal.app-embed .modal-body{
     flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -18910,15 +18911,23 @@ function formatCompactCount(n){
 function soJogoLigar(ligar){
   const card = document.getElementById('modalCard');
   if(card) card.classList.toggle('so-jogo', !!ligar);
-  let x = document.getElementById('soJogoX');
-  if(!ligar){ if(x) x.remove(); return; }
-  if(x) return;
-  x = document.createElement('button');
-  x.type = 'button'; x.id = 'soJogoX'; x.className = 'so-jogo-x';
-  x.setAttribute('aria-label', t('x_fechar')); x.title = t('x_fechar');
-  x.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
-  x.addEventListener('click', ()=>{ try{ playSound('click'); }catch(e){} closeModal(); });
-  document.body.appendChild(x);
+  let caixa = document.getElementById('soJogoBtns');
+  if(!ligar){ if(caixa) caixa.remove(); return; }
+  if(caixa) return;
+  /* dois botõezinhos: um volta pra tela com a barra (continua no jogo) e o X sai do jogo */
+  const botao = (id, rotulo, icone, aoTocar)=>{
+    const b = document.createElement('button');
+    b.type = 'button'; b.id = id; b.className = 'so-jogo-x';
+    b.setAttribute('aria-label', rotulo); b.title = rotulo;
+    b.innerHTML = icone;
+    b.addEventListener('click', ()=>{ try{ playSound('click'); }catch(e){} aoTocar(); });
+    return b;
+  };
+  caixa = document.createElement('div');
+  caixa.id = 'soJogoBtns'; caixa.className = 'so-jogo-btns';
+  caixa.appendChild(botao('soJogoVoltar', t('sj_voltar'), ICONS.collapse, ()=>soJogoLigar(false)));
+  caixa.appendChild(botao('soJogoX', t('x_fechar'), '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>', ()=>closeModal()));
+  document.body.appendChild(caixa);
   try{ toast(t('sj_dica')); }catch(e){}
 }
 function setupGameControlsBar(g, displayName){
@@ -33468,7 +33477,8 @@ var PZ_TXT = {
  ia_terminou_nome:'O Agente Koda terminou “{nome}”! Toque pra ver.|Koda Agent finished “{nome}”! Tap to see.|¡El Agente Koda terminó “{nome}”! Toca para ver.|L’Agente Koda ha finito “{nome}”! Tocca per vedere.|L’Agent Koda a fini « {nome} » ! Touche pour voir.|Der Koda-Agent ist mit „{nome}“ fertig! Tippe zum Ansehen.|De Koda-agent is klaar met “{nome}”! Tik om te kijken.|Kodaエージェントが「{nome}」をしあげたよ！タップして見てね。|Koda 助手完成了“{nome}”！点一下查看。|Koda 에이전트가 “{nome}”을(를) 끝냈어요! 눌러서 봐요.',
  ia_pronto_varios:'Pronto! Toque em Testar pra ver o que mudou.|Done! Tap Test to see what changed.|¡Listo! Toca Probar para ver qué cambió.|Fatto! Tocca Prova per vedere cosa è cambiato.|C’est fait ! Touche Tester pour voir ce qui a changé.|Fertig! Tippe auf Testen, um die Änderungen zu sehen.|Klaar! Tik op Testen om te zien wat er veranderd is.|できた！「テスト」で変わったところを見てみてね。|好了！点“测试”看看有什么变化。|완료! 테스트를 눌러 뭐가 바뀌었는지 봐요.',
  sj_btn:'Só o jogo (tela toda)|Game only (full screen)|Solo el juego (pantalla completa)|Solo il gioco (schermo intero)|Jeu seul (plein écran)|Nur das Spiel (Vollbild)|Alleen de game (volledig scherm)|ゲームだけ（全画面）|只显示游戏（全屏）|게임만 보기(전체 화면)',
- sj_dica:'Toque no X pra sair do jogo.|Tap the X to leave the game.|Toca la X para salir del juego.|Tocca la X per uscire dal gioco.|Touche la croix pour quitter le jeu.|Tippe auf das X, um das Spiel zu verlassen.|Tik op het kruisje om de game te verlaten.|Xをタップするとゲームを出られるよ。|点 X 退出游戏。|X를 누르면 게임에서 나가요.',
+ sj_dica:'Toque em ⤡ pra voltar à barra, ou no X pra sair do jogo.|Tap ⤡ to go back to the bar, or the X to leave the game.|Toca ⤡ para volver a la barra, o la X para salir del juego.|Tocca ⤡ per tornare alla barra, o la X per uscire dal gioco.|Touche ⤡ pour revenir à la barre, ou la croix pour quitter le jeu.|Tippe auf ⤡, um zur Leiste zurückzukehren, oder auf das X, um das Spiel zu verlassen.|Tik op ⤡ om terug te gaan naar de balk, of op het kruisje om de game te verlaten.|⤡で下のバーにもどる、×でゲームを出るよ。|点 ⤡ 回到按钮栏，点 X 退出游戏。|⤡을 누르면 버튼 막대로 돌아가고, X를 누르면 게임에서 나가요.',
+ sj_voltar:'Voltar pra barra (continuar no jogo)|Back to the bar (stay in the game)|Volver a la barra (seguir en el juego)|Torna alla barra (resta nel gioco)|Revenir à la barre (rester dans le jeu)|Zurück zur Leiste (im Spiel bleiben)|Terug naar de balk (in de game blijven)|バーにもどる（ゲームはそのまま）|回到按钮栏（继续玩游戏）|버튼 막대로 돌아가기 (게임은 그대로)',
  tour_aria:'Apresentação do Koda|Koda tour|Presentación de Koda|Presentazione di Koda|Visite de Koda|Koda-Rundgang|Rondleiding door Koda|Kodaのツアー|Koda 导览|Koda 둘러보기',
  tour_oi:'Oi, {nome}! Eu sou {ag}, seu ajudante aqui no Koda. Vou te mostrar tudo rapidinho. Vem comigo!|Hi, {nome}! I’m {ag}, your helper here on Koda. I’ll show you around real quick. Come with me!|¡Hola, {nome}! Soy {ag}, tu ayudante aquí en Koda. Te enseño todo rapidito. ¡Ven conmigo!|Ciao, {nome}! Sono {ag}, il tuo aiutante qui su Koda. Ti mostro tutto in un attimo. Vieni con me!|Salut, {nome} ! Moi, c’est {ag}, ton assistant ici sur Koda. Je te montre tout en deux minutes. Suis-moi !|Hallo, {nome}! Ich bin {ag}, dein Helfer hier bei Koda. Ich zeig dir schnell alles. Komm mit!|Hoi, {nome}! Ik ben {ag}, je helper hier op Koda. Ik laat je snel alles zien. Kom mee!|やあ、{nome}！ぼくは{ag}、Kodaできみのお手伝いをするよ。さっと案内するね。ついてきて！|嗨，{nome}！我是{ag}，我会在 Koda 帮你。我带你快速逛一圈，跟我来！|안녕, {nome}! 나는 {ag}, Koda에서 너를 도와줄 친구야. 금방 다 보여 줄게. 따라와!',
  tour_oi_sem:'Oi! Eu sou {ag}, seu ajudante aqui no Koda. Vou te mostrar tudo rapidinho. Vem comigo!|Hi! I’m {ag}, your helper here on Koda. I’ll show you around real quick. Come with me!|¡Hola! Soy {ag}, tu ayudante aquí en Koda. Te enseño todo rapidito. ¡Ven conmigo!|Ciao! Sono {ag}, il tuo aiutante qui su Koda. Ti mostro tutto in un attimo. Vieni con me!|Salut ! Moi, c’est {ag}, ton assistant ici sur Koda. Je te montre tout en deux minutes. Suis-moi !|Hallo! Ich bin {ag}, dein Helfer hier bei Koda. Ich zeig dir schnell alles. Komm mit!|Hoi! Ik ben {ag}, je helper hier op Koda. Ik laat je snel alles zien. Kom mee!|やあ！ぼくは{ag}、Kodaできみのお手伝いをするよ。さっと案内するね。ついてきて！|嗨！我是{ag}，我会在 Koda 帮你。我带你快速逛一圈，跟我来！|안녕! 나는 {ag}, Koda에서 너를 도와줄 친구야. 금방 다 보여 줄게. 따라와!',
