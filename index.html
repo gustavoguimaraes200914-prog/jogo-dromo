@@ -5036,6 +5036,36 @@
   .ugc-ferr.on{border-color:#17C79E;background:#DDF7EF;}
   .ugc-ferr svg{width:24px;height:24px;display:block;margin:auto;}
   .ugc-foto-modos button svg{width:18px;height:18px;vertical-align:-4px;margin-right:2px;}
+  .ugc-ferrs{column-gap:12px;row-gap:6px;}
+  .ugc-ferr-g{display:flex;gap:5px;}
+  @media (max-width:359px){ .ugc-ferrs{column-gap:10px;} .ugc-ferr-g{gap:4px;} .ugc-ferr{width:32px;height:32px;} .ugc-ferr svg{width:20px;height:20px;} }
+  .ugc-ferr.ugc-ferr-kit{width:auto;padding:0 11px 0 7px;display:inline-flex;align-items:center;gap:5px;background:#FFF4CC;border-color:#FFC93C;font:800 .82rem 'Baloo 2',sans-serif;color:#13312A;}
+  .ugc-ferr.ugc-ferr-kit.on{background:#FFE58A;border-color:#E0A800;}
+  .ugc-ferr.ugc-ferr-kit svg{margin:0;}
+  .ugc-opc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+  .ugc-opc[hidden]{display:none;}
+  .ugc-opc input{width:118px;height:38px;box-sizing:border-box;border-radius:12px;border:2px solid #17C79E;padding:0 10px;font:800 1.1rem 'Baloo 2',sans-serif;text-transform:uppercase;letter-spacing:.14em;text-align:center;background:#fff;color:#13312A;}
+  .ugc-opc-b{height:34px;border-radius:999px;border:2px solid transparent;background:#fff;padding:0 13px;font:800 .8rem 'Baloo 2',sans-serif;color:inherit;cursor:pointer;}
+  .ugc-opc-b.on{border-color:#17C79E;background:#DDF7EF;}
+  .ugc-opc .ugc-dica{flex:1 1 150px;}
+  .ugc-ades-pixel{display:inline-flex;align-items:center;gap:6px;border-color:#FFC93C;background:#FFF4CC;}
+  .ugc-ades-pixel svg{width:20px;height:20px;display:block;}
+  .ugc-kit{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:640px;z-index:3;box-sizing:border-box;background:#fff;border-radius:22px 22px 0 0;border:3px solid #24140F;border-bottom:0;
+    box-shadow:0 -8px 30px rgba(0,0,0,.18);padding:10px 14px calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;max-height:min(48vh,400px);overflow:auto;
+    animation:ugcKitSobe .3s cubic-bezier(.2,.9,.3,1.15);}
+  .ugc-kit[hidden]{display:none;}
+  .ugc-kit-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .ugc-kit-topo b{font:800 1rem 'Baloo 2',sans-serif;}
+  .ugc-kit-topo .ugc-x{width:34px;height:34px;flex:none;}
+  .ugc-kit-sub{font:800 .85rem 'Baloo 2',sans-serif;margin-top:2px;}
+  .ugc-kit-lista{flex:none;display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;min-height:96px;}
+  .ugc-kit-op{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;width:80px;padding:6px 4px 5px;border-radius:14px;border:2px solid #24140F;box-shadow:0 3px 0 #24140F;background:#F7FBFA;color:inherit;cursor:pointer;transition:transform .08s ease,box-shadow .08s ease;}
+  .ugc-kit-op:active{transform:translateY(3px);box-shadow:0 0 0 #24140F;}
+  .ugc-kit-op img{width:50px;height:66px;image-rendering:pixelated;display:block;background:#E3ECE9;border-radius:8px;}
+  .ugc-kit-est img{width:50px;height:50px;margin:8px 0;}
+  .ugc-kit-op small{font:800 .68rem/1.1 'Baloo 2',sans-serif;text-align:center;}
+  @keyframes ugcKitSobe{from{transform:translateY(40px);opacity:0;}to{transform:none;opacity:1;}}
+  @media (max-height:500px) and (orientation:landscape){ .ugc-kit{max-height:62vh;} .ugc-kit .ugc-dica{display:none;} .ugc-opc .ugc-dica{display:none;} }
   /* ---------- a tela de conferir a peça ---------- */
   .ugc-conf{position:fixed;inset:0;z-index:3200;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,30,26,.55);
     -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .2s;}
@@ -32022,12 +32052,13 @@ var PZ_W = 22, PZ_H = 29;
      (pecasVendas/{id}_{comprador}, uma por pessoa), confere ao entrar no site e o valor cai na conta dele.
    - Desenho ofensivo: o admin apaga (botão na própria peça).
 ============================================================ */
-var UGC_TIPOS = ['roupa', 'calca', 'cabeca', 'costas', 'mao'];   // 'roupa' = a camisa (tronco e braços)
+var UGC_TIPOS = ['roupa', 'calca', 'pes', 'cabeca', 'costas', 'mao'];   // 'roupa' = a camisa (tronco e braços); 'pes' = tênis, bota...
 /* onde cada tipo pode ser pintado (colunas x0..x1 e linhas y0..y1 da grade 22 x 29; a mão tem os dois lados)
    e a caixa onde a foto entra (a foto é recortada já do formato dela) */
 var UGC_AREA = {
   roupa:  {partes: [[2, 19, 15, 22]], foto: [2, 19, 15, 22]},
   calca:  {partes: [[5, 16, 21, 26]], foto: [5, 16, 21, 26]},
+  pes:    {partes: [[5, 16, 22, 27]], foto: [6, 15, 23, 27]},
   cabeca: {partes: [[0, 21, 0, 15]], foto: [3, 18, 0, 15]},
   costas: {partes: [[0, 21, 0, 28]], foto: [0, 21, 0, 28]},
   mao:    {partes: [[0, 6, 6, 28], [15, 21, 6, 28]], foto: [15, 21, 8, 28]}
@@ -32095,7 +32126,7 @@ function ugcLerFoto(f){
 }
 /* em que camada do personagem a foto aparece: só em cima da própria peça (roupa em cima da camisa, calça em cima da calça...);
    chapéu, costas e mão também podem sair pra fora do corpo */
-var UGC_FOTO_BASE = {roupa: 'cam', calca: 'calca', cabeca: 'chapeu', costas: 'costas', mao: 'mao'};
+var UGC_FOTO_BASE = {roupa: 'cam', calca: 'calca', pes: 'sapato', cabeca: 'chapeu', costas: 'costas', mao: 'mao'};
 function ugcFotoSvg(c, deCostas, tags){
   const U = c && c.ugc && c.ugc !== 'nenhum' ? ugcEstado().cache.get(c.ugc) : null;
   const F = U && (deCostas ? U.fotoC : U.foto);
@@ -32306,7 +32337,7 @@ async function ugcPerguntarIA(frente, costas, tipo, nome, palavra, fotos){
   const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timer = ctrl ? setTimeout(()=>ctrl.abort(), 25000) : null;
   try{
-    const texto = 'Item type: ' + ({roupa: 'shirt', calca: 'pants', cabeca: 'head item (hat, mask, hair)', costas: 'back item (wings, cape, backpack)', mao: 'item held in the hand'}[tipo] || tipo)
+    const texto = 'Item type: ' + ({roupa: 'shirt', calca: 'pants', pes: 'shoes', cabeca: 'head item (hat, mask, hair)', costas: 'back item (wings, cape, backpack)', mao: 'item held in the hand'}[tipo] || tipo)
       + '\nItem name: "' + String(nome).slice(0, 40) + '"'
       + (palavra ? '\nA simple word list flagged the word "' + palavra + '" in the name (this list often gives false alarms; decide yourself).' : '');
     const res = await fetch(SERVER_URL + '/agent', {
@@ -32628,8 +32659,175 @@ function ugcRecortarFoto(arquivo, aoUsar){
   im.src = url;
 }
 var UGC_RASCUNHO_KEY = 'koda_ugc_rascunho';
+/* ----- o kit de criar peça: letrinhas, modelos prontos e estampas ----- */
+/* letrinhas de 3 x 5 quadradinhos (nome e número de camisa de time); cada uma é 5 linhas de 3 */
+var UGC_FONTE = {
+  '0':'111101101101111', '1':'010110010010111', '2':'111001111100111', '3':'111001111001111', '4':'101101111001001',
+  '5':'111100111001111', '6':'111100111101111', '7':'111001001010010', '8':'111101111101111', '9':'111101111001111',
+  A:'010101111101101', B:'110101110101110', C:'011100100100011', D:'110101101101110', E:'111100110100111',
+  F:'111100110100100', G:'011100101101011', H:'101101111101101', I:'111010010010111', J:'001001001101010',
+  K:'101101110101101', L:'100100100100111', M:'101111111101101', N:'110101101101101', O:'010101101101010',
+  P:'110101110100100', Q:'010101101110011', R:'110101110101101', S:'011100010001110', T:'111010010010010',
+  U:'101101101101111', V:'101101101101010', W:'101101111111101', X:'101101010101101', Y:'101101010010010',
+  Z:'111001010100111', '!':'010010010000010', '?':'110001010000010', '+':'000010111010000', '-':'000000111000000',
+  '.':'000000000000010', '♥':'101111111010000', '★':'010111010101000', ' ':'000000000000000'
+};
+function ugcTextoLimpo(s){ return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().split('').filter(ch=>UGC_FONTE[ch]).join('').slice(0, 5); }
+/* as cores fixas dos modelos ('1' = a cor escolhida, '2' = ela mais escura, '3' = ela mais clara) */
+var UGC_KIT_CORES = {w:'#FFFFFF', k:'#2B2B33', g:'#F2C84B', x:'#D5DBE3', y:'#FFD23F', o:'#FF8A2A', p:'#FF9EC4'};
+/* os modelos prontos de cada tipo, no mesmo jeito das peças da loja: [linha onde começa, 'linhas'...]; f = frente, c = costas (sem c = igual à frente) */
+var UGC_MODELOS = {
+  roupa: [
+    {id:'camiseta', f:[[16,'....11111....11111....','....22.11111111.22....','.......11111111.......','.......11111111.......','.......22222222.......']],
+      c:[[16,'....11111111111111....','....22.11111111.22....','.......11111111.......','.......11111111.......','.......22222222.......']]},
+    {id:'mangalonga', f:[[16,'....11111....11111....','....11.11111111.11....','....11.11111111.11....','....22.11111111.22....','.......22222222.......']],
+      c:[[16,'....11111111111111....','....11.11111111.11....','....11.11111111.11....','....22.11111111.22....','.......22222222.......']]},
+    {id:'regata', f:[[16,'.......11....11.......','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......']],
+      c:[[16,'.......11111111.......','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......']]},
+    {id:'listrada', f:[[16,'....11111....11111....','....33.33333333.33....','.......11111111.......','.......33333333.......','.......22222222.......']],
+      c:[[16,'....11111111111111....','....33.33333333.33....','.......11111111.......','.......33333333.......','.......22222222.......']]},
+    {id:'time', f:[[16,'....1111w....w1111....','....ww.111111w1.ww....','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......']],
+      c:[[16,'....1111wwwwww1111....','....ww.11111111.ww....','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......']], num:{t:'10', x:8, y:17, cor:'w'}},
+    {id:'jaqueta', f:[[16,'....11112....21111....','....11.12133121.11....','....11.11133111.11....','....22.11133111.22....','.......22233222.......']],
+      c:[[16,'....11111111111111....','....11.11111111.11....','....11.11111111.11....','....22.11111111.22....','.......22222222.......']]},
+    {id:'moletom', f:[[15,'......2........2......','....11112222221111....','....11.1w1111w1.11....','....11.11111111.11....','....22.11222211.22....','.......22222222.......']],
+      c:[[15,'.......11111111.......','....11111111111111....','....11.11111111.11....','....11.11111111.11....','....22.11111111.22....','.......22222222.......']]},
+    {id:'vestido', f:[[16,'.......11....11.......','.......11111111.......','.......11111111.......','.......11111111.......','.......11111111.......','......1111111111......','.....222222222222.....']],
+      c:[[16,'.......11111111.......','.......11111111.......','.......11111111.......','.......11111111.......','.......11111111.......','......1111111111......','.....222222222222.....']]}
+  ],
+  calca: [
+    {id:'calca', f:[[21,'.......11111111.......','.......11122111.......','........11..11........','........22..22........']]},
+    {id:'short', f:[[21,'.......11111111.......','.......11122111.......']]},
+    {id:'bermuda', f:[[21,'.......11111111.......','.......11111111.......','........22..22........']]},
+    {id:'saia', f:[[21,'......1111111111......','.....111111111111.....','.....2.2.2..2.2.2.....']]},
+    {id:'esporte', f:[[21,'.......11111111.......','.......11111111.......','........w1..1w........','........w2..2w........']]},
+    {id:'rasgada', f:[[21,'.......11111111.......','.......11122111.......','........13..31........','........22..22........']]}
+  ],
+  pes: [
+    {id:'tenis', f:[[25,'.......111..111.......','.......www..www.......']]},
+    {id:'bota', f:[[24,'.......111..111.......','.......111..111.......','.......222..222.......']]},
+    {id:'chinelo', f:[[25,'........1....1........','.......111..111.......']]},
+    {id:'social', f:[[25,'.......1w1..1w1.......','.......222..222.......']]},
+    {id:'galocha', f:[[23,'........11..11........','.......111..111.......','.......111..111.......','.......222..222.......']]},
+    {id:'chuteira', f:[[25,'.......1w1..1w1.......','.......111..111.......','.......w.w..w.w.......']]},
+    {id:'meia', f:[[23,'........ww..ww........','........11..11........','.......111..111.......','.......www..www.......']]}
+  ],
+  cabeca: [
+    {id:'bone', f:[[3,'......1111111111......','.....1111ww111111.....','....11111111111111....','...2222222222222222...']],
+      c:[[3,'......1111111111......','.....111111111111.....','....11111111111111....','....22222222222222....']]},
+    {id:'gorro', f:[[1,'..........ww..........','........111111........','.......11111111.......','......1111111111......','....11111111111111....','....22222222222222....']]},
+    {id:'coroa', f:[[1,'......g...gg...g......','......gg..gg..gg......','......gggggggggg......','......ggg1ggg3gg......']]},
+    {id:'cartola', f:[[0,'.......11111111.......','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......','....11111111111111....']]},
+    {id:'orelhas', f:[[2,'......1........1......','.....131......131.....','.....1111....1111.....','......2222222222......']]},
+    {id:'oculos', f:[[9,'......1111..1111......','......1..1111..1......','......1..1..1..1......','......1111..1111......']], c:[]},
+    {id:'escuros', f:[[10,'......1111111111......','......1w11..1w11......']], c:[]},
+    {id:'mascara', f:[[10,'.....11..1111..11.....','.....11..1111..11.....']], c:[[10,'.....111111111111.....']]}
+  ],
+  costas: [
+    {id:'capa', f:[[15,'...1111111111111111...','...1111111111111111...','...1111111111111111...','..111111111111111111..','..111111111111111111..','..111111111111111111..',
+      '..111111111111111111..','..111111111111111111..','..111111111111111111..','..222222222222222222..']]},
+    {id:'asas', f:[[12,'.1..................1.','11..................11','111................111','1211..............1121','11211............11211','.11211..........11211.','.11121..........12111.','..1111..........1111..','...111..........111...','....1............1....']]},
+    {id:'morcego', f:[[11,'1....................1','11..................11','111................111','1211..............1121','11211............11211','11121............12111','11111............11111','1.1.1............1.1.1']]},
+    {id:'mochila', f:[[15,'...1111111111111111...','...1111111111111111...','...1222222222222221...','...1111111111111111...','...1111111111111111...','...2222222222222222...']]},
+    {id:'dragao', f:[[10,'2....................2','22..................22','212................212','2112..............2112','21112............21112','21112............21112','.2112............2112.','..212............212..','...22............22...']]},
+    {id:'jetpack', f:[[15,'..22..............22..','..22..............22..','..12..............21..','..12..............21..','..12..............21..','..22..............22..','..22..............22..','..oo..............oo..','..yo..............oy..','...y..............y...']]},
+    {id:'rabo', f:[[18,'..................11..','..................11..','..................1...','.................11...','................11....','.................2....']]}
+  ],
+  mao: [
+    {id:'espada', f:[[8,'..................x...','..................x...','..................x...','..................x...','..................x...','..................x...','..................x...','..................x...','..................x...','.................111..','..................2...','..................2...']]},
+    {id:'escudo', f:[[16,'.11111................','.13331................','.13w31................','.13331................','.11111................','..111.................','...1..................']]},
+    {id:'varinha', f:[[10,'....................y.','...................y1y','....................y.','....................2.','...................2..','...................2..','..................2...','..................2...','..................2...','..................2...']]},
+    {id:'bola', f:[[20,'..................1w..','.................1ww1.','.................w11w.','..................w1..']]},
+    {id:'guardachuva', f:[[7,'................1111..','...............111111.','..............11111111','..............2.2..2.2','..................k...','..................k...','..................k...','..................k...','..................k...','..................k...','..................k...','.................kk...']]},
+    {id:'pirulito', f:[[11,'.................1w1..','.................w1w..','.................1w1..','..................w...','..................w...','..................w...','..................w...','..................w...']]}
+  ]
+};
+/* as estampas: pintam a cor escolhida por cima do que já está pintado (num desenho) */
+var UGC_ESTAMPAS = ['listras', 'verticais', 'xadrez', 'bolinhas', 'diagonal', 'degrade', 'contorno'];
+/* um modelo pronto → {frente, costas} (arrays de cores), já com a cor escolhida */
+function ugcModeloLados(m, cor){
+  const N = PZ_W * PZ_H, cores = Object.assign({'1': cor, '2': pzEsc(cor, .3), '3': pzClr(cor, .45)}, UGC_KIT_CORES);
+  const lado = spec=>{
+    const a = new Array(N).fill(null);
+    (spec || []).forEach(bl=>{ const y0 = bl[0]; for(let i = 1; i < bl.length; i++){ const y = y0 + i - 1, s = bl[i]; for(let x = 0; x < PZ_W && x < s.length; x++){ const c = cores[s[x]]; if(c && y < PZ_H) a[y * PZ_W + x] = c.toUpperCase(); } } });
+    return a;
+  };
+  const f = lado(m.f), c = lado(m.c || m.f);
+  if(m.num) ugcCarimbar(c, m.num.t, m.num.x, m.num.y, cores[m.num.cor] || '#FFFFFF', null);
+  return {frente: f, costas: c};
+}
+/* escreve um texto com as letrinhas 3 x 5 a partir do canto (x, y); fora da área (mascara) não pinta */
+function ugcCarimbar(arr, texto, x0, y0, cor, mascara){
+  const s = ugcTextoLimpo(texto), c = String(cor).toUpperCase();
+  for(let i = 0; i < s.length; i++){
+    const bits = UGC_FONTE[s[i]];
+    for(let j = 0; j < 15; j++){
+      if(bits[j] !== '1') continue;
+      const x = x0 + i * 4 + j % 3, y = y0 + Math.floor(j / 3);
+      if(x < 0 || y < 0 || x >= PZ_W || y >= PZ_H) continue;
+      const k = y * PZ_W + x;
+      if(!mascara || mascara[k]) arr[k] = c;
+    }
+  }
+}
+/* a foto → quadradinhos: lê a foto onde ela está (média de cada quadradinho) e junta as cores parecidas (até "max" cores) */
+function ugcFotoEmPixels(F, mascara, max){
+  const S = 8, cv = document.createElement('canvas');
+  cv.width = PZ_W * S; cv.height = PZ_H * S;
+  const x = cv.getContext('2d');
+  x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  x.drawImage(F.img, F.x * S, F.y * S, F.w * S, F.w / F.ar * S);
+  const d = x.getImageData(0, 0, cv.width, cv.height).data;
+  const pts = [];
+  for(let k = 0; k < PZ_W * PZ_H; k++){
+    if(!mascara[k]) continue;
+    const cx = (k % PZ_W) * S, cy = Math.floor(k / PZ_W) * S;
+    let r = 0, g = 0, b = 0, a = 0;
+    for(let yy = 0; yy < S; yy++) for(let xx = 0; xx < S; xx++){ const i = ((cy + yy) * cv.width + cx + xx) * 4, al = d[i + 3]; r += d[i] * al; g += d[i + 1] * al; b += d[i + 2] * al; a += al; }
+    if(a / (S * S) < 128) continue;            // quase vazio (fora da foto ou transparente)
+    pts.push({k, c: [r / a, g / a, b / a]});
+  }
+  if(!pts.length) return [];
+  /* junta as cores (k-means simples) pra peça não passar do limite de cores */
+  const K = Math.max(1, Math.min(max, pts.length));
+  const ord = pts.slice().sort((p, q)=>(p.c[0] * .3 + p.c[1] * .59 + p.c[2] * .11) - (q.c[0] * .3 + q.c[1] * .59 + q.c[2] * .11));
+  let cent = [];
+  for(let i = 0; i < K; i++) cent.push(ord[Math.floor((i + .5) * ord.length / K)].c.slice());
+  const perto = c=>{ let m = 0, md = Infinity; for(let i = 0; i < cent.length; i++){ const e = cent[i], dd = (c[0] - e[0]) ** 2 + (c[1] - e[1]) ** 2 + (c[2] - e[2]) ** 2; if(dd < md){ md = dd; m = i; } } return m; };
+  for(let it = 0; it < 10; it++){
+    const soma = cent.map(()=>[0, 0, 0, 0]);
+    pts.forEach(p=>{ const m = perto(p.c); p.m = m; soma[m][0] += p.c[0]; soma[m][1] += p.c[1]; soma[m][2] += p.c[2]; soma[m][3]++; });
+    cent = cent.map((e, i)=>soma[i][3] ? [soma[i][0] / soma[i][3], soma[i][1] / soma[i][3], soma[i][2] / soma[i][3]] : e);
+  }
+  const hex = c=>'#' + c.map(v=>Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+  return pts.map(p=>({k: p.k, c: hex(cent[perto(p.c)])}));
+}
+/* pinta a estampa com a cor escolhida por cima do que está pintado (w x h = o tamanho da grade) */
+function ugcEstampar(arr, nome, cor, w, h){
+  w = w || PZ_W; h = h || PZ_H;
+  const o = arr.slice(), c = String(cor).toUpperCase();
+  let y0 = h, y1 = -1;
+  for(let k = 0; k < w * h; k++) if(arr[k]){ const y = Math.floor(k / w); if(y < y0) y0 = y; if(y > y1) y1 = y; }
+  for(let k = 0; k < w * h; k++){
+    if(!arr[k]) continue;
+    const x = k % w, y = Math.floor(k / w);
+    let sim = false, cc = c;
+    if(nome === 'listras') sim = (y - y0) % 2 === 0;
+    else if(nome === 'verticais') sim = x % 2 === 0;
+    else if(nome === 'xadrez') sim = (x + y) % 2 === 0;
+    else if(nome === 'bolinhas') sim = ((y - y0) % 4 === 1 && x % 4 === 1) || ((y - y0) % 4 === 3 && x % 4 === 3);
+    else if(nome === 'diagonal') sim = (x + y) % 4 < 2;
+    else if(nome === 'degrade'){ sim = true; cc = pzEsc(c, y1 > y0 ? .6 * (y - y0) / (y1 - y0) : 0).toUpperCase(); }
+    else if(nome === 'contorno') sim = x === 0 || y === 0 || x === w - 1 || y === h - 1 || !arr[k - 1] || !arr[k + 1] || !arr[k - w] || !arr[k + w];
+    if(sim) o[k] = cc;
+  }
+  return o;
+}
+/* as ferramentas do editor, em grupos (cada grupo fica junto numa linha); as de arrastar desenham enquanto o dedo anda */
+var UGC_FERRS = [['pincel', 'borracha', 'balde', 'conta'], ['linha', 'ret', 'circ', 'letra'], ['mover', 'virar', 'espelho', 'copiar'], ['desfazer', 'refazer', 'limpar'], ['foto', 'modelo', 'guia']];
+var UGC_ARRASTA = ['linha', 'ret', 'circ', 'letra', 'mover'];
 /* os desenhos dos botões do editor (no lugar dos emojis) */
-var UGC_ICONES = {pincel: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z" fill="#FFC93C" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.2 6.4l3.4 3.4" stroke="#13312A" stroke-width="1.6"/><path d="M4 20l1.2-4.6 3.4 3.4z" fill="#F6C29B" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 20l.6-2.3 1.7 1.7z" fill="#13312A"/></svg>', borracha: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.6 19.4l-5-5a1.6 1.6 0 0 1 0-2.3l8-8a1.6 1.6 0 0 1 2.3 0l5 5a1.6 1.6 0 0 1 0 2.3l-7.7 8z" fill="#FF8FB1" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4.6 14.4l5 5 3.6-3.6-5-5z" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.6 20H20" stroke="#13312A" stroke-width="1.6" stroke-linecap="round"/></svg>', balde: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 9.5l7-6.2 7.3 8-7 6.2z" fill="#8FD3FF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4.5 9.5c-1.6 1.4-1.2 3.2 1.1 3.2" stroke="#13312A" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19.4 13.6c1.3 2 1.9 3.3 1.9 4.1a1.9 1.9 0 0 1-3.8 0c0-.8.6-2.1 1.9-4.1z" fill="#E8413C" stroke="#13312A" stroke-width="1.4"/></svg>', conta: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.4 4.6a2.5 2.5 0 0 1 3.5 0l1.5 1.5a2.5 2.5 0 0 1 0 3.5l-1.5 1.5-5-5z" fill="#13312A"/><path d="M13.4 7.6l3 3L7.9 19H5v-2.9z" fill="#E6F6FF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.6 16.4l3.2-3.2" stroke="#2D7BFF" stroke-width="2.6" stroke-linecap="round"/><path d="M5 19l-1.4 1.4" stroke="#13312A" stroke-width="1.6" stroke-linecap="round"/></svg>', espelho: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5v19" stroke="#E8413C" stroke-width="1.6" stroke-dasharray="2.2 2"/><path d="M10 6L3 18h7z" fill="#17C79E" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 6l7 12h-7z" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/></svg>', guia: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="7.5" r="3.6" fill="#F6C29B" stroke="#13312A" stroke-width="1.6"/><path d="M5 20.5c.5-4.2 3.4-6.8 7-6.8s6.5 2.6 7 6.8z" fill="#2D7BFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/></svg>', foto: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="#BFE9FF" stroke="#13312A" stroke-width="1.6"/><circle cx="8.4" cy="9.6" r="1.9" fill="#FFC93C" stroke="#13312A" stroke-width="1"/><path d="M3.8 18.2l5.2-5.6 3.4 3.4 2.6-2.6 5.2 4.8" fill="#3ECF6A" stroke="#13312A" stroke-width="1.4" stroke-linejoin="round"/></svg>', desfazer: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6.5L4 10.8l5 4.3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.6 10.8H14a5 5 0 0 1 0 10h-3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round"/></svg>', refazer: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 6.5l5 4.3-5 4.3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 10.8H10a5 5 0 0 0 0 10h3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round"/></svg>', limpar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.5h12l-1 12.8H7z" fill="#FF6B5B" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 7.5h16M9 7.5V4.6h6v2.9" fill="none" stroke="#13312A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke="#13312A" stroke-width="1.4" stroke-linecap="round"/></svg>'};
+var UGC_ICONES = {pincel: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z" fill="#FFC93C" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.2 6.4l3.4 3.4" stroke="#13312A" stroke-width="1.6"/><path d="M4 20l1.2-4.6 3.4 3.4z" fill="#F6C29B" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 20l.6-2.3 1.7 1.7z" fill="#13312A"/></svg>', borracha: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.6 19.4l-5-5a1.6 1.6 0 0 1 0-2.3l8-8a1.6 1.6 0 0 1 2.3 0l5 5a1.6 1.6 0 0 1 0 2.3l-7.7 8z" fill="#FF8FB1" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4.6 14.4l5 5 3.6-3.6-5-5z" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.6 20H20" stroke="#13312A" stroke-width="1.6" stroke-linecap="round"/></svg>', balde: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 9.5l7-6.2 7.3 8-7 6.2z" fill="#8FD3FF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4.5 9.5c-1.6 1.4-1.2 3.2 1.1 3.2" stroke="#13312A" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19.4 13.6c1.3 2 1.9 3.3 1.9 4.1a1.9 1.9 0 0 1-3.8 0c0-.8.6-2.1 1.9-4.1z" fill="#E8413C" stroke="#13312A" stroke-width="1.4"/></svg>', conta: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.4 4.6a2.5 2.5 0 0 1 3.5 0l1.5 1.5a2.5 2.5 0 0 1 0 3.5l-1.5 1.5-5-5z" fill="#13312A"/><path d="M13.4 7.6l3 3L7.9 19H5v-2.9z" fill="#E6F6FF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.6 16.4l3.2-3.2" stroke="#2D7BFF" stroke-width="2.6" stroke-linecap="round"/><path d="M5 19l-1.4 1.4" stroke="#13312A" stroke-width="1.6" stroke-linecap="round"/></svg>', espelho: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5v19" stroke="#E8413C" stroke-width="1.6" stroke-dasharray="2.2 2"/><path d="M10 6L3 18h7z" fill="#17C79E" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 6l7 12h-7z" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/></svg>', guia: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="7.5" r="3.6" fill="#F6C29B" stroke="#13312A" stroke-width="1.6"/><path d="M5 20.5c.5-4.2 3.4-6.8 7-6.8s6.5 2.6 7 6.8z" fill="#2D7BFF" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/></svg>', foto: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="#BFE9FF" stroke="#13312A" stroke-width="1.6"/><circle cx="8.4" cy="9.6" r="1.9" fill="#FFC93C" stroke="#13312A" stroke-width="1"/><path d="M3.8 18.2l5.2-5.6 3.4 3.4 2.6-2.6 5.2 4.8" fill="#3ECF6A" stroke="#13312A" stroke-width="1.4" stroke-linejoin="round"/></svg>', desfazer: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6.5L4 10.8l5 4.3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.6 10.8H14a5 5 0 0 1 0 10h-3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round"/></svg>', refazer: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 6.5l5 4.3-5 4.3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 10.8H10a5 5 0 0 0 0 10h3" fill="none" stroke="#13312A" stroke-width="2.2" stroke-linecap="round"/></svg>', limpar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.5h12l-1 12.8H7z" fill="#FF6B5B" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 7.5h16M9 7.5V4.6h6v2.9" fill="none" stroke="#13312A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke="#13312A" stroke-width="1.4" stroke-linecap="round"/></svg>', linha: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19L19 5" stroke="#13312A" stroke-width="2.4" stroke-linecap="round"/><circle cx="5" cy="19" r="2.4" fill="#17C79E" stroke="#13312A" stroke-width="1.4"/><circle cx="19" cy="5" r="2.4" fill="#17C79E" stroke="#13312A" stroke-width="1.4"/></svg>', ret: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="6" width="16" height="12" rx="1.5" fill="#FFC93C" stroke="#13312A" stroke-width="1.8"/></svg>', circ: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.6" fill="#8FD3FF" stroke="#13312A" stroke-width="1.8"/></svg>', letra: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="4" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6"/><path d="M7.5 17l4.5-10 4.5 10M9.2 13.3h5.6" fill="none" stroke="#E8413C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>', mover: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v18M3 12h18" stroke="#13312A" stroke-width="2" stroke-linecap="round"/><path d="M12 2.5l-2.6 3h5.2zM12 21.5l-2.6-3h5.2zM2.5 12l3-2.6v5.2zM21.5 12l-3-2.6v5.2z" fill="#17C79E" stroke="#13312A" stroke-width="1.2" stroke-linejoin="round"/></svg>', virar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v18" stroke="#13312A" stroke-width="1.4" stroke-dasharray="2 2"/><path d="M9.5 6.5L3 17h6.5z" fill="#FF8FB1" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 6.5L21 17h-6.5z" fill="none" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="2.4 1.8"/><path d="M7 4.2c3-2 7-2 10 0" fill="none" stroke="#2D7BFF" stroke-width="1.8" stroke-linecap="round"/><path d="M17.6 2.6l-.4 2.4-2.3-.6" fill="none" stroke="#2D7BFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>', copiar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="13" rx="2.4" fill="#BFE9FF" stroke="#13312A" stroke-width="1.6"/><rect x="4" y="3" width="12" height="13" rx="2.4" fill="#FFFFFF" stroke="#13312A" stroke-width="1.6"/><path d="M7.5 9.5h5M7.5 12.5h3.5" stroke="#17C79E" stroke-width="2" stroke-linecap="round"/></svg>', modelo: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 3.5L3 6.5l2 4.5 2-.9V20.5h10V10.1l2 .9 2-4.5-5.5-3c-.6 1.6-2 2.5-3.5 2.5S9.1 5.1 8.5 3.5z" fill="#17C79E" stroke="#13312A" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 11.2l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z" fill="#FFC93C" stroke="#13312A" stroke-width="1"/></svg>', pixel: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="6" height="6" fill="#E8413C"/><rect x="9" y="3" width="6" height="6" fill="#FFC93C"/><rect x="15" y="3" width="6" height="6" fill="#3ECF6A"/><rect x="3" y="9" width="6" height="6" fill="#2D7BFF"/><rect x="9" y="9" width="6" height="6" fill="#FFFFFF"/><rect x="15" y="9" width="6" height="6" fill="#B03AC4"/><rect x="3" y="15" width="6" height="6" fill="#FF8A2A"/><rect x="9" y="15" width="6" height="6" fill="#17C79E"/><rect x="15" y="15" width="6" height="6" fill="#FF8FB1"/><rect x="3" y="3" width="18" height="18" fill="none" stroke="#13312A" stroke-width="1.6"/></svg>'};
 var UGC_ICO_TESOURA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="17" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 8.6L20 18M8.5 15.4L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 var UGC_ICO_QUADRO = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2.4"/></svg>';
 function ugcPaleta(){
@@ -32682,7 +32880,8 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
   const E = {lados: {frente: lerLado(r && r.px), costas: lerLado(r && r.pxC)}, lado: 'frente',
     tipo: UGC_TIPOS.indexOf(tipoInicial) >= 0 ? tipoInicial : (r && UGC_TIPOS.indexOf(r.tipo) >= 0 ? r.tipo : 'roupa'), cor: '#E8413C', ferr: 'pincel', espelho: false, guia: true, desfaz: [], refaz: [], recentes: (r && Array.isArray(r.recentes) ? r.recentes : []).slice(0, 12),
     passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', preco: r && Number.isFinite(r.preco) ? Math.max(0, Math.min(UGC_PRECO_MAX, r.preco)) : 35,
-    fotos: {frente: null, costas: null}, editando: false};
+    fotos: {frente: null, costas: null}, editando: false,
+    texto: r && typeof r.texto === 'string' ? ugcTextoLimpo(r.texto) : '10', cheio: true, kit: false};
   /* a foto de cada lado: {s, ar, w, x, y, img} (x, y, w em quadradinhos). "editando" = arrastando/mudando o tamanho agora */
   const novaFoto = (f, aoCarregar)=>{
     if(!f || typeof f.s !== 'string' || !(f.ar > 0) || ![f.w, f.x, f.y].every(Number.isFinite)) return null;
@@ -32700,7 +32899,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
   Object.defineProperty(E, 'px', {get(){ return E.lados[E.lado]; }, set(v){ E.lados[E.lado] = v; }});
   let mascara = ugcMascara(E.tipo);
   const fotoRasc = F=>F ? {s: F.s, ar: F.ar, w: F.w, x: F.x, y: F.y} : null;
-  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco,
+  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco, texto: E.texto,
     fotos: {frente: fotoRasc(E.fotos.frente), costas: fotoRasc(E.fotos.costas)}})); }catch(e){} };
   const bg = document.createElement('div');
   bg.className = 'ugc-ed';
@@ -32745,10 +32944,13 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
                 <button type="button" class="ugc-ferr" data-ades="menor" title="${esc(t('ugc_ades_menor'))}" aria-label="${esc(t('ugc_ades_menor'))}">−</button>
                 <button type="button" class="ugc-ferr" data-ades="maior" title="${esc(t('ugc_ades_maior'))}" aria-label="${esc(t('ugc_ades_maior'))}">+</button>
                 <button type="button" class="ugc-ferr" data-ades="tirar" title="${esc(t('menu_cancel'))}" aria-label="${esc(t('menu_cancel'))}">✕</button>
+                <button type="button" class="ugc-ades-fundo ugc-ades-pixel" data-ades="pixel">${ICO.pixel}${esc(t('ugc_ades_pixel'))}</button>
                 <button type="button" class="ugc-ades-ok" data-ades="ok">✔ ${esc(t('ugc_ades_ok'))}</button>
               </div>
             </div>
-            <div class="ugc-ferrs">${['pincel', 'borracha', 'balde', 'conta', 'espelho', 'guia', 'foto', 'desfazer', 'refazer', 'limpar'].map(f=>`<button type="button" class="ugc-ferr${E.ferr === f || (f === 'espelho' && E.espelho) || (f === 'guia' && E.guia) ? ' on' : ''}" data-ferr="${f}" title="${esc(t('ugc_f_' + f))}" aria-label="${esc(t('ugc_f_' + f))}">${ICO[f]}</button>`).join('')}</div>
+            <div class="ugc-ferrs">${UGC_FERRS.map(g=>'<span class="ugc-ferr-g">' + g.map(f=>`<button type="button" class="ugc-ferr${E.ferr === f || (f === 'espelho' && E.espelho) || (f === 'guia' && E.guia) ? ' on' : ''}${f === 'modelo' ? ' ugc-ferr-kit' : ''}" data-ferr="${f}" title="${esc(t('ugc_f_' + f))}" aria-label="${esc(t('ugc_f_' + f))}">${ICO[f]}${f === 'modelo' ? `<span>${esc(t('ugc_f_modelo_curto'))}</span>` : ''}</button>`).join('') + '</span>').join('')}</div>
+            <div class="ugc-opc" data-opc="letra"${E.ferr === 'letra' ? '' : ' hidden'}><input type="text" data-letra maxlength="5" value="${esc(E.texto)}" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="${esc(t('ugc_letra_ph'))}" placeholder="${esc(t('ugc_letra_ph'))}"><span class="ugc-dica">${esc(t('ugc_letra_dica'))}</span></div>
+            <div class="ugc-opc" data-opc="forma"${E.ferr === 'ret' || E.ferr === 'circ' ? '' : ' hidden'}>${['cheio', 'borda'].map(o=>`<button type="button" class="ugc-opc-b${(o === 'cheio') === E.cheio ? ' on' : ''}" data-cheio="${o}">${esc(t('ugc_forma_' + o))}</button>`).join('')}<span class="ugc-dica">${esc(t('ugc_forma_dica'))}</span></div>
           </div>
           <div class="ugc-ed-dir">
             <div class="ugc-cor-atual"><i data-cor-atual style="background:${E.cor}"></i><input type="text" data-hex value="${E.cor}" maxlength="7" spellcheck="false" aria-label="${esc(t('ugc_cor_exata'))}"><label class="ugc-exata">${esc(t('ugc_cor_exata'))}<input type="color" data-picker value="${E.cor.toLowerCase()}"></label></div>
@@ -32756,6 +32958,13 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
             <div class="ugc-paleta">${PALETA.map(c=>`<button type="button" data-c="${c}" style="background:${c}" aria-label="${c}"${c === E.cor ? ' class="on"' : ''}></button>`).join('')}</div>
             <p class="ugc-dica">${esc(t('ugc_dica_' + E.tipo))}</p>
           </div>
+        </div>
+        <div class="ugc-kit" data-kit${E.kit ? '' : ' hidden'} role="dialog" aria-label="${esc(t('ugc_kit_tit'))}">
+          <div class="ugc-kit-topo"><b>${esc(t('ugc_kit_tit'))} · ${esc(t('ugc_t_' + E.tipo))}</b><button type="button" class="ugc-x" data-kit-fechar aria-label="${esc(t('x_fechar'))}">✕</button></div>
+          <p class="ugc-dica">${esc(t('ugc_kit_dica'))}</p>
+          <div class="ugc-kit-lista" data-kit-modelos></div>
+          <b class="ugc-kit-sub">${esc(t('ugc_kit_estampas'))}</b>
+          <div class="ugc-kit-lista" data-kit-estampas></div>
         </div>`;
       ligarPasso1();
       mostrarBarraAdesivo();
@@ -32840,10 +33049,11 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
     const at = bg.querySelector('[data-cor-atual]'), hx = bg.querySelector('[data-hex]'), pk = bg.querySelector('[data-picker]');
     if(at) at.style.background = E.cor; if(hx) hx.value = E.cor; if(pk) pk.value = E.cor.toLowerCase();
     bg.querySelectorAll('.ugc-paleta [data-c]').forEach(b=>b.classList.toggle('on', b.dataset.c === E.cor));
-    if(E.ferr === 'borracha' || E.ferr === 'conta'){ E.ferr = 'pincel'; bg.querySelectorAll('[data-ferr]').forEach(b=>b.classList.toggle('on', b.dataset.ferr === 'pincel' || (b.dataset.ferr === 'espelho' && E.espelho) || (b.dataset.ferr === 'guia' && E.guia))); }
+    if(E.ferr === 'borracha' || E.ferr === 'conta' || E.ferr === 'mover'){ E.ferr = 'pincel'; marcaFerr(); }
+    if(E.kit) kitMiniaturas();
   };
-  const poe = (k, c)=>{
-    if(!mascara[k]){ if(c) fora(); return; }
+  const poe = (k, c, quieto)=>{
+    if(!mascara[k]){ if(c && !quieto) fora(); return; }
     E.px[k] = c;
     if(E.espelho){ const xx = k % PZ_W, yy = Math.floor(k / PZ_W), q = yy * PZ_W + (PZ_W - 1 - xx); if(mascara[q]) E.px[q] = c; }
   };
@@ -32863,8 +33073,165 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
       });
     }
   };
+  /* ----- o kit: formas, letrinhas, mover, virar, copiar pro outro lado, modelos prontos, estampas e foto → pixel ----- */
+  const marcaFerr = ()=>{
+    bg.querySelectorAll('[data-ferr]').forEach(x=>x.classList.toggle('on', x.dataset.ferr === E.ferr || (x.dataset.ferr === 'espelho' && E.espelho) || (x.dataset.ferr === 'guia' && E.guia) || (x.dataset.ferr === 'modelo' && E.kit)));
+    const ol = bg.querySelector('[data-opc="letra"]'), of = bg.querySelector('[data-opc="forma"]');
+    if(ol) ol.hidden = E.ferr !== 'letra';
+    if(of) of.hidden = !(E.ferr === 'ret' || E.ferr === 'circ');
+  };
+  /* arrastando o dedo: a forma (ou o texto, ou o desenho todo) é refeita a partir de como estava quando o dedo encostou */
+  let arrasto = null;
+  const desenhaArrasto = k=>{
+    const A = arrasto;
+    A.ult = k;
+    E.px = A.antes.slice();
+    const x0 = A.k0 % PZ_W, y0 = Math.floor(A.k0 / PZ_W), x1 = k % PZ_W, y1 = Math.floor(k / PZ_W);
+    const p = (x, y)=>{ if(x >= 0 && y >= 0 && x < PZ_W && y < PZ_H) poe(y * PZ_W + x, E.cor, true); };
+    const xa = Math.min(x0, x1), xb = Math.max(x0, x1), ya = Math.min(y0, y1), yb = Math.max(y0, y1);
+    if(E.ferr === 'linha'){
+      let x = x0, y = y0;
+      const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+      let er = dx + dy;
+      for(;;){ p(x, y); if(x === x1 && y === y1) break; const e2 = 2 * er; if(e2 >= dy){ er += dy; x += sx; } if(e2 <= dx){ er += dx; y += sy; } }
+    } else if(E.ferr === 'ret'){
+      for(let y = ya; y <= yb; y++) for(let x = xa; x <= xb; x++) if(E.cheio || x === xa || x === xb || y === ya || y === yb) p(x, y);
+    } else if(E.ferr === 'circ'){
+      const cx = (xa + xb) / 2, cy = (ya + yb) / 2, rx = (xb - xa) / 2 + .5, ry = (yb - ya) / 2 + .5;
+      const den = (x, y)=>((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.02;
+      for(let y = ya; y <= yb; y++) for(let x = xa; x <= xb; x++) if(den(x, y) && (E.cheio || !den(x - 1, y) || !den(x + 1, y) || !den(x, y - 1) || !den(x, y + 1))) p(x, y);
+    } else if(E.ferr === 'letra'){
+      const s = ugcTextoLimpo(E.texto);
+      ugcCarimbar(E.px, s, x1 - Math.floor((s.length * 4 - 1) / 2), y1 - 2, E.cor, mascara);   // o dedo fica no meio do texto
+    } else if(E.ferr === 'mover'){
+      const dx = x1 - x0, dy = y1 - y0, novo = new Array(N).fill(null);
+      for(let q = 0; q < N; q++){
+        if(!A.antes[q]) continue;
+        const nx = q % PZ_W + dx, ny = Math.floor(q / PZ_W) + dy;
+        if(nx < 0 || ny < 0 || nx >= PZ_W || ny >= PZ_H) continue;
+        const d = ny * PZ_W + nx;
+        if(mascara[d]) novo[d] = A.antes[q];
+      }
+      E.px = novo;
+    }
+    pintar();
+    previas();
+  };
+  /* virar: o desenho deste lado fica de espelho (a esquerda vai pra direita) */
+  const virarDesenho = ()=>{
+    if(!E.px.some(Boolean)){ toast(t('ugc_est_vazio')); return; }
+    guardaDesfazer();
+    const a = E.px, novo = new Array(N).fill(null);
+    for(let k = 0; k < N; k++){ if(!a[k]) continue; const q = Math.floor(k / PZ_W) * PZ_W + (PZ_W - 1 - k % PZ_W); if(mascara[q]) novo[q] = a[k]; }
+    E.px = novo;
+    pintar(); previas(); salvarRascunho();
+  };
+  /* copiar: o outro lado (frente ↔ costas) fica igualzinho a este, com a foto e tudo */
+  const copiarProOutroLado = ()=>{
+    const outro = E.lado === 'frente' ? 'costas' : 'frente', F = E.fotos[E.lado];
+    if(!E.px.some(Boolean) && !F){ toast(t('ugc_est_vazio')); return; }
+    guardaDesfazer();
+    E.lados[outro] = E.px.slice();
+    E.fotos[outro] = F ? novaFoto(fotoRasc(F), ()=>{ if(E.passo === 1) previas(); }) : null;
+    previas(); salvarRascunho();
+    playSound('coin');
+    toast(t('ugc_copiou'));
+  };
+  /* a foto vira quadradinhos de verdade (dá pra pintar por cima depois); as cores parecidas se juntam pra caber no limite */
+  const fotoVirarPixel = ()=>{
+    const F = E.fotos[E.lado];
+    if(!F) return;
+    if(!F.img.complete || !F.img.naturalWidth){ toast(t('ugc_foto_erro')); return; }
+    const outro = E.lado === 'frente' ? 'costas' : 'frente', usadas = new Set();
+    E.lados[outro].forEach(c=>{ if(c) usadas.add(c); });
+    E.px.forEach(c=>{ if(c) usadas.add(c); });
+    let novo = null;
+    for(const max of [Math.max(4, Math.min(32, 60 - usadas.size)), 20, 12, 8, 4]){
+      let pts;
+      try{ pts = ugcFotoEmPixels(F, mascara, max); }catch(e){ pts = null; }
+      if(!pts){ toast(t('ugc_foto_erro')); return; }
+      const a = E.px.slice();
+      pts.forEach(p=>{ a[p.k] = p.c; });
+      if(ugcCodificar(outro === 'costas' ? a : E.lados.frente, outro === 'costas' ? E.lados.costas : a)){ novo = a; break; }
+    }
+    if(!novo){ toast(t('ugc_muitas_cores')); return; }
+    guardaDesfazer();
+    E.px = novo;
+    E.fotos[E.lado] = null; E.editando = false;
+    mostrarBarraAdesivo(); pintar(); previas(); salvarRascunho();
+    playSound('coin');
+    toast(t('ugc_pixel_ok'));
+  };
+  /* a folha dos modelos prontos e das estampas */
+  const abrirKit = sim=>{
+    E.kit = sim;
+    const k = bg.querySelector('[data-kit]');
+    if(k) k.hidden = !sim;
+    bg.classList.toggle('com-kit', sim);
+    if(sim) kitMiniaturas();
+    marcaFerr();
+  };
+  const miniatura = (arr, w, h, esc2, comGuia)=>{
+    const c = document.createElement('canvas');
+    c.width = w * esc2; c.height = h * esc2;
+    const x = c.getContext('2d');
+    x.imageSmoothingEnabled = false;
+    const gi = guia.frente;
+    if(comGuia && gi.complete && gi.naturalWidth){ x.globalAlpha = .28; x.drawImage(gi, 0, 0, c.width, c.height); x.globalAlpha = 1; }
+    for(let k = 0; k < w * h; k++) if(arr[k]){ x.fillStyle = arr[k]; x.fillRect((k % w) * esc2, Math.floor(k / w) * esc2, esc2, esc2); }
+    try{ return c.toDataURL(); }catch(e){ return ''; }
+  };
+  let kitT = 0;
+  const kitMiniaturas = ()=>{
+    clearTimeout(kitT);
+    kitT = setTimeout(()=>{
+      const lm = bg.querySelector('[data-kit-modelos]'), le = bg.querySelector('[data-kit-estampas]');
+      if(!lm || !le) return;
+      lm.innerHTML = (UGC_MODELOS[E.tipo] || []).map((m, i)=>{
+        const L = ugcModeloLados(m, E.cor);
+        return `<button type="button" class="ugc-kit-op" data-modelo="${i}"><img alt="" src="${miniatura(L.frente, PZ_W, PZ_H, 3, true)}"><small>${esc(t('ugc_m_' + m.id))}</small></button>`;
+      }).join('');
+      const claro = pzHex(E.cor).reduce((s, v, i)=>s + v * [.3, .59, .11][i], 0) > 200;
+      const amostra = new Array(100).fill(claro ? '#2B2B33' : '#FFFFFF');   // cor bem clara: a amostra é escura pra estampa aparecer
+      le.innerHTML = UGC_ESTAMPAS.map(s=>`<button type="button" class="ugc-kit-op ugc-kit-est" data-estampa="${s}"><img alt="" src="${miniatura(ugcEstampar(amostra, s, E.cor, 10, 10), 10, 10, 6, false)}"><small>${esc(t('ugc_est_' + s))}</small></button>`).join('');
+      lm.querySelectorAll('[data-modelo]').forEach(b=>b.addEventListener('click', ()=>usarModelo((UGC_MODELOS[E.tipo] || [])[Number(b.dataset.modelo)])));
+      le.querySelectorAll('[data-estampa]').forEach(b=>b.addEventListener('click', ()=>usarEstampa(b.dataset.estampa)));
+    }, 60);
+  };
+  /* modelo pronto: troca o desenho dos dois lados pelo modelo, na cor escolhida (dá pra desfazer) */
+  const usarModelo = m=>{
+    if(!m) return;
+    playSound('click');
+    guardaDesfazer();
+    const L = ugcModeloLados(m, E.cor);
+    ['frente', 'costas'].forEach(l=>{ const a = L[l]; for(let k = 0; k < N; k++) if(!mascara[k]) a[k] = null; E.lados[l] = a; });
+    pintar(); previas(); salvarRascunho();
+    toast(t('ugc_kit_pronto'));
+  };
+  const usarEstampa = s=>{
+    if(!E.px.some(Boolean)){ toast(t('ugc_est_vazio')); return; }
+    playSound('click');
+    guardaDesfazer();
+    E.px = ugcEstampar(E.px, s, E.cor);
+    if(!ugcCodificar(E.lados.frente, E.lados.costas)){ voltarFoto(E.desfaz.pop()); toast(t('ugc_muitas_cores')); }
+    pintar(); previas(); salvarRascunho();
+  };
+  function ligarKit(){
+    const li = bg.querySelector('[data-letra]');
+    if(li) li.addEventListener('input', ()=>{ E.texto = ugcTextoLimpo(li.value); salvarRascunho(); });
+    if(li) li.addEventListener('change', ()=>{ li.value = E.texto; });
+    bg.querySelectorAll('[data-cheio]').forEach(b=>b.addEventListener('click', ()=>{
+      E.cheio = b.dataset.cheio === 'cheio'; playSound('click');
+      bg.querySelectorAll('[data-cheio]').forEach(x=>x.classList.toggle('on', x === b));
+    }));
+    const fk = bg.querySelector('[data-kit-fechar]');
+    if(fk) fk.addEventListener('click', ()=>{ playSound('click'); abrirKit(false); });
+    bg.classList.toggle('com-kit', E.kit);
+    if(E.kit) kitMiniaturas();
+  }
   function ligarPasso1(){
     bg.querySelector('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+    ligarKit();
     bg.querySelector('[data-prox]').addEventListener('click', ()=>{
       colocarAdesivo();
       if(!E.fotos.frente && !E.fotos.costas && E.lados.frente.filter(Boolean).length + E.lados.costas.filter(Boolean).length < UGC_MIN_PX){ toast(t('ugc_pouco')); return; }
@@ -32898,10 +33265,14 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
       if(f === 'refazer'){ if(E.refaz.length){ E.desfaz.push(fotoAtual()); voltarFoto(E.refaz.pop()); pintar(); previas(); salvarRascunho(); } return; }
       if(f === 'limpar'){ if(confirm(t('ugc_limpar_conf'))){ guardaDesfazer(); E.px = new Array(N).fill(null); pintar(); previas(); salvarRascunho(); } return; }
       if(f === 'foto'){ if(E.fotos[E.lado]){ E.editando = true; mostrarBarraAdesivo(); pintar(); } else escolherFoto(); return; }   // já tem foto neste lado: mexe nela
+      if(f === 'modelo'){ abrirKit(!E.kit); return; }
+      if(f === 'virar'){ virarDesenho(); return; }
+      if(f === 'copiar'){ copiarProOutroLado(); return; }
       if(f === 'espelho') E.espelho = !E.espelho;
       else if(f === 'guia') E.guia = !E.guia;
       else E.ferr = f;
-      bg.querySelectorAll('[data-ferr]').forEach(x=>x.classList.toggle('on', x.dataset.ferr === E.ferr || (x.dataset.ferr === 'espelho' && E.espelho) || (x.dataset.ferr === 'guia' && E.guia)));
+      marcaFerr();
+      if(f === 'letra'){ const li = bg.querySelector('[data-letra]'); if(li && !ugcTextoLimpo(li.value)) try{ li.focus(); }catch(e){} }
       pintar();
     }));
     bg.querySelectorAll('[data-ades]').forEach(b=>b.addEventListener('click', ()=>{
@@ -32912,6 +33283,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
       else if(o === 'maior') tamanhoAdesivo(E.adesivo.w + 1);
       else if(o === 'tirar'){ guardaDesfazer(); E.fotos[E.lado] = null; E.editando = false; }
       else if(o === 'ok'){ colocarAdesivo(); return; }
+      else if(o === 'pixel'){ fotoVirarPixel(); return; }
       mostrarBarraAdesivo(); pintar(); previas(); salvarRascunho();
     }));
     /* pintar arrastando o dedo */
@@ -32972,12 +33344,22 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
       if(E.ferr === 'conta'){ if(E.px[k]) usarCor(E.px[k]); return; }
       guardaDesfazer();
       if(E.ferr === 'balde'){ if(!mascara[k]){ fora(); return; } balde(k, E.cor); if(E.espelho){ const xx = k % PZ_W, yy = Math.floor(k / PZ_W); balde(yy * PZ_W + (PZ_W - 1 - xx), E.cor); } pintar(); previas(); salvarRascunho(); return; }
+      if(UGC_ARRASTA.indexOf(E.ferr) >= 0){
+        if(E.ferr === 'letra' && !ugcTextoLimpo(E.texto)){ toast(t('ugc_letra_vazio')); E.desfaz.pop(); return; }
+        if(E.ferr === 'mover' && !E.px.some(Boolean)){ toast(t('ugc_est_vazio')); E.desfaz.pop(); return; }
+        arrasto = {k0: k, antes: E.px.slice(), ult: -1};
+        try{ tela.setPointerCapture(ev.pointerId); }catch(e){}
+        desenhaArrasto(k);
+        return;
+      }
       pintando = true; ultimo = -1;
       try{ tela.setPointerCapture(ev.pointerId); }catch(e){}
       aplica(k);
     });
-    tela.addEventListener('pointermove', ev=>{ if(E.adesivo){ ev.preventDefault(); adesivoMove(ev); return; } if(pintando){ ev.preventDefault(); aplica(celDe(ev)); } });
-    const solta = ev=>{ if(E.adesivo){ adesivoUp(ev); return; } if(pintando){ pintando = false; salvarRascunho(); } };
+    tela.addEventListener('pointermove', ev=>{ if(E.adesivo){ ev.preventDefault(); adesivoMove(ev); return; }
+      if(arrasto){ ev.preventDefault(); const k = celDe(ev); if(k >= 0 && k !== arrasto.ult) desenhaArrasto(k); return; }
+      if(pintando){ ev.preventDefault(); aplica(celDe(ev)); } });
+    const solta = ev=>{ if(E.adesivo){ adesivoUp(ev); return; } if(arrasto){ arrasto = null; previas(); salvarRascunho(); return; } if(pintando){ pintando = false; salvarRascunho(); } };
     tela.addEventListener('pointerup', solta); tela.addEventListener('pointercancel', solta);
   }
   /* ----- foto da galeria: escolhe, recorta a parte que quer e ela vai pra peça do jeito que é (lisinha, sem virar
@@ -33585,6 +33967,80 @@ var PZ_TXT = {
  ugc_f_guia:'Mostrar o boneco|Show the character|Mostrar el personaje|Mostra il personaggio|Afficher le personnage|Figur zeigen|Figuur tonen|キャラを表示|显示角色|캐릭터 보기',
  ugc_f_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|실행 취소',
  ugc_f_refazer:'Refazer|Redo|Rehacer|Ripeti|Rétablir|Wiederholen|Opnieuw|やり直す|重做|다시 실행',
+ ugc_t_pes:'Pés|Feet|Pies|Piedi|Pieds|Füße|Voeten|あし|鞋子|신발',
+ ugc_dica_pes:'Pés: só nos pés e no fim das pernas (tênis, bota, chinelo, meia).|Feet: only on the feet and lower legs (sneakers, boots, flip-flops, socks).|Pies: solo en los pies y el final de las piernas (tenis, botas, chanclas, calcetines).|Piedi: solo sui piedi e in fondo alle gambe (scarpe, stivali, ciabatte, calzini).|Pieds : seulement sur les pieds et le bas des jambes (baskets, bottes, tongs, chaussettes).|Füße: nur an den Füßen und unten an den Beinen (Turnschuhe, Stiefel, Flip-Flops, Socken).|Voeten: alleen op de voeten en onderaan de benen (sneakers, laarzen, slippers, sokken).|あし：足と足首のところだけ（スニーカー、ブーツ、サンダル、くつした）。|鞋子：只能画在脚和小腿下面（运动鞋、靴子、拖鞋、袜子）。|신발: 발과 다리 아랫부분에만 칠해요(운동화, 부츠, 슬리퍼, 양말).',
+ ugc_f_linha:'Linha|Line|Línea|Linea|Ligne|Linie|Lijn|せん|直线|선',
+ ugc_f_ret:'Retângulo|Rectangle|Rectángulo|Rettangolo|Rectangle|Rechteck|Rechthoek|しかく|矩形|사각형',
+ ugc_f_circ:'Círculo|Circle|Círculo|Cerchio|Cercle|Kreis|Cirkel|まる|圆形|원',
+ ugc_f_letra:'Letras e números|Letters and numbers|Letras y números|Lettere e numeri|Lettres et chiffres|Buchstaben und Zahlen|Letters en cijfers|文字と数字|字母和数字|글자와 숫자',
+ ugc_f_mover:'Mover o desenho|Move the drawing|Mover el dibujo|Sposta il disegno|Déplacer le dessin|Zeichnung verschieben|Tekening verplaatsen|絵を動かす|移动图案|그림 옮기기',
+ ugc_f_virar:'Virar (espelhar o desenho)|Flip (mirror the drawing)|Voltear (reflejar el dibujo)|Capovolgi (specchia il disegno)|Retourner (dessin en miroir)|Spiegeln (Zeichnung umdrehen)|Omdraaien (tekening spiegelen)|左右はんてん|水平翻转|좌우 뒤집기',
+ ugc_f_copiar:'Copiar pro outro lado (frente ↔ costas)|Copy to the other side (front ↔ back)|Copiar al otro lado (frente ↔ espalda)|Copia sull’altro lato (davanti ↔ dietro)|Copier de l’autre côté (face ↔ dos)|Auf die andere Seite kopieren (vorne ↔ hinten)|Naar de andere kant kopiëren (voor ↔ achter)|反対側にコピー（前 ↔ 後ろ）|复制到另一面（正面 ↔ 背面）|반대쪽에 복사(앞 ↔ 뒤)',
+ ugc_f_modelo:'Modelos prontos e estampas|Ready-made designs and patterns|Modelos listos y estampados|Modelli pronti e fantasie|Modèles prêts et motifs|Fertige Vorlagen und Muster|Kant-en-klare modellen en patronen|できあいのモデルともよう|现成款式和图案|기본 모델과 무늬',
+ ugc_f_modelo_curto:'Modelos|Designs|Modelos|Modelli|Modèles|Vorlagen|Modellen|モデル|款式|모델',
+ ugc_letra_ph:'Texto|Text|Texto|Testo|Texte|Text|Tekst|もじ|文字|글자',
+ ugc_letra_dica:'Escreva (até 5) e toque na peça. Arraste pra escolher o lugar.|Type (up to 5) and tap the item. Drag to pick the spot.|Escribe (hasta 5) y toca la prenda. Arrastra para elegir el lugar.|Scrivi (fino a 5) e tocca il capo. Trascina per scegliere il punto.|Écris (jusqu’à 5) et touche la pièce. Fais glisser pour choisir l’endroit.|Schreib (bis 5) und tipp auf das Teil. Zieh, um die Stelle zu wählen.|Typ (tot 5) en tik op het item. Sleep om de plek te kiezen.|5文字まで書いて、アイテムをタッチ。なぞって場所をえらぼう。|输入（最多5个）再点作品，拖动选位置。|최대 5자를 쓰고 아이템을 터치하세요. 끌어서 위치를 정해요.',
+ ugc_letra_vazio:'Escreva o texto primeiro (letras ou números).|Type the text first (letters or numbers).|Escribe el texto primero (letras o números).|Scrivi prima il testo (lettere o numeri).|Écris d’abord le texte (lettres ou chiffres).|Schreib zuerst den Text (Buchstaben oder Zahlen).|Typ eerst de tekst (letters of cijfers).|先に文字を書いてね（文字か数字）。|先输入文字（字母或数字）。|먼저 글자를 써 주세요(글자나 숫자).',
+ ugc_forma_cheio:'Cheio|Filled|Relleno|Pieno|Plein|Gefüllt|Gevuld|ぬりつぶし|实心|채우기',
+ ugc_forma_borda:'Só a borda|Outline only|Solo el borde|Solo il bordo|Contour seul|Nur Rand|Alleen rand|ふちだけ|只有边框|테두리만',
+ ugc_forma_dica:'Arraste o dedo pra desenhar a forma.|Drag your finger to draw the shape.|Arrastra el dedo para dibujar la forma.|Trascina il dito per disegnare la forma.|Fais glisser le doigt pour dessiner la forme.|Zieh den Finger, um die Form zu zeichnen.|Sleep met je vinger om de vorm te tekenen.|指でなぞって形をかこう。|拖动手指画出形状。|손가락을 끌어 모양을 그려요.',
+ ugc_ades_pixel:'Virar pixel|Make it pixels|Convertir en píxeles|Trasforma in pixel|Transformer en pixels|In Pixel umwandeln|Pixels maken|ドットにする|变成像素|픽셀로 바꾸기',
+ ugc_pixel_ok:'A foto virou quadradinhos! Agora dá pra pintar por cima.|The photo turned into pixels! Now you can paint over it.|¡La foto se volvió cuadritos! Ahora puedes pintar encima.|La foto è diventata pixel! Ora puoi colorarci sopra.|La photo est devenue des pixels ! Tu peux peindre dessus.|Das Foto ist jetzt aus Pixeln! Du kannst drübermalen.|De foto is nu pixels! Je kunt eroverheen kleuren.|写真がドットになった！上からぬれるよ。|照片变成像素啦！现在可以在上面涂色。|사진이 픽셀이 됐어요! 이제 위에 칠할 수 있어요.',
+ ugc_copiou:'Copiado! Agora a frente e as costas estão iguais.|Copied! Now the front and the back are the same.|¡Copiado! Ahora el frente y la espalda son iguales.|Copiato! Ora davanti e dietro sono uguali.|Copié ! Maintenant la face et le dos sont pareils.|Kopiert! Jetzt sind vorne und hinten gleich.|Gekopieerd! Nu zijn voor- en achterkant hetzelfde.|コピーしたよ！前と後ろが同じになった。|复制好了！现在正面和背面一样了。|복사했어요! 이제 앞과 뒤가 똑같아요.',
+ ugc_est_vazio:'Pinte alguma coisa primeiro (ou escolha um modelo).|Paint something first (or pick a design).|Pinta algo primero (o elige un modelo).|Colora qualcosa prima (o scegli un modello).|Peins quelque chose d’abord (ou choisis un modèle).|Mal zuerst etwas (oder wähl eine Vorlage).|Kleur eerst iets (of kies een model).|先に何かぬってね（またはモデルをえらんで）。|先画点什么（或选一个款式）。|먼저 뭔가 칠해 주세요(또는 모델을 골라요).',
+ ugc_kit_tit:'Kit de criação|Creator kit|Kit de creación|Kit creativo|Kit de création|Kreativ-Set|Maakset|クリエイトキット|创作工具包|만들기 키트',
+ ugc_kit_dica:'Escolha um modelo na cor que você pegou e deixe do seu jeito. Dá pra desfazer.|Pick a design in the color you chose and make it yours. You can undo.|Elige un modelo en el color que escogiste y hazlo a tu manera. Se puede deshacer.|Scegli un modello nel colore scelto e fallo a modo tuo. Puoi annullare.|Choisis un modèle dans ta couleur et personnalise-le. Tu peux annuler.|Wähl eine Vorlage in deiner Farbe und mach sie zu deiner. Rückgängig geht.|Kies een model in jouw kleur en maak het van jou. Je kunt het ongedaan maken.|えらんだ色のモデルをえらんで、自分らしくしよう。元に戻せるよ。|选一个你挑的颜色的款式，再改成你的样子。可以撤销。|고른 색으로 모델을 골라 내 마음대로 바꿔요. 되돌릴 수 있어요.',
+ ugc_kit_estampas:'Estampas (na cor escolhida, por cima do desenho)|Patterns (in your color, over the drawing)|Estampados (en tu color, sobre el dibujo)|Fantasie (nel tuo colore, sopra il disegno)|Motifs (dans ta couleur, sur le dessin)|Muster (in deiner Farbe, über der Zeichnung)|Patronen (in jouw kleur, over de tekening)|もよう（えらんだ色で、絵の上に）|图案（用选的颜色，画在上面）|무늬(고른 색으로 그림 위에)',
+ ugc_kit_pronto:'Modelo colocado! Agora pinte do seu jeito.|Design placed! Now paint it your way.|¡Modelo puesto! Ahora píntalo a tu manera.|Modello messo! Ora coloralo a modo tuo.|Modèle placé ! Peins-le à ta façon.|Vorlage gesetzt! Jetzt mal sie, wie du willst.|Model geplaatst! Kleur het nu op jouw manier.|モデルをおいたよ！好きにぬってね。|款式放好啦！按你的想法涂吧。|모델을 놓았어요! 이제 마음대로 칠해요.',
+ ugc_m_camiseta:'Camiseta|T-shirt|Camiseta|Maglietta|T-shirt|T-Shirt|T-shirt|Tシャツ|T恤|티셔츠',
+ ugc_m_mangalonga:'Manga longa|Long sleeve|Manga larga|Maniche lunghe|Manches longues|Langarm|Lange mouw|長そで|长袖|긴소매',
+ ugc_m_regata:'Regata|Tank top|Camiseta sin mangas|Canottiera|Débardeur|Tanktop|Hemdje|タンクトップ|背心|민소매',
+ ugc_m_listrada:'Listrada|Striped|De rayas|A righe|Rayé|Gestreift|Gestreept|しましま|条纹|줄무늬',
+ ugc_m_time:'Camisa de time|Team jersey|Camiseta de equipo|Maglia della squadra|Maillot d’équipe|Trikot|Teamshirt|チームのユニフォーム|球衣|팀 유니폼',
+ ugc_m_jaqueta:'Jaqueta|Jacket|Chaqueta|Giacca|Veste|Jacke|Jas|ジャケット|夹克|재킷',
+ ugc_m_moletom:'Moletom|Hoodie|Sudadera|Felpa|Sweat à capuche|Hoodie|Hoodie|パーカー|卫衣|후드티',
+ ugc_m_vestido:'Vestido|Dress|Vestido|Vestito|Robe|Kleid|Jurk|ワンピース|连衣裙|원피스',
+ ugc_m_calca:'Calça|Pants|Pantalón|Pantaloni|Pantalon|Hose|Broek|ズボン|长裤|바지',
+ ugc_m_short:'Short|Shorts|Short|Pantaloncini|Short|Shorts|Korte broek|ショートパンツ|短裤|반바지',
+ ugc_m_bermuda:'Bermuda|Bermuda shorts|Bermudas|Bermuda|Bermuda|Bermudas|Bermuda|ハーフパンツ|中裤|버뮤다',
+ ugc_m_saia:'Saia|Skirt|Falda|Gonna|Jupe|Rock|Rok|スカート|裙子|치마',
+ ugc_m_esporte:'Calça de esporte|Track pants|Pantalón deportivo|Pantaloni sportivi|Pantalon de sport|Trainingshose|Trainingsbroek|ジャージ|运动裤|운동복 바지',
+ ugc_m_rasgada:'Rasgada|Ripped|Rota|Strappati|Déchiré|Zerrissen|Gescheurd|ダメージ|破洞裤|찢어진 바지',
+ ugc_m_tenis:'Tênis|Sneakers|Tenis|Scarpe da ginnastica|Baskets|Turnschuhe|Sneakers|スニーカー|运动鞋|운동화',
+ ugc_m_bota:'Bota|Boots|Botas|Stivali|Bottes|Stiefel|Laarzen|ブーツ|靴子|부츠',
+ ugc_m_chinelo:'Chinelo|Flip-flops|Chanclas|Infradito|Tongs|Flip-Flops|Slippers|ビーチサンダル|拖鞋|슬리퍼',
+ ugc_m_social:'Sapato social|Dress shoes|Zapatos de vestir|Scarpe eleganti|Chaussures de ville|Anzugschuhe|Nette schoenen|くつ|皮鞋|구두',
+ ugc_m_galocha:'Galocha|Rain boots|Botas de lluvia|Stivali da pioggia|Bottes de pluie|Gummistiefel|Regenlaarzen|長ぐつ|雨靴|장화',
+ ugc_m_chuteira:'Chuteira|Football boots|Botines|Scarpe da calcio|Crampons|Fußballschuhe|Voetbalschoenen|サッカースパイク|足球鞋|축구화',
+ ugc_m_meia:'Meião|Long socks|Medias largas|Calzettoni|Chaussettes hautes|Kniestrümpfe|Kousen|ハイソックス|长筒袜|긴 양말',
+ ugc_m_bone:'Boné|Cap|Gorra|Cappellino|Casquette|Kappe|Pet|ぼうし|鸭舌帽|모자',
+ ugc_m_gorro:'Gorro|Beanie|Gorro|Berretto|Bonnet|Mütze|Muts|ニット帽|毛线帽|비니',
+ ugc_m_coroa:'Coroa|Crown|Corona|Corona|Couronne|Krone|Kroon|かんむり|王冠|왕관',
+ ugc_m_cartola:'Cartola|Top hat|Sombrero de copa|Cilindro|Haut-de-forme|Zylinder|Hoge hoed|シルクハット|礼帽|중절모',
+ ugc_m_orelhas:'Orelhinhas|Cat ears|Orejitas|Orecchie|Oreilles|Öhrchen|Oortjes|ねこみみ|猫耳|고양이 귀',
+ ugc_m_oculos:'Óculos|Glasses|Gafas|Occhiali|Lunettes|Brille|Bril|めがね|眼镜|안경',
+ ugc_m_escuros:'Óculos escuros|Sunglasses|Gafas de sol|Occhiali da sole|Lunettes de soleil|Sonnenbrille|Zonnebril|サングラス|墨镜|선글라스',
+ ugc_m_mascara:'Máscara de herói|Hero mask|Máscara de héroe|Maschera da eroe|Masque de héros|Heldenmaske|Heldenmasker|ヒーローマスク|英雄面具|히어로 가면',
+ ugc_m_capa:'Capa|Cape|Capa|Mantello|Cape|Umhang|Cape|マント|斗篷|망토',
+ ugc_m_asas:'Asas|Wings|Alas|Ali|Ailes|Flügel|Vleugels|つばさ|翅膀|날개',
+ ugc_m_morcego:'Asas de morcego|Bat wings|Alas de murciélago|Ali di pipistrello|Ailes de chauve-souris|Fledermausflügel|Vleermuisvleugels|コウモリのはね|蝙蝠翅膀|박쥐 날개',
+ ugc_m_mochila:'Mochila|Backpack|Mochila|Zaino|Sac à dos|Rucksack|Rugzak|リュック|背包|배낭',
+ ugc_m_dragao:'Asas de dragão|Dragon wings|Alas de dragón|Ali di drago|Ailes de dragon|Drachenflügel|Drakenvleugels|ドラゴンのはね|龙翅膀|드래곤 날개',
+ ugc_m_jetpack:'Jetpack|Jetpack|Jetpack|Jetpack|Jetpack|Jetpack|Jetpack|ジェットパック|喷气背包|제트팩',
+ ugc_m_rabo:'Rabo|Tail|Cola|Coda|Queue|Schwanz|Staart|しっぽ|尾巴|꼬리',
+ ugc_m_espada:'Espada|Sword|Espada|Spada|Épée|Schwert|Zwaard|けん|剑|칼',
+ ugc_m_escudo:'Escudo|Shield|Escudo|Scudo|Bouclier|Schild|Schild|たて|盾牌|방패',
+ ugc_m_varinha:'Varinha|Wand|Varita|Bacchetta|Baguette|Zauberstab|Toverstaf|まほうのつえ|魔杖|마법 지팡이',
+ ugc_m_bola:'Bola|Ball|Pelota|Palla|Ballon|Ball|Bal|ボール|球|공',
+ ugc_m_guardachuva:'Guarda-chuva|Umbrella|Paraguas|Ombrello|Parapluie|Regenschirm|Paraplu|かさ|雨伞|우산',
+ ugc_m_pirulito:'Pirulito|Lollipop|Piruleta|Lecca-lecca|Sucette|Lutscher|Lolly|ぺろぺろキャンディ|棒棒糖|막대사탕',
+ ugc_est_listras:'Listras|Stripes|Rayas|Righe|Rayures|Streifen|Strepen|よこじま|横条纹|가로줄',
+ ugc_est_verticais:'Listras em pé|Vertical stripes|Rayas verticales|Righe verticali|Rayures verticales|Längsstreifen|Verticale strepen|たてじま|竖条纹|세로줄',
+ ugc_est_xadrez:'Xadrez|Checkered|Cuadros|A scacchi|Damier|Karo|Geblokt|いちまつ|格子|체크',
+ ugc_est_bolinhas:'Bolinhas|Polka dots|Lunares|Pois|Pois|Punkte|Stippen|水玉|波点|땡땡이',
+ ugc_est_diagonal:'Diagonal|Diagonal|Diagonal|Diagonale|Diagonale|Diagonal|Diagonaal|ななめ|斜纹|사선',
+ ugc_est_degrade:'Degradê|Gradient|Degradado|Sfumato|Dégradé|Verlauf|Verloop|グラデーション|渐变|그라데이션',
+ ugc_est_contorno:'Contorno|Outline|Contorno|Contorno|Contour|Umriss|Omtrek|ふちどり|描边|테두리',
  ugc_f_limpar:'Limpar tudo|Clear all|Borrar todo|Cancella tutto|Tout effacer|Alles löschen|Alles wissen|全部消す|全部清除|모두 지우기',
  ugc_limpar_conf:'Apagar o desenho todo?|Erase the whole drawing?|¿Borrar todo el dibujo?|Cancellare tutto il disegno?|Effacer tout le dessin ?|Die ganze Zeichnung löschen?|De hele tekening wissen?|絵を全部消しますか？|要清除整幅画吗？|그림을 전부 지울까요?',
  ugc_cor_exata:'Cor exata|Exact color|Color exacto|Colore esatto|Couleur exacte|Genaue Farbe|Exacte kleur|ぴったりの色|精确颜色|정확한 색',
@@ -34896,6 +35352,7 @@ function pzGrade(c, variante){
   pzPint(g, tags, Cam.px, Object.assign(Cam.cores, cEst), 'cam', null, Cam.fn);
   if(!deCostas || PZ_ESTAMPA_COSTAS.indexOf(c.estampa) >= 0) pzPint(g, tags, P.estampa.px, Object.assign({}, base, cEst), 'cam', 'cam');   // a estampa só pinta em cima da roupa
   if(P.calca.sobre) pzPint(g, tags, Cal.px, Cal.cores, 'calca', null, Cal.fn);
+  pintaU('pes');
   pintaU('calca');
   pintaU('roupa');
   if(!deCostas) pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
@@ -35117,7 +35574,7 @@ function pzMigrarMolduras(){
 
 /* ---------- as abas "Personagem" e "Seu agente" da Loja do Koda ---------- */
 /* cada categoria de peça do personagem → o tipo de peça criada que cabe nela */
-const PZ_UGC_DO = {camisa: 'roupa', calca: 'calca', chapeu: 'cabeca', cab: 'cabeca', costas: 'costas', mao: 'mao'};
+const PZ_UGC_DO = {camisa: 'roupa', calca: 'calca', sapato: 'pes', chapeu: 'cabeca', cab: 'cabeca', costas: 'costas', mao: 'mao'};
 const PZ_SUBS = ['genero', 'pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'];
 const PZ_COR_DO = {cab:'corCab', olhos:'corOlhos', camisa:'corCamisa', estampa:'corEstampa', calca:'corCalca', sapato:'corSapato',
   chapeu:'corChapeu', aces:'corAces', costas:'corCostas', mao:'corMao'};
