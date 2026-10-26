@@ -4965,6 +4965,10 @@
   .pz-cor b svg{width:8px;height:8px;}
   .pz-cor.carrinho b{background:#FFC93C;}
   .pz-cor.orig i{position:absolute;inset:6px;border-radius:50%;border:2px dashed rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(0,0,0,.18);}
+  .pz-criar{border:2px dashed #17C79E;background:rgba(23,199,158,.1);justify-content:center;min-height:98px;}
+  .pz-criar-mais{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#17C79E,#0E9C7B);color:#fff;font:800 1.7rem/44px 'Baloo 2',sans-serif;text-align:center;box-shadow:0 3px 0 #0A7259;}
+  .pz-criar:active .pz-criar-mais{transform:translateY(2px);box-shadow:0 1px 0 #0A7259;}
+  .pz-criar .pz-ok{white-space:normal;text-align:center;line-height:1.1;}
   .pz-total{margin:2px 0 0;text-align:center;font:800 .78rem 'Baloo 2',sans-serif;opacity:.75;}
   /* peças criadas pela comunidade: a aba "Criadas" e o editor de pixel */
   .ugc-painel{display:flex;flex-direction:column;gap:10px;}
@@ -17358,7 +17362,14 @@ async function openCommentsView(g){
   }
   draw();
 }
+/* uma janela nova abrindo por cima de outra (ou de um jogo): some a barra do jogo, o modo tela toda e o que o jogo deixou rodando */
+function janelaLimpar(){
+  try{ soJogoLigar(false); }catch(e){}
+  const barra = document.getElementById('gameInfoBar'); if(barra) barra.classList.add('hidden');
+  if(activeCleanup){ try{ activeCleanup(); }catch(e){} activeCleanup = null; }
+}
 function openAdjustWithAgent(g){
+  janelaLimpar();
   modalTitle.textContent = t('create_title');
   modalBody.innerHTML = '';
   overlay.classList.remove('hidden');
@@ -17369,6 +17380,7 @@ function openAdjustWithAgent(g){
   activeCleanup = ()=>{};
 }
 function openEditGame(g){
+  janelaLimpar();
   modalTitle.textContent = t('edit_title');
   modalBody.innerHTML = '';
   overlay.classList.remove('hidden');
@@ -18118,7 +18130,9 @@ async function openGame(id, name){
   document.getElementById('modalCard').classList.toggle('iframe-fill', id==='carreira' || !!customGame);
   document.getElementById('modalCard').classList.remove('arcade-theme', 'chat-fill');
   applyGameFullscreen();
-  await updateGamePresence(id, name);
+  /* a "presença" ("fulano está jogando") vai em segundo plano: se esperasse a rede (VPN, sinal fraco), dava tempo da pessoa
+     abrir outra janela e o jogo terminava de abrir DENTRO dela (cabeçalho de uma tela, conteúdo de outra) */
+  updateGamePresence(id, name).catch(()=>{});
   /* conta esta pessoa no "já entraram" (só na primeira vez dela neste jogo) e,
      assim que o servidor responde, atualiza as pessoinhas dos cards, o total do
      topo e os números da barra deste jogo */
@@ -19073,6 +19087,29 @@ function closeModal(){
   setTimeout(refreshOnlineCounter, 400);
   try{ pracaDepoisDoJogo(); }catch(e){}
 }
+/* O Safari (iPad e iPhone) às vezes não redesenha um pedaço da tela quando uma janela troca: sobra metade da tela de antes.
+   Quando a janela, o título ou o portão de entrada mudam, forçamos o redesenho só das partes que costumam ficar presas. */
+(function(){
+  let quadro = 0;
+  const repintar = ()=>{
+    cancelAnimationFrame(quadro);
+    quadro = requestAnimationFrame(()=>{
+      ['#overlay:not(.hidden) .modal-head', '#overlay:not(.hidden) .game-info-bar', '#authGate:not(.hidden) .auth-card'].forEach(sel=>{
+        const el = document.querySelector(sel);
+        if(!el) return;
+        const antes = el.style.display;
+        el.style.display = 'none'; void el.offsetHeight; el.style.display = antes;
+      });
+    });
+  };
+  try{
+    const mo = new MutationObserver(repintar);
+    mo.observe(overlay, {attributes: true, attributeFilter: ['class']});
+    mo.observe(modalTitle, {childList: true, characterData: true, subtree: true});
+    const portao = document.getElementById('authGate');
+    if(portao) mo.observe(portao, {attributes: true, subtree: true, attributeFilter: ['hidden', 'class']});
+  }catch(e){}
+})();
 document.getElementById('modalClose').addEventListener('click', ()=>{
   if(modalBackAction){ const action = modalBackAction; modalBackAction = null; action(); }
   else closeModal();
@@ -19085,6 +19122,7 @@ overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
 function openCreateModal(){
   if(pedirConta('criar')) return;
   tutorialPrimeiraVez('criar');
+  janelaLimpar();
   modalTitle.textContent = t('create_title');
   modalBody.innerHTML = '';
   overlay.classList.remove('hidden');
@@ -26322,7 +26360,12 @@ function openThemeShop(aba){
   let grReacao = null;    // a última peça trocada (o personagem reage depois do desenho)
   function pzMudar(campo, valor){
     grReacao = campo;
-    const poe = cfg=>{ const antes = Object.assign({}, cfg); cfg[campo] = valor; if(antes[campo] !== valor) pzNovaPeca(cfg, campo, antes); };
+    const poe = cfg=>{
+      const antes = Object.assign({}, cfg); cfg[campo] = valor; if(antes[campo] !== valor) pzNovaPeca(cfg, campo, antes);
+      /* uma peça normal da categoria tira a criada do mesmo tipo (a criada fica por cima e a troca nem apareceria) */
+      const tp = PZ_UGC_DO[campo];
+      if(tp && cfg.ugc && cfg.ugc !== 'nenhum' && ((ugcEstado().cache.get(cfg.ugc) || {}).tipo === tp)) cfg.ugc = 'nenhum';
+    };
     if(abaAtual === 'agente'){
       const a = pzAgDeTexto(rascunho.agente) || meuAgente();
       if(campo === 'balao') a.balao = valor; else { a.cfg = pzNorm(a.cfg, PZ_PADRAO); poe(a.cfg); }
@@ -26368,11 +26411,10 @@ function openThemeShop(aba){
       const id = b.dataset.ugcDel;
       ugcApagar(id).then(ok=>{ if(!ok) return; if(alvoAgora().ugc === id) pzMudar('ugc', 'nenhum'); desenha(); });
     }));
-    const criar = bg.querySelector('[data-ugc-criar]');
-    if(criar) criar.addEventListener('click', ()=>{
+    bg.querySelectorAll('[data-ugc-criar]').forEach(criar=>criar.addEventListener('click', ()=>{
       playSound('click');
-      ugcAbrirEditor(id=>{ pzMudar('ugc', id); desenha(); });
-    });
+      ugcAbrirEditor(id=>{ pzMudar('ugc', id); desenha(); }, criar.dataset.ugcCriar);
+    }));
   }
   /* chegou desenho de peça criada (ou a lista da comunidade): refaz o painel */
   const aoUgc = ()=>{
@@ -32391,40 +32433,33 @@ async function ugcApagar(id){
 }
 
 /* ---------- na loja: a aba "Criadas" (dentro de Seu personagem) ---------- */
-function ugcPainelHtml(alvo){
-  const E = ugcEstado(), esc = chatListEscape;
-  ugcListar();
+/* o cartão de uma peça criada (igual aos das peças da loja, com "por fulano" embaixo do nome) */
+function ugcCartaoHtml(id, alvo){
+  const esc = chatListEscape, m = ugcMeta(id);
+  if(!m) return '';
   const u = (typeof FIREBASE_ENABLED !== 'undefined' && FIREBASE_ENABLED) ? fbAuth().currentUser : null;
   const meuUid = u ? u.uid : '';
-  const cartao = id=>{
-    const m = ugcMeta(id);
-    if(!m) return '';
-    const c2 = Object.assign({}, alvo); c2.ugc = id;
-    const minha = ugcEhMinha(id), usando = alvo.ugc === id, eu = !!m.criador && m.criador === meuUid;
-    const etiq = usando ? '<span class="pz-ok">' + t('theme_in_use') + '</span>'
-      : minha ? '<span class="pz-ok">' + t('theme_use') + '</span>'
-      : '<span class="pz-pr">' + (m.preco ? ICONS.coin + ' ' + kshopMilhar(m.preco) : esc(t('ugc_gratis'))) + '</span>';
-    return '<div class="ugc-cartao"><button type="button" class="pz-op' + (usando ? ' on' : '') + '" data-ugc-op="' + id + '" title="' + esc(m.nome) + '">'
-      + '<span class="pz-mini corpo" style="background:' + pzFundo(c2) + '">' + pzSvg(c2, 'corpo') + '</span>'
-      + '<span class="pz-n">' + esc(m.nome) + '</span><span class="ugc-por">' + esc(t('ugc_por', {nome: m.criadorNome || '?'})) + '</span>' + etiq + '</button>'
-      + ((isAdmin() || eu) ? '<button type="button" class="ugc-del" data-ugc-del="' + id + '" aria-label="' + esc(t('ugc_apagar')) + '" title="' + esc(t('ugc_apagar')) + '">✕</button>' : '') + '</div>';
-  };
-  let h = '<div class="ugc-painel">';
-  h += '<button type="button" class="ugc-criar" data-ugc-criar><span aria-hidden="true">🎨</span>' + esc(t('ugc_criar')) + '</button>';
-  h += '<p class="ugc-dica">' + esc(t('ugc_dica_loja')) + '</p>';
+  const c2 = Object.assign({}, alvo); c2.ugc = id;
+  const minha = ugcEhMinha(id), usando = alvo.ugc === id, eu = !!m.criador && m.criador === meuUid;
+  const etiq = usando ? '<span class="pz-ok">' + t('theme_in_use') + '</span>'
+    : minha ? '<span class="pz-ok">' + t('theme_use') + '</span>'
+    : '<span class="pz-pr">' + (m.preco ? ICONS.coin + ' ' + kshopMilhar(m.preco) : esc(t('ugc_gratis'))) + '</span>';
+  return '<div class="ugc-cartao"><button type="button" class="pz-op' + (usando ? ' on' : '') + '" data-ugc-op="' + id + '" title="' + esc(m.nome) + '">'
+    + '<span class="pz-mini corpo" style="background:' + pzFundo(c2) + '">' + pzSvg(c2, 'corpo') + '</span>'
+    + '<span class="pz-n">' + esc(m.nome) + '</span><span class="ugc-por">' + esc(t('ugc_por', {nome: m.criadorNome || '?'})) + '</span>' + etiq + '</button>'
+    + ((isAdmin() || eu) ? '<button type="button" class="ugc-del" data-ugc-del="' + id + '" aria-label="' + esc(t('ugc_apagar')) + '" title="' + esc(t('ugc_apagar')) + '">✕</button>' : '') + '</div>';
+}
+/* as peças criadas que cabem numa categoria (as minhas e as da comunidade): [{id, preco, minha}] */
+function ugcDaCategoria(tipo){
+  const E = ugcEstado();
+  ugcListar();
   const minhas = ugcMinhas();
   minhas.forEach(id=>ugcDados(id));
-  if(minhas.length){
-    h += '<p class="pz-sec">' + esc(t('ugc_minhas')) + '</p><div class="pz-grade">' + minhas.slice().reverse().map(cartao).join('') + '</div>';
-  }
-  h += '<p class="pz-sec">' + esc(t('ugc_comunidade')) + '</p>';
-  if(!E.lista) h += '<p class="ugc-vazio">' + esc(t('ugc_carregando')) + '</p>';
-  else {
-    const outras = E.lista.filter(id=>minhas.indexOf(id) < 0);
-    h += outras.length ? '<div class="pz-grade">' + outras.map(cartao).join('') + '</div>'
-      : '<p class="ugc-vazio">' + esc(t(E.erroLista ? 'ugc_offline' : 'ugc_vazio')) + '</p>';
-  }
-  return h + '</div>';
+  const ids = minhas.concat((E.lista || []).filter(id=>minhas.indexOf(id) < 0));
+  return ids.map(id=>{
+    const d = E.cache.get(id), m = E.meta.get(id);
+    return d && m && d.tipo === tipo ? {id, preco: Number(m.preco) || 0, minha: minhas.indexOf(id) >= 0} : null;
+  }).filter(Boolean);
 }
 /* a janela de comprar uma peça (aoComprar: depois de comprar, pra vestir) */
 function ugcPerguntarCompra(id, alvo, aoComprar){
@@ -32638,14 +32673,14 @@ function ugcTelaConferir(c2){
     falhou(i, titulo, linhas, botao, depois){ lis.forEach((li, j)=>{ li.className = j < i ? 'ok' : j === i ? 'ruim' : ''; }); final('recusada', '!', titulo, linhas, botao, depois); }
   };
 }
-function ugcAbrirEditor(aoPublicar){
+function ugcAbrirEditor(aoPublicar, tipoInicial){
   if(souVisitante()){ toast(t('ugc_sem_conta')); return; }
   const esc = chatListEscape, N = PZ_W * PZ_H;
   let r = null;
   try{ r = JSON.parse(localStorage.getItem(UGC_RASCUNHO_KEY)); }catch(e){}
   const lerLado = a=>(Array.isArray(a) && a.length === N) ? a.map(c=>typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c) ? c.toUpperCase() : null) : new Array(N).fill(null);
   const E = {lados: {frente: lerLado(r && r.px), costas: lerLado(r && r.pxC)}, lado: 'frente',
-    tipo: r && UGC_TIPOS.indexOf(r.tipo) >= 0 ? r.tipo : 'roupa', cor: '#E8413C', ferr: 'pincel', espelho: false, guia: true, desfaz: [], refaz: [], recentes: (r && Array.isArray(r.recentes) ? r.recentes : []).slice(0, 12),
+    tipo: UGC_TIPOS.indexOf(tipoInicial) >= 0 ? tipoInicial : (r && UGC_TIPOS.indexOf(r.tipo) >= 0 ? r.tipo : 'roupa'), cor: '#E8413C', ferr: 'pincel', espelho: false, guia: true, desfaz: [], refaz: [], recentes: (r && Array.isArray(r.recentes) ? r.recentes : []).slice(0, 12),
     passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', preco: r && Number.isFinite(r.preco) ? Math.max(0, Math.min(UGC_PRECO_MAX, r.preco)) : 35,
     fotos: {frente: null, costas: null}, editando: false};
   /* a foto de cada lado: {s, ar, w, x, y, img} (x, y, w em quadradinhos). "editando" = arrastando/mudando o tamanho agora */
@@ -33395,6 +33430,8 @@ var PZ_TXT = {
  pz_s_criadas:'Criadas|Created|Creadas|Create|Créées|Erstellt|Gemaakt|クリエイト|创作|창작',
  ugc_criar:'Criar uma peça|Create an item|Crear una prenda|Crea un capo|Créer une pièce|Teil erstellen|Item maken|アイテムを作る|创作一件|아이템 만들기',
  ugc_dica_loja:'Desenhe pixel por pixel, dê nome e preço. Você ganha 70% de cada venda.|Draw it pixel by pixel, pick a name and price. You get 70% of every sale.|Dibuja píxel por píxel, ponle nombre y precio. Ganas el 70% de cada venta.|Disegna pixel per pixel, scegli nome e prezzo. Ricevi il 70% di ogni vendita.|Dessine pixel par pixel, choisis un nom et un prix. Tu gagnes 70 % de chaque vente.|Zeichne Pixel für Pixel, wähle Name und Preis. Du bekommst 70 % jedes Verkaufs.|Teken pixel voor pixel, kies naam en prijs. Je krijgt 70% van elke verkoop.|1ドットずつ描いて名前と値段を決めよう。売れるたびに70%がもらえます。|逐个像素绘制，再取名定价。每卖出一件你得到70%。|픽셀 하나하나 그리고 이름과 가격을 정하세요. 팔릴 때마다 70%를 받아요.',
+ ugc_criar_curto:'Criar|Create|Crear|Crea|Créer|Erstellen|Maken|作る|创作|만들기',
+ ugc_criar_dica:'Desenhe a sua peça|Draw your own|Dibuja la tuya|Disegna la tua|Dessine la tienne|Zeichne dein Teil|Teken je eigen|自分で描く|画一个你的|직접 그려요',
  ugc_minhas:'Minhas|Mine|Mías|Mie|Les miennes|Meine|Van mij|自分の|我的|내 아이템',
  ugc_comunidade:'Da comunidade|From the community|De la comunidad|Dalla community|De la communauté|Aus der Community|Uit de community|みんなの作品|社区作品|커뮤니티',
  ugc_carregando:'Carregando…|Loading…|Cargando…|Caricamento…|Chargement…|Wird geladen…|Laden…|読み込み中…|加载中…|불러오는 중…',
@@ -35079,7 +35116,9 @@ function pzMigrarMolduras(){
 }
 
 /* ---------- as abas "Personagem" e "Seu agente" da Loja do Koda ---------- */
-const PZ_SUBS = ['genero', 'pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao', 'criadas'];
+/* cada categoria de peça do personagem → o tipo de peça criada que cabe nela */
+const PZ_UGC_DO = {camisa: 'roupa', calca: 'calca', chapeu: 'cabeca', cab: 'cabeca', costas: 'costas', mao: 'mao'};
+const PZ_SUBS = ['genero', 'pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'];
 const PZ_COR_DO = {cab:'corCab', olhos:'corOlhos', camisa:'corCamisa', estampa:'corEstampa', calca:'corCalca', sapato:'corSapato',
   chapeu:'corChapeu', aces:'corAces', costas:'corCostas', mao:'corMao'};
 const PZ_ROSTO = {genero:1, cab:1, olhos:1, boca:1, pele:1, chapeu:1, aces:1};
@@ -35131,18 +35170,28 @@ function pzPainelHtml(ctx){
   }
   h += '<p class="pz-total">' + esc(t('pz_total', {n: Number(PERS_ITENS.length).toLocaleString(currentLang)})) + '</p>';
   h += '<div class="pz-chips" role="tablist">' + subs.map(s=>'<button type="button" class="pz-chip' + (s === sub ? ' on' : '') + '" data-pz-sub="' + s + '" role="tab" aria-selected="' + (s === sub) + '">' + esc(t('pz_s_' + s)) + '</button>').join('') + '</div>';
-  if(sub === 'criadas') h += ugcPainelHtml(alvo);   // as peças que a comunidade desenhou
-  else if(sub !== 'balao'){
-    h += '<div class="pz-grade">' + pzVisiveis(sub, ctx.testando).map(x=>{
+  if(sub !== 'balao'){
+    /* as peças criadas pela comunidade moram junto das outras da mesma categoria; o primeiro cartão é o "Criar" daquela categoria */
+    const tipoUgc = PZ_UGC_DO[sub] || '';
+    const ugcAtivo = alvo.ugc && alvo.ugc !== 'nenhum' ? (ugcEstado().cache.get(alvo.ugc) || {}).tipo : '';
+    const itens = pzVisiveis(sub, ctx.testando).map((x, i)=>{
       const c2 = Object.assign({}, alvo); c2[sub] = x.id;
       if(alvo[sub] !== x.id) pzNovaPeca(c2, sub, alvo);   // do jeito que vem ao tocar
-      const id = sub + '_' + x.id, escolhido = alvo[sub] === x.id, car = escolhido && noCarrinho(id);
+      const id = sub + '_' + x.id, escolhido = alvo[sub] === x.id && !(tipoUgc && ugcAtivo === tipoUgc), car = escolhido && noCarrinho(id);
       const rosto = !!PZ_ROSTO[sub];
-      return '<button type="button" class="pz-op' + (escolhido ? ' on' : '') + (car ? ' carrinho' : '') + '" data-pz-op="' + sub + '|' + x.id + '" title="' + esc(t('cosm_pers_' + id)) + '">'
+      return {grupo: pzLivre(x) ? 0 : x.ev ? 3 : x.d ? 2 : 1, preco: x.d || x.p || 0, i,
+        html: '<button type="button" class="pz-op' + (escolhido ? ' on' : '') + (car ? ' carrinho' : '') + '" data-pz-op="' + sub + '|' + x.id + '" title="' + esc(t('cosm_pers_' + id)) + '">'
         + pzSelo(Object.assign({slot: sub}, x))
         + '<span class="pz-mini' + (rosto ? '' : ' corpo') + '" style="background:' + pzFundo(c2) + '">' + pzSvg(c2, rosto ? 'rosto' : 'corpo') + '</span>'
-        + '<span class="pz-n">' + esc(t('cosm_pers_' + id)) + '</span>' + pzEtiqueta(sub, x, escolhido, car) + '</button>';
-    }).join('') + '</div>';
+        + '<span class="pz-n">' + esc(t('cosm_pers_' + id)) + '</span>' + pzEtiqueta(sub, x, escolhido, car) + '</button>'};
+    });
+    let criadas = [];
+    if(tipoUgc){
+      criadas = ugcDaCategoria(tipoUgc).map((u, i)=>({grupo: u.preco ? 1 : 0, preco: u.preco, i: -1000 + i, minha: u.minha, html: ugcCartaoHtml(u.id, alvo)}));
+    }
+    const todos = itens.concat(criadas).sort((a, b)=>(a.grupo - b.grupo) || (a.preco - b.preco) || (a.i - b.i));
+    const tileCriar = tipoUgc ? '<button type="button" class="pz-op pz-criar" data-ugc-criar="' + tipoUgc + '"><span class="pz-criar-mais" aria-hidden="true">＋</span><span class="pz-n">' + esc(t('ugc_criar_curto')) + '</span><span class="pz-ok">' + esc(t('ugc_criar_dica')) + '</span></button>' : '';
+    h += '<div class="pz-grade">' + tileCriar + todos.map(o=>o.html).join('') + '</div>';
   }
   const campoCor = sub === 'balao' ? 'balao' : (PZ_COR_DO[sub] && pzColorivel(sub, alvo[sub]) ? PZ_COR_DO[sub] : null);
   if(campoCor){
@@ -35759,7 +35808,7 @@ const TOUR_PASSOS = [
   {id: 'p_pers',          faca: true, chave: 'tour_p_aba', vars: ()=>({aba: t('shop_tab_character')}), alvo: ()=>tourEl('.shop-sheet .shop-tab[data-aba="personagem"]'), feito: ()=>!!tourEl('.shop-tab[data-aba="personagem"].on') && !!tourEl('.pz-guarda'), so: ()=>!!tourEl('.shop-sheet'), depois: 700},
   {id: 'guarda',          alvo: ()=>tourEl('.pz-guarda'), so: ()=>!!tourEl('.shop-sheet')},
   {id: 'p_camisa',        faca: true, chave: 'tour_p_aba', vars: ()=>({aba: t('pz_s_camisa')}), alvo: ()=>tourEl('.pz-chip[data-pz-sub="camisa"]'), feito: ()=>!!tourEl('.pz-chip[data-pz-sub="camisa"].on'), so: ()=>!!tourEl('.pz-guarda'), depois: 300},
-  {id: 'p_peca',          faca: true, alvo: ()=>tourEl('.pz-grade .pz-op:not(.on)'), so: ()=>!!tourEl('.pz-guarda'),
+  {id: 'p_peca',          faca: true, alvo: ()=>tourEl('.pz-grade [data-pz-op]:not(.on)'), so: ()=>!!tourEl('.pz-guarda'),
                           inicio: p=>{ const g = tourEl('.pz-guarda'); p._cod = g ? g.dataset.cod : ''; }, feito: p=>{ const g = tourEl('.pz-guarda'); return !!g && g.dataset.cod !== p._cod; }, depois: 200},
   {id: 'reacao',          vars: ()=>({botao: t('profile_save')}), alvo: ()=>tourEl('.pz-guarda'), so: ()=>!!tourEl('.pz-guarda')},
   {id: 'p_sair_loja',     faca: true, alvo: ()=>tourEl('.shop-sheet .x-fechar'), feito: ()=>!tourEl('.shop-sheet'), so: ()=>!!tourEl('.shop-sheet'), depois: 350},
