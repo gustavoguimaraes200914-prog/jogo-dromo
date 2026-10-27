@@ -4976,6 +4976,12 @@
   .ugc-criar span{font-size:1.3rem;}
   .ugc-criar:active{transform:translateY(2px);box-shadow:0 1px 0 #0A7259;}
   .ugc-dica{margin:0;font:600 .74rem/1.35 'Nunito Sans',sans-serif;opacity:.75;}
+  /* a janelinha "Quase lá!" quando o código colado tem um problema que a pessoa precisa resolver com a IA */
+  .jogo-diag{max-width:420px;text-align:left;}
+  .jogo-diag-tit{margin:0 0 8px;font:800 1.25rem/1.2 'Baloo 2',sans-serif;color:#13312A;}
+  .jogo-diag .confirm-msg{text-align:left;}
+  .jogo-diag-sub{margin:10px 0 6px;font:700 .86rem/1.35 'Nunito Sans',sans-serif;color:#41605A;}
+  .jogo-diag-pedido{padding:10px 12px;border-radius:12px;background:#EEF7F4;border:2px dashed #17AE85;font:600 .88rem/1.4 'Nunito Sans',sans-serif;color:#13312A;-webkit-user-select:text;user-select:text;}
   .ugc-vazio{margin:4px 0;font:700 .8rem/1.4 'Nunito Sans',sans-serif;opacity:.7;text-align:center;}
   .ugc-cartao{position:relative;min-width:0;display:flex;}
   .ugc-cartao > .pz-op{flex:1;}
@@ -6053,7 +6059,7 @@ const I18N = {
     code_form_title:'PUBLICAR JOGO', code_form_intro:'Preencha os dados e publique seu jogo no catálogo.',
     code_form_no_photo_hint:'Sem imagem? A gente gera uma capa colorida com a inicial do nome.',
     code_form_code_label:'Código do jogo (HTML)', code_form_code_ph:'Cole aqui o código HTML completo do seu jogo (um arquivo só, sem depender de outros arquivos).',
-    code_form_code_hint:'Precisa ser um único arquivo HTML autocontido — com o &lt;style&gt; e o &lt;script&gt; dentro dele mesmo.',
+    code_form_code_hint:'Pode colar a resposta inteira da IA (ChatGPT, Gemini, Claude, Copilot…), até em vários arquivos: o Koda separa o código sozinho e junta o HTML, o CSS e o JavaScript.',
     code_form_name_needed:'Escreva um nome pro jogo', code_form_code_incomplete:'O código do jogo parece incompleto.',
     code_form_too_big:'Não deu pra salvar — o jogo pode ser grande demais.',
     chess_menu:'Menu', chess_hint:'Dica', chess_undo:'Desfazer', chess_pieces_q:'Suas peças',
@@ -6729,7 +6735,7 @@ const I18N = {
     code_form_title:'PUBLISH GAME', code_form_intro:'Fill in the details and publish your game to the catalog.',
     code_form_no_photo_hint:"No image? We'll generate a colorful cover using the name's initial.",
     code_form_code_label:'Game code (HTML)', code_form_code_ph:"Paste the full HTML code of your game here (a single file, with no dependency on other files).",
-    code_form_code_hint:'It needs to be a single self-contained HTML file — with the &lt;style&gt; and &lt;script&gt; inside it.',
+    code_form_code_hint:'You can paste the whole AI answer (ChatGPT, Gemini, Claude, Copilot…), even split into several files: Koda picks out the code and joins the HTML, CSS and JavaScript.',
     code_form_name_needed:'Write a name for the game', code_form_code_incomplete:'The game code looks incomplete.',
     code_form_too_big:"Couldn't save it — the game might be too big.",
     chess_menu:'Menu', chess_hint:'Hint', chess_undo:'Undo', chess_pieces_q:'Your pieces',
@@ -7366,7 +7372,7 @@ const I18N = {
     draft_name_label:'Nome della bozza', draft_name_ph:'Es: Guerra di Aerei (bozza)', draft_save_btn:'Salva bozza', code_form_title:'PUBBLICA GIOCO',
     code_form_intro:'Compila i dati e pubblica il tuo gioco nel catalogo.', code_form_no_photo_hint:'Non hai un\'immagine? Ti creiamo una copertina colorata con l\'iniziale del nome.',
     code_form_code_label:'Codice del gioco (HTML)', code_form_code_ph:'Incolla qui tutto il codice HTML del tuo gioco (un solo file, che non dipenda da altri file).',
-    code_form_code_hint:'Deve essere un unico file HTML autonomo — con il &lt;style&gt; e lo &lt;script&gt; dentro di esso.', code_form_name_needed:'Scrivi un nome per il gioco',
+    code_form_code_hint:'Puoi incollare l’intera risposta dell’IA (ChatGPT, Gemini, Claude, Copilot…), anche divisa in più file: Koda trova il codice e unisce HTML, CSS e JavaScript.', code_form_name_needed:'Scrivi un nome per il gioco',
     code_form_code_incomplete:'Il codice del gioco sembra incompleto.', code_form_too_big:'Non è stato possibile salvarlo — il gioco potrebbe essere troppo grande.', chess_menu:'Menu',
     chess_hint:'Aiutino', chess_undo:'Annulla mossa', chess_pieces_q:'I tuoi pezzi', chess_white:'Bianchi', chess_black:'Neri',
     chess_extreme_hint:'Nell\'Estremo l\'IA gioca molto forte — può metterci un attimo a pensare.', chess_duo_hint:'Il Giocatore 1 gioca con i bianchi, il Giocatore 2 con i neri.',
@@ -7996,7 +8002,7 @@ const I18N = {
     draft_name_ph:'Bijv. Vliegtuigoorlog (concept)', draft_save_btn:'Concept opslaan', code_form_title:'GAME PUBLICEREN',
     code_form_intro:'Vul de gegevens in en publiceer je game in de catalogus.', code_form_no_photo_hint:'Geen afbeelding? Wij maken een kleurige omslag met de eerste letter van de naam.',
     code_form_code_label:'Code van de game (HTML)', code_form_code_ph:'Plak hier de volledige HTML-code van je game (één bestand, zonder dat er andere bestanden nodig zijn).',
-    code_form_code_hint:'Het moet één zelfstandig HTML-bestand zijn — met de &lt;style&gt; en de &lt;script&gt; erin.', code_form_name_needed:'Schrijf een naam voor de game',
+    code_form_code_hint:'Je kunt het hele antwoord van de AI plakken (ChatGPT, Gemini, Claude, Copilot…), ook als het in meerdere bestanden staat: Koda haalt de code eruit en voegt HTML, CSS en JavaScript samen.', code_form_name_needed:'Schrijf een naam voor de game',
     code_form_code_incomplete:'De code van de game lijkt niet compleet.', code_form_too_big:'Opslaan lukte niet — de game is misschien te groot.', chess_menu:'Menu', chess_hint:'Tip',
     chess_undo:'Ongedaan maken', chess_pieces_q:'Jouw stukken', chess_white:'Wit', chess_black:'Zwart',
     chess_extreme_hint:'Op Extreem speelt de AI behoorlijk sterk — nadenken kan even duren.', chess_duo_hint:'Speler 1 speelt met wit, speler 2 met zwart.',
@@ -8631,7 +8637,7 @@ const I18N = {
     code_form_intro:'Füll die Daten aus und veröffentliche dein Spiel im Katalog.',
     code_form_no_photo_hint:'Kein Bild? Dann machen wir ein buntes Titelbild mit dem Anfangsbuchstaben des Namens.', code_form_code_label:'Code des Spiels (HTML)',
     code_form_code_ph:'Füg hier den kompletten HTML-Code deines Spiels ein (eine einzige Datei, ohne andere Dateien zu brauchen).',
-    code_form_code_hint:'Es muss eine einzige, in sich geschlossene HTML-Datei sein — mit dem &lt;style&gt; und dem &lt;script&gt; direkt darin.',
+    code_form_code_hint:'Du kannst die ganze Antwort der KI einfügen (ChatGPT, Gemini, Claude, Copilot…), auch auf mehrere Dateien verteilt: Koda findet den Code und fügt HTML, CSS und JavaScript zusammen.',
     code_form_name_needed:'Schreib einen Namen für das Spiel', code_form_code_incomplete:'Der Code des Spiels sieht unvollständig aus.',
     code_form_too_big:'Speichern hat nicht geklappt — das Spiel ist vielleicht zu groß.', chess_menu:'Menü', chess_hint:'Tipp', chess_undo:'Zurücknehmen', chess_pieces_q:'Deine Figuren',
     chess_white:'Weiß', chess_black:'Schwarz', chess_extreme_hint:'Auf Extrem spielt die KI ziemlich stark — sie braucht vielleicht einen Moment zum Nachdenken.',
@@ -9271,7 +9277,7 @@ const I18N = {
     draft_name_label:'Nom du brouillon', draft_name_ph:'Ex : Guerre d\'Avions (brouillon)', draft_save_btn:'Enregistrer le brouillon', code_form_title:'PUBLIER LE JEU',
     code_form_intro:'Remplis les infos et publie ton jeu dans le catalogue.', code_form_no_photo_hint:'Pas d\'image ? On génère une couverture colorée avec l\'initiale du nom.',
     code_form_code_label:'Code du jeu (HTML)', code_form_code_ph:'Colle ici le code HTML complet de ton jeu (un seul fichier, sans dépendre d\'autres fichiers).',
-    code_form_code_hint:'Ça doit être un seul fichier HTML autonome — avec le &lt;style&gt; et le &lt;script&gt; dedans.', code_form_name_needed:'Écris un nom pour le jeu',
+    code_form_code_hint:'Tu peux coller la réponse entière de l’IA (ChatGPT, Gemini, Claude, Copilot…), même en plusieurs fichiers : Koda trouve le code et assemble le HTML, le CSS et le JavaScript.', code_form_name_needed:'Écris un nom pour le jeu',
     code_form_code_incomplete:'Le code du jeu a l\'air incomplet.', code_form_too_big:'Je n\'ai pas réussi à enregistrer — le jeu est peut-être trop gros.', chess_menu:'Menu',
     chess_hint:'Indice', chess_undo:'Annuler', chess_pieces_q:'Tes pièces', chess_white:'Blancs', chess_black:'Noirs',
     chess_extreme_hint:'En Extrême l\'IA joue vraiment fort — elle peut prendre un instant pour réfléchir.', chess_duo_hint:'Le Joueur 1 joue les blancs, le Joueur 2 les noirs.',
@@ -9873,7 +9879,7 @@ const I18N = {
     draft_save_confirm:'会話を「{name}」として保存したよ！いつでも続きから始められるよ。', draft_continued_actions:'よし、続きから再開したよ！試してみる？もう少し調整する？それとも満足したら公開する？', draft_name_label:'下書きの名前', draft_name_ph:'例: 飛行機バトル（下書き）',
     draft_save_btn:'下書きを保存', code_form_title:'ゲームを公開', code_form_intro:'必要なことを入力して、ゲームをカタログに公開しよう。', code_form_no_photo_hint:'画像がない？名前の最初の文字でカラフルな表紙を作るよ。',
     code_form_code_label:'ゲームのコード（HTML）', code_form_code_ph:'ゲームの完全なHTMLコードをここに貼って（1ファイルだけで、他のファイルに頼らないもの）。',
-    code_form_code_hint:'1つで完結するHTMLファイルが必要だよ — &lt;style&gt; と &lt;script&gt; も同じファイルの中に入れてね。', code_form_name_needed:'ゲームの名前を書いて', code_form_code_incomplete:'ゲームのコードが途中で終わってるみたい。',
+    code_form_code_hint:'AI（ChatGPT、Gemini、Claude、Copilot…）の答えをそのまま全部貼ってOK。ファイルが分かれていても、Kodaがコードを見つけてHTML・CSS・JavaScriptをまとめるよ。', code_form_name_needed:'ゲームの名前を書いて', code_form_code_incomplete:'ゲームのコードが途中で終わってるみたい。',
     code_form_too_big:'保存できなかったよ — ゲームが大きすぎるのかも。', chess_menu:'メニュー', chess_hint:'ヒント', chess_undo:'1手戻す', chess_pieces_q:'あなたの駒', chess_white:'白', chess_black:'黒',
     chess_extreme_hint:'エクストリームだとAIはかなり強いよ — 考えるのに少し時間がかかることもある。', chess_duo_hint:'プレイヤー1は白、プレイヤー2は黒だよ。', chess_turn_white:'白の手番', chess_turn_black:'黒の手番', chess_check:' — チェック！',
     chess_checkmate_white:'白の勝ち — チェックメイト！', chess_checkmate_black:'黒の勝ち — チェックメイト！', chess_draw_stalemate:'引き分け — ステイルメイト', chess_draw_material:'引き分け — 駒が足りない',
@@ -10433,7 +10439,7 @@ const I18N = {
     draft_delete_confirm:'删除这个草稿？', draft_delete_btn:'删除', draft_saved_toast:'草稿已保存！', draft_save_confirm:'我把我们的对话存成“{name}”啦！随时都能从上次的地方接着来。',
     draft_continued_actions:'好啦，我们接上次继续！想试玩、再改点什么，还是满意了就发布？', draft_name_label:'草稿名字', draft_name_ph:'例如：飞机大战（草稿）', draft_save_btn:'存草稿', code_form_title:'发布游戏',
     code_form_intro:'填好信息，把你的游戏发布到目录里。', code_form_no_photo_hint:'没有图？我们会用名字的第一个字生成一张彩色封面。', code_form_code_label:'游戏代码（HTML）', code_form_code_ph:'把你游戏完整的 HTML 代码贴在这里（就一个文件，不依赖其他文件）。',
-    code_form_code_hint:'必须是一个能独立跑起来的 HTML 文件 — &lt;style&gt; 和 &lt;script&gt; 都要写在它里面。', code_form_name_needed:'给游戏起个名字', code_form_code_incomplete:'游戏代码看起来不完整。',
+    code_form_code_hint:'可以把 AI（ChatGPT、Gemini、Claude、Copilot…）的整段回答直接贴进来，分成好几个文件也没关系：Koda 会自己找出代码，把 HTML、CSS 和 JavaScript 合在一起。', code_form_name_needed:'给游戏起个名字', code_form_code_incomplete:'游戏代码看起来不完整。',
     code_form_too_big:'没保存成功 — 游戏可能太大了。', chess_menu:'菜单', chess_hint:'提示', chess_undo:'撤销', chess_pieces_q:'你执哪边', chess_white:'白棋', chess_black:'黑棋',
     chess_extreme_hint:'极限难度下 AI 下得很凶 — 思考可能要等一会儿。', chess_duo_hint:'1 号玩家执白，2 号玩家执黑。', chess_turn_white:'白棋走', chess_turn_black:'黑棋走', chess_check:' — 将军！',
     chess_checkmate_white:'白棋获胜 — 将杀！', chess_checkmate_black:'黑棋获胜 — 将杀！', chess_draw_stalemate:'和棋 — 逼和', chess_draw_material:'和棋 — 子力不足', chess_draw_50:'和棋 — 50 步规则',
@@ -10993,7 +10999,7 @@ const I18N = {
     draft_delete_confirm:'이 초안을 지울까요?', draft_delete_btn:'삭제', draft_saved_toast:'초안을 저장했어요!', draft_save_confirm:'우리 대화를 "{name}"(으)로 저장했어! 언제든 여기서부터 이어 갈 수 있어.',
     draft_continued_actions:'자, 아까 하던 데서 다시 시작! 해 볼래, 더 다듬을래, 아니면 마음에 들면 올릴래?', draft_name_label:'초안 이름', draft_name_ph:'예: 비행기 전쟁 (초안)', draft_save_btn:'임시저장', code_form_title:'게임 올리기',
     code_form_intro:'내용을 채우고 게임을 목록에 올려요.', code_form_no_photo_hint:'이미지가 없어도 괜찮아요. 이름 첫 글자로 알록달록한 커버를 만들어 줄게요.', code_form_code_label:'게임 코드 (HTML)',
-    code_form_code_ph:'게임의 전체 HTML 코드를 여기에 붙여요 (다른 파일 없이 한 파일로).', code_form_code_hint:'하나로 완결된 HTML 파일이어야 해요 — &lt;style&gt;과 &lt;script&gt;도 그 안에 같이 들어가야 해요.',
+    code_form_code_ph:'게임의 전체 HTML 코드를 여기에 붙여요 (다른 파일 없이 한 파일로).', code_form_code_hint:'AI(ChatGPT, Gemini, Claude, Copilot…)의 답을 통째로 붙여 넣어도 돼요. 여러 파일로 나뉘어 있어도 Koda가 코드를 찾아 HTML, CSS, JavaScript를 합쳐요.',
     code_form_name_needed:'게임 이름을 써 줘요', code_form_code_incomplete:'게임 코드가 덜 끝난 것 같아요.', code_form_too_big:'저장을 못 했어요 — 게임이 너무 클 수도 있어요.', chess_menu:'메뉴', chess_hint:'힌트',
     chess_undo:'되돌리기', chess_pieces_q:'내 기물', chess_white:'백', chess_black:'흑', chess_extreme_hint:'극악에서는 AI가 꽤 세게 둬요 — 생각하는 데 잠깐 걸릴 수 있어요.', chess_duo_hint:'1번 플레이어는 백, 2번 플레이어는 흑이에요.',
     chess_turn_white:'백 차례', chess_turn_black:'흑 차례', chess_check:' — 체크!', chess_checkmate_white:'백 승리 — 체크메이트!', chess_checkmate_black:'흑 승리 — 체크메이트!', chess_draw_stalemate:'무승부 — 스테일메이트',
@@ -11627,7 +11633,7 @@ const I18N = {
     code_form_title:'PUBLICAR JUEGO', code_form_intro:'Completa los datos y publica tu juego en el catálogo.',
     code_form_no_photo_hint:'¿Sin imagen? Generamos una portada de color con la inicial del nombre.',
     code_form_code_label:'Código del juego (HTML)', code_form_code_ph:'Pega aquí el código HTML completo de tu juego (un solo archivo, sin depender de otros archivos).',
-    code_form_code_hint:'Debe ser un único archivo HTML autónomo — con el &lt;style&gt; y el &lt;script&gt; dentro de él.',
+    code_form_code_hint:'Puedes pegar la respuesta entera de la IA (ChatGPT, Gemini, Claude, Copilot…), incluso en varios archivos: Koda encuentra el código y junta el HTML, el CSS y el JavaScript.',
     code_form_name_needed:'Escribe un nombre para el juego', code_form_code_incomplete:'El código del juego parece incompleto.',
     code_form_too_big:'No se pudo guardar — el juego puede ser demasiado grande.',
     chess_menu:'Menú', chess_hint:'Pista', chess_undo:'Deshacer', chess_pieces_q:'Tus piezas',
@@ -14377,7 +14383,8 @@ function openSharedAgentChatView(ref){
     bg.innerHTML = `<iframe style="width:92vw;height:80vh;border:none;border-radius:16px;background:#fff;"></iframe>`;
     const sharedFrame = bg.querySelector('iframe');
     hardenGameFrame(sharedFrame); // código de outra pessoa: roda isolado
-    sharedFrame.srcdoc = GAME_STORAGE_SHIM + jogoCodigoSeguro(ref.code);
+    const pronto = prepararCodigoDoJogo(ref.code) || ref.code;
+    sharedFrame.srcdoc = jogoRedeDeSeguranca(pronto) + jogoCodigoSeguro(pronto);
     bg.addEventListener('click', e=>{ if(e.target===bg) bg.remove(); });
     document.body.appendChild(bg);
   });
@@ -18291,66 +18298,436 @@ function jogoPareceCss(txt){
 /* o script não pode fechar a própria tag sem querer */
 function jogoScriptSeguro(js){ return js.replace(/<\/script/gi, '<\\/script'); }
 function jogoCssSeguro(css){ return css.replace(/<\/style/gi, '<\\/style'); }
-function jogoRelativo(url){ return !!url && !/^(https?:)?\/\//i.test(url) && !/^data:/i.test(url); }
+function jogoRelativo(url){ return !!url && !/^(https?:)?\/\//i.test(url) && !/^(data|blob):/i.test(url); }
 
+/* ---------- 1) o texto colado: tira o que o copiar do chat/celular estraga ----------
+   espaço "duro" (NBSP) no lugar do espaço comum (quebra as tags e o CSS), caracteres invisíveis,
+   o "pensamento" de IAs como o DeepSeek (<think>...</think>) e aspas curvas “ ” ‘ ’ que o celular
+   ou o bloco de notas colocam no lugar das retas (aí nada funciona). */
+function jogoLimparTexto(txt){
+  txt = txt.replace(/\r\n?/g, '\n').replace(/[\u2028\u2029]/g, '\n')
+    .replace(/[\u00a0\u2007\u202f]/g, ' ').replace(/[\u200b-\u200d\u2060\ufeff\u00ad]/g, '');
+  txt = txt.replace(/^\s*<think(?:ing)?>[\s\S]*?<\/think(?:ing)?>\s*/i, '');
+  /* aspas curvas só viram retas quando estão fazendo papel de código (id=“c”, getElementById(“c”), ‘2d’) */
+  const fortes = (txt.match(/[\w-]=\s*[“”‘’][^“”‘’\n]{0,60}[“”‘’]|\(\s*[“”‘’][^“”‘’\n]{0,60}[“”‘’]\s*[),]|[=:]\s*[“”‘’][^“”‘’\n]{0,60}[“”‘’]\s*[;,})]/g) || []).length;
+  const curvas = (txt.match(/[“”‘’]/g) || []).length, retas = (txt.match(/["']/g) || []).length;
+  if(fortes >= 2 && curvas > retas) txt = txt.replace(/[“”„‟″]/g, '"').replace(/[‘’‚‛′]/g, "'");
+  return txt;
+}
+
+/* ---------- 2) separar os blocos de código ----------
+   a) com cerca: ```html ... ``` (ou ~~~), um bloco por linha de cerca; o último pode ter ficado sem fechar
+   b) sem cerca: quando a pessoa copia a resposta inteira, a cerca some e fica só o nome em cima do código
+      ("HTML", "CSS", "JavaScript", "index.html", "script.js"), às vezes com o "Copiar código" grudado. */
+const JOGO_OUTRAS = /^(python3?|py|pygame|lua|luau|c#|cs|csharp|c\+\+|cpp|c|java|kotlin|swift|gdscript|go|rust|rb|ruby|php|dart|bash|sh|shell|cmd|powershell)$/;
+function jogoTipoDoNome(n){
+  n = String(n || '').toLowerCase();
+  if(/^(html?|xhtml|svg|vue)$|\.html?$/.test(n)) return 'html';
+  if(/^(css|scss|sass|less)$|\.css$/.test(n)) return 'css';
+  if(/^(jsx|tsx)$|\.(jsx|tsx)$/.test(n)) return 'jsx';
+  if(/^(js|javascript|mjs|cjs|node|ts|typescript|es6)$|\.(js|mjs|ts)$/.test(n)) return 'js';
+  if(/^(json)$|\.json$/.test(n)) return 'json';
+  if(JOGO_OUTRAS.test(n) || /\.(py|lua|cs|cpp|java|gd|rb|php|go|rs|swift|kt)$/.test(n)) return 'outra:' + n.replace(/^.*\./, '');
+  return '';
+}
+function jogoBlocosComCerca(txt){
+  const linhas = txt.split('\n'), blocos = [];
+  let atual = null, cerca = '';
+  for(const l of linhas){
+    if(!atual){
+      const m = l.match(/^\s*(`{3,}|~{3,})\s*([\w+#.\-]*)/);
+      if(m){ atual = {lang: m[2].toLowerCase(), linhas: []}; cerca = m[1]; }
+      continue;
+    }
+    const fecha = l.match(/^\s*(`{3,}|~{3,})\s*([\w+#.\-]*)\s*$/);
+    if(fecha && fecha[1][0] === cerca[0] && fecha[1].length >= cerca.length){
+      blocos.push(atual); atual = null;
+      if(fecha[2]){ atual = {lang: fecha[2].toLowerCase(), linhas: []}; }   // a IA abriu outro sem fechar o anterior
+      continue;
+    }
+    atual.linhas.push(l);
+  }
+  if(atual) blocos.push(atual);
+  const achados = blocos.map(b=>({lang: b.lang, txt: b.linhas.join('\n').replace(/\s+$/, '')})).filter(b=>b.txt.trim());
+  if(achados.length || txt.indexOf('```') < 0) return achados;
+  /* reserva: cerca no meio da linha ("Aqui está: ```html") */
+  const re = /```[ \t]*([\w+#.\-]*)[^\n]*\n([\s\S]*?)(?:```|$)/g;
+  let m;
+  while((m = re.exec(txt)) !== null){
+    if(m[2].trim()) achados.push({lang: (m[1] || '').toLowerCase(), txt: m[2].replace(/\s+$/, '')});
+    if(m[0].length === 0) re.lastIndex++;
+  }
+  return achados;
+}
+const JOGO_ROTULO = /^\s*(?:[#*>_`\-]+\s*)?(?:(?:arquivo|file|c[oó]digo|code)\s*[:\-]?\s*)?((?:html5?|css3?|javascript|js|jsx|tsx|typescript|ts|python|py|json)|(?:[\w\-]+\/)*[\w\-]+\.(?:html?|css|jsx?|tsx?|mjs|py))\s*[*`_:)]*\s*$/i;
+const JOGO_BOTAO_DO_CHAT = /^\s*(copiar(\s+c[oó]digo)?|copy(\s+code)?|copiado!?|copied!?|editar|edit|executar|run|visualizar|preview|baixar|download|code|c[oó]digo|snippet|expandir|expand|recolher)\s*$/i;
+function jogoLinhaDeCodigo(l){
+  return /^\s*(<[!a-zA-Z\/]|[.#@:*\[]?[a-zA-Z][\w\-\s.#:>,\[\]="'()*~+]*\{\s*$|[.#@][\w\-]+|\/\/|\/\*|(const|let|var|function|class|import|export|if|for|while|document|window|async|return|new)\b|[\w$.\[\]'"]+\s*(=|\(|\.|:)|\}|\{|\(|@)/.test(l);
+}
+function jogoBlocosPorRotulo(txt){
+  const linhas = txt.split('\n'), blocos = [];
+  let atual = null;
+  const primeiraTag = linhas.findIndex(l=>/<[!a-zA-Z]/.test(l));
+  for(let i = 0; i < linhas.length; i++){
+    const l = linhas[i];
+    let m = l.trim().length <= 48 ? l.match(JOGO_ROTULO) : null;
+    if(m && !atual && primeiraTag >= 0 && i > primeiraTag) m = null;                         // "CSS" escrito dentro da página não é rótulo
+    if(m && atual && jogoTipoDoNome(atual.lang) === 'html' && !atual.linhas.some(x=>/<\/html\s*>/i.test(x))) m = null;
+    if(m){
+      let j = i + 1;
+      while(j < linhas.length && (!linhas[j].trim() || JOGO_BOTAO_DO_CHAT.test(linhas[j]))) j++;
+      if(j < linhas.length && jogoLinhaDeCodigo(linhas[j])){
+        atual = {lang: m[1].toLowerCase(), linhas: []};
+        blocos.push(atual);
+        i = j - 1;
+        continue;
+      }
+    }
+    if(atual) atual.linhas.push(l);
+  }
+  return blocos.map(b=>({lang: b.lang, txt: b.linhas.join('\n')})).filter(b=>b.txt.trim());
+}
+/* JavaScript que o navegador aceita? (só confere; não roda nada) */
+function jogoJsCompila(js){
+  if(/^\s*(import|export)\s/m.test(js)) return null;      // módulo: aqui não dá pra conferir
+  try{ new Function(js); return true; }catch(e){ return /end of (input|script)|unexpected eof|unterminated/i.test(String(e && e.message)) ? 'cortado' : false; }
+}
+/* linha de conversa (explicação) que ficou grudada no fim do código */
+function jogoLinhaDeProsa(l){
+  const s = l.trim();
+  if(!s) return true;
+  if(JOGO_BOTAO_DO_CHAT.test(s)) return true;
+  if(/^(#{1,6}\s|[-*•]\s|\d+[.)]\s|[✅❌⚠️🎮🎯🕹️👉✨🚀💡📌🔥⭐])/u.test(s)) return true;
+  if(/^[\w$.\[\]'"]+\s*\(.*\)\s*;?\s*$/.test(s)) return false;
+  return /^[\p{L}"'“(]/u.test(s) && /\s/.test(s) && !/[;{}=<>[\]]|=>|\(\s*\)|^\s*(return|const|let|var|if|else|for|while|case|break|function|class|new|throw|await|yield)\b/.test(s);
+}
+/* tira a conversa que sobrou no começo e no fim de um bloco sem cerca */
+function jogoAparar(txt, tipo){
+  let ls = txt.replace(/\s+$/, '').split('\n');
+  while(ls.length && (!ls[0].trim() || JOGO_BOTAO_DO_CHAT.test(ls[0]))) ls.shift();
+  if(tipo === 'html'){
+    const t = ls.join('\n'), fim = t.search(/<\/html\s*>/i);
+    if(fim >= 0) return t.slice(0, fim + t.slice(fim).match(/<\/html\s*>/i)[0].length);
+    while(ls.length && !/[<>]/.test(ls[ls.length - 1]) && jogoLinhaDeProsa(ls[ls.length - 1])) ls.pop();
+    return ls.join('\n');
+  }
+  if(tipo === 'css'){
+    const t = ls.join('\n'), fim = t.lastIndexOf('}');
+    return fim >= 0 ? t.slice(0, fim + 1) : t;
+  }
+  if(tipo === 'js' || tipo === 'jsx'){
+    while(ls.length && jogoLinhaDeProsa(ls[ls.length - 1])) ls.pop();
+    if(tipo === 'js' && jogoJsCompila(ls.join('\n')) === false){
+      /* ainda não compila: pode ter mais conversa no fim (uma frase com parênteses, uma lista...) */
+      for(let corte = 1; corte <= 12 && corte < ls.length; corte++){
+        const tentativa = ls.slice(0, ls.length - corte).join('\n');
+        if(jogoJsCompila(tentativa) === true){ ls = ls.slice(0, ls.length - corte); break; }
+      }
+    }
+    return ls.join('\n');
+  }
+  return ls.join('\n');
+}
+
+/* ---------- 3) bibliotecas que a IA usou sem colocar o <script> (ou apontando pra um arquivo que não veio junto) ---------- */
+const JOGO_CDN = 'https://cdn.jsdelivr.net/npm/';
+const JOGO_LIBS = [
+  {id: 'p5', url: JOGO_CDN + 'p5@1.9.4/lib/p5.min.js', arquivo: /(^|\/)p5(\.min)?\.js$/i,
+    precisa: c=>(/\bfunction\s+setup\s*\(/.test(c) && /\bcreateCanvas\s*\(/.test(c)) || /\bnew\s+p5\s*\(/.test(c)},
+  {id: 'phaser', url: JOGO_CDN + 'phaser@3.80.1/dist/phaser.min.js', arquivo: /(^|\/)phaser(\.min)?\.js$/i,
+    precisa: c=>/\bPhaser\.(Game|AUTO|CANVAS|WEBGL|Scene|Scale|Physics|Math)\b/.test(c)},
+  {id: 'three', url: JOGO_CDN + 'three@0.149.0/build/three.min.js', arquivo: /(^|\/)three(\.min)?\.js$/i,
+    precisa: c=>/\bTHREE\.\w/.test(c)},
+  {id: 'orbit', url: JOGO_CDN + 'three@0.149.0/examples/js/controls/OrbitControls.js', arquivo: /(^|\/)OrbitControls\.js$/i,
+    precisa: c=>/\bTHREE\.OrbitControls\b/.test(c)},
+  {id: 'matter', url: JOGO_CDN + 'matter-js@0.19.0/build/matter.min.js', arquivo: /(^|\/)matter(-js)?(\.min)?\.js$/i,
+    precisa: c=>/\bMatter\.(Engine|Bodies|World|Composite|Render|Runner|Body|Events|Mouse)\b|=\s*Matter\s*[;,\n]/.test(c)},
+  {id: 'kaboom', url: JOGO_CDN + 'kaboom@3000.1.17/dist/kaboom.js', arquivo: /(^|\/)(kaboom|kaplay)(\.min)?\.js$/i,
+    precisa: c=>/(^|[^\w.$])(kaboom|kaplay)\s*\(/.test(c), depois: '<script>window.kaplay=window.kaplay||window.kaboom;<\/script>'},
+  {id: 'jquery', url: JOGO_CDN + 'jquery@3.7.1/dist/jquery.min.js', arquivo: /(^|\/)jquery[\w.\-]*\.js$/i,
+    precisa: c=>/(^|[^\w$.])\$\(\s*(document|window|function|this|['"`])/.test(c) && !/function\s+\$\s*\(|(const|let|var)\s+\$\s*=/.test(c)},
+  {id: 'howler', url: JOGO_CDN + 'howler@2.2.4/dist/howler.min.js', arquivo: /(^|\/)howler(\.core)?(\.min)?\.js$/i,
+    precisa: c=>/\bnew\s+Howl\s*\(|\bHowler\.\w/.test(c)},
+  {id: 'tone', url: JOGO_CDN + 'tone@14.7.77/build/Tone.js', arquivo: /(^|\/)tone(\.min)?\.js$/i,
+    precisa: c=>/\bTone\.(Synth|start|Transport|now|PolySynth|Player|MembraneSynth|NoiseSynth|context)\b/.test(c)},
+  {id: 'pixi', url: JOGO_CDN + 'pixi.js@7.4.2/dist/pixi.min.js', arquivo: /(^|\/)pixi(\.min)?\.js$/i,
+    precisa: c=>/\bPIXI\.(Application|Sprite|Graphics|Container|Text|Texture|Assets)\b/.test(c)},
+  {id: 'gsap', url: JOGO_CDN + 'gsap@3.12.5/dist/gsap.min.js', arquivo: /(^|\/)gsap(\.min)?\.js$/i,
+    precisa: c=>/(^|[^\w.])gsap\.(to|from|fromTo|timeline|set)\s*\(/.test(c)},
+  {id: 'confetti', url: JOGO_CDN + 'canvas-confetti@1.9.3/dist/confetti.browser.js', arquivo: /(^|\/)confetti[\w.\-]*\.js$/i,
+    precisa: c=>/(^|[^\w.$])confetti\s*\(/.test(c) && !/function\s+confetti\s*\(|(const|let|var)\s+confetti\s*=/.test(c)}
+];
+/* o texto dos scripts da página (sem os que vêm de fora) */
+function jogoScriptsDaPagina(html){
+  let tudo = '';
+  html.replace(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi, (m, at, js)=>{ if(!/\bsrc\s*=/i.test(at)) tudo += js + '\n'; return m; });
+  html.replace(/\son[a-z]+\s*=\s*"([^"]*)"/gi, (m, js)=>{ tudo += js + '\n'; return m; });
+  return tudo;
+}
+function jogoBibliotecas(html){
+  /* <script src="phaser.min.js"> (um arquivo que só existe no computador de quem fez) → a mesma biblioteca da internet */
+  html = html.replace(/<script\b([^>]*?)\bsrc\s*=\s*["']?([^"'\s>]+)["']?([^>]*)>/gi, (tag, a, src, b)=>{
+    if(!jogoRelativo(src)) return tag;
+    const lib = JOGO_LIBS.find(l=>l.arquivo.test(src.split(/[?#]/)[0]));
+    return lib ? '<script' + a + 'src="' + lib.url + '"' + b + '>' + (lib.depois ? '<\/script>' + lib.depois.replace(/<\/script>$/, '') : '') : tag;
+  });
+  const codigo = jogoScriptsDaPagina(html);
+  const srcs = [];
+  html.replace(/<script\b[^>]*\bsrc\s*=\s*["']?([^"'\s>]+)/gi, (m, s)=>{ srcs.push(s); return m; });
+  const temLib = l=>srcs.some(s=>l.arquivo.test(s.split(/[?#]/)[0]) || new RegExp('[/@]' + l.id + '([@./\\-]|$)', 'i').test(s))
+    || (l.id === 'three' && /import\s[^;]*['"]three['"]|type\s*=\s*["']?importmap/.test(html))
+    || (l.id === 'kaboom' && /import\s[^;]*(kaboom|kaplay)/.test(codigo));
+  const faltam = JOGO_LIBS.filter(l=>!temLib(l) && l.precisa(codigo));
+  if(faltam.length){
+    const tags = faltam.map(l=>'<script src="' + l.url + '"><\/script>' + (l.depois || '')).join('');
+    const pos = html.search(/<script\b(?![^>]*\bsrc\s*=)(?![^>]*type\s*=\s*["']?importmap)[^>]*>/i);
+    html = pos >= 0 ? html.slice(0, pos) + tags + html.slice(pos)
+      : (/<\/head\s*>/i.test(html) ? html.replace(/<\/head\s*>/i, tags + '</head>') : html.replace(/<body[^>]*>/i, '$&' + tags));
+  }
+  return jogoMapaDeImports(jogoTailwind(html));
+}
+/* import * as THREE from 'three' (sem o "mapa" que diz onde fica o 'three') */
+function jogoMapaDeImports(html){
+  if(/<script\b[^>]*type\s*=\s*["']?importmap/i.test(html)) return html;
+  const especs = new Set();
+  html.replace(/<script\b[^>]*type\s*=\s*["']?module[^>]*>([\s\S]*?)<\/script\s*>/gi, (m, js)=>{
+    js.replace(/(?:^|[;\n}])\s*import\s+(?:[\w*{}\s,$]+?\s+from\s+)?['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]\s*\)/g, (mm, a, b)=>{
+      const s = a || b;
+      if(s && !/^(\.{0,2}\/|https?:|data:|blob:)/.test(s)) especs.add(s);
+      return mm;
+    });
+    return m;
+  });
+  if(!especs.size) return html;
+  const imports = {};
+  especs.forEach(s=>{
+    if(s === 'three' || s.indexOf('three/') === 0){
+      imports.three = JOGO_CDN + 'three@0.160.0/build/three.module.js';
+      imports['three/addons/'] = JOGO_CDN + 'three@0.160.0/examples/jsm/';
+      imports['three/examples/jsm/'] = JOGO_CDN + 'three@0.160.0/examples/jsm/';
+      return;
+    }
+    imports[s] = JOGO_CDN + s + '/+esm';
+  });
+  const tag = '<script type="importmap">' + JSON.stringify({imports}).replace(/</g, '\\u003c') + '<\/script>';
+  const pos = html.search(/<script\b[^>]*type\s*=\s*["']?module/i);
+  return html.slice(0, pos) + tag + html.slice(pos);
+}
+/* página cheia de classes do Tailwind (bg-blue-500, flex, p-4...) e sem o Tailwind: fica tudo sem estilo */
+function jogoTailwind(html){
+  if(/tailwind/i.test(html)) return html;
+  let n = 0;
+  html.replace(/\sclass(?:Name)?\s*=\s*["']([^"']+)["']/gi, (m, c)=>{
+    c.split(/\s+/).forEach(k=>{ if(/^(?:[a-z]+:)*(?:bg|text|p[xytrbl]?|m[xytrbl]?|w|h|gap|rounded|shadow|border|space-[xy]|inset|z|min-h|max-w|top|left|right|bottom|font|from|to|via)-(?:\d|[a-z]+-\d{2,3}|xs|sm|md|lg|xl|\dxl|full|screen|auto|bold|semibold|white|black|center)/.test(k)) n++; });
+    return m;
+  });
+  if(n < 6) return html;
+  const tag = '<script src="https://cdn.tailwindcss.com"><\/script>';
+  return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, '$&' + tag) : tag + html;
+}
+
+/* ---------- 4) componente React (ChatGPT, Claude e outras IAs entregam assim: import React..., export default function Jogo) ---------- */
+function jogoEhReact(js){
+  return /\bfrom\s+['"]react['"]|require\(\s*['"]react['"]\s*\)|\bReact\.(useState|useEffect|useRef|Component|createElement|Fragment)\b|\buse(State|Effect|Ref|Reducer|Callback|Memo)\s*[(<]/.test(js)
+    && /<\/?[A-Za-z][\w.]*(\s[^<>]*?)?\/?>|<>/.test(js)
+    && !/<!doctype|<html[\s>]|<head[\s>]|<body[\s>]/i.test(js);
+}
+/* vários arquivos de React (App.jsx, Tabuleiro.jsx...) viram um só: os imports de pacote se juntam, os de arquivo saem */
+function jogoJuntarReact(partes){
+  const pacotes = {};   // 'react' -> {padrao, nomes:Set, tudo}
+  const corpo = partes.map((p, i)=>{
+    let t = p.replace(/^\s*import\s+[^;]*?from\s+['"]\.{1,2}\/[^'"]+['"];?[ \t]*$/gm, '')
+      .replace(/^\s*import\s+['"][^'"]+\.(css|scss|sass|less)['"];?[ \t]*$/gm, '');
+    t = t.replace(/^\s*import\s+([\s\S]*?)\s+from\s+['"]([^'"]+)['"];?[ \t]*$/gm, (m, quem, de)=>{
+      const P = pacotes[de] || (pacotes[de] = {padrao: '', nomes: new Set(), tudo: ''});
+      const tudo = quem.match(/\*\s+as\s+(\w+)/);
+      if(tudo){ P.tudo = tudo[1]; return ''; }
+      const chaves = quem.match(/\{([\s\S]*?)\}/);
+      if(chaves) chaves[1].split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>P.nomes.add(s));
+      const padrao = quem.replace(/\{[\s\S]*?\}/, '').replace(/,/g, ' ').trim();
+      if(padrao && !P.padrao) P.padrao = padrao;
+      return '';
+    });
+    if(i < partes.length - 1) t = t.replace(/\bexport\s+default\s+(function|class)\b/g, '$1').replace(/^\s*export\s+default\s+\w+\s*;?\s*$/gm, '');
+    return t;
+  });
+  const imports = Object.keys(pacotes).map(de=>{
+    const P = pacotes[de], ls = [];
+    if(P.tudo) ls.push('import * as ' + P.tudo + " from '" + de + "';");
+    const nomes = Array.from(P.nomes);
+    if(P.padrao || nomes.length) ls.push('import ' + [P.padrao, nomes.length ? '{ ' + nomes.join(', ') + ' }' : ''].filter(Boolean).join(', ') + " from '" + de + "';");
+    return ls.join('\n');
+  });
+  return imports.join('\n') + '\n' + corpo.join('\n');
+}
+/* RODA DENTRO DO QUADRO DO JOGO: compila o componente (JSX/TypeScript) com o Babel e mostra na tela */
+function kodaRodarReact(){
+  var el = document.getElementById('__kodaApp'), raiz = document.getElementById('root');
+  var codigo = el ? el.textContent : '';
+  if(!window.React || !window.ReactDOM || !window.Babel) throw new Error('React/Babel not loaded (offline?)');
+  var R = window.React;
+  var ICONES = {Play:'▶', Pause:'⏸', RotateCcw:'↺', RotateCw:'↻', RefreshCw:'⟳', RefreshCcw:'⟲', Repeat:'🔁', Trophy:'🏆', Star:'⭐', Heart:'❤️', X:'✕', Check:'✓',
+    ArrowUp:'↑', ArrowDown:'↓', ArrowLeft:'←', ArrowRight:'→', ChevronUp:'˄', ChevronDown:'˅', ChevronLeft:'‹', ChevronRight:'›', Volume2:'🔊', Volume1:'🔉', VolumeX:'🔇',
+    Settings:'⚙️', Home:'🏠', Zap:'⚡', Clock:'⏱️', Timer:'⏱️', Target:'🎯', Award:'🏅', Crown:'👑', Sparkles:'✨', Flame:'🔥', Skull:'💀', Shield:'🛡️', Sword:'⚔️',
+    Swords:'⚔️', Gamepad2:'🎮', Gamepad:'🎮', User:'👤', Users:'👥', Info:'ℹ️', HelpCircle:'❔', Plus:'+', Minus:'−', Smile:'🙂', Frown:'🙁', Sun:'☀️', Moon:'🌙',
+    Coins:'🪙', Gem:'💎', Lock:'🔒', Unlock:'🔓', Bomb:'💣', Rocket:'🚀', Music:'🎵', Square:'■', Circle:'●', Triangle:'▲', Dice5:'🎲', Dices:'🎲', Flag:'🚩',
+    Medal:'🏅', Gift:'🎁', Bell:'🔔', Eye:'👁️', EyeOff:'🙈', Lightbulb:'💡', Brain:'🧠', Puzzle:'🧩', Ghost:'👻', Bug:'🐞', Cat:'🐱', Dog:'🐶', Bird:'🐦',
+    Fish:'🐟', Apple:'🍎', Cherry:'🍒', Car:'🚗', Plane:'✈️', Mountain:'⛰️', TreePine:'🌲', Cloud:'☁️', Snowflake:'❄️', Droplet:'💧', Keyboard:'⌨️', MousePointer:'🖱️',
+    Hand:'✋', ThumbsUp:'👍', ThumbsDown:'👎', Share2:'🔗', Save:'💾', Trash2:'🗑️', Trash:'🗑️', Edit:'✏️', Pencil:'✏️', Search:'🔍', Menu:'☰', MoreVertical:'⋮'};
+  var TIRA = /^(initial|animate|exit|transition|variants|whileHover|whileTap|whileInView|whileFocus|whileDrag|layout|layoutId|drag|dragConstraints|dragElastic|onAnimationStart|onAnimationComplete|asChild)$/;
+  var passa = function(tag){ return R.forwardRef(function(p, ref){ var q = {}; for(var k in p){ if(!TIRA.test(k)) q[k] = p[k]; } q.ref = ref; return R.createElement(tag, q); }); };
+  var icone = function(nome){ return function(p){ p = p || {}; var s = p.size || 24;
+    return R.createElement('span', {className: p.className, 'aria-hidden': true, style: Object.assign({display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: s, height: s, fontSize: Math.round(s * .78), lineHeight: 1, color: p.color, verticalAlign: 'middle'}, p.style || {})}, ICONES[nome] || '•'); }; };
+  var guardar = function(fabrica){ var c = {}; return new Proxy({}, {get: function(t, k){ if(k === '__esModule') return true; if(typeof k !== 'string') return undefined;
+    if(!c[k]) c[k] = fabrica(k === 'default' ? 'Default' : k); return c[k]; }}); };
+  var lucide = guardar(icone);
+  var qualquer = guardar(function(k){ return /^[A-Z]/.test(k) ? passa(/^Button/.test(k) ? 'button' : /^Input/.test(k) ? 'input' : /^Textarea/.test(k) ? 'textarea' : 'div') : function(){ return undefined; }; });
+  var tags = {}, motion = new Proxy({}, {get: function(t, k){ return typeof k === 'string' ? (tags[k] || (tags[k] = passa(k))) : undefined; }});
+  var MODS = {'react': R, 'react-dom': window.ReactDOM, 'react-dom/client': window.ReactDOM, 'lucide-react': lucide,
+    'framer-motion': {__esModule: true, motion: motion, AnimatePresence: function(p){ return p.children || null; }, useAnimation: function(){ return {start: function(){ return Promise.resolve(); }, stop: function(){}}; }},
+    'canvas-confetti': {__esModule: true, default: function(){ return Promise.resolve(); }}};
+  var req = function(n){ if(MODS[n]) return MODS[n]; if(/\.(css|scss|sass|less|svg|png|jpe?g|gif|webp|json|mp3|wav|ogg)$/i.test(n)) return {}; return qualquer; };
+  var nomes = [];
+  codigo.replace(/(?:^|\n)[ \t]*(?:export\s+(?:default\s+)?)?(?:function\s+([A-Z]\w*)|(?:const|let|var)\s+([A-Z]\w*)\s*(?::[^=]+)?=\s*(?:\(|function|async|[a-z_$][\w$]*\s*=>|(?:React\.)?(?:memo|forwardRef)\s*\()|class\s+([A-Z]\w*)\s+extends)/g, function(m, a, b, c){ nomes.push(a || b || c); return m; });
+  var preferido = nomes.filter(function(n){ return /^(App|Game|Jogo|Main|Root)$/.test(n); }).concat(nomes.slice().reverse());
+  var palpite = preferido.length ? '\n;try{module.exports.__kodaPalpite=' + preferido.map(function(n){ return '(typeof ' + n + '!=="undefined"?' + n + ':null)'; }).join('||') + ';}catch(e){}' : '';
+  var js = window.Babel.transform(codigo + palpite, {filename: 'App.tsx', presets: [['typescript', {isTSX: true, allExtensions: true}], ['react', {runtime: 'classic'}]], plugins: ['transform-modules-commonjs']}).code;
+  var modulo = {exports: {}};
+  var ganchos = 'var useState=React.useState,useEffect=React.useEffect,useRef=React.useRef,useReducer=React.useReducer,useCallback=React.useCallback,useMemo=React.useMemo,'
+    + 'useContext=React.useContext,useLayoutEffect=React.useLayoutEffect,createContext=React.createContext,Fragment=React.Fragment,memo=React.memo,forwardRef=React.forwardRef;';
+  new Function('React', 'require', 'module', 'exports', ganchos + 'return (function(){' + js + '\n})();')(R, req, modulo, modulo.exports);
+  if(/createRoot\s*\(|ReactDOM\.render\s*\(/.test(codigo)) return;        // o próprio código já mostra o componente
+  var ex = modulo.exports, App = (typeof ex.default === 'function' || (ex.default && ex.default.$$typeof)) ? ex.default : (ex.__kodaPalpite || null);
+  if(!App){ for(var k in ex){ if(/^[A-Z]/.test(k) && typeof ex[k] === 'function'){ App = ex[k]; break; } } }
+  if(!App){ if(raiz.childNodes.length) return; throw new Error('React component not found'); }
+  window.ReactDOM.createRoot(raiz).render(R.createElement(App));
+}
+/* o programinha acima, do jeito que fica dentro da página do jogo */
+const JOGO_RODA_REACT = /<script>\(function kodaRodarReact\(\)[\s\S]*?\}\)\(\);<\/script>/;
+function jogoPaginaReact(js, css){
+  const tw = /\bclassName\s*=/.test(js) && /\b(flex|grid|bg-|text-|p-\d|m-\d|rounded|w-\d|h-\d)/.test(js);
+  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    + (tw ? '<script src="https://cdn.tailwindcss.com"><\/script>' : '')
+    + '<script src="' + JOGO_CDN + 'react@18.3.1/umd/react.production.min.js"><\/script>'
+    + '<script src="' + JOGO_CDN + 'react-dom@18.3.1/umd/react-dom.production.min.js"><\/script>'
+    + '<script src="' + JOGO_CDN + '@babel/standalone@7.26.4/babel.min.js"><\/script>'
+    + '<style>html,body{margin:0;min-height:100%;}' + (css ? '\n' + jogoCssSeguro(css) : '') + '</style></head>'
+    + '<body><div id="root"></div>'
+    + '<script type="text/plain" id="__kodaApp">' + jogoScriptSeguro(js) + '<\/script>'
+    + '<script>(' + kodaRodarReact.toString() + ')();<\/script></body></html>';
+}
+
+/* script que não compila por causa de conversa grudada ("javascript", "Copiar código", "Explicação: ...") é consertado;
+   componente React que foi parar dentro de um <script> comum vira a página de React (jogos publicados antes também) */
+function jogoConsertarScripts(html){
+  let virouReact = null;
+  const novo = html.replace(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi, (tag, at, js)=>{
+    if(/\bsrc\s*=|type\s*=\s*["']?(?!text\/javascript|application\/javascript)[\w\/+-]+/i.test(at) || !js.trim()) return tag;
+    const ok = jogoJsCompila(js);
+    if(ok !== false){
+      if(ok === null && jogoEhReact(js) && !/type\s*=\s*["']?module/i.test(at)) virouReact = js;
+      return tag;
+    }
+    if(jogoEhReact(js)){ virouReact = js; return tag; }
+    let ls = js.split('\n');
+    while(ls.length && (!ls[0].trim() || JOGO_ROTULO.test(ls[0]) || JOGO_BOTAO_DO_CHAT.test(ls[0]) || (jogoLinhaDeProsa(ls[0]) && !jogoLinhaDeCodigo(ls[0])))) ls.shift();
+    const limpo = jogoAparar(ls.join('\n'), 'js');
+    return jogoJsCompila(limpo) === true ? '<script' + at + '>' + limpo + '<\/script>' : tag;
+  });
+  if(virouReact){
+    /* a página só tem o componente (o esqueleto antigo): troca pela de React */
+    const corpo = novo.replace(/<script\b[\s\S]*?<\/script\s*>/gi, '').replace(/<style\b[\s\S]*?<\/style\s*>/gi, '').replace(/<head\b[\s\S]*?<\/head\s*>/i, '').replace(/<[^>]+>/g, '').trim();
+    if(!corpo){
+      const css = (novo.match(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi) || []).map(s=>s.replace(/<\/?style[^>]*>/gi, '')).join('\n');
+      return jogoPaginaReact(virouReact.replace(/<\\\/script/gi, '</script'), css);
+    }
+  }
+  return novo;
+}
+/* ---------- 5) a página final ---------- */
 function prepararCodigoDoJogo(bruto){
   if(typeof bruto !== 'string') return '';
-  let txt = bruto.replace(/^﻿/, '').replace(/[​-‍⁠]/g, '').replace(/\r\n?/g, '\n');
+  let txt = jogoLimparTexto(bruto);
   if(!txt.trim()) return '';
+  if(/id="__kodaApp"/.test(txt) && JOGO_RODA_REACT.test(txt)) return txt.replace(JOGO_RODA_REACT, ()=>'<script>(' + kodaRodarReact.toString() + ')();<\/script>').trim();
 
-  /* 1) blocos de código do chat (```html ... ```), inclusive o último sem fechar */
-  const blocos = [];
-  const reBloco = /```[ \t]*([\w+#.-]*)[^\n]*\n([\s\S]*?)(?:```|$)/g;
-  let m;
-  while((m = reBloco.exec(txt)) !== null){
-    if(m[2].trim()) blocos.push({lang:(m[1]||'').toLowerCase(), txt:m[2].replace(/\s+$/,'')});
-    if(m[0].length === 0) reBloco.lastIndex++;
+  let blocos = jogoBlocosComCerca(txt);
+  let semCerca = false;
+  if(!blocos.length){
+    const porRotulo = jogoBlocosPorRotulo(txt);
+    if(porRotulo.length){ blocos = porRotulo; semCerca = true; }
   }
-  let html = '', css = [], js = [];
+  let html = '', css = [], js = [], outras = [];
   if(blocos.length){
     const htmls = [];
     blocos.forEach(b=>{
-      let tipo = b.lang;
-      if(/^(html?|xhtml|svg)$/.test(tipo)) tipo = 'html';
-      else if(/^(css|scss)$/.test(tipo)) tipo = 'css';
-      else if(/^(js|javascript|jsx|mjs|node)$/.test(tipo)) tipo = 'js';
-      else tipo = jogoPareceHtml(b.txt) || /&lt;(!doctype|html|body|script|canvas)/i.test(b.txt) ? 'html' : (jogoPareceCss(b.txt) ? 'css' : 'js');
-      if(tipo === 'html') htmls.push(b.txt); else if(tipo === 'css') css.push(b.txt); else js.push(b.txt);
+      let tipo = jogoTipoDoNome(b.lang);
+      if(!tipo){
+        if(jogoPareceHtml(b.txt) || /&lt;(!doctype|html|body|script|canvas)/i.test(b.txt)) tipo = jogoEhReact(b.txt) ? 'jsx' : 'html';
+        else if(jogoPareceCss(b.txt)) tipo = 'css';
+        else tipo = jogoOutraLinguagem(b.txt) ? 'outra' : 'js';
+      }
+      if(tipo === 'html' && jogoEhReact(b.txt)) tipo = 'jsx';
+      if(tipo === 'js' && jogoEhReact(b.txt)) tipo = 'jsx';
+      const conteudo = semCerca ? jogoAparar(b.txt, tipo === 'jsx' ? 'jsx' : tipo) : b.txt;
+      if(tipo === 'html') htmls.push(conteudo);
+      else if(tipo === 'css') css.push(conteudo);
+      else if(tipo === 'js' || tipo === 'jsx') js.push({txt: conteudo, react: tipo === 'jsx'});
+      else if(tipo.indexOf('outra') === 0) outras.push(conteudo);
     });
-    /* vários blocos de html: o que é uma página inteira ganha; senão o maior */
-    html = htmls.find(h=>/<!doctype html|<html[\s>]/i.test(h)) || htmls.sort((a,b)=>b.length-a.length)[0] || '';
+    /* React: os componentes viram uma página que roda sozinha */
+    const reacts = js.filter(j=>j.react);
+    const paginaInteira = htmls.find(h=>/<!doctype html|<html[\s>]/i.test(h) && (h.match(/<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script\s*>/gi) || []).some(s=>s.replace(/<\/?script[^>]*>/gi, '').trim().length > 120));
+    if(reacts.length && !paginaInteira) return jogoPaginaReact(jogoJuntarReact(reacts.map(j=>j.txt)), css.join('\n'));
+    js = js.filter(j=>!j.react).map(j=>j.txt);
+    /* várias páginas: a inteira mais completa ganha (a IA às vezes manda a versão "melhorada" depois) */
+    const inteiras = htmls.filter(h=>/<!doctype html|<html[\s>]/i.test(h));
+    html = (inteiras.length ? inteiras : htmls).slice().sort((a, b)=>b.length - a.length)[0] || '';
+    if(!html && !js.length && !css.length) return '';
   } else {
-    /* 2) sem blocos: o texto é a página, com ou sem conversa em volta */
     html = txt;
   }
 
-  /* 3) sinais de < escritos como &lt; (copiado de página que mostrou o código) */
+  /* sinais de < escritos como &lt; (copiado de página que mostrou o código) */
   if(html && !/<\w/.test(html) && /&lt;\s*[!\w]/i.test(html)) html = jogoDesescapar(html);
 
-  /* 4) tira a conversa que sobrou antes e depois da página */
+  /* tira a conversa que sobrou antes e depois da página */
   if(html){
     const ini = html.search(/<!doctype html|<html[\s>]/i);
     if(ini >= 0){
       html = html.slice(ini);
       const fim = html.search(/<\/html\s*>/i);
       if(fim >= 0) html = html.slice(0, fim + html.slice(fim).match(/<\/html\s*>/i)[0].length);
+    } else if(!blocos.length && jogoEhReact(html)){
+      /* componente React colado sem nada em volta */
+      const a = html.search(/^\s*(import|export|const|function|class)\b/m);
+      return jogoPaginaReact(jogoAparar(html.slice(Math.max(0, a)), 'jsx'), '');
     } else if(jogoPareceHtml(html)){
       const a = html.search(/<(head|body|canvas|script|style|div|button|svg|h1|p|section|main|center|table|input)[\s>]/i);
       html = html.slice(Math.max(0, a));
+      if(!blocos.length) html = jogoAparar(html, 'html');
       /* uma tag solta: a página inteira embrulha o que veio */
       html = JOGO_ESQUELETO.replace('<body></body>', '<body>' + html + '</body>');
     } else {
-      /* não tem tag nenhuma: se for JavaScript puro (sem conversa), é o script do jogo */
-      const pareceJs = /\b(function|const|let|var|document\.|window\.|addEventListener|getContext|requestAnimationFrame|=>)\b/.test(html);
-      if(pareceJs && !js.length && !blocos.length){ js.push(html); html = ''; }
+      /* não tem tag nenhuma: se for JavaScript (sem conversa), é o script do jogo */
+      const pareceJs = /\b(function|const|let|var|document\.|window\.|addEventListener|getContext|requestAnimationFrame|createCanvas|kaboom|=>)\b/.test(html);
+      if(pareceJs && !js.length && !blocos.length && !jogoOutraLinguagem(html)){
+        const a = html.search(/^\s*(\/\/|\/\*|const|let|var|function|class|async|document|window|kaboom|kaplay|new|import|export|[\w$]+\s*[=(.])/m);
+        js.push(jogoAparar(html.slice(Math.max(0, a)), 'js'));
+        html = '';
+      }
       else if(!blocos.length) return '';   // texto qualquer: não tem jogo aqui
       else html = '';
     }
   }
+  if(!html && !js.length && !css.length) return '';
   if(!html) html = JOGO_ESQUELETO;
   if(!/<!doctype/i.test(html)) html = '<!DOCTYPE html>' + html;
 
-  /* 5) css e js que vieram em blocos separados entram na página */
+  /* css e js que vieram em blocos separados entram na página (no lugar do <link>/<script src> que apontava pra eles) */
+  const temStyle = /<style[^>]*>\s*\S/i.test(html);
+  const temScript = (html.match(/<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script\s*>/gi) || []).some(s=>s.replace(/<\/?script[^>]*>/gi, '').trim().length > 120);
   if(css.length){
     let sobra = css.slice();
     html = html.replace(/<link\b[^>]*\bhref\s*=\s*["']?([^"'\s>]+)["']?[^>]*>/gi, (tag, href)=>{
@@ -18358,7 +18735,7 @@ function prepararCodigoDoJogo(bruto){
       if(!jogoRelativo(href) || !sobra.length) return tag;
       return '<style>' + jogoCssSeguro(sobra.shift()) + '</style>';
     });
-    if(sobra.length){
+    if(sobra.length && !temStyle){
       const bloco = '<style>' + jogoCssSeguro(sobra.join('\n')) + '</style>';
       html = /<\/head\s*>/i.test(html) ? html.replace(/<\/head\s*>/i, bloco + '</head>') : html.replace(/<body[^>]*>/i, '$&' + bloco);
     }
@@ -18367,15 +18744,86 @@ function prepararCodigoDoJogo(bruto){
     let sobra = js.slice();
     html = html.replace(/<script\b([^>]*)\bsrc\s*=\s*["']?([^"'\s>]+)["']?([^>]*)>\s*<\/script\s*>/gi, (tag, a, src, b)=>{
       if(!jogoRelativo(src) || !sobra.length) return tag;
-      const tipo = /type\s*=\s*["']?module/i.test(a+b) ? ' type="module"' : '';
+      if(JOGO_LIBS.some(l=>l.arquivo.test(src.split(/[?#]/)[0]))) return tag;   // é uma biblioteca (vira a da internet), não o código do jogo
+      const tipo = /type\s*=\s*["']?module/i.test(a + b) ? ' type="module"' : '';
       return '<script' + tipo + '>' + jogoScriptSeguro(sobra.shift()) + '<\/script>';
     });
-    if(sobra.length){
+    /* o que sobrou só entra se a página ainda não tem o código do jogo dentro
+       (senão é um "trocar esta linha" da explicação, que repetiria variáveis e quebraria o jogo) */
+    if(sobra.length && !temScript){
       const bloco = '<script>' + jogoScriptSeguro(sobra.join('\n;\n')) + '<\/script>';
       html = /<\/body\s*>/i.test(html) ? html.replace(/<\/body\s*>/i, bloco + '</body>') : html + bloco;
     }
   }
-  return html.trim();
+  return jogoBibliotecas(jogoConsertarScripts(html)).trim();
+}
+
+/* ---------- 6) o que avisar pra pessoa antes de rodar/publicar ---------- */
+function jogoOutraLinguagem(txt){
+  const t = String(txt || '');
+  if(/<!doctype html|<html[\s>]|<script[\s>]|<canvas[\s>]|\bdocument\.|getContext\(|addEventListener\(|=>/i.test(t)) return null;
+  if(/^\s*(import\s+(pygame|turtle|random|math|time|sys|tkinter|os|arcade|pyglet)\b|from\s+[\w.]+\s+import\s|def\s+\w+\s*\([^)]*\)\s*:|while\s+True\s*:|if\s+__name__\s*==)/m.test(t)) return 'Python';
+  if(/\busing\s+UnityEngine\b|:\s*MonoBehaviour\b/.test(t)) return 'C# (Unity)';
+  if(/game:GetService\(|\bInstance\.new\(|\bscript\.Parent\b/.test(t)) return 'Lua (Roblox)';
+  if(/\bextends\s+(Node2D|Node3D|CharacterBody2D|KinematicBody2D|Area2D|Sprite2D)\b|\bfunc\s+_(ready|process|physics_process)\s*\(/.test(t)) return 'GDScript (Godot)';
+  if(/^\s*#include\s*[<"]|\bint\s+main\s*\(/m.test(t)) return 'C/C++';
+  if(/\bpublic\s+static\s+void\s+main\s*\(/.test(t)) return 'Java';
+  if(/^\s*local\s+\w+\s*=|\bfunction\s+\w+[.:]\w+\s*\(|\bend\s*$/m.test(t) && /\blocal\s+\w+/.test(t)) return 'Lua';
+  return null;
+}
+/* {tipo: 'linguagem', linguagem} | {tipo: 'cortado'} | {tipo: 'arquivo', arquivos: [...]} | null */
+function jogoDiagnostico(bruto, preparado){
+  const txt = jogoLimparTexto(String(bruto || ''));
+  if(!preparado){
+    const blocos = jogoBlocosComCerca(txt);
+    const deOutra = blocos.map(b=>{ const tp = jogoTipoDoNome(b.lang); return tp.indexOf('outra') === 0 ? (jogoOutraLinguagem(b.txt) || b.lang) : jogoOutraLinguagem(b.txt); }).find(Boolean);
+    const ling = deOutra || jogoOutraLinguagem(txt);
+    return ling ? {tipo: 'linguagem', linguagem: /^(py|python3?|pygame)$/i.test(ling) ? 'Python' : ling} : null;
+  }
+  const html = preparado;
+  const abre = (html.match(/<script\b[^>]*>/gi) || []).length, fecha = (html.match(/<\/script\s*>/gi) || []).length;
+  let cortado = abre > fecha;
+  if(!cortado){
+    const re = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+    let m;
+    while(!cortado && (m = re.exec(html))){
+      if(/\bsrc\s*=|type\s*=\s*["']?(?!text\/javascript|application\/javascript)[\w\/+-]+/i.test(m[1])) continue;
+      if(jogoJsCompila(m[2]) === 'cortado') cortado = true;
+    }
+  }
+  if(cortado) return {tipo: 'cortado'};
+  const faltam = [];
+  html.replace(/<script\b[^>]*\bsrc\s*=\s*["']?([^"'\s>]+)/gi, (m, s)=>{ if(jogoRelativo(s)) faltam.push(s.split(/[?#]/)[0]); return m; });
+  if(faltam.length) return {tipo: 'arquivo', arquivos: faltam};
+  return null;
+}
+/* a janelinha que explica o problema e dá o pedido pronto pra copiar e mandar pra IA */
+function jogoMostrarDiagnostico(d){
+  if(!d) return;
+  const esc = chatListEscape;
+  const msg = d.tipo === 'linguagem' ? t('jogo_diag_linguagem', {ling: d.linguagem})
+    : d.tipo === 'cortado' ? t('jogo_diag_cortado') : t('jogo_diag_arquivo', {arq: (d.arquivos || []).join(', ')});
+  const pedido = t(d.tipo === 'linguagem' ? 'jogo_diag_pedido_html' : d.tipo === 'cortado' ? 'jogo_diag_pedido_continuar' : 'jogo_diag_pedido_juntar');
+  const bg = document.createElement('div');
+  bg.className = 'confirm-bg';
+  bg.innerHTML = `<div class="confirm-card jogo-diag" role="alertdialog">
+      <h3 class="jogo-diag-tit">${esc(t('jogo_diag_tit'))}</h3>
+      <p class="confirm-msg">${esc(msg)}</p>
+      <p class="jogo-diag-sub">${esc(t('jogo_diag_peca'))}</p>
+      <div class="jogo-diag-pedido">${esc(pedido)}</div>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" type="button">${esc(t('jogo_diag_copiar'))}</button>
+        <button class="confirm-ok" type="button">OK</button>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+  const close = ()=>{ if(bg.parentNode) bg.parentNode.removeChild(bg); };
+  bg.addEventListener('click', e=>{ if(e.target === bg) close(); });
+  bg.querySelector('.confirm-ok').addEventListener('click', close);
+  bg.querySelector('.confirm-cancel').addEventListener('click', ()=>{
+    const ok = ()=>{ toast(t('jogo_diag_copiado')); };
+    try{ navigator.clipboard.writeText(pedido).then(ok, ()=>{}); }catch(e){}
+  });
 }
 
 
@@ -18461,9 +18909,444 @@ function kodaLeveDentroDoJogo(){
       Object.defineProperty(window, 'devicePixelRatio', {get:function(){ return 2; }, configurable:true});
   }catch(e){}
 }
-function jogoRedeDeSeguranca(){
+/* ============================================================
+   COMPATIBILIDADE DENTRO DO JOGO (vale pra jogo feito por qualquer IA)
+   RODA DENTRO DO QUADRO DO JOGO, antes do código dele. C = {teclas, toque, txt}.
+   1) ENCAIXAR NA TELA: jogo feito pro computador (canvas de 800 x 600, tabuleiro largo) ficava cortado
+      no celular. Agora a página inteira diminui até caber e fica no meio. Os toques e cliques continuam
+      caindo no lugar certo: o jogo enxerga as posições como se nada tivesse diminuído.
+   2) IMAGEM QUE NÃO EXISTE (jogador.png, via.placeholder.com...) vira um quadradinho no lugar, e o jogo
+      que esperava a imagem carregar pra começar começa mesmo assim.
+   3) UM ERRO NUM QUADRO não congela mais o jogo (o desenho continua no quadro seguinte).
+   4) CONTROLES NA TELA: jogo que só funciona com teclado (setas, espaço, WASD) ganha botões no celular
+      e no iPad, que apertam as teclas de verdade pro jogo.
+============================================================ */
+function kodaCompatDentroDoJogo(C){
+  C = C || {};
+  var W = window, D = document;
+
+  /* ---------- 2) imagens ---------- */
+  var MARCADOR = null;
+  function marcador(){
+    if(MARCADOR) return MARCADOR;
+    try{
+      var c = D.createElement('canvas'); c.width = c.height = 64;
+      var x = c.getContext('2d');
+      x.fillStyle = '#9fb3c8'; x.fillRect(0, 0, 64, 64);
+      x.fillStyle = '#c9d6df'; x.fillRect(5, 5, 54, 54);
+      x.fillStyle = '#5f7a8f'; x.beginPath(); x.arc(32, 26, 10, 0, 7); x.fill(); x.fillRect(16, 40, 32, 12);
+      MARCADOR = c.toDataURL('image/png');
+    }catch(e){ MARCADOR = 'data:image/gif;base64,R0lGODlhAQABAIAAAJ+zyP///yH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='; }
+    return MARCADOR;
+  }
+  function trocar(img){
+    if(!img || img.__kodaTrocada) return;
+    img.__kodaTrocada = 1;
+    try{ dSrc.set.call(img, marcador()); }catch(e){}
+  }
+  D.addEventListener('error', function(e){ var t = e.target; if(t && t.tagName === 'IMG') trocar(t); }, true);
+  var dSrc = null;
+  try{
+    dSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    if(dSrc && dSrc.set){
+      Object.defineProperty(HTMLImageElement.prototype, 'src', {configurable: true, enumerable: dSrc.enumerable, get: dSrc.get, set: function(v){
+        if(!this.__kodaOuvindo){ this.__kodaOuvindo = 1; var im = this; im.addEventListener('error', function(){ trocar(im); }); }
+        this.__kodaTrocada = 0;
+        return dSrc.set.call(this, v);
+      }});
+    }
+  }catch(e){}
+  try{
+    var P2 = CanvasRenderingContext2D.prototype, desenha = P2.drawImage;
+    P2.drawImage = function(im){
+      try{ return desenha.apply(this, arguments); }
+      catch(e){
+        var a = arguments, n = a.length, x, y, w, h;
+        if(n >= 9){ x = a[5]; y = a[6]; w = a[7]; h = a[8]; } else if(n >= 5){ x = a[1]; y = a[2]; w = a[3]; h = a[4]; } else { x = a[1]; y = a[2]; w = 32; h = 32; }
+        if(!isFinite(x) || !isFinite(y) || !isFinite(w) || !isFinite(h)) return;
+        try{ this.save(); this.globalAlpha = .7; this.fillStyle = '#9fb3c8'; this.fillRect(x, y, w, h); this.restore(); }catch(e2){}
+      }
+    };
+  }catch(e){}
+
+  /* ---------- 3) o laço de desenho não morre com um erro ---------- */
+  try{
+    var raf = W.requestAnimationFrame, pedidos = 0, falhas = 0, avisados = {};
+    if(raf){
+      W.requestAnimationFrame = function(cb){
+        pedidos++;
+        if(typeof cb !== 'function') return raf.call(W, cb);
+        return raf.call(W, function(ts){
+          var antes = pedidos;
+          try{ cb(ts); falhas = 0; }
+          catch(e){
+            if(pedidos === antes && falhas < 600){ falhas++; W.requestAnimationFrame(cb); }   // o jogo não chegou a pedir o próximo quadro
+            var msg = String(e && e.message || e);
+            if(!avisados[msg]){ avisados[msg] = 1; setTimeout(function(){ throw e; }, 0); }
+          }
+        });
+      };
+    }
+  }catch(e){}
+
+  /* ---------- 1) encaixar na tela ---------- */
+  var E = {ativo: false, s: 1, tx: 0, ty: 0, faixa: 0};
+  var RR = Element.prototype.getBoundingClientRect;
+  W.__kodaRectReal = RR;
+  var dIW = Object.getOwnPropertyDescriptor(W, 'innerWidth') || Object.getOwnPropertyDescriptor(Window.prototype, 'innerWidth');
+  var dIH = Object.getOwnPropertyDescriptor(W, 'innerHeight') || Object.getOwnPropertyDescriptor(Window.prototype, 'innerHeight');
+  function larguraReal(){ try{ return dIW && dIW.get ? dIW.get.call(W) : D.documentElement.clientWidth; }catch(e){ return D.documentElement.clientWidth; } }
+  function alturaReal(){ try{ return dIH && dIH.get ? dIH.get.call(W) : D.documentElement.clientHeight; }catch(e){ return D.documentElement.clientHeight; } }
+  W.__kodaAlturaReal = alturaReal;
+  /* com os controles embaixo, a "janela" do jogo é a parte de cima (jogo que se ajusta à janela já nasce do tamanho certo) */
+  try{ Object.defineProperty(W, 'innerHeight', {configurable: true, get: function(){ return alturaReal() - E.faixa; }}); }catch(e){}
+  function noCorpo(el){ var b = D.body; return !!(b && el && (el === b || b.contains(el))); }
+  Element.prototype.getBoundingClientRect = function(){
+    var r = RR.call(this);
+    if(!E.ativo || !noCorpo(this)) return r;
+    return new DOMRect((r.left - E.tx) / E.s, (r.top - E.ty) / E.s, r.width / E.s, r.height / E.s);
+  };
+  try{
+    var efp = Document.prototype.elementFromPoint, efps = Document.prototype.elementsFromPoint;
+    Document.prototype.elementFromPoint = function(x, y){ if(E.ativo){ x = x * E.s + E.tx; y = y * E.s + E.ty; } return efp.call(this, x, y); };
+    if(efps) Document.prototype.elementsFromPoint = function(x, y){ if(E.ativo){ x = x * E.s + E.tx; y = y * E.s + E.ty; } return efps.call(this, x, y); };
+  }catch(e){}
+  /* os toques/cliques chegam no jogo com a posição "de antes de diminuir" */
+  function getter(proto, nome){ var d = proto && Object.getOwnPropertyDescriptor(proto, nome); return d && d.get; }
+  var GM = {}, GT = {};
+  ['clientX', 'clientY', 'pageX', 'pageY', 'x', 'y', 'movementX', 'movementY'].forEach(function(n){ GM[n] = getter(MouseEvent.prototype, n); });
+  try{ ['clientX', 'clientY', 'pageX', 'pageY'].forEach(function(n){ GT[n] = getter(Touch.prototype, n); }); }catch(e){}
+  function mapear(obj, G, s, tx, ty, comMovimento){
+    ['clientX', 'pageX', 'x'].forEach(function(n){ if(G[n]) try{ Object.defineProperty(obj, n, {configurable: true, get: function(){ return (G[n].call(this) - tx) / s; }}); }catch(e){} });
+    ['clientY', 'pageY', 'y'].forEach(function(n){ if(G[n]) try{ Object.defineProperty(obj, n, {configurable: true, get: function(){ return (G[n].call(this) - ty) / s; }}); }catch(e){} });
+    if(comMovimento) ['movementX', 'movementY'].forEach(function(n){ if(G[n]) try{ Object.defineProperty(obj, n, {configurable: true, get: function(){ return G[n].call(this) / s; }}); }catch(e){} });
+  }
+  function daKoda(t){ return !!(t && t.closest && t.closest('[data-koda-ui]')); }
+  function corrigir(e){
+    if(!E.ativo || e.__koda) return;
+    if(daKoda(e.target)) return;
+    e.__koda = 1;
+    var s = E.s, tx = E.tx, ty = E.ty;
+    if(e instanceof MouseEvent) mapear(e, GM, s, tx, ty, true);
+    if(W.TouchEvent && e instanceof TouchEvent){
+      [e.touches, e.changedTouches, e.targetTouches].forEach(function(lista){
+        if(!lista) return;
+        for(var i = 0; i < lista.length; i++){ var tq = lista[i]; if(tq && !tq.__koda){ tq.__koda = 1; mapear(tq, GT, s, tx, ty, false); } }
+      });
+    }
+  }
+  ['click', 'dblclick', 'auxclick', 'contextmenu', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'wheel',
+   'pointerdown', 'pointerup', 'pointermove', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointercancel', 'gotpointercapture', 'lostpointercapture',
+   'touchstart', 'touchmove', 'touchend', 'touchcancel', 'dragstart', 'drag', 'dragend', 'dragenter', 'dragover', 'dragleave', 'drop'
+  ].forEach(function(tp){ W.addEventListener(tp, corrigir, {capture: true, passive: true}); });
+
+  /* menus/telas de "Começar" e "Fim de jogo" do tamanho da janela (position: fixed) continuam cobrindo a janela inteira quando o jogo encolhe */
+  var cobrem = [];
+  function corVisivel(c){ return !!c && c !== 'transparent' && !/rgba\([^)]*,\s*0(\.0+)?\s*\)$/.test(c); }
+  function textoProprio(el){ for(var n = el.firstChild; n; n = n.nextSibling){ if(n.nodeType === 3 && /\S/.test(n.nodeValue)) return true; } return false; }
+  /* onde está o que aparece (em posição "de antes de diminuir") */
+  function caixa(){
+    var b = D.body; if(!b) return null;
+    var vw = larguraReal(), vh = alturaReal();
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, n = 0, canvasGrande = false;
+    var fila = Array.prototype.slice.call(b.children), vistos = 0;
+    var rbc = E.ativo ? b.getBoundingClientRect() : null;   // ligado, o "fixed" fica preso ao corpo (que é o que diminui)
+    while(fila.length && vistos < 2500){
+      var el = fila.shift(); vistos++;
+      if(el.nodeType !== 1 || /^(SCRIPT|STYLE|LINK|META|TEMPLATE|NOSCRIPT|BR|TITLE)$/.test(el.tagName)) continue;
+      if(el.id === '__jogodromoErrorBar' || el.id === '__jogodromoErrorOverlay' || daKoda(el)) continue;
+      var cs = W.getComputedStyle(el);
+      if(cs.display === 'none' || cs.visibility === 'hidden') continue;
+      var r = el.getBoundingClientRect();
+      /* posicionado (absolute/fixed) e todo fora da tela = escondido de propósito (menu que desliza, coisa guardada): fica de fora com tudo dentro.
+         Coisa do fluxo normal (cartas de um tabuleiro largo demais) entra mesmo passando da beirada. */
+      if((cs.position === 'absolute' || cs.position === 'fixed') && (r.right <= 0 || r.bottom <= 0 || r.left >= vw || r.top >= vh)) continue;
+      if(cs.position === 'fixed'){
+        var cw = rbc ? Math.max(rbc.width, vw / E.s * .9) : vw, ch = rbc ? Math.max(rbc.height, (vh - E.faixa) / E.s * .9) : vh;
+        if(cobrem.indexOf(el) >= 0 || (r.width >= cw * .9 && r.height >= ch * .9)){ if(cobrem.indexOf(el) < 0) cobrem.push(el); continue; }   // acompanha a janela
+      }
+      var folha = /^(CANVAS|IMG|VIDEO|IFRAME|BUTTON|INPUT|SELECT|TEXTAREA|PROGRESS|METER)$/.test(el.tagName) || el.tagName.toLowerCase() === 'svg';
+      var corta = cs.overflowX !== 'visible' || cs.overflowY !== 'visible';
+      var pinta = folha || corta || textoProprio(el) || cs.backgroundImage !== 'none' || corVisivel(cs.backgroundColor)
+        || parseFloat(cs.borderTopWidth) > 0 || parseFloat(cs.borderLeftWidth) > 0 || parseFloat(cs.borderBottomWidth) > 0;
+      if(r.width * r.height > 0 && pinta && +cs.opacity > 0
+        && r.right > -vw * 3 && r.bottom > -vh * 3 && r.left < vw * 4 && r.top < vh * 6){
+        if(r.left < x0) x0 = r.left; if(r.top < y0) y0 = r.top; if(r.right > x1) x1 = r.right; if(r.bottom > y1) y1 = r.bottom;
+        n++;
+        if(el.tagName === 'CANVAS' && r.width * r.height > vw * vh * .2) canvasGrande = true;
+      }
+      if(!folha && !corta) for(var i = 0; i < el.children.length; i++) fila.push(el.children[i]);
+    }
+    return n ? {x: x0, y: y0, w: x1 - x0, h: y1 - y0, canvas: canvasGrande} : null;
+  }
+  var ultimo = '';
+  function encaixar(){
+    var b = D.body; if(!b) return;
+    if(b.style.transform && !E.ativo) return;        // o próprio jogo mexe no transform do corpo: não encosta
+    var vw = larguraReal(), vh = alturaReal() - E.faixa;
+    var c = caixa();
+    var s = 1, tx = 0, ty = 0, liga = false;
+    if(c && c.w > 0 && c.h > 0){
+      var folga = 3;
+      var cabe = c.x >= -folga && c.y >= -folga && c.x + c.w <= vw + folga && c.y + c.h <= vh + folga;
+      var cs = W.getComputedStyle(D.documentElement), csb = W.getComputedStyle(b);
+      var rola = !/hidden|clip/.test(cs.overflowY) && !/hidden|clip/.test(csb.overflowY);
+      var pagina = rola && !c.canvas && c.h > vh * 1.35 && c.x >= -folga && c.x + c.w <= vw + folga;   // página comprida que rola: deixa rolar
+      if(!cabe && !pagina){
+        s = Math.max(.15, Math.min(1, vw / c.w, vh / c.h));
+        tx = (vw - c.w * s) / 2 - c.x * s;
+        ty = (vh - c.h * s) / 2 - c.y * s;
+        liga = true;
+      }
+    }
+    var chave = liga ? [s.toFixed(4), tx.toFixed(1), ty.toFixed(1)].join('|') : '';
+    if(chave === ultimo) return;
+    ultimo = chave;
+    if(!liga){
+      if(E.ativo){ E.ativo = false; b.style.transform = ''; b.style.transformOrigin = ''; b.style.overflow = E.ovB || ''; D.documentElement.style.overflow = E.ovH || ''; esticar(); }
+      return;
+    }
+    /* posição do corpo sem diminuir (o getBoundingClientRect já devolve "de antes" quando está ligado) */
+    var rb = b.getBoundingClientRect();
+    if(!E.ativo){ E.ovB = b.style.overflow; E.ovH = D.documentElement.style.overflow; }
+    E.ativo = true; E.s = s; E.tx = tx; E.ty = ty;
+    var Tx = tx + (s - 1) * rb.left, Ty = ty + (s - 1) * rb.top;
+    b.style.transformOrigin = '0 0';
+    b.style.transform = 'translate(' + Tx + 'px,' + Ty + 'px) scale(' + s + ')';
+    b.style.overflow = 'visible';                 // o corpo não pode cortar o que passa dele (é isso que está sendo encaixado)
+    D.documentElement.style.overflow = 'hidden';  // e a janela não rola
+    esticar();
+  }
+  var PROPS = ['left', 'top', 'right', 'bottom', 'width', 'height', 'transform', 'transform-origin'];
+  function esticar(){
+    var b = D.body;
+    cobrem = cobrem.filter(function(el){ return el.isConnected; });
+    cobrem.forEach(function(el){
+      if(!E.ativo){
+        if(el.__kodaEstilo){ var o = el.__kodaEstilo; PROPS.forEach(function(p){ el.style.setProperty(p, o[p][0], o[p][1]); }); el.__kodaEstilo = null; }
+        return;
+      }
+      if(!el.__kodaEstilo){ var g = {}; PROPS.forEach(function(p){ g[p] = [el.style.getPropertyValue(p), el.style.getPropertyPriority(p)]; }); el.__kodaEstilo = g; }
+      /* em coordenadas do corpo (que está diminuído): a janela inteira */
+      var rb = b.getBoundingClientRect(), s = E.s;
+      var ox = rb.left + b.clientLeft, oy = rb.top + b.clientTop;
+      el.style.setProperty('left', (-ox - E.tx / s) + 'px', 'important');
+      el.style.setProperty('top', (-oy - E.ty / s) + 'px', 'important');
+      el.style.setProperty('right', 'auto', 'important');
+      el.style.setProperty('bottom', 'auto', 'important');
+      /* do tamanho da janela de verdade e "desencolhido": o menu fica com as letras e botões do tamanho normal */
+      el.style.setProperty('width', larguraReal() + 'px', 'important');
+      el.style.setProperty('height', alturaReal() + 'px', 'important');
+      el.style.setProperty('transform', 'scale(' + (1 / s) + ')', 'important');
+      el.style.setProperty('transform-origin', '0 0', 'important');
+    });
+  }
+  /* no máximo uma conta por vez: jogo que mexe na tela o tempo todo (placar, animação) não pode ficar adiando o encaixe pra sempre */
+  var pend = 0;
+  function logo(ms){ if(pend) return; pend = setTimeout(function(){ pend = 0; encaixar(); }, ms || 60); }
+  W.__kodaEncaixar = encaixar;
+  var inicio = Date.now();
+  function comecar(){
+    encaixar();
+    [120, 400, 900, 1800, 3500, 6000, 9000, 14000].forEach(function(ms){ setTimeout(encaixar, ms); });
+    try{
+      var mo = new MutationObserver(function(ms){
+        for(var i = 0; i < ms.length; i++){ if(!daKoda(ms[i].target)){ logo(Date.now() - inicio < 15000 ? 250 : 1500); return; } }
+      });
+      mo.observe(D.body, {childList: true, subtree: true, attributes: true, attributeFilter: ['width', 'height', 'style', 'class', 'hidden']});
+    }catch(e){}
+  }
+  var dEsc = false;
+  W.addEventListener('resize', function(){ if(!dEsc) logo(80); });
+  if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', comecar); else setTimeout(comecar, 0);
+  W.addEventListener('load', function(){ logo(30); });
+
+  /* ---------- foco: as teclas chegam no jogo sem precisar tocar nele antes ---------- */
+  var alvosTecla = [];
+  try{
+    var ael = EventTarget.prototype.addEventListener;
+    EventTarget.prototype.addEventListener = function(tipo, fn, op){
+      if((tipo === 'keydown' || tipo === 'keyup' || tipo === 'keypress') && this && this.nodeType === 1 && this !== D.body && this !== D.documentElement && alvosTecla.indexOf(this) < 0) alvosTecla.push(this);
+      return ael.call(this, tipo, fn, op);
+    };
+  }catch(e){}
+  function focarJogo(){
+    for(var i = 0; i < alvosTecla.length; i++){
+      var el = alvosTecla[i];
+      if(el.isConnected && el.focus){ try{ if(el.tabIndex < 0) el.tabIndex = 0; if(!el.style.outline) el.style.outline = 'none'; el.focus({preventScroll: true}); return; }catch(e){} }
+    }
+    try{ W.focus(); }catch(e){}
+  }
+  W.addEventListener('load', function(){ setTimeout(focarJogo, 50); });
+  D.addEventListener('pointerdown', function(e){ if(!daKoda(e.target) && alvosTecla.length && alvosTecla.indexOf(e.target) < 0 && !/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target && e.target.tagName)) setTimeout(focarJogo, 0); }, true);
+
+  /* ---------- 4) controles na tela ---------- */
+  var T = C.teclas;
+  var toque = false;
+  try{ toque = (W.matchMedia && W.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints || 0) > 0; }catch(e){}
+  if(!toque || !T || !(T.setas || T.wasd || T.espaco || T.enter || (T.extras && T.extras.length))) return;
+  var TX = C.txt || {};
+  var K = {
+    up: {key: 'ArrowUp', code: 'ArrowUp', kc: 38}, down: {key: 'ArrowDown', code: 'ArrowDown', kc: 40},
+    left: {key: 'ArrowLeft', code: 'ArrowLeft', kc: 37}, right: {key: 'ArrowRight', code: 'ArrowRight', kc: 39},
+    w: {key: 'w', code: 'KeyW', kc: 87}, a: {key: 'a', code: 'KeyA', kc: 65}, s: {key: 's', code: 'KeyS', kc: 83}, d: {key: 'd', code: 'KeyD', kc: 68},
+    space: {key: ' ', code: 'Space', kc: 32, imprime: true}, enter: {key: 'Enter', code: 'Enter', kc: 13, imprime: true},
+    shift: {key: 'Shift', code: 'ShiftLeft', kc: 16}, escape: {key: 'Escape', code: 'Escape', kc: 27}
+  };
+  function teclaDe(nome){
+    if(K[nome]) return K[nome];
+    var L = String(nome).toUpperCase();
+    return {key: String(nome).toLowerCase(), code: 'Key' + L, kc: L.charCodeAt(0), imprime: true};
+  }
+  var DIR = T.setas || !T.wasd ? {up: 'up', down: 'down', left: 'left', right: 'right'} : {up: 'w', down: 's', left: 'a', right: 'd'};
+  function alvoTeclado(){
+    for(var i = 0; i < alvosTecla.length; i++){ if(alvosTecla[i].isConnected) return alvosTecla[i]; }
+    var a = D.activeElement;
+    if(a && a !== D.body && noCorpo(a) && !/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return a;
+    return D.body || D.documentElement;
+  }
+  function manda(tipo, k, repetindo){
+    var ev;
+    try{ ev = new KeyboardEvent(tipo, {key: k.key, code: k.code, bubbles: true, cancelable: true, composed: true, repeat: !!repetindo}); }
+    catch(e){ ev = D.createEvent('Event'); ev.initEvent(tipo, true, true); try{ Object.defineProperty(ev, 'key', {get: function(){ return k.key; }}); Object.defineProperty(ev, 'code', {get: function(){ return k.code; }}); }catch(e2){} }
+    var cc = tipo === 'keypress' ? (k.key.length === 1 ? k.key.charCodeAt(0) : k.kc) : k.kc;
+    try{ Object.defineProperty(ev, 'keyCode', {get: function(){ return cc; }}); Object.defineProperty(ev, 'which', {get: function(){ return cc; }});
+      if(tipo === 'keypress') Object.defineProperty(ev, 'charCode', {get: function(){ return cc; }}); }catch(e){}
+    alvoTeclado().dispatchEvent(ev);
+  }
+  function aperta(k, repetindo){ manda('keydown', k, repetindo); if(k.imprime && !repetindo) manda('keypress', k); }
+  function solta(k){ manda('keyup', k); }
+
+  var host = D.createElement('div');
+  host.setAttribute('data-koda-ui', 'controles');
+  host.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:0;z-index:2147483646;';
+  var raiz = host.attachShadow ? host.attachShadow({mode: 'open'}) : host;
+  var acoes = [];
+  if(T.espaco) acoes.push({id: 'space', rot: TX.espaco || 'Space', grande: true});
+  if(T.enter) acoes.push({id: 'enter', rot: 'Enter', grande: !T.espaco});
+  (T.extras || []).forEach(function(x){ acoes.push({id: x, rot: x === 'shift' ? '⇧' : x === 'escape' ? 'Esc' : String(x).toUpperCase()}); });
+  var temDir = !!(T.setas || T.wasd);
+  var setaSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6l7 9H5z" fill="currentColor"/></svg>';
+  raiz.innerHTML = '<style>'
+    + ':host{all:initial}'
+    + '.k{position:fixed;left:0;right:0;bottom:0;pointer-events:none;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}'
+    + '.k *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}'
+    + '.fundo{position:absolute;left:0;right:0;bottom:0;height:var(--faixa,0px);background:linear-gradient(180deg,rgba(10,14,22,.82),rgba(6,9,15,.96));border-top:2px solid rgba(255,255,255,.12);}'
+    + '.dpad{position:absolute;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));width:var(--d,156px);height:var(--d,156px);pointer-events:auto;touch-action:none;border-radius:50%;}'
+    + '.dpad b{position:absolute;width:34%;height:34%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.35);border-radius:14px;transition:background .06s,transform .06s;}'
+    + '.dpad b svg{width:58%;height:58%;}'
+    + '.dpad b.on{background:rgba(70,240,195,.55);border-color:#46F0C3;transform:scale(.94);}'
+    + '.dpad .up{left:33%;top:0}.dpad .down{left:33%;bottom:0}.dpad .down svg{transform:rotate(180deg)}.dpad .left{left:0;top:33%}.dpad .left svg{transform:rotate(-90deg)}.dpad .right{right:0;top:33%}.dpad .right svg{transform:rotate(90deg)}'
+    + '.dpad i{position:absolute;left:36%;top:36%;width:28%;height:28%;border-radius:50%;background:rgba(255,255,255,.08);}'
+    + '.acoes{position:absolute;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;align-items:flex-end;gap:10px;max-width:58%;pointer-events:none;}'
+    + '.acoes button{pointer-events:auto;touch-action:none;min-width:var(--b,54px);height:var(--b,54px);padding:0 12px;border-radius:999px;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.16);color:#fff;font:800 15px/1 system-ui,sans-serif;letter-spacing:.02em;}'
+    + '.acoes button.grande{min-width:calc(var(--b,54px) * 1.45);height:calc(var(--b,54px) * 1.45);font-size:16px;background:rgba(255,201,60,.32);border-color:#FFC93C;}'
+    + '.acoes button.on{background:rgba(70,240,195,.6);border-color:#46F0C3;transform:scale(.94);}'
+    + '.alterna{position:absolute;pointer-events:auto;width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(10,14,22,.7);color:#fff;font:700 18px/1 system-ui;display:grid;place-items:center;padding:0;}'
+    + '.k.mostra .alterna{right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(var(--faixa,0px) + 8px);}'
+    + '.k:not(.mostra) .alterna{left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));}'
+    + '.k.deitado .alterna{left:50%;right:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));margin-left:-19px;}'
+    + '.k:not(.mostra) .dpad,.k:not(.mostra) .acoes,.k:not(.mostra) .fundo{display:none;}'
+    + '.k.deitado .fundo{display:none;}.k.deitado .dpad b,.k.deitado .acoes button{opacity:.78;}'
+    + '</style>'
+    + '<div class="k" part="k"><div class="fundo"></div>'
+    + (temDir ? '<div class="dpad" role="group" aria-label="' + (TX.setas || 'D-pad') + '"><i></i><b class="up" data-d="up">' + setaSvg + '</b><b class="left" data-d="left">' + setaSvg + '</b><b class="right" data-d="right">' + setaSvg + '</b><b class="down" data-d="down">' + setaSvg + '</b></div>' : '')
+    + '<div class="acoes">' + acoes.map(function(a){ return '<button type="button" class="' + (a.grande ? 'grande' : '') + '" data-k="' + a.id + '">' + String(a.rot).replace(/[<>&"]/g, '') + '</button>'; }).join('') + '</div>'
+    + '<button type="button" class="alterna" aria-label="' + (TX.esconder || 'Hide') + '">🎮</button>'
+    + '</div>';
+  var K0 = raiz.querySelector('.k');
+  /* nada dos controles chega no jogo como toque/clique (só as teclas) */
+  ['pointerdown', 'pointerup', 'pointermove', 'pointercancel', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'mousedown', 'mouseup', 'mousemove', 'click', 'dblclick', 'contextmenu', 'wheel']
+    .forEach(function(tp){ K0.addEventListener(tp, function(e){ e.stopPropagation(); if(tp === 'touchstart' || tp === 'contextmenu' || tp === 'dblclick') { if(e.cancelable) e.preventDefault(); } }, {passive: false}); });
+
+  /* direcional: arrastar o dedo troca de direção e dá pra apertar duas (diagonal) */
+  var dpad = raiz.querySelector('.dpad'), apertadas = {}, dedoDir = null, repete = null;
+  function mudaDirecoes(novas){
+    Object.keys(apertadas).forEach(function(d){ if(!novas[d]){ delete apertadas[d]; solta(teclaDe(DIR[d])); var b = dpad.querySelector('[data-d="' + d + '"]'); if(b) b.classList.remove('on'); } });
+    Object.keys(novas).forEach(function(d){ if(!apertadas[d]){ apertadas[d] = 1; aperta(teclaDe(DIR[d])); var b = dpad.querySelector('[data-d="' + d + '"]'); if(b) b.classList.add('on'); } });
+    clearInterval(repete); clearTimeout(repete);
+    if(Object.keys(apertadas).length) repete = setTimeout(function(){ repete = setInterval(function(){ Object.keys(apertadas).forEach(function(d){ manda('keydown', teclaDe(DIR[d]), true); }); }, 70); }, 380);
+  }
+  function direcoesDoPonto(ev){
+    var r = dpad.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var dx = ev.clientX - cx, dy = ev.clientY - cy, dist = Math.sqrt(dx * dx + dy * dy), o = {};
+    if(dist < r.width * .14) return o;
+    var ang = Math.atan2(dy, dx) * 180 / Math.PI;      // 0 = direita, 90 = baixo
+    if(ang > -67.5 && ang < 67.5) o.right = 1;
+    if(ang > 22.5 && ang < 157.5) o.down = 1;
+    if(ang > 112.5 || ang < -112.5) o.left = 1;
+    if(ang > -157.5 && ang < -22.5) o.up = 1;
+    return o;
+  }
+  if(dpad){
+    dpad.addEventListener('pointerdown', function(e){ dedoDir = e.pointerId; try{ dpad.setPointerCapture(e.pointerId); }catch(x){} mudaDirecoes(direcoesDoPonto(e)); });
+    dpad.addEventListener('pointermove', function(e){ if(e.pointerId === dedoDir) mudaDirecoes(direcoesDoPonto(e)); });
+    var fimDir = function(e){ if(e.pointerId === dedoDir){ dedoDir = null; mudaDirecoes({}); } };
+    dpad.addEventListener('pointerup', fimDir); dpad.addEventListener('pointercancel', fimDir); dpad.addEventListener('lostpointercapture', fimDir);
+  }
+  Array.prototype.forEach.call(raiz.querySelectorAll('.acoes button'), function(b){
+    var k = teclaDe(b.getAttribute('data-k')), dedo = null;
+    b.addEventListener('pointerdown', function(e){ dedo = e.pointerId; try{ b.setPointerCapture(e.pointerId); }catch(x){} b.classList.add('on'); aperta(k); });
+    var fim = function(e){ if(e.pointerId !== dedo) return; dedo = null; b.classList.remove('on'); solta(k); };
+    b.addEventListener('pointerup', fim); b.addEventListener('pointercancel', fim); b.addEventListener('lostpointercapture', fim);
+  });
+
+  /* em pé: os controles ficam numa faixa embaixo e o jogo encaixa em cima; deitado: ficam por cima, nos cantos */
+  var mostrar = !C.toque;
+  var alterna = raiz.querySelector('.alterna');
+  function arrumar(){
+    var vw = larguraReal(), vh = alturaReal(), deitado = vw > vh * 1.15;
+    var lado = Math.min(vw, vh);
+    var d = Math.round(Math.max(120, Math.min(190, lado * .36))), bt = Math.round(Math.max(46, Math.min(66, lado * .13)));
+    K0.style.setProperty('--d', d + 'px'); K0.style.setProperty('--b', bt + 'px');
+    var faixa = mostrar && !deitado ? d + 28 : 0;
+    K0.style.setProperty('--faixa', faixa + 'px');
+    K0.classList.toggle('mostra', mostrar);
+    K0.classList.toggle('deitado', deitado);
+    alterna.setAttribute('aria-label', mostrar ? (TX.esconder || 'Hide') : (TX.mostrar || 'Show'));
+    alterna.textContent = mostrar ? '✕' : '🎮';
+    if(faixa !== E.faixa){
+      E.faixa = faixa;
+      dEsc = true;
+      try{ W.dispatchEvent(new Event('resize')); }catch(e){}
+      dEsc = false;
+      logo(30);
+    }
+  }
+  alterna.addEventListener('click', function(){ mostrar = !mostrar; Object.keys(apertadas).length && mudaDirecoes({}); arrumar(); });
+  W.addEventListener('resize', function(){ if(!dEsc) arrumar(); });
+  function poe(){ (D.documentElement || D.body).appendChild(host); arrumar(); }
+  if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', poe); else poe();
+}
+/* quais teclas o jogo usa (lendo o código dele) e se ele já tem toque: decide os botões da tela */
+function jogoTeclasDoCodigo(codigo){
+  const c = String(codigo || '').replace(JOGO_RODA_REACT, '');
+  const r = {setas: false, wasd: false, espaco: false, enter: false, extras: []};
+  r.setas = /Arrow(Up|Down|Left|Right)|['"](Up|Down|Left|Right)['"]|(keyCode|which)\s*={2,3}\s*(37|38|39|40)\b|case\s+(37|38|39|40)\s*:|\b(LEFT|RIGHT|UP|DOWN)_ARROW\b|createCursorKeys|KeyCodes\.(LEFT|RIGHT|UP|DOWN)\b|\b(isKeyDown|isKeyPressed|onKeyDown|onKeyPress|onKeyRelease|keyIsDown)\s*\(\s*["'](left|right|up|down)["']|\[\s*(37|38|39|40)\s*\]/.test(c);
+  r.wasd = /['"]Key[WASD]['"]|(key|code|tecla)\w*(\(\))?\s*(===?|==)\s*['"][wasdWASD]['"]|case\s+['"][wasdWASD]['"]\s*:|(keyCode|which)\s*={2,3}\s*(87|65|83|68)\b|\[\s*['"][wasdWASD]['"]\s*\]|\bkeys?\.[wasd]\b|\b(isKeyDown|onKeyDown|onKeyPress|keyIsDown)\s*\(\s*["'][wasd]["']|addKeys?\(\s*['"][^'"]*W,?A,?S,?D/.test(c);
+  r.espaco = /['"]Space(bar)?['"]|(key|tecla)\w*\s*(===?|==)\s*['"] ['"]|case\s+['"] ['"]\s*:|(keyCode|which)\s*={2,3}\s*32\b|case\s+32\s*:|KeyCodes\.SPACE|addKey\(\s*['"]SPACE|\(\s*["']space["']|\[\s*['"] ['"]\s*\]|keyIsDown\(\s*32\s*\)/.test(c);
+  r.enter = /['"]Enter['"]|(keyCode|which)\s*={2,3}\s*13\b|case\s+13\s*:|KeyCodes\.ENTER|\(\s*["']enter["']|\bENTER\b/.test(c);
+  const extras = {};
+  c.replace(/(?:(?:key|tecla)\w*(?:\.toLowerCase\(\)|\.toUpperCase\(\))?\s*(?:===?|==)\s*|case\s+|(?:keys?|teclas)\s*\[\s*)['"]([a-zA-Z])['"]|['"]Key([A-Z])['"]|\b(?:isKeyDown|onKeyPress|onKeyDown|keyIsDown)\s*\(\s*["']([a-z])["']/g, (m, a, b, d)=>{
+    const l = String(a || b || d).toLowerCase();
+    if('wasd'.indexOf(l) < 0) extras[l] = 1;
+    return m;
+  });
+  if(/['"]Shift(Left|Right)?['"]|shiftKey/.test(c) && /key/i.test(c)) extras.shift = 1;
+  if(/['"]Escape['"]|(keyCode|which)\s*={2,3}\s*27\b/.test(c)) extras.escape = 1;
+  r.extras = Object.keys(extras).slice(0, 4);
+  /* o jogo já tem toque/clique? (aí os botões começam escondidos, com um 🎮 pra mostrar) */
+  const toque = /touch(start|end|move)|pointer(down|up|move)|mouse(down|up|move)|mousePressed|touchStarted|mouseIsPressed|onMousePress|onMouseDown|activePointer|input\.on\(\s*['"]pointer|onTouchStart|onPointerDown/.test(c);
+  return {teclas: (r.setas || r.wasd || r.espaco || r.enter || r.extras.length) ? r : null, toque};
+}
+/* tudo o que entra no quadro antes do código do jogo. "codigo" (opcional) = o jogo, pra saber quais teclas ganham botão na tela */
+function jogoRedeDeSeguranca(codigo){
   const T = {titulo: t('game_crashed_title'), faixa: t('game_err_faixa'), ok: t('game_err_ok'), fechar: t('game_err_fechar'), desconhecido: t('game_err_desconhecido')};
-  return GAME_STORAGE_SHIM + '<script>(' + kodaLeveDentroDoJogo.toString() + ')();<\/script>' + '<script>(' + kodaRedeDentroDoJogo.toString() + ')(' + JSON.stringify(T).replace(/</g, '\\u003c') + ');<\/script>';
+  const lido = codigo ? jogoTeclasDoCodigo(codigo) : {teclas: null, toque: true};
+  const C = {teclas: lido.teclas, toque: lido.toque, txt: {espaco: t('jogo_ctrl_espaco'), mostrar: t('jogo_ctrl_mostrar'), esconder: t('jogo_ctrl_esconder'), setas: t('jogo_ctrl_setas')}};
+  return GAME_STORAGE_SHIM + '<script>(' + kodaLeveDentroDoJogo.toString() + ')();<\/script>'
+    + '<script>(' + kodaCompatDentroDoJogo.toString() + ')(' + JSON.stringify(C).replace(/</g, '\\u003c') + ');<\/script>'
+    + '<script>(' + kodaRedeDentroDoJogo.toString() + ')(' + JSON.stringify(T).replace(/</g, '\\u003c') + ');<\/script>';
 }
 /* ============================================================
    TRADUÇÃO DOS JOGOS PUBLICADOS
@@ -18829,14 +19712,19 @@ const TRAD_GLOBO = `<svg viewBox="0 0 64 64" class="trad-globo-svg"><defs><clipP
 
 function initCustomGame(root, game, opts){
   root.innerHTML = '';
-  const codeText = jogoCodigoSeguro(b64ToUtf8(game.codeB64));
+  const bruto = b64ToUtf8(game.codeB64);
+  let pronto = bruto;
+  try{ pronto = prepararCodigoDoJogo(bruto) || bruto; }catch(e){}
+  const codeText = jogoCodigoSeguro(pronto);
   /* jogo que usa a loja do Koda tem loja, mesmo que o catálogo não tenha guardado esse aviso (jogo de outra pessoa) */
   const comLoja = !!game.loja || codigoTemLoja(codeText);
   const iframe = document.createElement('iframe');
   iframe.className = 'app-frame';
   iframe.setAttribute('title', game.name);
   hardenGameFrame(iframe);
-  const safetyNet = jogoRedeDeSeguranca();
+  const safetyNet = jogoRedeDeSeguranca(codeText);
+  /* as teclas chegam no jogo sem a pessoa precisar tocar nele antes */
+  iframe.addEventListener('load', ()=>{ try{ if(iframe.isConnected) iframe.contentWindow.focus(); }catch(e){} });
   if(opts){
     const inject = safetyNet + lojaIniDoJogo(comLoja, game.id) + salvoIniDoJogo(game.id) + KODA_BRIDGE + '<script>window.JOGODROMO_DIFFICULTY='+JSON.stringify(opts.diff||null)+';window.JOGODROMO_PLAYER_COUNT='+JSON.stringify(opts.playerCount||1)+';<\/script>';
     iframe.srcdoc = inject + tradutorDoJogo(game.trad, currentLang) + codeText;
@@ -19689,7 +20577,10 @@ function capturarJogoRodando(rec, onde){
     }
     window.addEventListener('message', ouvir);
     try{
-      iframe.srcdoc = CAPTURA_DO_JOGO + GAME_STORAGE_SHIM + jogoCodigoSeguro(b64ToUtf8(rec.codeB64 || ''));
+      const brutoCap = b64ToUtf8(rec.codeB64 || '');
+      let prontoCap = brutoCap;
+      try{ prontoCap = prepararCodigoDoJogo(brutoCap) || brutoCap; }catch(e){}
+      iframe.srcdoc = CAPTURA_DO_JOGO + GAME_STORAGE_SHIM + jogoCodigoSeguro(prontoCap);
       (onde || document.body).appendChild(iframe);
     }catch(e){ fim(null); return; }
     setTimeout(()=>fim(null), 6500);
@@ -20019,7 +20910,10 @@ function publishGame(name, code, coverDataUri, editingId, category, hasDifficult
   if(!name){ toast(t('code_form_name_needed')); return false; }
   notas = String(notas || '').trim().slice(0, 140);
   if(notas && (ugcPalavraRuim(notas) || containsIllicitContent(notas))){ toast(t('nv_notas_ruim')); return false; }
+  const brutoDoJogo = code;
   code = prepararCodigoDoJogo(code);   // qualquer IA: tira a conversa, junta html/css/js, vira uma página só
+  const diag = jogoDiagnostico(brutoDoJogo, code);
+  if(diag && (diag.tipo !== 'arquivo' || diag.arquivos.some(a=>/\.(js|mjs|jsx|ts|tsx)$/i.test(a)))){ jogoMostrarDiagnostico(diag); return false; }
   if(!code || !code.trim() || code.trim().length<20 || !code.includes('<')){ toast(t('code_form_code_incomplete')); return false; }
   if(containsIllicitContent(name) || containsIllicitContent(code)){
     mostrarContraLeis(t('illicit_content_blocked'));
@@ -20639,12 +21533,16 @@ function renderDirectPublish(root, onBack){
   const previewBg = root.querySelector('#directPreviewBg');
   const previewFrame = root.querySelector('#directPreviewFrame');
   root.querySelector('#directTest').addEventListener('click', ()=>{
-    const code = prepararCodigoDoJogo(root.querySelector('#directCode').value);
-    if(!code){ toast(t('code_form_code_incomplete')); return; }
+    const bruto = root.querySelector('#directCode').value;
+    const code = prepararCodigoDoJogo(bruto);
+    const diag = jogoDiagnostico(bruto, code);
+    if(!code){ if(diag) jogoMostrarDiagnostico(diag); else toast(t('code_form_code_incomplete')); return; }
     root.querySelector('#directCode').value = code;   // a pessoa vê o que de fato vai rodar e ser publicado
+    if(diag) setTimeout(()=>jogoMostrarDiagnostico(diag), 900);   // roda mesmo assim, mas avisa o que pode dar errado
     hardenGameFrame(previewFrame);
     const comLoja = root.querySelector('#directLoja').checked || codigoTemLoja(code);   // jogo com loja (feita pelo assistente) já testa com ela
-    previewFrame.srcdoc = jogoRedeDeSeguranca() + lojaIniDoJogo(comLoja, '__teste__', true) + salvoIniDoJogo('__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(code);
+    previewFrame.addEventListener('load', ()=>{ try{ previewFrame.contentWindow.focus(); }catch(e){} }, {once: true});
+    previewFrame.srcdoc = jogoRedeDeSeguranca(code) + lojaIniDoJogo(comLoja, '__teste__', true) + salvoIniDoJogo('__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(code);
     kodaLojaLigar(previewFrame, {gameId:'__teste__', nome: root.querySelector('#directName').value.trim(), ligada: comLoja, simulado: true});
     previewBg.classList.add('show');
   });
@@ -20788,7 +21686,12 @@ function renderGameChat(root, seed){
   function openPreview(){
     if(!pendingGameCode) return;
     hardenGameFrame(previewFrame); // testar o jogo também roda isolado
-    previewFrame.srcdoc = jogoRedeDeSeguranca() + lojaIniDoJogo(lojaOn, '__teste__', true) + salvoIniDoJogo('__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(prepararCodigoDoJogo(pendingGameCode) || pendingGameCode);
+    const pronto = prepararCodigoDoJogo(pendingGameCode) || pendingGameCode;
+    const diag = jogoDiagnostico(pendingGameCode, prepararCodigoDoJogo(pendingGameCode));
+    if(diag && diag.tipo === 'linguagem'){ jogoMostrarDiagnostico(diag); return; }
+    previewFrame.addEventListener('load', ()=>{ try{ previewFrame.contentWindow.focus(); }catch(e){} }, {once: true});
+    previewFrame.srcdoc = jogoRedeDeSeguranca(pronto) + lojaIniDoJogo(lojaOn, '__teste__', true) + salvoIniDoJogo('__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(pronto);
+    if(diag) setTimeout(()=>jogoMostrarDiagnostico(diag), 900);
     kodaLojaLigar(previewFrame, {gameId:'__teste__', nome: (seed && seed.name) || '', ligada: lojaOn, simulado: true});
     previewEl.style.display = 'flex';
   }
@@ -20926,7 +21829,9 @@ function renderGameChat(root, seed){
   }
 
   function looksLikeCode(text){
-    return /<\s*!doctype/i.test(text) || /<\s*html/i.test(text) || (text.includes('<') && text.includes('>') && text.length>300);
+    if(/<\s*!doctype/i.test(text) || /<\s*html/i.test(text) || (text.includes('<') && text.includes('>') && text.length>300)) return true;
+    if(/^\s*(```|~~~)/m.test(text) && text.split('\n').length >= 4) return true;
+    return text.split('\n').length >= 6 && (!!prepararCodigoDoJogo(text) || !!jogoOutraLinguagem(text));
   }
 
   async function callAgent(userText, isContinuation){
@@ -34041,6 +34946,20 @@ var PZ_TXT = {
  ugc_est_diagonal:'Diagonal|Diagonal|Diagonal|Diagonale|Diagonale|Diagonal|Diagonaal|ななめ|斜纹|사선',
  ugc_est_degrade:'Degradê|Gradient|Degradado|Sfumato|Dégradé|Verlauf|Verloop|グラデーション|渐变|그라데이션',
  ugc_est_contorno:'Contorno|Outline|Contorno|Contorno|Contour|Umriss|Omtrek|ふちどり|描边|테두리',
+ jogo_ctrl_espaco:'Espaço|Space|Espacio|Spazio|Espace|Leertaste|Spatie|スペース|空格|스페이스',
+ jogo_ctrl_mostrar:'Mostrar os botões de jogar|Show the game buttons|Mostrar los botones de juego|Mostra i pulsanti di gioco|Afficher les boutons de jeu|Spielknöpfe zeigen|Spelknoppen tonen|操作ボタンを出す|显示游戏按钮|게임 버튼 보이기',
+ jogo_ctrl_esconder:'Esconder os botões de jogar|Hide the game buttons|Ocultar los botones de juego|Nascondi i pulsanti di gioco|Masquer les boutons de jeu|Spielknöpfe ausblenden|Spelknoppen verbergen|操作ボタンをかくす|隐藏游戏按钮|게임 버튼 숨기기',
+ jogo_ctrl_setas:'Setas|Arrows|Flechas|Frecce|Flèches|Pfeile|Pijlen|矢印|方向键|방향키',
+ jogo_diag_tit:'Quase lá!|Almost there!|¡Casi listo!|Ci siamo quasi!|Presque !|Fast geschafft!|Bijna!|あと少し！|就差一点！|거의 다 됐어요!',
+ jogo_diag_linguagem:'Esse código é em {ling}. O Koda roda jogos feitos em HTML e JavaScript (os que abrem no navegador).|This code is in {ling}. Koda runs games made in HTML and JavaScript (the ones that open in a browser).|Este código está en {ling}. Koda ejecuta juegos hechos en HTML y JavaScript (los que se abren en el navegador).|Questo codice è in {ling}. Koda esegue giochi fatti in HTML e JavaScript (quelli che si aprono nel browser).|Ce code est en {ling}. Koda lance les jeux faits en HTML et JavaScript (ceux qui s’ouvrent dans le navigateur).|Dieser Code ist in {ling}. Koda spielt Spiele aus HTML und JavaScript (die im Browser laufen).|Deze code is in {ling}. Koda draait games gemaakt in HTML en JavaScript (die in de browser openen).|このコードは{ling}だよ。KodaはHTMLとJavaScriptで作ったゲーム（ブラウザで開くもの）を動かすよ。|这段代码是{ling}写的。Koda 能运行用 HTML 和 JavaScript 做的游戏（在浏览器里打开的那种）。|이 코드는 {ling}예요. Koda는 HTML과 JavaScript로 만든 게임(브라우저에서 열리는 것)을 실행해요.',
+ jogo_diag_cortado:'O código acabou no meio: a IA parou de escrever antes de terminar o jogo. Por isso ele não roda inteiro.|The code stops in the middle: the AI stopped writing before finishing the game. That’s why it doesn’t fully run.|El código se corta a la mitad: la IA dejó de escribir antes de terminar el juego. Por eso no funciona entero.|Il codice si interrompe a metà: l’IA ha smesso di scrivere prima di finire il gioco. Per questo non funziona del tutto.|Le code s’arrête au milieu : l’IA a arrêté d’écrire avant de finir le jeu. C’est pour ça qu’il ne marche pas en entier.|Der Code hört mittendrin auf: Die KI hat aufgehört zu schreiben, bevor das Spiel fertig war. Darum läuft es nicht ganz.|De code stopt halverwege: de AI stopte met schrijven voordat de game af was. Daarom werkt hij niet helemaal.|コードが途中で終わってるよ。AIがゲームを書き終える前に止まっちゃったから、全部は動かないんだ。|代码写到一半就断了：AI 还没写完游戏就停了，所以运行不完整。|코드가 중간에 끊겼어요. AI가 게임을 다 쓰기 전에 멈춰서 제대로 실행되지 않아요.',
+ jogo_diag_arquivo:'O código chama o arquivo {arq}, que não veio junto. Sem ele o jogo não funciona.|The code uses the file {arq}, which didn’t come with it. The game won’t work without it.|El código usa el archivo {arq}, que no vino con él. Sin él el juego no funciona.|Il codice usa il file {arq}, che non è arrivato insieme. Senza il gioco non funziona.|Le code utilise le fichier {arq}, qui n’est pas venu avec. Sans lui, le jeu ne marche pas.|Der Code braucht die Datei {arq}, die nicht dabei ist. Ohne sie läuft das Spiel nicht.|De code gebruikt het bestand {arq}, dat niet is meegekomen. Zonder dat werkt de game niet.|コードが{arq}というファイルを使っているけど、それがついてきてないよ。それがないとゲームは動かないよ。|代码用到了文件 {arq}，但它没有一起给出来。没有它游戏就运行不了。|코드가 {arq} 파일을 쓰는데, 그 파일이 같이 오지 않았어요. 그게 없으면 게임이 안 돼요.',
+ jogo_diag_peca:'Mande isto pra IA que fez o jogo e cole a resposta inteira aqui:|Send this to the AI that made the game and paste the whole answer here:|Envía esto a la IA que hizo el juego y pega aquí la respuesta completa:|Manda questo all’IA che ha fatto il gioco e incolla qui la risposta intera:|Envoie ceci à l’IA qui a fait le jeu et colle la réponse entière ici :|Schick das an die KI, die das Spiel gemacht hat, und füge die ganze Antwort hier ein:|Stuur dit naar de AI die de game maakte en plak het hele antwoord hier:|ゲームを作ったAIにこれを送って、返ってきた答えを全部ここに貼ってね：|把这段发给做游戏的 AI，再把完整的回答贴到这里：|게임을 만든 AI에게 이걸 보내고, 받은 답을 통째로 여기 붙여 넣어요:',
+ jogo_diag_pedido_html:'Faça esse mesmo jogo em um único arquivo HTML, com o CSS e o JavaScript dentro dele, que funcione no navegador do celular (com toque) e do computador.|Make this same game as a single HTML file, with the CSS and JavaScript inside it, that works in a phone browser (with touch) and on a computer.|Haz este mismo juego en un único archivo HTML, con el CSS y el JavaScript dentro, que funcione en el navegador del celular (con toque) y de la computadora.|Fai questo stesso gioco in un unico file HTML, con CSS e JavaScript dentro, che funzioni nel browser del telefono (con il tocco) e del computer.|Fais ce même jeu dans un seul fichier HTML, avec le CSS et le JavaScript dedans, qui marche dans le navigateur du téléphone (au toucher) et de l’ordinateur.|Mach genau dieses Spiel als eine einzige HTML-Datei, mit CSS und JavaScript darin, die im Handy-Browser (mit Touch) und am Computer läuft.|Maak deze game als één HTML-bestand, met de CSS en JavaScript erin, dat werkt in de browser van een telefoon (met aanraken) en op de computer.|このゲームを、CSSとJavaScriptも中に入れた1つのHTMLファイルで作って。スマホのブラウザ（タッチ）でもパソコンでも動くようにして。|请把这个游戏做成一个单独的 HTML 文件，CSS 和 JavaScript 都写在里面，要能在手机浏览器（触屏）和电脑上运行。|이 게임을 CSS와 JavaScript가 안에 들어 있는 HTML 파일 하나로 만들어 줘. 휴대폰 브라우저(터치)와 컴퓨터에서 모두 되게.',
+ jogo_diag_pedido_continuar:'Continue o código exatamente de onde parou, até o fim. Depois me mande o jogo inteiro em um único arquivo HTML.|Continue the code exactly where you stopped, until the end. Then send me the whole game as a single HTML file.|Continúa el código exactamente donde paraste, hasta el final. Después envíame el juego completo en un único archivo HTML.|Continua il codice esattamente da dove ti sei fermato, fino alla fine. Poi mandami il gioco intero in un unico file HTML.|Continue le code exactement là où tu t’es arrêté, jusqu’à la fin. Puis envoie-moi le jeu entier dans un seul fichier HTML.|Mach den Code genau da weiter, wo du aufgehört hast, bis zum Ende. Dann schick mir das ganze Spiel als eine HTML-Datei.|Ga verder met de code precies waar je stopte, tot het einde. Stuur me daarna de hele game als één HTML-bestand.|止まったところからコードの続きを最後まで書いて。そのあとゲーム全体を1つのHTMLファイルで送って。|从停下的地方接着把代码写完。然后把整个游戏放在一个 HTML 文件里发给我。|멈춘 곳부터 코드를 끝까지 이어서 써 줘. 그다음 게임 전체를 HTML 파일 하나로 보내 줘.',
+ jogo_diag_pedido_juntar:'Junte tudo (HTML, CSS e JavaScript) em um único arquivo HTML, sem usar outros arquivos, e me mande o código inteiro.|Put everything (HTML, CSS and JavaScript) into a single HTML file, without other files, and send me the whole code.|Junta todo (HTML, CSS y JavaScript) en un único archivo HTML, sin otros archivos, y envíame el código completo.|Metti tutto (HTML, CSS e JavaScript) in un unico file HTML, senza altri file, e mandami il codice intero.|Mets tout (HTML, CSS et JavaScript) dans un seul fichier HTML, sans autres fichiers, et envoie-moi le code entier.|Pack alles (HTML, CSS und JavaScript) in eine einzige HTML-Datei, ohne andere Dateien, und schick mir den ganzen Code.|Zet alles (HTML, CSS en JavaScript) in één HTML-bestand, zonder andere bestanden, en stuur me de hele code.|HTML・CSS・JavaScriptを全部1つのHTMLファイルにまとめて（ほかのファイルは使わずに）、コード全体を送って。|把 HTML、CSS 和 JavaScript 全部放进一个 HTML 文件里（不要用别的文件），再把完整代码发给我。|HTML, CSS, JavaScript를 다른 파일 없이 HTML 파일 하나에 모두 넣고 전체 코드를 보내 줘.',
+ jogo_diag_copiar:'Copiar o pedido|Copy the request|Copiar el pedido|Copia la richiesta|Copier la demande|Text kopieren|Verzoek kopiëren|お願いをコピー|复制这段话|요청 복사',
+ jogo_diag_copiado:'Copiado! Cole na conversa com a IA.|Copied! Paste it in your chat with the AI.|¡Copiado! Pégalo en el chat con la IA.|Copiato! Incollalo nella chat con l’IA.|Copié ! Colle-le dans la discussion avec l’IA.|Kopiert! Füg es im Chat mit der KI ein.|Gekopieerd! Plak het in je chat met de AI.|コピーしたよ！AIとの会話に貼ってね。|复制好了！贴到和 AI 的对话里吧。|복사했어요! AI와의 대화에 붙여 넣어요.',
  ugc_f_limpar:'Limpar tudo|Clear all|Borrar todo|Cancella tutto|Tout effacer|Alles löschen|Alles wissen|全部消す|全部清除|모두 지우기',
  ugc_limpar_conf:'Apagar o desenho todo?|Erase the whole drawing?|¿Borrar todo el dibujo?|Cancellare tutto il disegno?|Effacer tout le dessin ?|Die ganze Zeichnung löschen?|De hele tekening wissen?|絵を全部消しますか？|要清除整幅画吗？|그림을 전부 지울까요?',
  ugc_cor_exata:'Cor exata|Exact color|Color exacto|Colore esatto|Couleur exacte|Genaue Farbe|Exacte kleur|ぴったりの色|精确颜色|정확한 색',
