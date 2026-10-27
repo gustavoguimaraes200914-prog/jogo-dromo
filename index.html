@@ -3436,6 +3436,17 @@
   @media (prefers-reduced-motion: reduce){ .ia-ico.mexe{animation-duration:6s;} .ia-creating{animation:none;background-position:50% 0;} }
   .ia-assist-status.criando{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}
   .ia-sair{border:1.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.1);color:inherit;border-radius:999px;padding:6px 12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;}
+  /* cancelar a IA: o botão de enviar vira "parar" enquanto ela escreve; a bolinha e os outros lugares ganham o "Cancelar" */
+  .chat-send-btn.parar{background:#E8413C;color:#fff;animation:pararPulsa 1.4s ease-in-out infinite;}
+  .chat-send-btn.parar svg{width:20px;height:20px;display:block;}
+  @keyframes pararPulsa{0%,100%{box-shadow:0 0 0 0 rgba(232,65,60,.5);}50%{box-shadow:0 0 0 8px rgba(232,65,60,0);}}
+  .chat-cancel{display:block;margin:6px 0 0;border:1.5px solid rgba(232,65,60,.55);background:rgba(232,65,60,.08);color:#C02C27;border-radius:999px;padding:5px 12px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.8rem;cursor:pointer;}
+  .chat-cancel:disabled{opacity:.55;cursor:default;}
+  .modal.arcade-theme .chat-cancel{border-color:#ff2fb0;color:#ff7ad0;background:rgba(255,47,176,.12);}
+  .ia-cancelar{border:1.5px solid rgba(255,150,150,.8);background:rgba(232,65,60,.22);color:inherit;border-radius:999px;padding:6px 12px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.8rem;cursor:pointer;}
+  .ask-msg.pensando{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .ask-cancelar{border:1.5px solid rgba(91,47,214,.45);background:rgba(91,47,214,.08);color:#4A25B8;border-radius:999px;padding:4px 11px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;}
+  @media (prefers-reduced-motion: reduce){ .chat-send-btn.parar{animation:none;} }
   .ia-sheet .ia-perguntar{display:flex;align-items:center;gap:10px;width:100%;margin:4px 0 10px;padding:12px 14px;border:none;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:1rem;color:#08322B;text-align:left;}
   .ia-q{flex:none;width:26px;height:26px;border-radius:50%;background:#3D6FE0;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;}
   .ia-escolha{margin:6px 2px 8px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.85rem;color:#08322B;opacity:.7;}
@@ -5692,6 +5703,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const ICONS = {
+  parar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6.5" y="6.5" width="11" height="11" rx="2.4" fill="currentColor"/></svg>',
   starOutline: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;vertical-align:-3px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
   checkCircle: `<svg viewBox="0 0 24 24" fill="currentColor" style="width:1em;height:1em;vertical-align:-2px;"><circle cx="12" cy="12" r="11"/><path d="M8 12.5l2.5 2.5 5.5-5.5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   starFilled: `<svg viewBox="0 0 24 24" fill="currentColor" style="width:1.15em;height:1.15em;vertical-align:-3px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
@@ -21176,7 +21188,7 @@ O que você sabe do Koda:
 - Ideias de jogos: dê ideias curtas, divertidas e fáceis de fazer (com o nome, como se joga em uma frase e o que deixa legal).
 Se a pessoa mandar o código do jogo (em <codigo_do_jogo>), use pra achar o problema e explique em palavras simples onde está e como arrumar (só mostre um pedacinho de código se precisar).
 Regras: responda curto e simples (no máximo uns 6 itens ou 120 palavras), com carinho e sem termos difíceis, no idioma: [LINGUA]. Fale só sobre o Koda, jogos e programação de jogos; pra outros assuntos diga com gentileza que só ajuda com isso. Nunca peça senha, e-mail, telefone ou dados pessoais. Nada impróprio pra crianças. Se não souber, diga que não sabe.`;
-async function ajudaPedir(historico, codigo){
+async function ajudaPedir(historico, codigo, sinal){
   if(!SERVER_URL || !FIREBASE_ENABLED || !fbAuth().currentUser) return {ok: false, motivo: 'fora'};
   const msgs = historico.slice(-10).map(m=>({role: m.eu ? 'user' : 'assistant', content: m.txt}));
   if(codigo && msgs.length){
@@ -21186,12 +21198,15 @@ async function ajudaPedir(historico, codigo){
   const lingua = (typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)';
   let res;
   try{
-    res = await fetch(SERVER_URL + '/agent', {method: 'POST', headers: await cabecalhoDoAgente(),
+    const cab = await cabecalhoDoAgente();
+    if(sinal && sinal.aborted) return {ok: false, motivo: 'cancelado'};
+    res = await fetch(SERVER_URL + '/agent', {method: 'POST', headers: cab, signal: sinal || undefined,
       body: JSON.stringify({model: 'claude-haiku-4-5', max_tokens: 900, system: AJUDA_REGRA.replace('[LINGUA]', lingua), messages: msgs})});
-  }catch(e){ return {ok: false, motivo: 'erro'}; }
+  }catch(e){ return {ok: false, motivo: foiCancelado(e) ? 'cancelado' : 'erro'}; }
   if(res.status === 401 || res.status === 403 || res.status === 500) return {ok: false, motivo: 'fora'};
   if(!res.ok) return {ok: false, motivo: 'erro'};
   const j = await res.json().catch(()=>null);
+  if(sinal && sinal.aborted) return {ok: false, motivo: 'cancelado'};
   const txt = j && Array.isArray(j.content) ? j.content.map(b=>b && b.text || '').join('').trim() : '';
   return txt ? {ok: true, txt: txt.slice(0, 3000)} : {ok: false, motivo: 'erro'};
 }
@@ -21277,11 +21292,28 @@ function abrirPerguntas(codigo){
     sug.hidden = true;
     poe(txt, 'eu');
     const hist = (atual ? atual.msgs : []).concat([{eu: true, txt}]);
+    const meuEu = lista.lastElementChild;
     const pensando = poe('', 'ele pensando');
-    pensando.innerHTML = iaCriandoHtml();
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    let cancelou = false;
+    pensando.innerHTML = iaCriandoHtml() + `<button type="button" class="ask-cancelar">${esc(t('ask_cancelar'))}</button>`;
+    pensando.querySelector('.ask-cancelar').addEventListener('click', ()=>{
+      if(cancelou) return;
+      cancelou = true; playSound('click');
+      try{ if(ctrl) ctrl.abort(); }catch(e){}
+    });
     lista.scrollTop = lista.scrollHeight;
-    const r = await ajudaPedir(hist, codigo);
+    const r = await ajudaPedir(hist, codigo, ctrl ? ctrl.signal : null);
     pensando.remove();
+    if(cancelou || r.motivo === 'cancelado'){
+      /* cancelou: a pergunta some da conversa e volta pra caixa (pra editar ou mandar de novo) */
+      if(meuEu && meuEu.isConnected) meuEu.remove();
+      if(!caixa.value.trim()) caixa.value = txt;
+      sug.hidden = !!(atual && atual.msgs.length);
+      ocupado = false; enviar.disabled = false;
+      toast(t('ask_cancelado'));
+      return;
+    }
     if(r.ok){
       if(!atual){ atual = {id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: Date.now(), titulo: txt.slice(0, 40), msgs: []}; chats.unshift(atual); tit.textContent = atual.titulo; }
       atual.msgs.push({eu: true, txt}, {eu: false, txt: r.txt});
@@ -21303,20 +21335,27 @@ function abrirPerguntas(codigo){
   q('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
   abrirChat(chats.length ? chats[0] : null);      // abre na última conversa (ou numa nova, se nunca teve)
 }
-/* pede ao assistente; devolve {ok, codigo, frase} ou {ok:false, motivo:'fora'|'grande'|'erro'} */
-async function assistentePedir(tarefa, codigo, extra){
+/* cancelar a IA: o pedido é interrompido na hora (nada mais é gasto nem aparece) */
+function jogoCancelado(){ const e = new Error('cancelado'); e.name = 'AbortError'; e.cancelado = true; return e; }
+function foiCancelado(e){ return !!e && (e.name === 'AbortError' || e.cancelado === true); }
+/* pede ao assistente; devolve {ok, codigo, frase} ou {ok:false, motivo:'fora'|'grande'|'erro'|'cancelado'} */
+async function assistentePedir(tarefa, codigo, extra, sinal){
   if(!SERVER_URL || !FIREBASE_ENABLED || !fbAuth().currentUser) return {ok: false, motivo: 'fora'};
   if(codigo.length > ASSISTENTE_MAX_CODIGO) return {ok: false, motivo: 'grande'};
   const pedido = (extra ? '<pedido_do_criador>\n' + extra.slice(0, 400) + '\n</pedido_do_criador>\n\n' : '')
     + 'O código do jogo:\n```html\n' + codigo + '\n```';
   let res;
   try{
-    res = await fetch(SERVER_URL + '/agent', {method: 'POST', headers: await cabecalhoDoAgente(),
+    const cab = await cabecalhoDoAgente();
+    if(sinal && sinal.aborted) return {ok: false, motivo: 'cancelado'};
+    res = await fetch(SERVER_URL + '/agent', {method: 'POST', headers: cab, signal: sinal || undefined,
       body: JSON.stringify({model: 'claude-sonnet-4-6', max_tokens: 16000, system: assistenteRegra(tarefa), messages: [{role: 'user', content: pedido}]})});
-  }catch(e){ return {ok: false, motivo: 'erro'}; }
+  }catch(e){ return {ok: false, motivo: foiCancelado(e) ? 'cancelado' : 'erro'}; }
   if(res.status === 401 || res.status === 403 || res.status === 500) return {ok: false, motivo: 'fora'};
   if(!res.ok) return {ok: false, motivo: 'erro'};
-  const j = await res.json().catch(()=>null);
+  let cortou = false;
+  const j = await res.json().catch(e=>{ cortou = foiCancelado(e); return null; });
+  if(cortou || (sinal && sinal.aborted)) return {ok: false, motivo: 'cancelado'};
   if(!j || !Array.isArray(j.content)) return {ok: false, motivo: 'erro'};
   if(j.stop_reason === 'max_tokens') return {ok: false, motivo: 'grande'};
   const txt = j.content.map(b=>b && b.text || '').join('');
@@ -21348,19 +21387,32 @@ function iaDigitar(el, txt, rolar){
    na caixa (se a tela ainda estiver aberta) ou aparece um aviso "O Agente Koda terminou! Toque pra ver", que abre o
    jogo de novo já com o código novo (e dá pra desfazer).
 ============================================================ */
-let iaTrabalho = null;            // {tarefas, caixa, nome, editingId, antes}
+let iaTrabalho = null;            // {tarefas, caixa, nome, editingId, antes, ctrl, cancelado}
 let iaPronto = null;              // terminou com a tela fechada: {codigo, antes, nome, editingId, tarefas}
 const iaTelas = new Set();        // as telas com o botão do agente abertas agora (pra mostrar o "Creating" em todas)
 const iaApis = new WeakMap();     // caixa do código -> {aplicar, mostrar}
 function iaRepintar(){ iaTelas.forEach(f=>{ if(f.vivo()) f.pintar(); else iaTelas.delete(f); }); }
 function iaMsgPronto(tarefas){ return t(tarefas.length > 1 ? 'ia_pronto_varios' : tarefas[0] === 'online' ? 'ia_pronto_online' : tarefas[0] === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'); }
+/* o botão "Cancelar" do Agente Koda: interrompe o pedido na hora e a tela volta ao normal (o código da caixa não muda) */
+function iaCancelar(){
+  const job = iaTrabalho;
+  if(!job || job.cancelado) return;
+  job.cancelado = true;
+  try{ if(job.ctrl) job.ctrl.abort(); }catch(e){}
+  iaTrabalho = null;
+  iaRepintar();
+  const api = job.caixa.isConnected ? iaApis.get(job.caixa) : null;
+  const msg = t('ia_cancelado');
+  if(api) api.mostrar(msg); else toast(msg);
+}
 async function iaComecar(tarefas, caixa, nome, editingId){
   const codigo = prepararCodigoDoJogo(caixa.value) || caixa.value.trim();
-  iaTrabalho = {tarefas, caixa, nome, editingId: editingId || null, antes: caixa.value};
+  const job = {tarefas, caixa, nome, editingId: editingId || null, antes: caixa.value, ctrl: typeof AbortController !== 'undefined' ? new AbortController() : null, cancelado: false};
+  iaTrabalho = job;
   iaRepintar();
-  const r = await assistentePedir(tarefas, codigo, '');
-  const job = iaTrabalho;
-  iaTrabalho = null;
+  const r = await assistentePedir(tarefas, codigo, '', job.ctrl ? job.ctrl.signal : null);
+  if(job.cancelado) return;                 // cancelou enquanto esperava: nada mais acontece
+  if(iaTrabalho === job) iaTrabalho = null;
   const api = job.caixa.isConnected ? iaApis.get(job.caixa) : null;
   if(!r.ok){
     const msg = t(r.motivo === 'fora' ? 'ia_fora' : r.motivo === 'grande' ? 'ia_grande' : 'ia_erro');
@@ -21415,7 +21467,8 @@ function ligarAssistente(root, codeSel, editingId){
       abrir.disabled = !!iaTrabalho;
       if(iaTrabalho){
         status.className = 'ia-assist-status criando';
-        status.innerHTML = iaCriandoHtml() + `<button type="button" class="ia-sair">${chatListEscape(t('ia_sair'))}</button>`;
+        status.innerHTML = iaCriandoHtml() + `<button type="button" class="ia-cancelar">${chatListEscape(t('ia_cancelar'))}</button><button type="button" class="ia-sair">${chatListEscape(t('ia_sair'))}</button>`;
+        status.querySelector('.ia-cancelar').addEventListener('click', ()=>{ playSound('click'); iaCancelar(); });
         status.querySelector('.ia-sair').addEventListener('click', ()=>{ playSound('click'); closeModal(); });
       } else if(status.classList.contains('criando')) mostrar('');
     }
@@ -21600,6 +21653,30 @@ function renderGameChat(root, seed){
   const attachInputEl = root.querySelector('#attachInput');
 
   let apiHistory = [];
+  /* enquanto a IA escreve: {ctrl, cancelado}. O botão de enviar vira "parar" e a bolinha ganha o "Cancelar" */
+  let gerando = null;
+  function pintarGerando(){
+    const b = root.querySelector('#sendBtn');
+    if(!b) return;
+    b.classList.toggle('parar', !!gerando);
+    b.innerHTML = gerando ? ICONS.parar : ICONS.send;
+    const r = t(gerando ? 'agent_parar' : 'agent_enviar');
+    b.setAttribute('aria-label', r); b.title = r;
+  }
+  function comecarGerar(){
+    gerando = {ctrl: typeof AbortController !== 'undefined' ? new AbortController() : null, cancelado: false};
+    pintarGerando();
+    return gerando;
+  }
+  function terminarGerar(g){ if(gerando === g){ gerando = null; pintarGerando(); } }
+  function cancelarGerar(){
+    if(!gerando || gerando.cancelado) return;
+    gerando.cancelado = true;
+    playSound('click');
+    try{ if(gerando.ctrl) gerando.ctrl.abort(); }catch(e){}
+    const tb = root.querySelector('#typingBubble .chat-cancel');
+    if(tb){ tb.disabled = true; tb.textContent = t('agent_cancelando'); }
+  }
   let pendingGameCode = seed ? seed.code : null;
   let pendingCover = null;
   let pendingShape = 'square', pendingShapeMexida = false;
@@ -21677,7 +21754,8 @@ function renderGameChat(root, seed){
     const wrap = document.createElement('div');
     wrap.className = 'chat-msg agent';
     wrap.id = 'typingBubble';
-    wrap.innerHTML = `<div class="chat-bubble"><div class="chat-typing"><span></span><span></span><span></span></div></div>`;
+    wrap.innerHTML = `<div class="chat-bubble"><div class="chat-typing"><span></span><span></span><span></span></div><button type="button" class="chat-cancel">${chatListEscape(t('agent_cancelar'))}</button></div>`;
+    wrap.querySelector('.chat-cancel').addEventListener('click', cancelarGerar);
     messagesEl.appendChild(wrap);
     scrollToBottom();
   }
@@ -21696,19 +21774,7 @@ function renderGameChat(root, seed){
     previewEl.style.display = 'flex';
   }
   root.querySelector('#backToChat').addEventListener('click', ()=>{ previewEl.style.display='none'; kodaLojaDesligar(); });
-
-  if(resumeDraft){
-    if(resumeDraft.messages && resumeDraft.messages.length){
-      resumeDraft.messages.forEach(m=>addBubble(m.role, m.html));
-    }
-    if(pendingGameCode){
-      const bb = addBubble('agent', escapeHtml(t('draft_continued_actions')));
-      showGameReadyActions(bb);
-    }
-  } else if(seed && seed.code){
-    const b = addBubble('agent', escapeHtml(t('agent_adjust_welcome', {name:seed.name})));
-    showGameReadyActions(b);
-  } else {
+  function mostrarHero(){
     const heroPhrases = ['hero_phrase_1','hero_phrase_2','hero_phrase_3','hero_phrase_4','hero_phrase_5'];
     const heroPhrase = t(heroPhrases[Math.floor(Math.random()*heroPhrases.length)]);
     const heroWrap = document.createElement('div');
@@ -21726,6 +21792,21 @@ function renderGameChat(root, seed){
         renderGameChat(root);
       });
     });
+  }
+
+  if(resumeDraft){
+    if(resumeDraft.messages && resumeDraft.messages.length){
+      resumeDraft.messages.forEach(m=>addBubble(m.role, m.html));
+    }
+    if(pendingGameCode){
+      const bb = addBubble('agent', escapeHtml(t('draft_continued_actions')));
+      showGameReadyActions(bb);
+    }
+  } else if(seed && seed.code){
+    const b = addBubble('agent', escapeHtml(t('agent_adjust_welcome', {name:seed.name})));
+    showGameReadyActions(b);
+  } else {
+    mostrarHero();
   }
   function hideHero(){
     const h = root.querySelector('#chatHero');
@@ -21919,15 +22000,19 @@ Antes de escrever, pense: esse jogo fica melhor com outras pessoas jogando junto
 - SIM (faça online, com \`KODA.online\`): quando pedirem pra jogar com amigos/outras pessoas/multiplayer, ou quando o tipo de jogo é naturalmente de grupo — sobreviver juntos (noites, zumbis, monstros), explorar um lugar, fugir/escapar em equipe, corrida entre jogadores, pega-pega, esconde-esconde, batalha/PvP, arena, futebol, jogos de rodada estilo "todo mundo entra, a rodada começa, o último vivo ganha".
 - NÃO (faça para 1 pessoa, sem \`KODA.online\`): jogos simples de uma pessoa só, de reflexo ou recorde — tipo pássaro que voa entre canos, clicker, quebra-cabeça, jogo da memória sozinho, desenhar, quiz pessoal. Não force online onde não faz sentido.
 ${KODA_DOC_ONLINE}`;
+    const meu = gerando;                    // este pedido pertence a esta rodada (pra cancelar só ela)
+    const cab = await cabecalhoDoAgente();
+    if(meu && meu.cancelado) throw jogoCancelado();
     const res = await fetch(SERVER_URL ? (SERVER_URL+'/agent') : 'https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers: await cabecalhoDoAgente(),
+      headers: cab,
       body: JSON.stringify({
         model:'claude-sonnet-4-6',
         max_tokens: 8192,
         system,
         messages: apiHistory
-      })
+      }),
+      signal: meu && meu.ctrl ? meu.ctrl.signal : undefined
     });
     if(!res.ok){
       let extra = '';
@@ -21935,6 +22020,7 @@ ${KODA_DOC_ONLINE}`;
       throw new Error('HTTP '+res.status+(extra?': '+extra:''));
     }
     const data = await res.json();
+    if(meu && meu.cancelado) throw jogoCancelado();      // cancelou bem na hora que a resposta chegou: descarta
     const text = (data.content||[]).map(b=>b.text||'').join('\n');
     apiHistory.push({role:'assistant', content:text});
     const truncated = data.stop_reason === 'max_tokens';
@@ -21970,6 +22056,7 @@ ${KODA_DOC_ONLINE}`;
       let cont;
       try{ cont = await callAgent(t('agent_continue_prompt'), true); }
       catch(e){
+        if(foiCancelado(e)) throw e;          // cancelou: sobe pra quem chamou desfazer a rodada toda
         if(apiHistory.length && apiHistory[apiHistory.length - 1].role === 'user') apiHistory.pop();
         break;
       }
@@ -21986,17 +22073,40 @@ ${KODA_DOC_ONLINE}`;
       const w = addBubble('agent', escapeHtml(t('agent_truncated_warning')) + `<div class="chat-actions"><button class="btn-publish" data-act="cont">${ICONS.rocket} ${t('agent_continue_btn')}</button></div>`);
       const btn = w.querySelector('[data-act="cont"]');
       btn.addEventListener('click', async ()=>{
+        if(gerando) return;
         btn.disabled = true;
+        const marca = apiHistory.length;
         addTyping();
+        const g = comecarGerar();
         try{
           const r = await completarCodigo({code: pendingGameCode, comment: '', truncated: true}, 6);
+          if(g.cancelado) throw jogoCancelado();
           removeTyping();
           mostrarCodigoPronto(r);
-        }catch(e){ removeTyping(); btn.disabled = false; toast(t('code_copy_failed_toast')); }
+        }catch(e){
+          removeTyping(); btn.disabled = false;
+          if(foiCancelado(e) || g.cancelado){ apiHistory.length = Math.min(apiHistory.length, marca); toast(t('agent_cancelado_cont')); }
+          else toast(t('code_copy_failed_toast'));
+        }
+        finally{ terminarGerar(g); }
       });
     }
   }
+  /* cancelou: some o pedido do chat (o texto volta pra caixa, pra editar ou mandar de novo) e a conversa da IA volta ao que era */
+  function desfazerPedido(text, userB, marca){
+    apiHistory.length = Math.min(apiHistory.length, marca);
+    const w = userB && userB.closest ? userB.closest('.chat-msg') : null;
+    if(w) w.remove();
+    const ult = messageLog[messageLog.length - 1];
+    if(ult && ult.role === 'user') messageLog.pop();
+    if(messageLog.length || pendingGameCode) persistChat(null);
+    else if(currentDraftId){ saveDrafts(loadDrafts().filter(d=>d.id !== currentDraftId)); currentDraftId = null; try{ syncToServer(); }catch(e){} }
+    if(!inputEl.value.trim()){ inputEl.value = text; inputEl.dispatchEvent(new Event('input')); }
+    if(!messageLog.length && !pendingGameCode && !root.querySelector('#chatHero') && !messagesEl.children.length) mostrarHero();
+    toast(t('agent_cancelado'));
+  }
   async function handleSend(){
+    if(gerando) return;                       // a IA ainda está escrevendo (o botão virou "parar")
     const text = inputEl.value.trim();
     if(!text) return;
     inputEl.value = '';
@@ -22011,10 +22121,13 @@ ${KODA_DOC_ONLINE}`;
       return;
     }
 
-    addBubble('user', escapeHtml(text));
+    const userB = addBubble('user', escapeHtml(text));
+    const marca = apiHistory.length;
     addTyping();
+    const g = comecarGerar();
     try{
       let result = await completarCodigo(await callAgent(text), 6);
+      if(g.cancelado) throw jogoCancelado();
       removeTyping();
       if(result.code){
         mostrarCodigoPronto(result);
@@ -22023,6 +22136,7 @@ ${KODA_DOC_ONLINE}`;
       }
     }catch(err){
       removeTyping();
+      if(foiCancelado(err) || g.cancelado){ desfazerPedido(text, userB, marca); return; }
       const detail = SERVER_URL ? ` (${t('agent_fail_detail',{msg:err.message})})` : '';
       const failB = addBubble('agent', `${t('agent_fail')}${escapeHtml(detail)}<div class="chat-actions"><button class="btn-publish" data-act="gofail">${ICONS.rocket} ${t('agent_fail_btn')}</button></div>`);
       failB.querySelector('[data-act="gofail"]').addEventListener('click', ()=>{
@@ -22033,9 +22147,10 @@ ${KODA_DOC_ONLINE}`;
         });
       });
     }
+    finally{ terminarGerar(g); }
   }
 
-  root.querySelector('#sendBtn').addEventListener('click', handleSend);
+  root.querySelector('#sendBtn').addEventListener('click', ()=>{ if(gerando) cancelarGerar(); else handleSend(); });
   inputEl.addEventListener('keydown', e=>{
     if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); handleSend(); }
   });
@@ -34960,6 +35075,16 @@ var PZ_TXT = {
  jogo_diag_pedido_juntar:'Junte tudo (HTML, CSS e JavaScript) em um único arquivo HTML, sem usar outros arquivos, e me mande o código inteiro.|Put everything (HTML, CSS and JavaScript) into a single HTML file, without other files, and send me the whole code.|Junta todo (HTML, CSS y JavaScript) en un único archivo HTML, sin otros archivos, y envíame el código completo.|Metti tutto (HTML, CSS e JavaScript) in un unico file HTML, senza altri file, e mandami il codice intero.|Mets tout (HTML, CSS et JavaScript) dans un seul fichier HTML, sans autres fichiers, et envoie-moi le code entier.|Pack alles (HTML, CSS und JavaScript) in eine einzige HTML-Datei, ohne andere Dateien, und schick mir den ganzen Code.|Zet alles (HTML, CSS en JavaScript) in één HTML-bestand, zonder andere bestanden, en stuur me de hele code.|HTML・CSS・JavaScriptを全部1つのHTMLファイルにまとめて（ほかのファイルは使わずに）、コード全体を送って。|把 HTML、CSS 和 JavaScript 全部放进一个 HTML 文件里（不要用别的文件），再把完整代码发给我。|HTML, CSS, JavaScript를 다른 파일 없이 HTML 파일 하나에 모두 넣고 전체 코드를 보내 줘.',
  jogo_diag_copiar:'Copiar o pedido|Copy the request|Copiar el pedido|Copia la richiesta|Copier la demande|Text kopieren|Verzoek kopiëren|お願いをコピー|复制这段话|요청 복사',
  jogo_diag_copiado:'Copiado! Cole na conversa com a IA.|Copied! Paste it in your chat with the AI.|¡Copiado! Pégalo en el chat con la IA.|Copiato! Incollalo nella chat con l’IA.|Copié ! Colle-le dans la discussion avec l’IA.|Kopiert! Füg es im Chat mit der KI ein.|Gekopieerd! Plak het in je chat met de AI.|コピーしたよ！AIとの会話に貼ってね。|复制好了！贴到和 AI 的对话里吧。|복사했어요! AI와의 대화에 붙여 넣어요.',
+ agent_enviar:'Enviar|Send|Enviar|Invia|Envoyer|Senden|Versturen|送信|发送|보내기',
+ agent_parar:'Parar e cancelar|Stop and cancel|Parar y cancelar|Ferma e annulla|Arrêter et annuler|Stoppen und abbrechen|Stoppen en annuleren|止めてキャンセル|停止并取消|멈추고 취소',
+ agent_cancelar:'Cancelar|Cancel|Cancelar|Annulla|Annuler|Abbrechen|Annuleren|キャンセル|取消|취소',
+ agent_cancelando:'Cancelando…|Cancelling…|Cancelando…|Annullamento…|Annulation…|Wird abgebrochen…|Annuleren…|キャンセル中…|正在取消…|취소하는 중…',
+ agent_cancelado:'Cancelado! Seu pedido voltou pra caixa, é só editar e mandar de novo.|Cancelled! Your request is back in the box. Edit it and send again.|¡Cancelado! Tu pedido volvió a la caja, solo edítalo y envíalo de nuevo.|Annullato! La tua richiesta è tornata nella casella: modificala e inviala di nuovo.|Annulé ! Ta demande est revenue dans la case, modifie-la et renvoie-la.|Abgebrochen! Deine Anfrage ist wieder im Feld, ändere sie und sende sie neu.|Geannuleerd! Je verzoek staat weer in het vak, pas het aan en verstuur opnieuw.|キャンセルしたよ！お願いは入力欄にもどったから、直してもう一度送ってね。|已取消！你的请求回到了输入框，改一改再发就行。|취소했어요! 요청이 입력창으로 돌아왔어요. 고쳐서 다시 보내요.',
+ agent_cancelado_cont:'Cancelado. O jogo continua como estava.|Cancelled. The game stays as it was.|Cancelado. El juego sigue como estaba.|Annullato. Il gioco resta com’era.|Annulé. Le jeu reste comme avant.|Abgebrochen. Das Spiel bleibt, wie es war.|Geannuleerd. De game blijft zoals hij was.|キャンセルしたよ。ゲームはそのままだよ。|已取消。游戏保持原样。|취소했어요. 게임은 그대로예요.',
+ ia_cancelar:'Cancelar|Cancel|Cancelar|Annulla|Annuler|Abbrechen|Annuleren|キャンセル|取消|취소',
+ ia_cancelado:'Cancelado. O código ficou do jeito que estava.|Cancelled. The code stayed as it was.|Cancelado. El código quedó como estaba.|Annullato. Il codice è rimasto com’era.|Annulé. Le code est resté comme avant.|Abgebrochen. Der Code ist unverändert.|Geannuleerd. De code is gebleven zoals hij was.|キャンセルしたよ。コードはそのままだよ。|已取消。代码保持原样。|취소했어요. 코드는 그대로예요.',
+ ask_cancelar:'Cancelar|Cancel|Cancelar|Annulla|Annuler|Abbrechen|Annuleren|キャンセル|取消|취소',
+ ask_cancelado:'Cancelado. Sua pergunta voltou pra caixa.|Cancelled. Your question is back in the box.|Cancelado. Tu pregunta volvió a la caja.|Annullato. La tua domanda è tornata nella casella.|Annulé. Ta question est revenue dans la case.|Abgebrochen. Deine Frage ist wieder im Feld.|Geannuleerd. Je vraag staat weer in het vak.|キャンセルしたよ。質問は入力欄にもどったよ。|已取消。你的问题回到了输入框。|취소했어요. 질문이 입력창으로 돌아왔어요.',
  ugc_f_limpar:'Limpar tudo|Clear all|Borrar todo|Cancella tutto|Tout effacer|Alles löschen|Alles wissen|全部消す|全部清除|모두 지우기',
  ugc_limpar_conf:'Apagar o desenho todo?|Erase the whole drawing?|¿Borrar todo el dibujo?|Cancellare tutto il disegno?|Effacer tout le dessin ?|Die ganze Zeichnung löschen?|De hele tekening wissen?|絵を全部消しますか？|要清除整幅画吗？|그림을 전부 지울까요?',
  ugc_cor_exata:'Cor exata|Exact color|Color exacto|Colore esatto|Couleur exacte|Genaue Farbe|Exacte kleur|ぴったりの色|精确颜色|정확한 색',
