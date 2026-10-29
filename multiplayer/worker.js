@@ -53,7 +53,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (url.pathname === '/' || url.pathname === '/saude') {
-      return new Response(JSON.stringify({ koda_online: true, tudo_certo: true }), { headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } });
+      return new Response(JSON.stringify({ koda_online: true, tudo_certo: true, versao: 'falas-emotes-2026-10-29' }), { headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } });
     }
     if (url.pathname !== '/jogar') return new Response('Não achei.', { status: 404 });
     if (req.headers.get('Upgrade') !== 'websocket') return new Response('Precisa ser WebSocket.', { status: 426 });

@@ -50,7 +50,7 @@
 /* ---------------------------------------------------------------------------
    CONFIGURAÇÃO
 --------------------------------------------------------------------------- */
-const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-20-modo-sem-ia';
+const VERSAO_DO_CODIGO = 'dupla-coautores-2026-10-29';
 const PROJETO_PADRAO   = 'jogodromo';
 /* modo da análise de jogos quando a variável MODERACAO não existe: 'desligada' | 'basica' | 'completa'.
    Está 'desligada' enquanto não há chave/crédito da IA. Pra religar: crie a variável MODERACAO = completa no Cloudflare. */
