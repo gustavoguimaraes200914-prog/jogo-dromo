@@ -4241,6 +4241,31 @@
   .ugc-moedas button[data-moeda="d"].on{border-color:#8B5CF6;background:#F1E9FF;}
   .ugc-precos.dia button.on{border-color:#8B5CF6;background:#F1E9FF;}
   .pz-pr.dia{color:#6B3FD1;}
+  .dupla-sub{margin:16px 0 8px;font:800 1rem 'Baloo 2',sans-serif;}
+  .dupla-lista{display:flex;flex-direction:column;gap:8px;}
+  .dupla-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;border-radius:16px;padding:10px 12px;background:#fff;color:#13312A;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);font-family:'Baloo 2',sans-serif;}
+  .dupla-item-txt{display:flex;flex-direction:column;min-width:0;}
+  .dupla-item-txt small{opacity:.7;font-weight:700;}
+  .dupla-avs{display:flex;flex:none;}
+  .dupla-avs .dupla-av + .dupla-av{margin-left:-12px;}
+  .dupla-av{width:40px;height:40px;border-radius:50%;overflow:hidden;border:3px solid #fff;flex:none;display:inline-flex;}
+  .dupla-av img,.dupla-av svg{width:100%;height:100%;}
+  .dupla-gente{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 4px;}
+  .dupla-pessoa{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;font:800 .9rem 'Baloo 2',sans-serif;color:#eafcff;}
+  .dupla-pessoa .dupla-av{width:58px;height:58px;}
+  .dupla-mais{font:900 1.6rem 'Baloo 2',sans-serif;color:#FFC93C;}
+  .dupla-mexendo{position:absolute;top:-4px;right:-6px;width:22px;height:22px;border-radius:50%;background:#FFC93C;box-shadow:0 0 0 3px rgba(255,201,60,.35);animation:duplaMexe 1s ease-in-out infinite;}
+  .dupla-mexendo::after{content:'';position:absolute;inset:6px;border-radius:2px;background:#13312A;-webkit-mask:linear-gradient(#000 0 0);}
+  @keyframes duplaMexe{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+  .dupla-status{text-align:center;font-weight:700;font-size:.86rem;opacity:.85;margin:4px 0 10px;min-height:1.2em;}
+  .dupla-espera #duplaCode,.dupla-espera #duplaNome{opacity:.7;}
+  @keyframes duplaChegou{0%{box-shadow:0 0 0 0 rgba(255,201,60,.8);}100%{box-shadow:0 0 0 14px rgba(255,201,60,0);}}
+  .dupla-chegou #duplaCode{animation:duplaChegou .9s ease-out;}
+  .msg-dupla{display:flex;align-items:center;gap:10px;background:#fff;color:#13312A;border-radius:18px;padding:10px 12px;margin-bottom:4px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);max-width:290px;flex-wrap:wrap;}
+  .msg-dupla-ico svg{width:42px;height:42px;display:block;}
+  .msg-dupla-txt{display:flex;flex-direction:column;flex:1;min-width:120px;}
+  .msg-dupla-txt small{opacity:.7;font-weight:700;font-size:.78rem;}
+  .msg-dupla-btn{width:100%;text-align:center;background:#17C79E;color:#fff;border-radius:12px;padding:7px 10px;font:800 .9rem 'Baloo 2',sans-serif;}
   .shop-list > .em-grade{grid-column:1/-1;width:100%;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));}
   @media (max-width:380px){ .shop-list > .em-grade{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;} .shop-list > .em-grade .em-card canvas{width:62px;height:62px;} }
   .em-arte canvas{width:96px;height:96px;border-radius:14px;background:linear-gradient(#e9fbf5,#d4f3e9);}
@@ -13587,7 +13612,7 @@ async function sendChatMessage(conversationId, text, gameRef, agentChatRef, repl
       lastMessageAt: Date.now(), lastMessageText: preview, lastMessageBy: user.email
     }, {merge:true});
     try{ msEv('msg', 1); }catch(e){}                       // missões: "mande mensagens"
-    if(gameRef){ try{ recEnviou(); }catch(e){} }           // mandou um jogo pra alguém: +10 moedas (até 5 por dia)
+    if(gameRef && !/^dupla_/.test(String(gameRef.id))){ try{ recEnviou(); }catch(e){} }   // mandou um jogo pra alguém: +10 moedas (até 5 por dia)
     return true;
   }catch(e){
     console.error('Koda: erro ao enviar mensagem:', e);
@@ -14593,7 +14618,13 @@ async function openConversationThread(conv){
   function bubbleHtml(m, showHeader, isNew){
     const mine = m.senderEmail===user.email;
     const senderDisplay = nicknameOr(m.senderName||m.senderEmail, m.senderEmail);
-    const gameCard = m.gameRef ? `
+    const ehDupla = !!(m.gameRef && /^dupla_d[a-z0-9]{6,30}$/.test(String(m.gameRef.id)));
+    const gameCard = ehDupla ? `
+      <div class="msg-dupla" data-dupla-id="${chatListEscape(String(m.gameRef.id).slice(6))}">
+        <span class="msg-dupla-ico">${STUDIO_ICO_DUPLA}</span>
+        <span class="msg-dupla-txt"><b>${chatListEscape(t('dupla_cartao_nome'))}</b><small>${chatListEscape(t('dupla_cartao_sub'))}</small></span>
+        <span class="msg-dupla-btn">${chatListEscape(t('dupla_entrar'))}</span>
+      </div>` : m.gameRef ? `
       <div class="msg-game-card" data-game-id="${chatListEscape(m.gameRef.id)}">
         ${gameMiniCoverHtml(m.gameRef, 'msg-game-cover')}
         <div class="msg-game-name">${chatListEscape(m.gameRef.name)}</div>
@@ -14698,6 +14729,9 @@ async function openConversationThread(conv){
     });
     msgAudioLigar(messagesEl);
     msgVideoLigar(messagesEl);
+    messagesEl.querySelectorAll('.msg-dupla[data-dupla-id]').forEach(card=>{
+      card.addEventListener('click', ()=>{ playSound('click'); duplaAbrir(card.dataset.duplaId); });
+    });
     messagesEl.querySelectorAll('.msg-game-card[data-game-id]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const gid = card.dataset.gameId;
@@ -20416,6 +20450,7 @@ function openCreateModal(){
 }
 /* o Koda Studio abre perguntando o que a pessoa quer fazer: um jogo ou uma roupa pro personagem */
 const STUDIO_ICO_JOGO = '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><rect x="4" y="13" width="40" height="24" rx="12" fill="#17C79E" stroke="#13312A" stroke-width="3"/><path d="M14 20v10M9 25h10" stroke="#13312A" stroke-width="3.4" stroke-linecap="round"/><circle cx="32" cy="22" r="3" fill="#FFC93C" stroke="#13312A" stroke-width="2"/><circle cx="37" cy="28" r="3" fill="#E8413C" stroke="#13312A" stroke-width="2"/></svg>';
+const STUDIO_ICO_DUPLA = '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="16" cy="15" r="7" fill="#FFC93C" stroke="#13312A" stroke-width="3"/><circle cx="33" cy="15" r="7" fill="#8FD3FF" stroke="#13312A" stroke-width="3"/><path d="M3 41c1-8 6-13 13-13s12 5 13 13zM20 41c1-8 6-13 13-13s12 5 13 13z" fill="#17C79E" stroke="#13312A" stroke-width="3" stroke-linejoin="round"/></svg>';
 const STUDIO_ICO_ROUPA = '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M17 6l-12 7 5 10 4-2v21h20V21l4 2 5-10-12-7c-1 4-4 6-7 6s-6-2-7-6z" fill="#FF8FB1" stroke="#13312A" stroke-width="3" stroke-linejoin="round"/><path d="M19 24h4v4h-4zM25 28h4v4h-4zM25 24h4v4h-4z" fill="#13312A"/></svg>';
 function renderStudioMenu(root){
   const esc = chatListEscape;
@@ -20423,8 +20458,14 @@ function renderStudioMenu(root){
       <div class="arcade-marquee">${ICONS.gamepad} ${esc(t('create_title')).toUpperCase()}</div>
       <h3 class="studio-q">${esc(t('studio_q'))}</h3>
       <button type="button" class="studio-op" data-studio="jogo"><span class="studio-ico">${STUDIO_ICO_JOGO}</span><span class="studio-txt"><b>${esc(t('studio_jogo'))}</b><small>${esc(t('studio_jogo_sub'))}</small></span></button>
+      <button type="button" class="studio-op" data-studio="dupla"><span class="studio-ico">${STUDIO_ICO_DUPLA}</span><span class="studio-txt"><b>${esc(t('studio_dupla'))}</b><small>${esc(t('studio_dupla_sub'))}</small></span></button>
       <button type="button" class="studio-op" data-studio="roupa"><span class="studio-ico">${STUDIO_ICO_ROUPA}</span><span class="studio-txt"><b>${esc(t('studio_roupa'))}</b><small>${esc(t('studio_roupa_sub'))}</small></span></button>
     </div>`;
+  root.querySelector('[data-studio="dupla"]').addEventListener('click', ()=>{
+    playSound('click');
+    if(!duplaPodeUsar()){ pedirConta('criar'); return; }
+    renderDuplaLista(root);
+  });
   root.querySelector('[data-studio="jogo"]').addEventListener('click', ()=>{ playSound('click'); renderDirectPublish(root, ()=>renderStudioMenu(root)); });
   root.querySelector('[data-studio="roupa"]').addEventListener('click', ()=>{
     playSound('click');
@@ -20432,6 +20473,248 @@ function renderStudioMenu(root){
     closeModal();
     ugcAbrirEditor(id=>{ toast(t('studio_roupa_pronta')); try{ openThemeShop('personagem'); }catch(e){} });
   });
+}
+/* ============================================================
+   CRIAR EM DUPLA: duas pessoas fazendo o MESMO jogo no Koda Studio.
+   - Quem convida escolhe um amigo; o Koda cria a dupla (duplas/{id} no banco: só os dois leem e escrevem)
+     e manda uma mensagem pro amigo ("Vamos criar esse jogo juntos?") com um botão pra entrar.
+   - No Studio da dupla os dois veem o mesmo nome e o mesmo código (chega em uns 2 segundos).
+     Pra ninguém apagar o que o outro está fazendo, quem está escrevendo "segura a vez" por alguns
+     segundos; o outro vê "Ana está mexendo…" e a caixa fica só pra ver até ela parar.
+   - Publicar: o jogo sai com o nome dos dois ("Ana e Beto"). Os dois podem atualizar depois:
+     o primeiro a publicar fica como dono no banco e o outro entra em "coautores".
+============================================================ */
+const DUPLA_VEZ_MS = 7000, DUPLA_LER_MS = 2000, DUPLA_SALVAR_MS = 1200;
+function duplaPodeUsar(){ return FIREBASE_ENABLED && !souVisitante() && !!fbAuth().currentUser; }
+function duplaLimpa(d){
+  if(!d || !Array.isArray(d.participantes) || d.participantes.length !== 2) return null;
+  return {id: d.id, participantes: d.participantes.map(String), nomes: Array.isArray(d.nomes) ? d.nomes.map(x=>String(x || '').slice(0, 40)) : ['', ''],
+    avs: Array.isArray(d.avs) ? d.avs.map(x=>String(x || '')) : ['', ''], dono: String(d.dono || ''), nome: String(d.nome || '').slice(0, 80),
+    codigo: typeof d.codigo === 'string' ? d.codigo : '', versao: Number(d.versao) || 0, atualizadoPor: String(d.atualizadoPor || ''),
+    atualizadoEm: Number(d.atualizadoEm) || 0, vez: String(d.vez || ''), vezAte: Number(d.vezAte) || 0,
+    jogoId: d.jogoId ? String(d.jogoId) : null, jogoDono: d.jogoDono ? String(d.jogoDono) : null, criadoEm: Number(d.criadoEm) || 0};
+}
+async function duplaLer(id){
+  try{ const doc = await fbDb().collection('duplas').doc(id).get(); return doc.exists ? duplaLimpa(Object.assign({id}, doc.data())) : null; }
+  catch(e){ return null; }
+}
+async function duplaMinhas(){
+  const u = fbAuth().currentUser;
+  try{
+    const snap = await fbDb().collection('duplas').where('participantes', 'array-contains', u.email).get();
+    return snap.docs.map(d=>duplaLimpa(Object.assign({id: d.id}, d.data()))).filter(Boolean).sort((a, b)=>b.atualizadoEm - a.atualizadoEm);
+  }catch(e){ return null; }
+}
+/* convidar: cria a dupla e manda a mensagem com o botão de entrar */
+async function duplaConvidar(pessoa){
+  const u = fbAuth().currentUser;
+  if(!u || !pessoa || !pessoa.email || pessoa.email === u.email) return null;
+  const id = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const agora = Date.now();
+  const doc = {participantes: [u.email, pessoa.email], nomes: [String(getDisplayName(u) || '').slice(0, 40), String(pessoa.name || pessoa.email).slice(0, 40)],
+    avs: [meuCodigo(), String(pessoa.avatar || '')], dono: u.email, nome: '', codigo: '', versao: 0, atualizadoPor: u.email, atualizadoEm: agora,
+    vez: '', vezAte: 0, jogoId: null, jogoDono: null, criadoEm: agora};
+  try{ await fbDb().collection('duplas').doc(id).set(doc); }
+  catch(e){ toast(t('dupla_erro_banco')); return null; }
+  const conv = await findOrCreateDirectConversation(pessoa.email);
+  if(conv) await sendChatMessage(conv, t('dupla_convite_msg'), {id: 'dupla_' + id, name: t('dupla_cartao_nome'), cover: null});
+  return duplaLimpa(Object.assign({id}, doc));
+}
+/* abrir o Studio da dupla (pelo menu do Studio ou pelo botão da mensagem) */
+async function duplaAbrir(id){
+  if(!duplaPodeUsar()){ pedirConta('criar'); return; }
+  const d = await duplaLer(id);
+  if(!d || d.participantes.indexOf(fbAuth().currentUser.email) < 0){ toast(t('dupla_sem_acesso')); return; }
+  openCreateModal();
+  renderDuplaStudio(modalBody, d, ()=>renderDuplaLista(modalBody));
+}
+/* a lista das minhas duplas + convidar alguém */
+async function renderDuplaLista(root){
+  const esc = chatListEscape;
+  root.innerHTML = `<button class="back-link" data-voltar>${t('direct_publish_back')}</button>
+    <div class="arcade-marquee">${ICONS.people} ${esc(t('dupla_tit')).toUpperCase()}</div>
+    <p class="g-msg" style="margin-top:0;">${esc(t('dupla_intro'))}</p>
+    <button class="g-btn" data-convidar style="width:100%;">${ICONS.people} ${esc(t('dupla_convidar'))}</button>
+    <h4 class="dupla-sub">${esc(t('dupla_minhas'))}</h4>
+    <div class="dupla-lista" data-lista><p class="g-msg">${esc(t('loading'))}</p></div>`;
+  root.querySelector('[data-voltar]').addEventListener('click', ()=>{ playSound('click'); renderStudioMenu(root); });
+  root.querySelector('[data-convidar]').addEventListener('click', ()=>{
+    playSound('click');
+    openPeopleSearch({title: t('dupla_escolher'), onSelect: async pessoa=>{
+      const d = await duplaConvidar(pessoa);
+      openCreateModal();
+      if(d){ toast(t('dupla_convidou', {nome: d.nomes[1]})); renderDuplaStudio(modalBody, d, ()=>renderDuplaLista(modalBody)); }
+      else renderDuplaLista(modalBody);
+    }});
+  });
+  const lista = await duplaMinhas();
+  const el = root.querySelector('[data-lista]');
+  if(!el || !el.isConnected) return;
+  if(lista === null){ el.innerHTML = `<p class="g-msg">${esc(t('dupla_erro_banco'))}</p>`; return; }
+  if(!lista.length){ el.innerHTML = `<p class="g-msg">${esc(t('dupla_nenhuma'))}</p>`; return; }
+  const eu = fbAuth().currentUser.email;
+  el.innerHTML = lista.map(d=>{
+    const o = d.participantes[0] === eu ? 1 : 0;
+    return `<button type="button" class="dupla-item" data-dupla="${esc(d.id)}">
+      <span class="dupla-avs">${pzAv(d.avs[1 - o], d.participantes[1 - o], 'dupla-av')}${pzAv(d.avs[o], d.participantes[o], 'dupla-av')}</span>
+      <span class="dupla-item-txt"><b>${esc(d.nome || t('dupla_sem_nome'))}</b><small>${esc(t('dupla_com', {nome: d.nomes[o] || d.participantes[o]}))}${d.jogoId ? ' · ' + esc(t('dupla_publicado')) : ''}</small></span>
+    </button>`;
+  }).join('');
+  el.querySelectorAll('[data-dupla]').forEach(b=>b.addEventListener('click', async ()=>{
+    playSound('click');
+    const d = await duplaLer(b.dataset.dupla);
+    if(d) renderDuplaStudio(root, d, ()=>renderDuplaLista(root)); else toast(t('dupla_sem_acesso'));
+  }));
+}
+/* o Studio da dupla: o mesmo nome e código pros dois, a vez de mexer, testar, Agente Koda e publicar */
+function renderDuplaStudio(root, d, onBack){
+  const esc = chatListEscape, eu = fbAuth().currentUser.email, o = d.participantes[0] === eu ? 1 : 0;
+  const outroNome = d.nomes[o] || d.participantes[o];
+  root.innerHTML = `<button class="back-link" data-voltar>${t('direct_publish_back')}</button>
+    <div class="arcade-marquee">${ICONS.people} ${esc(t('dupla_tit')).toUpperCase()}</div>
+    <div class="dupla-gente">
+      <span class="dupla-pessoa">${pzAv(meuCodigo(), eu, 'dupla-av')}<b>${esc(t('dupla_voce'))}</b></span>
+      <span class="dupla-mais">+</span>
+      <span class="dupla-pessoa" data-outro>${pzAv(d.avs[o], d.participantes[o], 'dupla-av')}<b>${esc(outroNome)}</b><i class="dupla-mexendo" hidden></i></span>
+    </div>
+    <p class="dupla-status" data-status aria-live="polite">${esc(t('dupla_juntos'))}</p>
+    <label class="direct-label">${t('direct_publish_name_label')}</label>
+    <div class="form-field"><input type="text" id="duplaNome" maxlength="80" placeholder="${t('pub_name_ph')}" value="${esc(d.nome)}"></div>
+    <label class="direct-label">${t('direct_publish_code_label')}</label>
+    <div class="form-field"><textarea id="duplaCode" placeholder="${t('code_form_code_ph')}"></textarea><p class="form-hint">${esc(t('dupla_dica'))}</p></div>
+    <button class="direct-test-btn" id="duplaTest" type="button">${ICONS.gamepad} ${t('btn_test')}</button>
+    ${assistenteHtml()}
+    <div class="direct-cover-box" id="duplaCoverBox"><span class="plus-icon">+</span><span class="cover-caption">${t('direct_publish_photo_label')}</span><span class="cover-subcaption">${t('direct_publish_photo_hint')}</span></div>
+    <input type="file" id="duplaCoverInput" accept="image/*" style="display:none;">
+    ${capaSeletorHtml('square')}
+    <button class="g-btn" id="duplaGo" style="width:100%;margin-top:6px;">${ICONS.rocket} ${esc(t(d.jogoId ? 'dupla_atualizar' : 'dupla_publicar'))}</button>
+    <p class="form-hint">${esc(t('dupla_publicar_dica', {nome: outroNome}))}</p>
+    <div class="direct-preview-bg" id="duplaPreviewBg"><button class="back-link" id="duplaPreviewBack">${t('back_arrow')}</button><iframe id="duplaPreviewFrame"></iframe></div>`;
+  const nomeEl = root.querySelector('#duplaNome'), code = root.querySelector('#duplaCode'), status = root.querySelector('[data-status]'), mexendo = root.querySelector('.dupla-mexendo');
+  code.value = d.codigo;
+  let atual = d, salvoNome = d.nome, salvoCodigo = d.codigo, minhaVezAte = 0, timerSalvar = null, salvando = false, parado = false;
+  /* o jogo já publicado também aparece em "meus jogos" de quem não publicou */
+  const guardarLocal = ()=>{
+    if(!atual.jogoId) return;
+    const lista = loadCustomGames();
+    if(lista.some(r=>r.id === atual.jogoId)) return;
+    const rec = {id: atual.jogoId, name: atual.nome || t('dupla_sem_nome'), category: null, bg: 'linear-gradient(135deg,#26D0A0,#3DA9FC)', cover: null, shape: 'square',
+      codeB64: utf8ToB64(atual.codigo || ''), hasDifficulty: false, loja: codigoTemLoja(atual.codigo), multiplayerCounts: [], trad: {status: 'pendente', linguas: {}}, createdAt: Date.now(),
+      dupla: atual.id, jogoDono: atual.jogoDono, coautores: atual.participantes.filter(e=>e !== atual.jogoDono), nomeDupla: atual.nomes.join(' ' + t('dupla_e') + ' ')};
+    lista.push(rec);
+    if(saveCustomGames(lista)){ try{ GAMES.push(toRenderableCustomGame(rec)); syncToServer(); }catch(e){} }
+  };
+  guardarLocal();
+  const vezDoOutro = ()=>atual.vez && atual.vez !== eu && atual.vezAte > Date.now();
+  const pintarVez = ()=>{
+    const outro = vezDoOutro();
+    code.readOnly = outro; nomeEl.readOnly = outro;
+    root.classList.toggle('dupla-espera', outro);
+    mexendo.hidden = !outro;
+    status.textContent = outro ? t('dupla_outro_mexendo', {nome: outroNome}) : (atual.atualizadoPor && atual.atualizadoPor !== eu && Date.now() - atual.atualizadoEm < 15000) ? t('dupla_outro_mudou', {nome: outroNome}) : t('dupla_juntos');
+  };
+  const salvar = async ()=>{
+    timerSalvar = null;
+    if(salvando || !root.isConnected) return;
+    const n = nomeEl.value.trim().slice(0, 80), c = code.value;
+    if(n === salvoNome && c === salvoCodigo) return;
+    if(c.length > ASSISTENTE_MAX_CODIGO * 2){ toast(t('code_form_too_big')); return; }
+    salvando = true;
+    const novo = {nome: n, codigo: c, versao: atual.versao + 1, atualizadoPor: eu, atualizadoEm: Date.now(), vez: eu, vezAte: Date.now() + DUPLA_VEZ_MS};
+    try{ await fbDb().collection('duplas').doc(atual.id).update(novo); Object.assign(atual, novo); salvoNome = n; salvoCodigo = c; minhaVezAte = novo.vezAte; }
+    catch(e){ status.textContent = t('dupla_erro_banco'); }
+    salvando = false;
+  };
+  const mexeu = ()=>{
+    if(vezDoOutro()) return;
+    /* segura a vez enquanto escreve (avisa o outro de cara, sem esperar salvar) */
+    if(minhaVezAte - Date.now() < DUPLA_VEZ_MS / 2){
+      minhaVezAte = Date.now() + DUPLA_VEZ_MS;
+      fbDb().collection('duplas').doc(atual.id).update({vez: eu, vezAte: minhaVezAte}).catch(()=>{});
+    }
+    clearTimeout(timerSalvar);
+    timerSalvar = setTimeout(salvar, DUPLA_SALVAR_MS);
+  };
+  code.addEventListener('input', mexeu);
+  nomeEl.addEventListener('input', mexeu);
+  /* de tempos em tempos: busca o que o outro fez (e salva o que o Agente Koda mudou na caixa) */
+  const ler = async ()=>{
+    if(parado || !root.isConnected){ parado = true; return; }
+    if(code.value !== salvoCodigo && !timerSalvar && !vezDoOutro()) mexeu();
+    const r = await duplaLer(atual.id);
+    if(r && root.isConnected){
+      const veioDoOutro = r.versao > atual.versao && r.atualizadoPor !== eu;
+      Object.assign(atual, {vez: r.vez, vezAte: r.vezAte, jogoId: r.jogoId, jogoDono: r.jogoDono});
+      if(veioDoOutro){
+        Object.assign(atual, r);
+        if(document.activeElement !== code || code.value === salvoCodigo){ code.value = r.codigo; salvoCodigo = r.codigo; }
+        if(document.activeElement !== nomeEl || nomeEl.value.trim() === salvoNome){ nomeEl.value = r.nome; salvoNome = r.nome; }
+        root.classList.remove('dupla-chegou'); void root.offsetWidth; root.classList.add('dupla-chegou');
+      }
+      guardarLocal();
+      pintarVez();
+    }
+    setTimeout(ler, DUPLA_LER_MS);
+  };
+  pintarVez();
+  setTimeout(ler, DUPLA_LER_MS);
+  root.querySelector('[data-voltar]').addEventListener('click', ()=>{ parado = true; if(timerSalvar){ clearTimeout(timerSalvar); salvar(); } playSound('click'); if(onBack) onBack(); });
+  /* testar (igual ao Studio) */
+  const previewBg = root.querySelector('#duplaPreviewBg'), previewFrame = root.querySelector('#duplaPreviewFrame');
+  root.querySelector('#duplaTest').addEventListener('click', ()=>{
+    const bruto = code.value, c = prepararCodigoDoJogo(bruto), diag = jogoDiagnostico(bruto, c);
+    if(!c){ if(diag) jogoMostrarDiagnostico(diag); else toast(t('code_form_code_incomplete')); return; }
+    if(c !== bruto && !vezDoOutro()){ code.value = c; mexeu(); }
+    if(diag) setTimeout(()=>jogoMostrarDiagnostico(diag), 900);
+    hardenGameFrame(previewFrame);
+    const comLoja = codigoTemLoja(c);
+    previewFrame.addEventListener('load', ()=>{ try{ previewFrame.contentWindow.focus(); }catch(e){} }, {once: true});
+    previewFrame.srcdoc = jogoRedeDeSeguranca(c) + lojaIniDoJogo(comLoja, '__teste__', true) + salvoIniDoJogo('__teste__', true) + KODA_BRIDGE + jogoCodigoSeguro(c);
+    kodaLojaLigar(previewFrame, {gameId: '__teste__', nome: nomeEl.value.trim(), ligada: comLoja, simulado: true});
+    previewBg.classList.add('show');
+  });
+  root.querySelector('#duplaPreviewBack').addEventListener('click', ()=>{ previewBg.classList.remove('show'); previewFrame.srcdoc = ''; kodaLojaDesligar(); });
+  const coverBox = root.querySelector('#duplaCoverBox');
+  coverBox.addEventListener('click', ()=>root.querySelector('#duplaCoverInput').click());
+  const capa = ligarCapa(root, {shape: 'square', inputSel: '#duplaCoverInput', previewSel: '#duplaCoverBox', mostrarFoto: uri=>{ coverBox.classList.add('has-img'); coverBox.innerHTML = `<img src="${uri}">`; }});
+  root.querySelector('#duplaGo').addEventListener('click', async ()=>{
+    if(timerSalvar){ clearTimeout(timerSalvar); await salvar(); }
+    const r = await duplaLer(atual.id);
+    if(r) Object.assign(atual, r);
+    parado = true;
+    if(!duplaPublicar(atual, nomeEl.value.trim(), code.value, capa)){ parado = false; setTimeout(ler, DUPLA_LER_MS); }
+  });
+  ligarAssistente(root, '#duplaCode');
+}
+/* publicar (ou atualizar) o jogo da dupla: sai com o nome dos dois e os dois podem mexer depois */
+function duplaPublicar(d, nome, bruto, capa){
+  const eu = fbAuth().currentUser.email;
+  if(!nome){ toast(t('code_form_name_needed')); return false; }
+  const code = prepararCodigoDoJogo(bruto);
+  const diag = jogoDiagnostico(bruto, code);
+  if(diag && (diag.tipo !== 'arquivo' || diag.arquivos.some(a=>/\.(js|mjs|jsx|ts|tsx)$/i.test(a)))){ jogoMostrarDiagnostico(diag); return false; }
+  if(!code || code.trim().length < 20 || !code.includes('<')){ toast(t('code_form_code_incomplete')); return false; }
+  if(containsIllicitContent(nome) || containsIllicitContent(code)){ mostrarContraLeis(t('illicit_content_blocked')); return false; }
+  const id = d.jogoId || ('custom_' + Date.now() + '_' + Math.floor(Math.random() * 9999));
+  const dono = d.jogoDono || eu;
+  const lista = loadCustomGames();
+  const i = lista.findIndex(r=>r.id === id), velho = i >= 0 ? lista[i] : null;
+  const codeB64 = utf8ToB64(code), mudou = !velho || velho.codeB64 !== codeB64;
+  const rec = Object.assign({}, velho || {bg: 'linear-gradient(135deg,#26D0A0,#3DA9FC)', category: null, hasDifficulty: false, multiplayerCounts: [], createdAt: Date.now()}, {
+    id, name: nome, cover: (capa && capa.cover) || (velho && velho.cover) || null, shape: (capa && capa.shape) || (velho && velho.shape) || 'square', codeB64,
+    loja: codigoTemLoja(code), trad: mudou || !velho || !velho.trad ? {status: 'pendente', linguas: {}} : velho.trad,
+    dupla: d.id, jogoDono: dono, coautores: d.participantes.filter(e=>e !== dono), nomeDupla: d.nomes.join(' ' + t('dupla_e') + ' ')
+  });
+  if(velho && velho.analise && velho.analise.status === 'aprovado' && mudou) rec.atualizar = {notas: '', em: Date.now()};
+  if(i >= 0) lista[i] = rec; else lista.push(rec);
+  if(!saveCustomGames(lista)){ toast(t('code_form_too_big')); return false; }
+  GAMES = GAMES.filter(g=>g.id !== id); GAMES.push(toRenderableCustomGame(rec));
+  fbDb().collection('duplas').doc(d.id).update({jogoId: id, jogoDono: dono, nome, atualizadoEm: Date.now()}).catch(()=>{});
+  closeModal();
+  applyFilters(document.getElementById('search').value);
+  syncToServer();
+  if(ANALISE_LIGADA) abrirTelaDeAnalise(rec); else concluirPublicacao(rec, !!velho);
+  return true;
 }
 function renderCreateChoice(root){
   root.innerHTML = `
@@ -20921,8 +21204,23 @@ async function syncPublicGame(rec, opts){
     creatorEmail: user.email, creatorUid: user.uid, creatorName: getDisplayName(user),
     updatedAt: Date.now(), status: 'analise', enviadoEm: Date.now(), lang: currentLang
   };
+  /* jogo feito em dupla: o dono no banco é quem publicou primeiro; o outro vai em coautores (e o nome é dos dois) */
+  const emDupla = Array.isArray(rec.coautores) && rec.coautores.length && rec.jogoDono;
+  if(emDupla){
+    dados.creatorEmail = rec.jogoDono;
+    if(rec.jogoDono !== user.email) delete dados.creatorUid;
+    dados.coautores = rec.coautores.slice(0, 3);
+    if(rec.nomeDupla) dados.creatorName = String(rec.nomeDupla).slice(0, 60);
+  }
   try{
-    await fbDb().collection('gameSubmissions').doc(rec.id).set(dados, {merge:true});
+    try{ await fbDb().collection('gameSubmissions').doc(rec.id).set(dados, {merge:true}); }
+    catch(e1){
+      /* o banco ainda não aceita coautores (falta a regra nova): quem é o dono publica sozinho mesmo assim */
+      if(!emDupla || rec.jogoDono !== user.email || !/permission/i.test(String(e1 && (e1.code || e1.message)))) throw e1;
+      delete dados.coautores;
+      await fbDb().collection('gameSubmissions').doc(rec.id).set(dados, {merge:true});
+      toast(t('dupla_regra'));
+    }
   }catch(e){
     const grande = /size|exceed|too large|maximum|limite/i.test(String(e && (e.message || e.code) || ''));
     const r = grande
@@ -36285,6 +36583,34 @@ var PZ_TXT = {
  ugc_preco_d:'Preço em diamantes (1 a 50)|Price in diamonds (1 to 50)|Precio en diamantes (1 a 50)|Prezzo in diamanti (da 1 a 50)|Prix en diamants (1 à 50)|Preis in Diamanten (1 bis 50)|Prijs in diamanten (1 tot 50)|ダイヤの値段（1〜50）|钻石价格（1到50）|다이아 가격(1~50)',
  ugc_dia_dica:'Diamante é raro: peças de diamante vendem menos, mas valem mais. Você recebe 70% (pelo menos 1 diamante por venda).|Diamonds are rare: diamond items sell less but are worth more. You get 70% (at least 1 diamond per sale).|El diamante es raro: las piezas de diamante se venden menos, pero valen más. Recibes el 70% (al menos 1 diamante por venta).|Il diamante è raro: i pezzi in diamanti si vendono meno, ma valgono di più. Ricevi il 70% (almeno 1 diamante a vendita).|Le diamant est rare : les pièces en diamants se vendent moins, mais valent plus. Tu reçois 70 % (au moins 1 diamant par vente).|Diamanten sind selten: Diamant-Teile verkaufen sich seltener, sind aber mehr wert. Du bekommst 70 % (mindestens 1 Diamant pro Verkauf).|Diamanten zijn zeldzaam: diamantstukken verkopen minder, maar zijn meer waard. Jij krijgt 70% (minstens 1 diamant per verkoop).|ダイヤはレア：売れる数は少ないけど価値が高いよ。70%（1回の販売で最低1ダイヤ）もらえるよ。|钻石很稀有：钻石商品卖得少，但更值钱。你能得到70%（每卖一次至少1颗钻石）。|다이아는 귀해요: 다이아 아이템은 덜 팔리지만 가치가 높아요. 70%(판매마다 최소 1다이아)를 받아요.',
  ugc_dia_regra:'Ainda não dá pra vender por diamantes (o Koda está terminando de ligar isso). Publique por moedas por enquanto.|Selling for diamonds isn’t available yet (Koda is finishing setting it up). Publish for coins for now.|Aún no se puede vender por diamantes (Koda está terminando de activarlo). Publica por monedas por ahora.|Non si può ancora vendere per diamanti (Koda sta finendo di attivarlo). Per ora pubblica in monete.|Pas encore possible de vendre contre des diamants (Koda finit de l’activer). Publie en pièces pour l’instant.|Verkauf für Diamanten geht noch nicht (Koda schaltet es gerade frei). Veröffentliche vorerst für Münzen.|Verkopen voor diamanten kan nog niet (Koda zet het nog aan). Publiceer voorlopig voor munten.|ダイヤでの販売はまだ準備中だよ。今はコインで出品してね。|暂时还不能用钻石出售（Koda正在开启这个功能），先用金币发布吧。|아직 다이아로 판매할 수 없어요(Koda가 준비 중). 지금은 코인으로 올려요.',
+ studio_dupla:'Criar jogo em dupla|Make a game together|Crear un juego en pareja|Creare un gioco in coppia|Créer un jeu à deux|Spiel zu zweit erstellen|Samen een game maken|ふたりでゲームを作る|两人一起做游戏|둘이서 게임 만들기',
+ studio_dupla_sub:'Chame um amigo: os dois mexem no mesmo jogo e publicam juntos.|Invite a friend: you both work on the same game and publish it together.|Invita a un amigo: los dos editan el mismo juego y lo publican juntos.|Invita un amico: lavorate entrambi sullo stesso gioco e lo pubblicate insieme.|Invite un ami : vous travaillez tous les deux sur le même jeu et le publiez ensemble.|Lade einen Freund ein: Ihr arbeitet beide am selben Spiel und veröffentlicht es zusammen.|Nodig een vriend uit: jullie werken samen aan dezelfde game en publiceren hem samen.|友だちを呼ぼう：ふたりで同じゲームを作って、いっしょに公開できるよ。|邀请朋友：你们一起做同一个游戏，一起发布。|친구를 불러요: 둘이 같은 게임을 만들고 함께 올려요.',
+ dupla_tit:'Criar em dupla|Make it together|Crear en pareja|Creare in coppia|Créer à deux|Zu zweit erstellen|Samen maken|ふたりで作る|两人一起做|둘이서 만들기',
+ dupla_intro:'Convide um amigo pro Koda Studio. Vocês veem o mesmo código, testam e publicam o jogo com o nome dos dois.|Invite a friend to Koda Studio. You see the same code, test it and publish the game with both your names.|Invita a un amigo a Koda Studio. Ven el mismo código, lo prueban y publican el juego con el nombre de los dos.|Invita un amico in Koda Studio. Vedete lo stesso codice, lo provate e pubblicate il gioco con i vostri due nomi.|Invite un ami dans Koda Studio. Vous voyez le même code, vous testez et publiez le jeu avec vos deux noms.|Lade einen Freund ins Koda Studio ein. Ihr seht denselben Code, testet ihn und veröffentlicht das Spiel mit euren beiden Namen.|Nodig een vriend uit in Koda Studio. Jullie zien dezelfde code, testen hem en publiceren de game met jullie beide namen.|友だちをKoda Studioに招待しよう。同じコードを見て、テストして、ふたりの名前でゲームを公開できるよ。|邀请朋友进入Koda Studio。你们看到同一份代码，一起测试，用两个人的名字发布游戏。|친구를 Koda Studio에 초대해요. 같은 코드를 보고, 테스트하고, 두 사람 이름으로 게임을 올려요.',
+ dupla_convidar:'Convidar um amigo|Invite a friend|Invitar a un amigo|Invita un amico|Inviter un ami|Freund einladen|Vriend uitnodigen|友だちを招待|邀请朋友|친구 초대하기',
+ dupla_minhas:'Suas duplas|Your duos|Tus parejas|Le tue coppie|Tes duos|Deine Duos|Jouw duo’s|あなたのペア|你的组合|내 팀',
+ dupla_escolher:'Com quem você quer criar?|Who do you want to create with?|¿Con quién quieres crear?|Con chi vuoi creare?|Avec qui veux-tu créer ?|Mit wem willst du erstellen?|Met wie wil je maken?|だれと作る？|你想和谁一起做？|누구랑 만들래요?',
+ dupla_convidou:'Convite mandado pra {nome}! Pode começar: tudo aparece pra pessoa quando ela entrar.|Invite sent to {nome}! You can start: everything shows up for them when they join.|¡Invitación enviada a {nome}! Puedes empezar: todo le aparecerá cuando entre.|Invito mandato a {nome}! Puoi iniziare: vedrà tutto quando entra.|Invitation envoyée à {nome} ! Tu peux commencer : tout apparaîtra quand la personne arrivera.|Einladung an {nome} geschickt! Du kannst anfangen: Alles erscheint, sobald die Person dazukommt.|Uitnodiging gestuurd naar {nome}! Je kunt beginnen: alles verschijnt als die persoon erbij komt.|{nome}さんに招待を送ったよ！はじめていいよ。入ってきたら全部見えるよ。|已经邀请{nome}！你可以先开始，对方进来就能看到全部内容。|{nome}님에게 초대를 보냈어요! 먼저 시작해도 돼요. 들어오면 모두 보여요.',
+ dupla_nenhuma:'Você ainda não tem dupla. Convide alguém!|You don’t have a duo yet. Invite someone!|Aún no tienes pareja. ¡Invita a alguien!|Non hai ancora una coppia. Invita qualcuno!|Tu n’as pas encore de duo. Invite quelqu’un !|Du hast noch kein Duo. Lade jemanden ein!|Je hebt nog geen duo. Nodig iemand uit!|まだペアがいないよ。だれか招待しよう！|你还没有组合，邀请一个人吧！|아직 팀이 없어요. 누군가 초대해요!',
+ dupla_erro_banco:'Não deu pra falar com o servidor agora. Tente de novo daqui a pouco.|Couldn’t reach the server right now. Try again in a bit.|No se pudo conectar con el servidor ahora. Inténtalo de nuevo en un rato.|Non riesco a raggiungere il server ora. Riprova tra poco.|Impossible de joindre le serveur pour le moment. Réessaie dans un instant.|Der Server ist gerade nicht erreichbar. Versuch es gleich nochmal.|Kon de server nu niet bereiken. Probeer het zo nog eens.|今はサーバーにつながらないよ。少ししてからもう一度ためしてね。|现在连不上服务器，请稍后再试。|지금은 서버에 연결할 수 없어요. 잠시 후 다시 해 봐요.',
+ dupla_sem_acesso:'Essa dupla não está mais disponível.|This duo is no longer available.|Esta pareja ya no está disponible.|Questa coppia non è più disponibile.|Ce duo n’est plus disponible.|Dieses Duo ist nicht mehr verfügbar.|Dit duo is niet meer beschikbaar.|このペアはもう使えないよ。|这个组合已经不可用了。|이 팀은 더 이상 사용할 수 없어요.',
+ dupla_sem_nome:'Jogo sem nome|Untitled game|Juego sin nombre|Gioco senza nome|Jeu sans nom|Spiel ohne Namen|Naamloze game|名前のないゲーム|未命名游戏|이름 없는 게임',
+ dupla_com:'com {nome}|with {nome}|con {nome}|con {nome}|avec {nome}|mit {nome}|met {nome}|{nome}さんと|和{nome}|{nome}님과',
+ dupla_publicado:'publicado|published|publicado|pubblicato|publié|veröffentlicht|gepubliceerd|公開ずみ|已发布|게시됨',
+ dupla_voce:'Você|You|Tú|Tu|Toi|Du|Jij|あなた|你|나',
+ dupla_juntos:'Vocês estão criando juntos. O que um muda aparece pro outro.|You are creating together. What one changes shows up for the other.|Están creando juntos. Lo que uno cambia le aparece al otro.|State creando insieme. Quello che cambia uno, lo vede l’altro.|Vous créez ensemble. Ce que l’un change apparaît chez l’autre.|Ihr erstellt zusammen. Was einer ändert, sieht der andere.|Jullie maken het samen. Wat de een verandert, ziet de ander.|いっしょに作っているよ。ひとりが変えると、もうひとりにも見えるよ。|你们正在一起创作，一个人改的另一个人也能看到。|함께 만들고 있어요. 한 사람이 바꾸면 다른 사람에게도 보여요.',
+ dupla_dica:'Quem está escrevendo segura a vez por alguns segundos, pra ninguém apagar o que o outro fez.|Whoever is typing holds the turn for a few seconds, so nobody erases what the other did.|Quien escribe tiene el turno unos segundos, para que nadie borre lo que hizo el otro.|Chi scrive tiene il turno per qualche secondo, così nessuno cancella quello che ha fatto l’altro.|Celui qui écrit garde la main quelques secondes, pour que personne n’efface ce que l’autre a fait.|Wer gerade schreibt, ist ein paar Sekunden dran, damit keiner löscht, was der andere gemacht hat.|Wie typt, heeft een paar seconden de beurt, zodat niemand wist wat de ander deed.|書いている人が数秒だけ順番をもらうよ。相手の分を消さないためだよ。|正在写的人会占用几秒钟，这样谁都不会删掉对方写的东西。|쓰고 있는 사람이 몇 초 동안 차례를 가져요. 서로 지우지 않게요.',
+ dupla_atualizar:'Atualizar o jogo da dupla|Update the duo’s game|Actualizar el juego de la pareja|Aggiorna il gioco della coppia|Mettre à jour le jeu du duo|Duo-Spiel aktualisieren|Game van het duo bijwerken|ペアのゲームを更新|更新组合的游戏|팀 게임 업데이트',
+ dupla_publicar:'Publicar em dupla|Publish together|Publicar en pareja|Pubblica in coppia|Publier à deux|Zu zweit veröffentlichen|Samen publiceren|ふたりで公開|一起发布|함께 게시하기',
+ dupla_publicar_dica:'O jogo sai com o seu nome e o de {nome}, e os dois podem atualizar depois.|The game goes out with your name and {nome}’s, and you can both update it later.|El juego sale con tu nombre y el de {nome}, y los dos pueden actualizarlo después.|Il gioco esce con il tuo nome e quello di {nome}, ed entrambi potrete aggiornarlo dopo.|Le jeu sort avec ton nom et celui de {nome}, et vous pourrez tous les deux le mettre à jour.|Das Spiel erscheint mit deinem Namen und dem von {nome}, und ihr könnt es beide später aktualisieren.|De game verschijnt met jouw naam en die van {nome}, en jullie kunnen hem allebei later bijwerken.|ゲームはあなたと{nome}さんの名前で公開され、あとでふたりとも更新できるよ。|游戏会署上你和{nome}的名字，之后你们俩都能更新。|게임은 내 이름과 {nome}님의 이름으로 올라가고, 나중에 둘 다 업데이트할 수 있어요.',
+ dupla_outro_mexendo:'{nome} está mexendo agora… espere um pouquinho.|{nome} is editing right now… wait a moment.|{nome} está editando ahora… espera un poquito.|{nome} sta modificando ora… aspetta un attimo.|{nome} modifie en ce moment… attends un peu.|{nome} bearbeitet gerade… warte kurz.|{nome} is nu aan het bewerken… wacht even.|{nome}さんが今さわっているよ…ちょっと待ってね。|{nome}正在修改……稍等一下。|{nome}님이 지금 수정 중이에요… 잠깐 기다려요.',
+ dupla_outro_mudou:'{nome} acabou de mudar o jogo.|{nome} just changed the game.|{nome} acaba de cambiar el juego.|{nome} ha appena cambiato il gioco.|{nome} vient de modifier le jeu.|{nome} hat das Spiel gerade geändert.|{nome} heeft de game net veranderd.|{nome}さんがゲームを変えたよ。|{nome}刚刚改了游戏。|{nome}님이 방금 게임을 바꿨어요.',
+ dupla_e:'e|and|y|e|et|und|en|と|和|와',
+ dupla_convite_msg:'Vamos criar esse jogo juntos?|Shall we make this game together?|¿Creamos este juego juntos?|Creiamo questo gioco insieme?|On crée ce jeu ensemble ?|Machen wir dieses Spiel zusammen?|Zullen we deze game samen maken?|このゲーム、いっしょに作ろう？|我们一起做这个游戏吧？|이 게임 같이 만들래?',
+ dupla_cartao_nome:'Criar jogo em dupla|Make a game together|Crear un juego en pareja|Creare un gioco in coppia|Créer un jeu à deux|Spiel zu zweit erstellen|Samen een game maken|ふたりでゲームを作る|两人一起做游戏|둘이서 게임 만들기',
+ dupla_cartao_sub:'No Koda Studio, os dois mexem no mesmo jogo.|In Koda Studio, you both work on the same game.|En Koda Studio, los dos editan el mismo juego.|In Koda Studio, lavorate entrambi sullo stesso gioco.|Dans Koda Studio, vous travaillez tous les deux sur le même jeu.|Im Koda Studio arbeitet ihr beide am selben Spiel.|In Koda Studio werken jullie samen aan dezelfde game.|Koda Studioでふたりで同じゲームを作るよ。|在Koda Studio里，你们一起做同一个游戏。|Koda Studio에서 둘이 같은 게임을 만들어요.',
+ dupla_entrar:'Entrar no Koda Studio|Join in Koda Studio|Entrar en Koda Studio|Entra in Koda Studio|Rejoindre Koda Studio|Ins Koda Studio|Naar Koda Studio|Koda Studioに入る|进入Koda Studio|Koda Studio 들어가기',
+ dupla_regra:'O jogo foi enviado só com o seu nome por enquanto (o Koda ainda está ligando a função de dupla).|The game was sent with only your name for now (Koda is still turning on the duo feature).|El juego se envió solo con tu nombre por ahora (Koda aún está activando la función de pareja).|Il gioco è stato inviato solo con il tuo nome per ora (Koda sta ancora attivando la funzione coppia).|Le jeu a été envoyé avec ton nom seulement pour l’instant (Koda active encore la fonction duo).|Das Spiel wurde vorerst nur mit deinem Namen gesendet (Koda schaltet die Duo-Funktion noch frei).|De game is voorlopig alleen met jouw naam verstuurd (Koda zet de duofunctie nog aan).|今はあなたの名前だけで送ったよ（ペア機能はまだ準備中）。|游戏暂时只用你的名字发送了（组合功能还在开启中）。|지금은 내 이름으로만 보냈어요(팀 기능은 아직 준비 중이에요).',
  ugc_f_limpar:'Limpar tudo|Clear all|Borrar todo|Cancella tutto|Tout effacer|Alles löschen|Alles wissen|全部消す|全部清除|모두 지우기',
  ugc_limpar_conf:'Apagar o desenho todo?|Erase the whole drawing?|¿Borrar todo el dibujo?|Cancellare tutto il disegno?|Effacer tout le dessin ?|Die ganze Zeichnung löschen?|De hele tekening wissen?|絵を全部消しますか？|要清除整幅画吗？|그림을 전부 지울까요?',
  ugc_cor_exata:'Cor exata|Exact color|Color exacto|Colore esatto|Couleur exacte|Genaue Farbe|Exacte kleur|ぴったりの色|精确颜色|정확한 색',
@@ -38499,7 +38825,7 @@ const TOUR_PASSOS = [
   {id: 'p_novidades',     faca: true, vars: ()=>({aba: t('cat_feed')}), alvo: ()=>tourEl('.cat-chip[data-cat="feed"]'), feito: ()=>categoriaAtual === 'feed', depois: 500},
   {id: 'p_inicio',        faca: true, vars: ()=>({aba: t('cat_home')}), alvo: ()=>tourEl('.cat-chip[data-cat="home"]'), feito: ()=>categoriaAtual === 'home', so: ()=>categoriaAtual === 'feed'},
   {id: 'moedas',          alvo: ()=>tourEl('#coinChip')},
-  {id: 'ganhar_enviar',   alvo: ()=>tourEl('#shareSiteBtn') || tourEl('#coinChip')},
+  {id: 'ganhar_enviar',   alvo: ()=>{ const b = tourEl('#shareSiteBtn'); return tourVisivel(b) ? b : tourEl('#coinChip'); }},
   {id: 'ganhar_30',       alvo: ()=>tourEl('#coinChip')},
   {id: 'diarios',         alvo: ()=>tourEl('#diarios')},
   {id: 'p_jogo',          faca: true, alvo: ()=>tourEl('#grid > .card:not(.soon)') || tourEl('#grid > .card'), feito: tourModal, depois: 900},

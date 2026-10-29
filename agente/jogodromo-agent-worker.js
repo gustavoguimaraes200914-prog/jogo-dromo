@@ -86,7 +86,9 @@ const MAX_IMAGEM_B64    = 1400000;   // ~1MB por imagem
 /* bibliotecas conhecidas podem vir de fora (o resto tem que estar dentro do jogo) */
 const CDNS_PERMITIDOS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'code.jquery.com'];
 /* campos do jogo que vão para o catálogo */
-const CAMPOS_JOGO = ['id','name','category','bg','cover','shape','codeB64','hasDifficulty','multiplayerCounts','trad','creatorEmail','creatorUid','creatorName','updatedAt'];
+const CAMPOS_JOGO = ['id','name','category','bg','cover','shape','codeB64','hasDifficulty','multiplayerCounts','trad','creatorEmail','creatorUid','creatorName','updatedAt','coautores'];
+/* jogo feito em dupla: quem mais pode atualizar (e-mails, no máximo 3) */
+function coautoresDe(dados){ return Array.isArray(dados && dados.coautores) ? dados.coautores.filter(e => typeof e === 'string' && /^[^\s@]{1,64}@[^\s@]{1,190}$/.test(e)).map(e => e.toLowerCase()).slice(0, 3) : []; }
 /* campos que, se mudarem, exigem análise completa (trad sozinha tem análise rápida) */
 const CAMPOS_CONTEUDO = ['name','category','bg','cover','codeB64','hasDifficulty','multiplayerCounts'];
 
@@ -1639,6 +1641,7 @@ function soCamposDoJogo(dados){
   if(typeof o.hasDifficulty !== 'boolean') o.hasDifficulty = !!o.hasDifficulty;
   if(!Array.isArray(o.multiplayerCounts)) o.multiplayerCounts = [];
   else o.multiplayerCounts = o.multiplayerCounts.filter(n => Number.isInteger(n) && n >= 1 && n <= 8).slice(0, 8);
+  if(o.coautores !== undefined){ const c = coautoresDe(o); if(c.length) o.coautores = c; else delete o.coautores; }
   return o;
 }
 function moderacaoParaGuardar(decisao, versao, por, politica){
@@ -1732,12 +1735,15 @@ async function moderarEnvio(db, cfg, id, quem, extras){
   if(!lido) return { erro: 'nao_encontrado', httpStatus: 404 };
   const sub = lido.dados;
   const ehAdmin = quem.email === cfg.admin;
-  if(String(sub.creatorEmail || '').toLowerCase() !== quem.email && !ehAdmin) return { erro: 'nao_e_seu', httpStatus: 403 };
-  /* um id que já é de outra pessoa no catálogo não pode ser sobrescrito */
+  const criador = String(sub.creatorEmail || '').toLowerCase();
+  const ehCoautor = coautoresDe(sub).includes(quem.email);       // jogo feito em dupla: o outro também pode
+  if(criador !== quem.email && !ehCoautor && !ehAdmin) return { erro: 'nao_e_seu', httpStatus: 403 };
+  /* um id que já é de outra pessoa no catálogo não pode ser sobrescrito (na dupla, vale o dono e quem já era coautor lá) */
   if(!ehAdmin){
     const jaNoCatalogo = await db.ler('publicGames/' + id);
-    const dono = jaNoCatalogo && jaNoCatalogo.dados && String(jaNoCatalogo.dados.creatorEmail || '').toLowerCase();
-    if(dono && dono !== quem.email) return { erro: 'id_em_uso', httpStatus: 403 };
+    const pubDados = jaNoCatalogo && jaNoCatalogo.dados;
+    const dono = pubDados && String(pubDados.creatorEmail || '').toLowerCase();
+    if(dono && dono !== quem.email && !(dono === criador && coautoresDe(pubDados).concat(coautoresDe(sub)).includes(quem.email))) return { erro: 'id_em_uso', httpStatus: 403 };
   }
   const versao = await carimboCompleto(sub);
   const m = sub.moderacao || {};
