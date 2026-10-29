@@ -2538,6 +2538,62 @@
   .lj-buy{grid-row:1 / span 2;grid-column:2;display:flex;flex-direction:column;align-items:center;gap:4px;}
   .lj-vazio{text-align:center;padding:18px 6px;opacity:.8;}
   .msg-video{max-width:240px;max-height:300px;width:100%;border-radius:14px;display:block;margin-bottom:4px;background:#000;}
+  /* ---- mensagens: bolhas, áudio, vídeo e gravação ---- */
+  .msg-body-col.minha{display:flex;flex-direction:column;align-items:flex-end;max-width:84%;}
+  .msg-body-col.minha .chat-bubble{max-width:100%;}
+  .msg-meta{display:flex;align-items:center;gap:3px;font-size:.68rem;font-weight:700;opacity:.55;margin:2px 4px 0;}
+  .msg-check{width:14px;height:10px;display:inline-block;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 10'%3E%3Cpath d='M1 5l3 3 5-6M6 8l1 0 6-7' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 10'%3E%3Cpath d='M1 5l3 3 5-6M6 8l1 0 6-7' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;color:#0E8F6E;}
+  .msg-check.pend{width:10px;height:10px;border-radius:50%;background:none;border:1.6px solid currentColor;-webkit-mask:none;mask:none;color:inherit;position:relative;}
+  .msg-check.pend::after{content:'';position:absolute;left:3.2px;top:1.2px;width:1.6px;height:3.4px;background:currentColor;border-radius:1px;}
+  .chat-msg.msg-pend .chat-bubble{opacity:.78;}
+  .msg-dia{display:flex;justify-content:center;margin:10px 0 12px;}
+  .msg-dia span{font-size:.72rem;font-weight:800;padding:3px 12px;border-radius:999px;background:rgba(255,255,255,.85);color:#3b5a52;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  @keyframes msgEntraEsq{0%{opacity:0;transform:translate(-14px,8px) scale(.92);}60%{opacity:1;transform:translate(2px,-1px) scale(1.02);}100%{transform:none;}}
+  @keyframes msgEntraDir{0%{opacity:0;transform:translate(14px,10px) scale(.9);}60%{opacity:1;transform:translate(-2px,-1px) scale(1.03);}100%{transform:none;}}
+  .msg-audio2{display:flex;align-items:center;gap:10px;background:#fff;border-radius:20px;padding:8px 12px 6px 8px;min-width:210px;max-width:260px;margin-bottom:2px;box-shadow:0 2px 6px rgba(0,0,0,.06);color:#08322B;}
+  .msg-audio2.minha{background:var(--mint);}
+  .aud-play{width:40px;height:40px;flex:none;border-radius:50%;border:none;background:#17C79E;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.25rem;transition:transform .15s;}
+  .msg-audio2.minha .aud-play{background:#08322B;}
+  .aud-play:active{transform:scale(.9);}
+  .msg-audio2.tocando .aud-play{animation:audPulsa 1.2s ease-in-out infinite;}
+  @keyframes audPulsa{0%,100%{box-shadow:0 0 0 0 rgba(23,199,158,.45);}50%{box-shadow:0 0 0 7px rgba(23,199,158,0);}}
+  .aud-meio{flex:1;min-width:0;}
+  .aud-onda{display:block;width:100%;height:30px;cursor:pointer;background:none;border-radius:0;margin:0;}
+  .rec-onda{background:none !important;border-radius:0 !important;margin:0 !important;}
+  .aud-info{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:800;opacity:.75;}
+  .aud-vel{border:none;border-radius:999px;padding:0 7px;background:rgba(8,50,43,.1);color:inherit;font:800 .7rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .msg-audio2.falhou .aud-onda{opacity:.35;}
+  .msg-video2{position:relative;width:220px;max-width:100%;border-radius:16px;overflow:hidden;background:#0b1f1a;margin-bottom:2px;cursor:pointer;}
+  .msg-video2 video{display:block;width:100%;max-height:320px;object-fit:cover;opacity:0;transition:opacity .3s;}
+  .msg-video2.pronto video{opacity:1;}
+  .vid-play{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;backdrop-filter:blur(3px);transition:transform .2s,opacity .2s;}
+  .msg-video2:hover .vid-play{transform:scale(1.08);}
+  .vid-dur{position:absolute;left:8px;bottom:8px;font-size:.72rem;font-weight:800;color:#fff;background:rgba(0,0,0,.5);padding:1px 7px;border-radius:999px;}
+  .msg-video2.tocando .vid-play,.msg-video2.tocando .vid-dur{opacity:0;pointer-events:none;}
+  .chat-inputbar{position:relative;}
+  .rec-barra{position:absolute;inset:0;display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card,#fff);border-radius:inherit;opacity:0;transform:translateY(8px);transition:opacity .18s,transform .18s;z-index:2;}
+  .rec-barra.on{opacity:1;transform:none;}
+  .rec-x{width:42px;height:42px;flex:none;border-radius:50%;border:none;background:#FFE3E1;color:#C7302B;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.15rem;}
+  .rec-ponto{width:10px;height:10px;border-radius:50%;background:#E8413C;flex:none;animation:recPonto 1s ease-in-out infinite;}
+  @keyframes recPonto{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.8);}}
+  .rec-tempo{font-weight:800;font-variant-numeric:tabular-nums;min-width:38px;}
+  .rec-onda{flex:1;min-width:0;height:28px;}
+  .rec-ok{width:46px;height:46px;flex:none;border-radius:50%;border:none;background:var(--mint);color:var(--on-mint);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.15rem;animation:recOk .4s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes recOk{from{transform:scale(.4);}to{transform:none;}}
+  .chat-send-btn{transition:transform .18s cubic-bezier(.2,1.4,.4,1),background .2s;}
+  .chat-send-btn:active{transform:scale(.88);}
+  .cam-tela{position:fixed;inset:0;z-index:3000;background:#000;display:flex;flex-direction:column;}
+  .cam-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .cam-video.espelho{transform:scaleX(-1);}
+  .cam-topo{position:relative;display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px;color:#fff;}
+  .cam-topo button{width:44px;height:44px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff;font-size:1.2rem;cursor:pointer;}
+  .cam-tempo{font-weight:800;background:rgba(0,0,0,.45);padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums;}
+  .cam-tela.gravando .cam-tempo{background:#E8413C;}
+  .cam-baixo{position:relative;margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 14px calc(22px + env(safe-area-inset-bottom));}
+  .cam-rec{width:78px;height:78px;border-radius:50%;border:5px solid #fff;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .cam-rec i{width:56px;height:56px;border-radius:50%;background:#E8413C;transition:all .2s;}
+  .cam-tela.gravando .cam-rec i{width:28px;height:28px;border-radius:7px;}
+  .cam-dica{margin:0;color:#fff;font-weight:700;font-size:.85rem;text-shadow:0 1px 3px rgba(0,0,0,.6);}
   .vid-prep{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);}
   .vid-prep > div{background:#08322B;color:#eafff8;padding:18px 24px;border-radius:18px;font-weight:700;text-align:center;min-width:220px;}
   .vid-prep .vid-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.18);margin-top:12px;overflow:hidden;}
@@ -3565,6 +3621,8 @@
   /* mensagem que chegou sozinha (sem precisar recarregar) entra deslizando */
   @keyframes msgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
   .chat-msg.msg-new{animation:msgIn .3s cubic-bezier(.22,1,.36,1) both;}
+  .chat-msg.agent.msg-new{animation:msgEntraEsq .42s cubic-bezier(.22,1,.36,1) both;transform-origin:left bottom;}
+  .chat-msg.user.msg-new{animation:msgEntraDir .42s cubic-bezier(.22,1,.36,1) both;transform-origin:right bottom;}
   .chat-msg.user{justify-content:flex-end;}
   .chat-msg.agent{justify-content:flex-start;}
   .chat-bubble{max-width:84%;border-radius:16px;padding:11px 14px;font-size:.92rem;line-height:1.45;}
@@ -4128,7 +4186,7 @@
   .praca-gente{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:.92rem;font-variant-numeric:tabular-nums;}
   .praca-ir{flex:0 0 auto;padding:7px 12px;border-radius:999px;background:#ffe066;color:#3b2a00;font-size:.88rem;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.25);}
   .praca-palco{position:relative;flex:1 1 auto;min-height:0;}
-  .praca-palco canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;cursor:pointer;}
+  .praca-palco > canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;cursor:pointer;}
   .praca-msg,.praca-dica{position:absolute;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);box-sizing:border-box;padding:8px 16px;border-radius:14px;
     background:rgba(8,40,20,.78);font-weight:800;font-size:.95rem;text-align:center;pointer-events:none;}
   .praca-msg{top:42%;}
@@ -4153,7 +4211,39 @@
     background:#eafff8;color:#08322B;box-shadow:0 0 0 3px #0b1650,0 14px 30px rgba(0,0,0,.4);transform-origin:100% 100%;animation:pracaChat .18s cubic-bezier(.2,1.4,.4,1);}
   .praca-chat.hidden{display:none;}
   @keyframes pracaChat{from{transform:scale(.6);opacity:0;}to{transform:none;opacity:1;}}
-  .praca-frases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:min(46vh,300px);overflow-y:auto;}
+  .praca-frases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:min(40vh,260px);overflow-y:auto;}
+  .praca-chat [hidden]{display:none !important;}
+  .praca-abas{display:flex;gap:4px;margin-bottom:8px;background:rgba(8,50,43,.08);border-radius:14px;padding:3px;}
+  .praca-abas button{flex:1;border:none;border-radius:11px;padding:6px 4px;background:transparent;color:#08322B;font:800 .86rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .praca-abas button.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);}
+  .praca-cats{display:flex;gap:5px;overflow-x:auto;padding-bottom:6px;margin-bottom:4px;scrollbar-width:none;}
+  .praca-cats::-webkit-scrollbar{display:none;}
+  .praca-cats button{flex:none;border:none;border-radius:999px;padding:4px 11px;background:#fff;color:#08322B;font:800 .8rem 'Baloo 2',sans-serif;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);}
+  .praca-cats button.on{background:#17C79E;color:#fff;box-shadow:none;}
+  .praca-ems{max-height:min(46vh,300px);overflow-y:auto;}
+  .em-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;}
+  .em-grade.na-praca{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+  .em-card{display:flex;flex-direction:column;align-items:center;gap:2px;border:none;border-radius:14px;padding:6px 4px 8px;background:#fff;color:#08322B;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(8,50,43,.12);font-family:'Baloo 2',sans-serif;}
+  .em-card canvas{width:72px;height:72px;border-radius:10px;background:linear-gradient(#e9fbf5,#d4f3e9);}
+  .em-grade.na-praca .em-card canvas{width:58px;height:58px;}
+  .em-card.dia canvas{background:linear-gradient(#f1e9ff,#e1d4ff);}
+  .em-card:not(.meu) canvas{filter:saturate(.75);}
+  .em-nome{font-weight:800;font-size:.86rem;line-height:1.1;text-align:center;}
+  .em-preco{display:inline-flex;align-items:center;gap:3px;font-weight:800;font-size:.78rem;color:#7a5a00;}
+  .em-preco svg{width:14px;height:14px;}
+  .em-card.meu .em-preco{color:#0E8F6E;}
+  .em-card.dia:not(.meu) .em-preco{color:#6B3FD1;}
+  .em-card:active{transform:scale(.96);}
+  .ugc-moedas{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 2px;font:800 .9rem 'Baloo 2',sans-serif;}
+  .ugc-moedas button{display:inline-flex;align-items:center;gap:5px;border:2px solid transparent;border-radius:999px;padding:4px 12px;background:#fff;color:#13312A;font:800 .86rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .ugc-moedas button svg,.ugc-precos.dia svg,.ugc-campo span svg{width:16px;height:16px;vertical-align:-3px;}
+  .ugc-moedas button.on{border-color:#17C79E;background:#DDF7EF;}
+  .ugc-moedas button[data-moeda="d"].on{border-color:#8B5CF6;background:#F1E9FF;}
+  .ugc-precos.dia button.on{border-color:#8B5CF6;background:#F1E9FF;}
+  .pz-pr.dia{color:#6B3FD1;}
+  .shop-list > .em-grade{grid-column:1/-1;width:100%;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));}
+  @media (max-width:380px){ .shop-list > .em-grade{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;} .shop-list > .em-grade .em-card canvas{width:62px;height:62px;} }
+  .em-arte canvas{width:96px;height:96px;border-radius:14px;background:linear-gradient(#e9fbf5,#d4f3e9);}
   .praca-frases button{border:none;border-radius:12px;padding:8px 6px;background:#fff;color:#08322B;cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.9rem;line-height:1.15;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);}
   .praca-frases button:active{background:#dffcf3;transform:scale(.97);}
   .praca-emos{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin-top:8px;}
@@ -12647,6 +12737,9 @@ function collectLocalData(){
   try{ if(localStorage.getItem('koda_rotina') !== null) dados.rotina = rotLer(); }catch(e){}
   /* conta com nome de usuário: data de nascimento e o e-mail de segurança já escondido (a***@...) — só de quem tem */
   try{ const n = localStorage.getItem('koda_nascimento'); if(n) dados.nascimento = n; }catch(e){}
+  /* emotes comprados e as recompensas do dia (só de quem já tem) */
+  try{ const em = emotesMeus(); if(em.length) dados.emotes = em; }catch(e){}
+  try{ const rc = recLer(); if(rc.dia) dados.recompensas = rc; }catch(e){}
   try{ const sg = localStorage.getItem('koda_seguranca'); if(sg) dados.seguranca = sg; }catch(e){}
   return dados;
 }
@@ -12697,11 +12790,19 @@ function applyRemoteData(data){
   if(data.rotina && typeof data.rotina === 'object'){
     try{ localStorage.setItem('koda_rotina', JSON.stringify(rotMesclar(rotLer(), data.rotina))); setTimeout(()=>{ try{ rotAtualizarUi(); }catch(e){} }, 0); }catch(e){}
   }
+  /* emotes: junta os dois aparelhos (comprou num, tem no outro) */
+  if(Array.isArray(data.emotes)){
+    try{ const a = emotesMeus(); data.emotes.forEach(id=>{ if(typeof id === 'string' && a.indexOf(id) < 0 && EMOTES.some(e=>e.id === id)) a.push(id); }); localStorage.setItem(EMOTES_KEY, JSON.stringify(a)); }catch(e){}
+  }
+  /* recompensas do dia: o maior tempo e o que já foi pago valem (ninguém ganha duas vezes) */
+  if(data.recompensas && typeof data.recompensas === 'object'){
+    try{ recGravar(recMesclar(recLer(), data.recompensas)); }catch(e){}
+  }
   /* tutoriais vistos: junta (quem viu em um aparelho não vê de novo no outro) */
   if(data.tutoriais && typeof data.tutoriais === 'object'){
     try{ localStorage.setItem(TUT_KEY, JSON.stringify(tutMesclar(tutLer(), data.tutoriais))); }catch(e){}
   }
-  const semMissoes = o => { const c = Object.assign({}, o); delete c.missoes; delete c.turbos; delete c.passe; delete c.tutoriais; delete c.rotina; delete c.salvos; return c; };
+  const semMissoes = o => { const c = Object.assign({}, o); delete c.missoes; delete c.turbos; delete c.passe; delete c.tutoriais; delete c.rotina; delete c.salvos; delete c.emotes; delete c.recompensas; return c; };
   const current = collectLocalData();
   if(JSON.stringify(semMissoes(current)) === JSON.stringify(semMissoes(data))) return false;
   localStorage.setItem('jogodromo_custom_games', JSON.stringify(data.customGames||[]));
@@ -13486,6 +13587,7 @@ async function sendChatMessage(conversationId, text, gameRef, agentChatRef, repl
       lastMessageAt: Date.now(), lastMessageText: preview, lastMessageBy: user.email
     }, {merge:true});
     try{ msEv('msg', 1); }catch(e){}                       // missões: "mande mensagens"
+    if(gameRef){ try{ recEnviou(); }catch(e){} }           // mandou um jogo pra alguém: +10 moedas (até 5 por dia)
     return true;
   }catch(e){
     console.error('Koda: erro ao enviar mensagem:', e);
@@ -14459,7 +14561,7 @@ async function openConversationThread(conv){
         <button id="replyPreviewCancel">${ICONS.trash}</button>
       </div>
       <div class="chat-inputbar">
-        <button class="chat-attach-btn" id="threadAttachBtn" title="${t('messages_attach')}">${ICONS.tag}</button>
+        <button class="chat-attach-btn" id="threadAttachBtn" title="${t('messages_attach')}" aria-label="${t('messages_attach')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:1.2em;height:1.2em;"><path d="M21 11.5l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.6-8.6a3.7 3.7 0 0 1 5.2 5.2l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6l7.9-7.9"/></svg></button>
         <input type="file" id="threadPhotoInput" accept="image/*" style="display:none;">
         <input type="file" id="threadVideoInput" accept="video/*" style="display:none;">
         <textarea id="threadInput" rows="1" placeholder="${t('messages_input_ph')}"></textarea>
@@ -14509,20 +14611,16 @@ async function openConversationThread(conv){
         <div class="msg-challenge-btn">${t('challenge_card_play')}</div>
       </div>` : '';
     const imageHtml = m.imageData ? `<img src="${m.imageData}" class="msg-image" data-full="${chatListEscape(m.imageData)}">` : '';
-    const videoHtml = m.videoData ? `<video class="msg-video" src="${m.videoData}" controls playsinline preload="metadata"></video>` : '';
-    const audioHtml = m.audioData ? `
-      <div class="msg-audio">
-        <button class="msg-audio-play" data-audio-id="${chatListEscape(m.id)}">${ICONS.play}</button>
-        <div class="msg-audio-bar"><div class="msg-audio-fill" id="audioFill_${chatListEscape(m.id)}"></div></div>
-        <audio id="audioEl_${chatListEscape(m.id)}" src="${m.audioData}" preload="metadata"></audio>
-      </div>` : '';
+    const videoHtml = m.videoData ? msgVideoHtml(m) : '';
+    const audioHtml = m.audioData ? msgAudioHtml(m, mine) : '';
+    const metaHtml = m.createdAt ? `<div class="msg-meta">${msgHora(m.createdAt)}${mine ? `<i class="msg-check${m.pendente ? ' pend' : ''}" aria-hidden="true"></i>` : ''}</div>` : '';
     const replyQuote = m.replyTo ? `<div class="msg-reply-quote"><b>${chatListEscape(m.replyTo.senderName)}</b>${chatListEscape(m.replyTo.text)}</div>` : '';
     const editedTag = m.edited ? `<span class="msg-edited-tag">${t('msg_edited_tag')}</span>` : '';
     const textHtml = (m.text || replyQuote) ? `<div class="chat-bubble">${replyQuote}${chatListEscape(m.text||'')}${editedTag}</div>` : '';
     const displayAvatar = (!mine && showHeader) ? getContactPhotoFor(m.senderEmail) : null;
     const avatarHtml = !mine ? (showHeader ? (displayAvatar ? `<img src="${displayAvatar}" class="msg-avatar">` : pzAv(m.senderAvatar, m.senderEmail, 'msg-avatar')) : `<div class="msg-avatar-spacer"></div>`) : '';
-    return `<div class="chat-msg ${mine?'user':'agent'}${!mine && !showHeader ? ' grouped' : ''}${isNew ? ' msg-new' : ''}" data-msg-id="${chatListEscape(m.id)}">
-      ${!mine ? `<div class="msg-with-avatar">${avatarHtml}<div class="msg-body-col">${showHeader ? `<div class="msg-sender-name">${chatListEscape(senderDisplay)}</div>`:''}${desafioCard}${gameCard}${agentChatCard}${imageHtml}${videoHtml}${audioHtml}${textHtml}</div></div>` : `${desafioCard}${gameCard}${agentChatCard}${imageHtml}${videoHtml}${audioHtml}${textHtml}`}
+    return `<div class="chat-msg ${mine?'user':'agent'}${!mine && !showHeader ? ' grouped' : ''}${isNew ? ' msg-new' : ''}${m.pendente ? ' msg-pend' : ''}" data-msg-id="${chatListEscape(m.id)}">
+      ${!mine ? `<div class="msg-with-avatar">${avatarHtml}<div class="msg-body-col">${showHeader ? `<div class="msg-sender-name">${chatListEscape(senderDisplay)}</div>`:''}${desafioCard}${gameCard}${agentChatCard}${imageHtml}${videoHtml}${audioHtml}${textHtml}${metaHtml}</div></div>` : `<div class="msg-body-col minha">${desafioCard}${gameCard}${agentChatCard}${imageHtml}${videoHtml}${audioHtml}${textHtml}${metaHtml}</div>`}
     </div>`;
   }
   /* o aviso do pedido de chat aparece como uma mensagem do sistema, no fim da conversa */
@@ -14583,35 +14681,23 @@ async function openConversationThread(conv){
     knownMsgIds = new Set(messages.map(m=>m.id));
     const keepScroll = messagesEl.scrollTop;
     const wasAtBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 80;
+    const tinhaPend = pendentes; pendentes = 0;
     messagesEl.innerHTML = messages.length ? messages.map((m,i)=>{
       const prev = messages[i-1];
-      const showHeader = !prev || prev.senderEmail !== m.senderEmail;
-      return bubbleHtml(m, showHeader, !!(seenBefore && !seenBefore.has(m.id)));
+      /* separador quando muda o dia */
+      const dia = m.createdAt && (!prev || !prev.createdAt || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString())
+        ? `<div class="msg-dia"><span>${chatListEscape(msgDiaTxt(m.createdAt))}</span></div>` : '';
+      const showHeader = !prev || prev.senderEmail !== m.senderEmail || !!dia;
+      /* a minha que acabou de chegar do banco já tinha aparecido na hora (não anima de novo) */
+      const nova = !!(seenBefore && !seenBefore.has(m.id)) && !(tinhaPend && m.senderEmail === user.email);
+      return dia + bubbleHtml(m, showHeader, nova);
     }).join('') : ((conv.requestStatus === 'pending' || conv.requestStatus === 'declined') ? '' : `<p class="g-msg" style="text-align:center;">${t('messages_thread_empty')}</p>`);
     pintarPedidoDeChat();
     messagesEl.querySelectorAll('.msg-image').forEach(img=>{
       img.addEventListener('click', ()=>openImageViewer(img.dataset.full));
     });
-    messagesEl.querySelectorAll('.msg-audio-play').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = btn.dataset.audioId;
-        const audioEl = document.getElementById('audioEl_'+id);
-        const fill = document.getElementById('audioFill_'+id);
-        if(audioEl.paused){
-          messagesEl.querySelectorAll('audio').forEach(a=>{ if(a!==audioEl) a.pause(); });
-          messagesEl.querySelectorAll('.msg-audio-play').forEach(b=>{ if(b!==btn) b.innerHTML = ICONS.play; });
-          audioEl.play();
-          btn.innerHTML = ICONS.pause;
-          audioEl.ontimeupdate = ()=>{
-            if(audioEl.duration) fill.style.width = (audioEl.currentTime/audioEl.duration*100)+'%';
-          };
-          audioEl.onended = ()=>{ btn.innerHTML = ICONS.play; fill.style.width='0%'; };
-        } else {
-          audioEl.pause();
-          btn.innerHTML = ICONS.play;
-        }
-      });
-    });
+    msgAudioLigar(messagesEl);
+    msgVideoLigar(messagesEl);
     messagesEl.querySelectorAll('.msg-game-card[data-game-id]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const gid = card.dataset.gameId;
@@ -14647,12 +14733,26 @@ async function openConversationThread(conv){
     /* se a pessoa estava lendo mensagens antigas, a chegada de uma nova não
        arrasta a tela pra baixo à força — só acompanha se ela já estava no fim */
     if(opts.live && !wasAtBottom) messagesEl.scrollTop = keepScroll;
+    else if(opts.live || opts.suave){ messagesEl.scrollTop = keepScroll; try{ messagesEl.scrollTo({top: messagesEl.scrollHeight, behavior: 'smooth'}); }catch(e){ messagesEl.scrollTop = messagesEl.scrollHeight; } }
     else messagesEl.scrollTop = messagesEl.scrollHeight;
     /* com a conversa aberta na tela, o que chega já conta como visto — a bolinha
        é recontada na próxima batida do relógio (as outras conversas continuam contando) */
     markConversationSeen(conv.id);
     const unreadWatcher = liveWatchers.get('unread');
     if(unreadWatcher) unreadWatcher.lastRun = 0;
+  }
+  /* a mensagem aparece na hora (com o reloginho); quando o banco confirma, vira a de verdade */
+  let pendentes = 0;
+  function mostrarPendente(m){
+    pendentes++;
+    const vazio = messagesEl.querySelector(':scope > .g-msg');
+    if(vazio) vazio.remove();
+    const tmp = document.createElement('div');
+    tmp.innerHTML = bubbleHtml(Object.assign({id: 'pend' + Date.now(), senderEmail: user.email, createdAt: Date.now(), pendente: true}, m), false, true);
+    const el = tmp.firstElementChild;
+    messagesEl.appendChild(el);
+    try{ messagesEl.scrollTo({top: messagesEl.scrollHeight, behavior: 'smooth'}); }catch(e){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+    return el;
   }
   async function send(){
     if(!input) return;
@@ -14663,12 +14763,23 @@ async function openConversationThread(conv){
     updateSendMicVisibility();
     const rt = replyingTo;
     setReplyTo(null);
+    const pend = mostrarPendente({text, replyTo: rt ? {senderName: rt.senderName, text: rt.text} : null});
+    playSound('click');
     const enviou = await sendChatMessage(conv.id, text, null, null, rt);
     if(!enviou){
+      pend.remove(); pendentes = Math.max(0, pendentes - 1);
       input.value = text; updateSendMicVisibility();
       showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : ''));
     }
-    draw();
+    draw({suave: true});
+  }
+  /* mídia (áudio, vídeo): uma bolha "enviando…" enquanto sobe */
+  async function enviarMidia(campos){
+    const pend = mostrarPendente({text: t('msg_enviando')});
+    const a = campos;
+    const enviou = await sendChatMessage(conv.id, '', null, null, null, a.imagem || null, a.audio || null, null, a.video || null);
+    if(!enviou){ pend.remove(); pendentes = Math.max(0, pendentes - 1); showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : '')); }
+    draw({suave: true});
   }
   const sendBtn = modalBody.querySelector('#threadSendBtn');
   const micBtn = modalBody.querySelector('#threadMicBtn');
@@ -14693,6 +14804,9 @@ async function openConversationThread(conv){
         },
         onVideo: ()=>{
           modalBody.querySelector('#threadVideoInput').click();
+        },
+        onVideoCam: ()=>{
+          msgGravarVideo(dados=>enviarMidia({video: dados}));
         },
         onGame: ()=>{
           openGamePickerForShare(async (g)=>{
@@ -14728,52 +14842,15 @@ async function openConversationThread(conv){
       try{
         const dados = await prepararVideo(file, prog.set);
         prog.close();
-        const enviou = await sendChatMessage(conv.id, '', null, null, null, null, null, null, dados);
-        if(!enviou) showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : ''));
-        draw();
+        await enviarMidia({video: dados});
       }catch(err){
         prog.close();
         const m = err && err.message;
         showInfo(t(m === 'longo' ? 'video_longo' : m === 'grande' ? 'video_grande' : 'video_falhou', {n: VIDEO_MAX_SEG}));
       }
     });
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let recordTimer = null;
-    let recordSeconds = 0;
-    micBtn.addEventListener('click', async ()=>{
-      if(mediaRecorder && mediaRecorder.state==='recording'){
-        mediaRecorder.stop();
-        return;
-      }
-      try{
-        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-        audioChunks = [];
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) audioChunks.push(e.data); };
-        mediaRecorder.onstop = async ()=>{
-          clearInterval(recordTimer);
-          micBtn.classList.remove('recording');
-          micBtn.innerHTML = ICONS.mic;
-          stream.getTracks().forEach(tr=>tr.stop());
-          if(audioChunks.length && recordSeconds>=1){
-            const blob = new Blob(audioChunks, {type:mediaRecorder.mimeType||'audio/webm'});
-            const reader = new FileReader();
-            reader.onload = async ()=>{
-              await sendChatMessage(conv.id, '', null, null, null, null, reader.result);
-              draw();
-            };
-            reader.readAsDataURL(blob);
-          }
-        };
-        mediaRecorder.start();
-        recordSeconds = 0;
-        micBtn.classList.add('recording');
-        micBtn.innerHTML = ICONS.stop;
-        recordTimer = setInterval(()=>{ recordSeconds++; }, 1000);
-      }catch(e){
-        toast(t('messages_mic_denied'));
-      }
+    micBtn.addEventListener('click', ()=>{
+      msgGravarAudio(modalBody.querySelector('.chat-inputbar'), dados=>enviarMidia({audio: dados}));
     });
   }
   updateSendMicVisibility();
@@ -14965,10 +15042,264 @@ function openPrivacyMenu(){
   });
 }
 
+/* ============================================================
+   MENSAGENS: áudio, vídeo e o capricho das bolhas
+   - Áudio: grava num formato que toca em todo aparelho (AAC/mp4 quando dá, senão Opus), com o som limpo
+     (sem eco e sem chiado), até 2 minutos. Enquanto grava: tempo, a onda da voz ao vivo, cancelar e enviar.
+     Na conversa: a onda do áudio, a duração, tocar/pausar, pular pra qualquer ponto e velocidade 1x/1,5x/2x.
+   - Vídeo: gravar na hora com a câmera (até 30 s) ou mandar da galeria (refeito pequeno aqui no aparelho).
+   - Bolhas: a mensagem aparece na hora que a pessoa manda (depois confirma), entra com animação, tem horário
+     e separador de dia.
+============================================================ */
+const AUDIO_MAX_SEG = 120;
+function msgFormatoMidia(tipo){
+  if(typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return '';
+  const lista = tipo === 'video'
+    ? ['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    : ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/webm'];
+  return lista.find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch(e){ return false; } }) || '';
+}
+function msgTempo(seg){ seg = Math.max(0, Math.round(seg || 0)); return Math.floor(seg / 60) + ':' + String(seg % 60).padStart(2, '0'); }
+function msgHora(ms){ try{ return new Date(ms).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}); }catch(e){ return ''; } }
+function msgDiaTxt(ms){
+  const d = new Date(ms), hoje = new Date(), ontem = new Date(Date.now() - 864e5);
+  const igual = (a, b)=>a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if(igual(d, hoje)) return t('msg_hoje');
+  if(igual(d, ontem)) return t('msg_ontem');
+  try{ return d.toLocaleDateString([], {day: 'numeric', month: 'long'}); }catch(e){ return d.toDateString(); }
+}
+
+/* ---------- gravar áudio (a barra cobre a caixa de escrever) ---------- */
+let msgGravando = null;
+async function msgGravarAudio(barra, aoEnviar){
+  if(msgGravando) return;
+  let stream;
+  try{ stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1}}); }
+  catch(e){ toast(t('messages_mic_denied')); return; }
+  const mime = msgFormatoMidia('audio');
+  let rec;
+  try{ rec = new MediaRecorder(stream, mime ? {mimeType: mime, audioBitsPerSecond: 32000} : {audioBitsPerSecond: 32000}); }
+  catch(e){ try{ rec = new MediaRecorder(stream); }catch(e2){ stream.getTracks().forEach(tr=>tr.stop()); toast(t('messages_mic_denied')); return; } }
+  const partes = [];
+  rec.ondataavailable = e=>{ if(e.data && e.data.size) partes.push(e.data); };
+  const el = document.createElement('div');
+  el.className = 'rec-barra';
+  el.innerHTML = `<button type="button" class="rec-x" aria-label="${chatListEscape(t('msg_rec_cancelar'))}">${ICONS.trash}</button>
+    <span class="rec-ponto"></span><span class="rec-tempo">0:00</span>
+    <canvas class="rec-onda" aria-hidden="true"></canvas>
+    <button type="button" class="rec-ok" aria-label="${chatListEscape(t('msg_rec_enviar'))}">${ICONS.send}</button>`;
+  barra.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('on'));
+  /* a onda da voz ao vivo */
+  let ac = null, an = null, dados = null;
+  try{ const AC = window.AudioContext || window.webkitAudioContext; ac = new AC(); const src = ac.createMediaStreamSource(stream); an = ac.createAnalyser(); an.fftSize = 512; src.connect(an); dados = new Uint8Array(an.fftSize); }catch(e){}
+  const cv = el.querySelector('.rec-onda'), tempo = el.querySelector('.rec-tempo'), alturas = [];
+  const t0 = Date.now();
+  let quadro = 0, fim = false;
+  const desenhar = ()=>{
+    if(fim) return;
+    const seg = (Date.now() - t0) / 1000;
+    tempo.textContent = msgTempo(seg);
+    if(seg >= AUDIO_MAX_SEG){ acabar(true); return; }
+    let nivel = .15;
+    if(an){ an.getByteTimeDomainData(dados); let m = 0; for(let i = 0; i < dados.length; i++) m = Math.max(m, Math.abs(dados[i] - 128)); nivel = Math.min(1, m / 60); }
+    if(quadro++ % 3 === 0){ alturas.push(nivel); if(alturas.length > 120) alturas.shift(); }
+    const d = Math.min(2, window.devicePixelRatio || 1), W = cv.clientWidth || 120, H = cv.clientHeight || 28;
+    if(cv.width !== Math.round(W * d)){ cv.width = Math.round(W * d); cv.height = Math.round(H * d); }
+    const x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, W, H);
+    x.fillStyle = '#E8413C';
+    const n = Math.floor(W / 4);
+    alturas.slice(-n).forEach((a, i, arr)=>{ const h = Math.max(3, a * H); x.fillRect(W - (arr.length - i) * 4, (H - h) / 2, 2.5, h); });
+    requestAnimationFrame(desenhar);
+  };
+  requestAnimationFrame(desenhar);
+  const acabar = enviar=>{
+    if(fim) return;
+    fim = true;
+    msgGravando = null;
+    const seg = (Date.now() - t0) / 1000;
+    rec.onstop = ()=>{
+      stream.getTracks().forEach(tr=>tr.stop());
+      try{ if(ac) ac.close(); }catch(e){}
+      el.classList.remove('on');
+      setTimeout(()=>el.remove(), 180);
+      if(!enviar) return;
+      if(seg < 1 || !partes.length){ toast(t('msg_rec_curto')); return; }
+      const blob = new Blob(partes, {type: (rec.mimeType || mime || 'audio/webm').split(';')[0]});
+      const r = new FileReader();
+      r.onload = ()=>aoEnviar(r.result, seg);
+      r.readAsDataURL(blob);
+    };
+    try{ rec.stop(); }catch(e){ rec.onstop(); }
+  };
+  msgGravando = {acabar};
+  el.querySelector('.rec-x').addEventListener('click', ()=>{ playSound('click'); acabar(false); });
+  el.querySelector('.rec-ok').addEventListener('click', ()=>{ playSound('click'); acabar(true); });
+  rec.start(250);
+  playSound('click');
+}
+
+/* ---------- tocar áudio na conversa: a onda (lida do próprio áudio), a duração, pular e velocidade ---------- */
+const MSG_ONDAS = new Map();
+function msgOndaFalsa(chave){ const a = []; let h = 0; for(let i = 0; i < chave.length; i++) h = (h * 31 + chave.charCodeAt(i)) >>> 0; for(let i = 0; i < 40; i++){ h = (h * 1103515245 + 12345) >>> 0; a.push(.25 + (h % 1000) / 1000 * .6); } return a; }
+async function msgOndaDe(id, src){
+  if(MSG_ONDAS.has(id)) return MSG_ONDAS.get(id);
+  let onda = null;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext, ac = new AC();
+    const buf = await (await fetch(src)).arrayBuffer();
+    const au = await new Promise((ok, no)=>{ const p = ac.decodeAudioData(buf, ok, no); if(p && p.then) p.then(ok, no); });
+    const ch = au.getChannelData(0), n = 40, passo = Math.floor(ch.length / n) || 1;
+    onda = [];
+    for(let i = 0; i < n; i++){ let m = 0; for(let j = i * passo; j < Math.min(ch.length, (i + 1) * passo); j += 16) m = Math.max(m, Math.abs(ch[j])); onda.push(m); }
+    const mx = Math.max(.05, ...onda);
+    onda = onda.map(v=>.12 + .88 * v / mx);
+    onda.dur = au.duration;
+    try{ ac.close(); }catch(e){}
+  }catch(e){ onda = null; }
+  MSG_ONDAS.set(id, onda);
+  return onda;
+}
+function msgDesenharOnda(cv, onda, prog, minha){
+  const d = Math.min(2, window.devicePixelRatio || 1), W = cv.clientWidth || 140, H = cv.clientHeight || 30;
+  if(cv.width !== Math.round(W * d)){ cv.width = Math.round(W * d); cv.height = Math.round(H * d); }
+  const x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, W, H);
+  const n = onda.length, larg = W / n;
+  for(let i = 0; i < n; i++){
+    const h = Math.max(3, onda[i] * H), feito = (i + .5) / n <= prog;
+    x.fillStyle = feito ? (minha ? '#08322B' : '#17C79E') : (minha ? 'rgba(8,50,43,.32)' : 'rgba(8,50,43,.2)');
+    const bx = i * larg + larg * .2, bw = Math.max(1.5, larg * .6), by = (H - h) / 2;
+    x.beginPath(); if(x.roundRect) x.roundRect(bx, by, bw, h, bw / 2); else x.rect(bx, by, bw, h); x.fill();
+  }
+}
+function msgAudioHtml(m, mine){
+  const id = chatListEscape(m.id);
+  return `<div class="msg-audio2${mine ? ' minha' : ''}" data-aud="${id}">
+      <button type="button" class="aud-play" aria-label="${chatListEscape(t('msg_audio_label'))}">${ICONS.play}</button>
+      <div class="aud-meio"><canvas class="aud-onda"></canvas><div class="aud-info"><span class="aud-tempo">0:00</span><button type="button" class="aud-vel">1x</button></div></div>
+      <audio preload="metadata" src="${m.audioData}"></audio>
+    </div>`;
+}
+function msgAudioLigar(raiz){
+  raiz.querySelectorAll('.msg-audio2[data-aud]').forEach(box=>{
+    if(box._ligado) return;
+    box._ligado = true;
+    const id = box.dataset.aud, au = box.querySelector('audio'), cv = box.querySelector('.aud-onda'), bt = box.querySelector('.aud-play'),
+      tempo = box.querySelector('.aud-tempo'), vel = box.querySelector('.aud-vel'), minha = box.classList.contains('minha');
+    let onda = msgOndaFalsa(id), dur = 0;
+    const pinta = ()=>msgDesenharOnda(cv, onda, dur ? au.currentTime / dur : 0, minha);
+    const durOk = ()=>{ const d = au.duration; if(isFinite(d) && d > 0) dur = d; else if(onda && onda.dur) dur = onda.dur; if(!au.paused) return; tempo.textContent = msgTempo(dur); };
+    au.addEventListener('loadedmetadata', durOk);
+    au.addEventListener('durationchange', durOk);
+    msgOndaDe(id, au.src).then(o=>{ if(o){ onda = o; if(!dur && o.dur) dur = o.dur; durOk(); } pinta(); });
+    requestAnimationFrame(pinta);
+    let anima = 0;
+    const rodar = ()=>{ pinta(); tempo.textContent = msgTempo(au.currentTime); if(!au.paused) anima = requestAnimationFrame(rodar); };
+    au.addEventListener('play', ()=>{ bt.innerHTML = ICONS.pause; box.classList.add('tocando'); cancelAnimationFrame(anima); anima = requestAnimationFrame(rodar); });
+    au.addEventListener('pause', ()=>{ bt.innerHTML = ICONS.play; box.classList.remove('tocando'); pinta(); });
+    au.addEventListener('ended', ()=>{ au.currentTime = 0; tempo.textContent = msgTempo(dur); pinta(); });
+    au.addEventListener('error', ()=>{ box.classList.add('falhou'); tempo.textContent = t('msg_audio_falhou'); });
+    bt.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      if(au.paused){ document.querySelectorAll('.msg-audio2 audio, .msg-video2 video').forEach(o=>{ if(o !== au) o.pause(); }); const p = au.play(); if(p && p.catch) p.catch(()=>{ toast(t('msg_audio_falhou')); }); }
+      else au.pause();
+    });
+    /* tocar na onda: pula pra aquele ponto */
+    cv.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      if(!dur) return;
+      const r = cv.getBoundingClientRect();
+      au.currentTime = Math.max(0, Math.min(dur - .05, (ev.clientX - r.left) / r.width * dur));
+      pinta(); tempo.textContent = msgTempo(au.currentTime);
+      if(au.paused) bt.click();
+    });
+    vel.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const v = au.playbackRate >= 2 ? 1 : au.playbackRate >= 1.5 ? 2 : 1.5;
+      au.playbackRate = v; vel.textContent = String(v).replace('.', ',') + 'x';
+      playSound('click');
+    });
+  });
+}
+
+/* ---------- vídeo na conversa: capa com o botão de play e a duração; tocando, vira o vídeo com os controles ---------- */
+function msgVideoHtml(m){
+  return `<div class="msg-video2" data-vid="${chatListEscape(m.id)}"><video playsinline preload="metadata" src="${m.videoData}#t=0.1"></video><span class="vid-play">${ICONS.play}</span><span class="vid-dur"></span></div>`;
+}
+function msgVideoLigar(raiz){
+  raiz.querySelectorAll('.msg-video2[data-vid]').forEach(box=>{
+    if(box._ligado) return;
+    box._ligado = true;
+    const v = box.querySelector('video'), dur = box.querySelector('.vid-dur');
+    v.addEventListener('loadedmetadata', ()=>{ if(isFinite(v.duration)) dur.textContent = msgTempo(v.duration); box.classList.add('pronto'); });
+    v.addEventListener('pause', ()=>box.classList.remove('tocando'));
+    v.addEventListener('ended', ()=>{ box.classList.remove('tocando'); v.controls = false; });
+    box.addEventListener('click', ev=>{
+      if(box.classList.contains('tocando')) return;
+      ev.stopPropagation();
+      document.querySelectorAll('.msg-audio2 audio, .msg-video2 video').forEach(o=>{ if(o !== v) o.pause(); });
+      box.classList.add('tocando'); v.controls = true;
+      const p = v.play(); if(p && p.catch) p.catch(()=>{});
+    });
+  });
+}
+
+/* ---------- gravar vídeo com a câmera (até 30 s, já pequeno pra caber) ---------- */
+const VIDEO_GRAVAR_SEG = 30;
+async function msgGravarVideo(aoEnviar){
+  const mime = msgFormatoMidia('video');
+  if(!mime || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast(t('video_cam_erro')); return; }
+  let frente = true, stream = null, rec = null, partes = [], t0 = 0, timer = null;
+  const el = document.createElement('div');
+  el.className = 'cam-tela';
+  el.innerHTML = `<video class="cam-video" playsinline muted autoplay></video>
+    <div class="cam-topo"><button type="button" class="cam-x" aria-label="${chatListEscape(t('menu_cancel'))}">✕</button><span class="cam-tempo">0:00 / ${msgTempo(VIDEO_GRAVAR_SEG)}</span><button type="button" class="cam-virar" aria-label="${chatListEscape(t('video_cam_virar'))}">⟲</button></div>
+    <div class="cam-baixo"><button type="button" class="cam-rec" aria-label="${chatListEscape(t('video_cam_gravar'))}"><i></i></button><p class="cam-dica">${chatListEscape(t('video_cam_dica'))}</p></div>`;
+  document.body.appendChild(el);
+  const vid = el.querySelector('.cam-video'), btRec = el.querySelector('.cam-rec'), tempo = el.querySelector('.cam-tempo');
+  const parar = ()=>{ clearInterval(timer); if(stream) stream.getTracks().forEach(tr=>tr.stop()); stream = null; };
+  const fechar = ()=>{ parar(); el.remove(); };
+  const abrir = async ()=>{
+    parar();
+    try{ stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: frente ? 'user' : 'environment', width: {ideal: 480}, height: {ideal: 480}, frameRate: {ideal: 24, max: 30}}, audio: {echoCancellation: true, noiseSuppression: true}}); }
+    catch(e){ toast(t('video_cam_erro')); fechar(); return false; }
+    vid.srcObject = stream; vid.classList.toggle('espelho', frente);
+    try{ await vid.play(); }catch(e){}
+    return true;
+  };
+  el.querySelector('.cam-x').addEventListener('click', ()=>{ if(rec && rec.state === 'recording'){ rec.onstop = null; try{ rec.stop(); }catch(e){} } fechar(); });
+  el.querySelector('.cam-virar').addEventListener('click', async ()=>{ if(rec && rec.state === 'recording') return; frente = !frente; await abrir(); });
+  btRec.addEventListener('click', ()=>{
+    if(!stream) return;
+    if(rec && rec.state === 'recording'){ rec.stop(); return; }
+    partes = [];
+    /* o tamanho do vídeo cabe no banco: o tanto de bits que sobra dividido pelos 30 segundos */
+    const bits = Math.floor(VIDEO_MAX_BYTES * .85 * 8 / VIDEO_GRAVAR_SEG);
+    try{ rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: Math.max(90000, bits - 32000), audioBitsPerSecond: 32000}); }
+    catch(e){ toast(t('video_cam_erro')); return; }
+    rec.ondataavailable = e=>{ if(e.data && e.data.size) partes.push(e.data); };
+    rec.onstop = ()=>{
+      clearInterval(timer);
+      el.classList.remove('gravando');
+      const seg = (Date.now() - t0) / 1000;
+      const blob = new Blob(partes, {type: mime.split(';')[0]});
+      fechar();
+      if(seg < 1 || !blob.size){ toast(t('msg_rec_curto')); return; }
+      if(blob.size > VIDEO_MAX_BYTES){ showInfo(t('video_grande')); return; }
+      lerComoDataUrl(blob).then(aoEnviar, ()=>showInfo(t('video_falhou')));
+    };
+    rec.start(500);
+    t0 = Date.now();
+    el.classList.add('gravando');
+    timer = setInterval(()=>{ const s = (Date.now() - t0) / 1000; tempo.textContent = msgTempo(s) + ' / ' + msgTempo(VIDEO_GRAVAR_SEG); if(s >= VIDEO_GRAVAR_SEG && rec.state === 'recording') rec.stop(); }, 200);
+  });
+  abrir();
+}
+
 /* ---------- vídeo no chat ----------
    O banco guarda no máximo ~1 MB por mensagem, então o vídeo é refeito pequeno aqui no aparelho
    (até 20 segundos, tela menor) antes de mandar. */
-const VIDEO_MAX_SEG = 20, VIDEO_MAX_BYTES = 600000;
+const VIDEO_MAX_SEG = 30, VIDEO_MAX_BYTES = 600000;
 function lerComoDataUrl(blob){
   return new Promise((ok, no)=>{ const r = new FileReader(); r.onload = ()=>ok(r.result); r.onerror = ()=>no(new Error('leitura')); r.readAsDataURL(blob); });
 }
@@ -14987,7 +15318,7 @@ async function prepararVideo(file, aoProgresso){
   const url = URL.createObjectURL(file);
   const v = document.createElement('video');
   v.playsInline = true; v.preload = 'auto'; v.src = url;
-  v.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+  v.style.cssText = 'position:fixed;left:0;top:0;width:4px;height:4px;opacity:.01;pointer-events:none;z-index:-1;';
   document.body.appendChild(v);
   let ac = null, timer = null;
   const limpa = ()=>{ clearInterval(timer); try{ v.pause(); }catch(e){} try{ if(ac) ac.close(); }catch(e){} v.remove(); URL.revokeObjectURL(url); };
@@ -14996,14 +15327,13 @@ async function prepararVideo(file, aoProgresso){
     const dur = v.duration;
     if(!isFinite(dur) || dur <= 0) throw new Error('leitura');
     if(dur > VIDEO_MAX_SEG + 0.5) throw new Error('longo');
-    const mimes = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
-    const mime = (typeof MediaRecorder !== 'undefined' && HTMLCanvasElement.prototype.captureStream) ? mimes.find(m=>MediaRecorder.isTypeSupported(m)) : null;
+    const mime = HTMLCanvasElement.prototype.captureStream ? msgFormatoMidia('video') : '';
     if(!mime){
       if(file.size <= VIDEO_MAX_BYTES) return await lerComoDataUrl(file);
       throw new Error('grande');
     }
     const vw = v.videoWidth || 320, vh = v.videoHeight || 240;
-    const lado = dur <= 8 ? 480 : dur <= 14 ? 400 : 320;
+    const lado = dur <= 10 ? 480 : dur <= 20 ? 360 : 288;
     const esc = Math.min(1, lado / Math.max(vw, vh));
     const w = Math.max(2, Math.round(vw * esc / 2) * 2), h = Math.max(2, Math.round(vh * esc / 2) * 2);
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
@@ -15051,6 +15381,7 @@ function openAttachMenu(handlers){
   bg.innerHTML = `
     <div class="game-menu-sheet">
       <button class="game-menu-item" data-act="photo">${ICONS.image} ${t('messages_send_photo')}</button>
+      ${handlers.onVideoCam ? `<button class="game-menu-item" data-act="videocam">${ICONS.camera} ${t('messages_record_video')}</button>` : ''}
       <button class="game-menu-item" data-act="video">${ICONS.play} ${t('messages_send_video')}</button>
       <button class="game-menu-item" data-act="game">${ICONS.gamepad} ${t('messages_send_game')}</button>
       <button class="game-menu-item" data-act="challenge">${ICONS.trophy} ${t('messages_send_challenge')}</button>
@@ -15068,6 +15399,8 @@ function openAttachMenu(handlers){
   bg.querySelector('.game-menu-cancel').addEventListener('click', close);
   bg.querySelector('[data-act="photo"]').addEventListener('click', ()=>{ close(); handlers.onPhoto(); });
   bg.querySelector('[data-act="video"]').addEventListener('click', ()=>{ close(); if(handlers.onVideo) handlers.onVideo(); });
+  const cam = bg.querySelector('[data-act="videocam"]');
+  if(cam) cam.addEventListener('click', ()=>{ close(); handlers.onVideoCam(); });
   bg.querySelector('[data-act="game"]').addEventListener('click', ()=>{ close(); handlers.onGame(); });
   bg.querySelector('[data-act="challenge"]').addEventListener('click', ()=>{ close(); if(handlers.onChallenge) handlers.onChallenge(); });
 }
@@ -20328,6 +20661,55 @@ async function conferirConvites(){
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState === 'visible' && Date.now() - ultimaConferenciaDeConvites > 45000) conferirConvites();
 });
+/* ============================================================
+   RECOMPENSAS DO DIA
+   - Mandou o Koda ou um jogo pra alguém (compartilhar ou mandar o jogo numa mensagem): +10 moedas, até 5 vezes por dia.
+   - Jogou 30 minutos no dia (o tempo que conta é o das missões: jogo aberto, tela visível e alguém mexendo): +100 moedas, uma vez por dia.
+   Fica guardado com a conta ('recompensas'), então trocar de aparelho não paga de novo.
+============================================================ */
+const REC_KEY = 'koda_recompensas', REC_ENVIO = 10, REC_ENVIOS_DIA = 5, REC_30_SEG = 1800, REC_30 = 100;
+function recHoje(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function recLer(){
+  let o = null;
+  try{ o = JSON.parse(localStorage.getItem(REC_KEY)); }catch(e){}
+  o = (o && typeof o === 'object') ? o : {};
+  const r = {dia: typeof o.dia === 'string' ? o.dia : '', seg: Math.max(0, Math.floor(Number(o.seg) || 0)), pago30: !!o.pago30, envios: Math.max(0, Math.floor(Number(o.envios) || 0))};
+  if(r.dia && r.dia !== recHoje()) return {dia: recHoje(), seg: 0, pago30: false, envios: 0};
+  return r;
+}
+function recGravar(r){ try{ localStorage.setItem(REC_KEY, JSON.stringify(r)); }catch(e){} }
+function recMesclar(a, b){
+  if(!b || typeof b.dia !== 'string') return a;
+  if(!a.dia || b.dia > a.dia) return {dia: b.dia, seg: Math.max(0, Math.floor(Number(b.seg) || 0)), pago30: !!b.pago30, envios: Math.max(0, Math.floor(Number(b.envios) || 0))};
+  if(b.dia < a.dia) return a;
+  return {dia: a.dia, seg: Math.max(a.seg, Math.floor(Number(b.seg) || 0)), pago30: a.pago30 || !!b.pago30, envios: Math.max(a.envios, Math.floor(Number(b.envios) || 0))};
+}
+/* mandou pra alguém */
+function recEnviou(){
+  if(souVisitante()) return 0;
+  const r = recLer();
+  r.dia = recHoje();
+  if(r.envios >= REC_ENVIOS_DIA){ recGravar(r); return 0; }
+  r.envios++;
+  recGravar(r);
+  addCoins(REC_ENVIO, t('rec_envio_why'));
+  return REC_ENVIO;
+}
+/* o tempo jogado no dia (chamado junto com o tempo das missões) */
+function recTempo(seg){
+  if(souVisitante()) return;
+  const r = recLer();
+  r.dia = recHoje();
+  r.seg += seg;
+  if(!r.pago30 && r.seg >= REC_30_SEG){
+    r.pago30 = true;
+    recGravar(r);
+    addCoins(REC_30, t('rec_30_why'));
+    setTimeout(()=>{ try{ toast(t('rec_30_toast')); }catch(e){} }, 900);
+    return;
+  }
+  recGravar(r);
+}
 /* alvo = {tipo:'jogo', g: <jogo>}  ou  {tipo:'site'}   (devolve true se a pessoa compartilhou / copiou a mensagem) */
 async function compartilharAgora(alvo){
   const ehJogo = !!(alvo && alvo.tipo === 'jogo' && alvo.g);
@@ -20345,7 +20727,8 @@ async function compartilharAgora(alvo){
     }
   }catch(e){ /* a pessoa cancelou */ }
   if(feito && ehJogo){ try{ msGuardarId('compartilhar', alvo.g.id); }catch(e){} }   // missão "compartilhe jogos"
-  return feito;   // as moedas só vêm quando um amigo diferente entra pelo link
+  if(feito){ try{ recEnviou(); }catch(e){} }     // +10 moedas por mandar pra alguém (até 5 por dia)
+  return feito;   // as 35 moedas do convite só vêm quando um amigo diferente entra pelo link
 }
 /* o cartão que abre ao tocar no ícone de compartilhar */
 function abrirCartaoCompartilhar(alvo){
@@ -20357,6 +20740,7 @@ function abrirCartaoCompartilhar(alvo){
       <div class="share-card-icon">${ICONS.share}</div>
       <p class="confirm-msg">${t('share_card_title')}</p>
       <p class="share-card-sub" id="shareCardSub"></p>
+      <p class="share-card-sub share-card-rec">${ICONS.coin} ${t('rec_envio_card', {n: REC_ENVIO, max: REC_ENVIOS_DIA})}</p>
       <div class="share-card-dots" id="shareCardDots">${Array.from({length: COMPARTILHAR_MAX}, ()=>`<span class="share-dot">${ICONS.coin}</span>`).join('')}</div>
       <div class="confirm-actions">
         <button class="confirm-ok" id="shareCardGo">${t('menu_share')}</button>
@@ -21150,12 +21534,12 @@ O criador quer que a pessoa possa parar e voltar depois exatamente de onde parou
 Como fazer: na tela inicial, se existe jornada salva, mostre os botões "Continuar" (volta de onde parou) e "Novo jogo" (apaga a jornada e recomeça); se não existe, só o botão de jogar. Ao carregar, VALIDE tudo: confira os tipos e limites dos números, e o que faltar volta ao valor padrão (uma jornada salva por uma versão antiga do jogo não pode quebrar nada). Salve sempre num ponto seguro (nunca no meio de um estado impossível ou sem saída, como com 0 de vida). O jogo precisa continuar funcionando se \`window.KODA.salvar\` não existir (use \`if(window.KODA && window.KODA.salvar)\`).`;
 const KODA_DOC_JOGADOR = `## O personagem de quem joga (use sempre que fizer sentido!)
 
-Cada criança no Koda tem um personagem em pixel art. Use ele como o herói/jogador do jogo: a criança joga como ela mesma, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
+Cada criança no Koda tem um personagem em pixel art (a roupa, o cabelo e os acessórios que ela escolheu). Use ele como o herói/jogador do jogo: a criança joga como ela mesma, com a skin dela, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
 - \`KODA.jogador.aoPronto(function(){ ... })\` — chamada quando o personagem já pode ser desenhado (na hora, se já pode). \`KODA.jogador.pronto()\` diz se já dá.
-- \`KODA.jogador.desenhar(ctx, x, y, altura)\` — desenha o personagem no canvas (x,y = canto de cima à esquerda; a largura é calculada, cerca de 0,76 x a altura). Devolve false se ainda não dá. Use no lugar de um quadrado/bolinha que seria o jogador, com altura de uns 48 a 96 pixels. Para virar pro outro lado: \`ctx.save(); ctx.translate(x+largura, y); ctx.scale(-1,1); KODA.jogador.desenhar(ctx, 0, 0, altura); ctx.restore();\`
+- \`KODA.jogador.desenhar(ctx, x, y, altura, opcoes)\` — desenha o personagem no canvas (x,y = canto de cima à esquerda; a largura é altura x 22/29, cerca de 0,76). Devolve false se ainda não dá. Use no lugar do quadrado/bolinha que seria o jogador, com altura de uns 48 a 96 pixels. \`opcoes\` (tudo opcional): \`{andando:true}\` anima os passos sozinho enquanto ele anda; \`{virar:true}\` espelha (olhando pra esquerda); \`{costas:true}\` mostra de costas (andando pra cima, em jogos vistos de cima); \`{feliz:true}\` carinha feliz (ao ganhar, pegar item). Ex.: \`KODA.jogador.desenhar(ctx, px, py, 64, {andando: vx !== 0, virar: vx < 0})\`. Para pular/girar/encolher, use ctx.save/translate/rotate/scale em volta.
+- \`KODA.jogador.quadro(nome)\` — a imagem (Image) de uma pose: 'frente', 'costas', 'passo1', 'passo2', 'costas1', 'costas2', 'feliz'. \`KODA.jogador.personagem()\` = a imagem de frente.
 - \`KODA.jogador.nome()\` — o apelido da pessoa (nunca é e-mail). Dá pra escrever "Bem-vindo, <nome>!" ou pôr no placar.
-- \`KODA.jogador.personagem()\` — a imagem pronta (Image), se você precisar dela de outro jeito (por exemplo, em CSS/HTML use \`.src\` dela).
-Em jogos com HTML comum (não canvas), use \`<img>\` com \`image-rendering: pixelated\` e \`.src = KODA.jogador.personagem().src\`. Nunca desenhe o personagem esticado: mantenha a proporção (largura = altura x 22/29).`;
+Em jogos com HTML comum (não canvas), use \`<img>\` com \`image-rendering: pixelated\` e \`.src = KODA.jogador.personagem().src\`. Em jogos 3D (three.js), use a imagem como textura de um plano/sprite sempre virado pra câmera, com \`magFilter = THREE.NearestFilter\`. Nunca desenhe o personagem esticado: mantenha a proporção (largura = altura x 22/29). A caixa de colisão é a do retângulo do personagem (dá pra encolher um pouco pra ficar justo).`;
 const KODA_DOC_ONLINE = `Jogos online aparecem na Praça do Koda: lá as pessoas sentam num banco, escolhem o jogo e, quando o banco sai, entram TODAS juntas na mesma sala. Então faça o jogo online em RODADAS: uma tela de espera "Esperando jogadores… (3)" que mostra o personagem de cada um, a rodada começa quando todos da sala apertam "Pronto" ou depois de uns 10 segundos com 2 ou mais pessoas (quem decide a hora de começar é o primeiro da lista \`jogadores()\` ordenada por id, e ele avisa todo mundo com \`enviar\`), e no fim mostra quem ganhou e volta pra espera da próxima rodada. Se só tiver 1 pessoa, deixe jogar sozinho mesmo (com inimigos do computador, se fizer sentido). Em todo jogo online, cada pessoa aparece com o personagem dela (veja abaixo).
 
 O Koda tem salas online de graça: cada sala tem até 16 pessoas e, quando enche, o Koda abre outra sozinho. Use \`window.KODA.online\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.online)\` e, se não existir, deixe o jogo funcionar sozinho/offline):
@@ -21197,7 +21581,9 @@ const IA_TAREFAS = {
   salvar: {txt: '- Fazer o jogo SALVAR A JORNADA de quem joga (API abaixo): a pessoa sai e, quando volta, continua de onde parou. Escolha o que faz sentido guardar neste jogo (fase, pontos, itens, vida, lugar no mapa...) e ponha "Continuar" e "Novo jogo" na tela inicial.',
            doc: ()=>KODA_DOC_SALVAR}
 };
-const IA_ORDEM = ['online', 'loja', 'salvar'];
+IA_TAREFAS.personagem = {txt: '- Fazer quem joga jogar COM O PERSONAGEM DELE (a skin do Koda, API abaixo): troque o herói/jogador principal do jogo pelo personagem da pessoa, desenhado com KODA.jogador.desenhar (andando, virando pro lado certo e de costas quando fizer sentido), mantendo o tamanho e a colisão justos. Se tiver tela inicial, mostre o personagem e o nome dela ("Bem-vindo, nome!"). O resto do jogo fica igual.',
+  doc: ()=>KODA_DOC_JOGADOR};
+const IA_ORDEM = ['personagem', 'online', 'loja', 'salvar'];
 function assistenteRegra(tarefas){
   const lista = IA_ORDEM.filter(k=>(Array.isArray(tarefas) ? tarefas : [tarefas]).indexOf(k) >= 0);
   const varias = lista.length > 1;
@@ -21219,7 +21605,7 @@ const AJUDA_REGRA = `Você é o Agente Koda, o ajudante do Koda: um site de jogo
 O que você sabe do Koda:
 - Criar um jogo: no Koda Studio a pessoa cola o CÓDIGO do jogo (um arquivo HTML só, com HTML, CSS e JavaScript juntos). Pra ter esse código ela pode: pedir pra uma IA (como o Claude ou o ChatGPT) escrever o jogo, escrever o código ela mesma (dá pra aprender HTML e JavaScript aos poucos) ou pedir ajuda pra alguém que sabe programar.
 - Botão "Testar": roda o jogo antes de publicar. Ao publicar, o jogo passa por uma análise de segurança e depois é traduzido sozinho pra todas as línguas do Koda (uma rodinha girando no Koda Studio mostra que a tradução está acontecendo).
-- O Agente Koda (o robozinho no Koda Studio) pode: deixar o jogo online (várias pessoas juntas), colocar uma loja de moedas e diamantes no jogo e fazer o jogo salvar a jornada (continuar de onde parou).
+- O Agente Koda (o robozinho no Koda Studio) pode: fazer quem joga jogar com o próprio personagem (a skin do Koda), deixar o jogo online (várias pessoas juntas), colocar uma loja de moedas e diamantes no jogo e fazer o jogo salvar a jornada (continuar de onde parou).
 - Não pode ter no jogo: preconceito, bullying, política, conteúdo sexual, violência pesada, drogas, apostas, palavrões, pedir senha ou dados pessoais, contato fora do Koda, personagens e marcas famosas, nem imagens, sons ou códigos de outros sites (tudo precisa estar dentro do próprio jogo).
 - Jogo que não funciona ou fica com a tela preta/branca: primeiro atualize a página (ou feche e abra o Koda de novo), feche e abra o jogo, confira a internet e use o "Testar". Depois confira se o código está inteiro (do <!DOCTYPE html> até o </html>), se não usa nada de outro site e se não é grande demais. localStorage não guarda nada dentro dos jogos do Koda: pra salvar use o botão "salvar a jornada" do Agente Koda. Se ainda assim não der, peça pro Agente Koda arrumar ou pra quem fez o código.
 - Ideias de jogos: dê ideias curtas, divertidas e fáceis de fazer (com o nome, como se joga em uma frase e o que deixa legal).
@@ -21429,7 +21815,7 @@ let iaPronto = null;              // terminou com a tela fechada: {codigo, antes
 const iaTelas = new Set();        // as telas com o botão do agente abertas agora (pra mostrar o "Creating" em todas)
 const iaApis = new WeakMap();     // caixa do código -> {aplicar, mostrar}
 function iaRepintar(){ iaTelas.forEach(f=>{ if(f.vivo()) f.pintar(); else iaTelas.delete(f); }); }
-function iaMsgPronto(tarefas){ return t(tarefas.length > 1 ? 'ia_pronto_varios' : tarefas[0] === 'online' ? 'ia_pronto_online' : tarefas[0] === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'); }
+function iaMsgPronto(tarefas){ return t(tarefas.length > 1 ? 'ia_pronto_varios' : tarefas[0] === 'online' ? 'ia_pronto_online' : tarefas[0] === 'salvar' ? 'ia_pronto_salvar' : tarefas[0] === 'personagem' ? 'ia_pronto_personagem' : 'ia_pronto_loja'); }
 /* o botão "Cancelar" do Agente Koda: interrompe o pedido na hora e a tela volta ao normal (o código da caixa não muda) */
 function iaCancelar(){
   const job = iaTrabalho;
@@ -23649,11 +24035,411 @@ window.addEventListener('message', function(ev){
      na mesma sala (o servidor manda um "grupo" e o Koda usa ele ao entrar no jogo).
    O servidor é o mesmo das salas online (koda-online), com a sala especial "koda-praca".
 ============================================================ */
+/* ============================================================
+   EMOTES: animações do personagem (dançar, girar, coraçõezinhos...).
+   Dois são de graça; os outros a pessoa compra na Loja (aba Emotes) ou direto na Praça.
+   Na Praça, quem usa um emote faz a animação e todo mundo vê.
+   O número de cada emote é a posição dele na lista: emote novo entra SEMPRE no fim.
+   dur = quanto tempo a animação dura (ms); moeda 'd' = Koda Diamonds.
+============================================================ */
+var EMOTES = [
+  {id:'acenar',    preco:0,   dur:2000},
+  {id:'pular',     preco:0,   dur:1800},
+  {id:'dancar',    preco:35,  dur:2600},
+  {id:'girar',     preco:35,  dur:1600},
+  {id:'palmas',    preco:35,  dur:2000},
+  {id:'coracoes',  preco:60,  dur:2400},
+  {id:'rir',       preco:60,  dur:2200},
+  {id:'dormir',    preco:60,  dur:2800},
+  {id:'chorar',    preco:60,  dur:2400},
+  {id:'bravo',     preco:85,  dur:2000},
+  {id:'susto',     preco:85,  dur:1600},
+  {id:'musica',    preco:85,  dur:2600},
+  {id:'robo',      preco:120, dur:2400},
+  {id:'forte',     preco:120, dur:2000},
+  {id:'moonwalk',  preco:165, dur:2600},
+  {id:'estrelas',  preco:165, dur:2000},
+  {id:'confete',   preco:165, dur:2400},
+  {id:'foguete',   preco:250, dur:2600},
+  {id:'arcoiris',  preco:5,  moeda:'d', dur:2400},
+  {id:'fogos',     preco:8,  moeda:'d', dur:2800},
+  {id:'coroa',     preco:10, moeda:'d', dur:2600},
+  {id:'teleporte', preco:15, moeda:'d', dur:2200}
+];
+var EMOTES_KEY = 'koda_emotes';
+function emoteDe(n){ return EMOTES[Math.floor(Number(n))] || null; }
+function emotesMeus(){
+  let a = [];
+  try{ a = JSON.parse(localStorage.getItem(EMOTES_KEY)) || []; }catch(e){}
+  return Array.isArray(a) ? a.filter(id=>EMOTES.some(e=>e.id === id)) : [];
+}
+function emoteEhMeu(id){
+  const e = EMOTES.find(x=>x.id === id);
+  return !!e && (!e.preco || modoTesteDeMoedas() || emotesMeus().indexOf(id) >= 0);
+}
+function emoteGuardar(id){
+  const a = emotesMeus();
+  if(a.indexOf(id) < 0) a.push(id);
+  try{ localStorage.setItem(EMOTES_KEY, JSON.stringify(a)); }catch(e){}
+  try{ syncToServer(); }catch(e){}
+}
+function emotePrecoHtml(e){ return (e.moeda === 'd' ? ICONS.diamond : ICONS.coin) + ' ' + kshopMilhar(e.preco); }
+/* comprar (com a janela de "tem certeza?" da loja); depois = o que fazer quando der certo */
+function emoteComprar(id, depois){
+  const e = EMOTES.find(x=>x.id === id);
+  if(!e) return;
+  if(emoteEhMeu(id)){ if(depois) depois(); return; }
+  compraFluxo({
+    nome: t('em_' + id),
+    arte: `<span class="em-arte"><canvas data-em-prev="${id}" width="96" height="96"></canvas></span>`,
+    custos: [{moeda: e.moeda === 'd' ? 'd' : 'c', preco: e.preco}],
+    paraMim: ()=>{
+      const pagou = e.moeda === 'd' ? spendDiamonds(e.preco) : spendCoins(e.preco);
+      if(!pagou) return {ok: false, motivo: 'saldo'};
+      emoteGuardar(id);
+      return {ok: true};
+    },
+    ok: ()=>{ toast(t('emote_comprou')); if(depois) depois(); }
+  });
+  setTimeout(()=>emotePrevias(document), 30);
+}
+
+/* ---------- o desenho: a pose (mexe o personagem) e os enfeites em volta ----------
+   k = 0..1 (quanto da animação já passou), s = segundos desde o começo.
+   dx, dy em "alturas do personagem"; rot em radianos; sx, sy = esticar; a = transparência */
+function emotePose(id, k, s){
+  const P = {dx: 0, dy: 0, rot: 0, sx: 1, sy: 1, a: 1};
+  const sen = Math.sin, abs = Math.abs, PI = Math.PI;
+  switch(id){
+    case 'acenar': P.rot = sen(s * 12) * .07; break;
+    case 'pular': P.dy = -abs(sen(k * 3 * PI)) * .32; break;
+    case 'dancar': P.dx = sen(s * 8) * .1; P.dy = -abs(sen(s * 8)) * .07; P.rot = sen(s * 8) * .12; break;
+    case 'girar': P.sx = Math.cos(k * 4 * PI); P.dy = -sen(k * PI) * .15; break;
+    case 'palmas': P.dy = -abs(sen(s * 10)) * .04; break;
+    case 'coracoes': P.dy = -abs(sen(s * 5)) * .04; break;
+    case 'rir': P.dx = sen(s * 40) * .025; P.rot = sen(s * 18) * .05; break;
+    case 'dormir': P.rot = .14 * Math.min(1, k * 6); P.sy = 1 + sen(s * 3) * .025; break;
+    case 'chorar': P.sy = .97; P.dx = sen(s * 22) * .01; break;
+    case 'bravo': P.dx = sen(s * 50) * .03; break;
+    case 'susto': { const f = Math.min(1, k * 1.6); P.dy = -sen(f * PI) * .55; P.sy = 1 + sen(f * PI) * .12; P.sx = 1 - sen(f * PI) * .08; break; }
+    case 'musica': P.rot = sen(s * 4) * .15; P.dy = -abs(sen(s * 4)) * .04; break;
+    case 'robo': { const q = Math.floor(s * 4); P.dx = (q % 2 ? .08 : -.08); P.rot = (q % 4 < 2 ? .08 : -.08); break; }
+    case 'forte': { const f = abs(sen(s * 6)); P.sx = 1 + f * .12; P.sy = 1 - f * .08; break; }
+    case 'moonwalk': P.dx = sen(k * 2 * PI) * .55; P.dy = -abs(sen(s * 9)) * .02; break;
+    case 'estrelas': P.dy = -sen(k * PI) * .1; break;
+    case 'confete': P.dy = -abs(sen(s * 6)) * .05; break;
+    case 'foguete':
+      if(k < .15){ P.sy = 1 - sen(k / .15 * PI) * .15; P.sx = 1 + sen(k / .15 * PI) * .08; }
+      else if(k < .5) P.dy = -Math.pow((k - .15) / .35, 2) * 4;
+      else if(k < .85) P.dy = -4 * Math.pow(1 - (k - .5) / .35, 2);
+      else { P.sy = 1 - sen((k - .85) / .15 * PI) * .15; P.sx = 1 + sen((k - .85) / .15 * PI) * .08; }
+      break;
+    case 'arcoiris': P.sx = Math.cos(k * 4 * PI); break;
+    case 'fogos': P.dy = -abs(sen(s * 3)) * .03; break;
+    case 'coroa': P.dy = -.1 * Math.min(1, k * 5) - sen(s * 3) * .03; break;
+    case 'teleporte': P.a = k < .4 ? 1 - k / .4 : k < .6 ? 0 : (k - .6) / .4; P.sx = P.sy = .6 + .4 * P.a; break;
+  }
+  if(Math.abs(P.sx) < .08) P.sx = P.sx < 0 ? -.08 : .08;
+  return P;
+}
+/* desenhos de pixel pros enfeites (X = pinta) */
+var EM_PIX = {
+  coracao: ['.X.X.', 'XXXXX', 'XXXXX', '.XXX.', '..X..'],
+  nota: ['..XX', '..X.', '..X.', 'XXX.', 'XX..'],
+  estrela: ['..X..', '.XXX.', 'XXXXX', '.XXX.', '.X.X.'],
+  z: ['XXXX', '..X.', '.X..', 'XXXX'],
+  gota: ['.X.', 'XXX', 'XXX', '.X.'],
+  fumaca: ['.XX.', 'XXXX', 'XXXX', '.XX.'],
+  exclama: ['X', 'X', 'X', '.', 'X'],
+  coroa: ['X.X.X', 'XXXXX', 'XXXXX'],
+  brilho: ['.X.', 'XXX', '.X.'],
+  mao: ['.X.X', 'XXXX', 'XXXX', '.XX.']
+};
+function emPix(x, nome, cx, cy, p, cor, alfa){
+  const m = EM_PIX[nome]; if(!m) return;
+  const w = m[0].length, h = m.length, x0 = Math.round(cx - w * p / 2), y0 = Math.round(cy - h * p / 2);
+  x.globalAlpha = Math.max(0, Math.min(1, alfa == null ? 1 : alfa));
+  x.fillStyle = cor;
+  for(let j = 0; j < h; j++) for(let i = 0; i < w; i++) if(m[j][i] === 'X') x.fillRect(x0 + Math.round(i * p), y0 + Math.round(j * p), Math.ceil(p), Math.ceil(p));
+  x.globalAlpha = 1;
+}
+/* os enfeites: cx = meio do personagem, pe = altura dos pés, h = altura do personagem (em pixels da tela) */
+function emoteEnfeites(x, id, k, s, cx, pe, h){
+  const p = Math.max(1.5, h / 29), topo = pe - h, sen = Math.sin, cos = Math.cos, PI = Math.PI;
+  const sobe = (i, n, vel)=>((s * vel + i / n) % 1);
+  switch(id){
+    case 'acenar': emPix(x, 'mao', cx + h * .42 + sen(s * 12) * p * 2, topo + h * .45, p, '#F6C29B'); break;
+    case 'palmas': for(let i = 0; i < 2; i++){ const f = (s * 2.5 + i * .5) % 1; emPix(x, 'brilho', cx + (i ? 1 : -1) * h * (.2 + f * .25), topo + h * (.35 - f * .3), p, '#FFD23F', 1 - f); } break;
+    case 'coracoes': for(let i = 0; i < 4; i++){ const f = sobe(i, 4, .6); emPix(x, 'coracao', cx + sen(i * 2.3 + s * 2) * h * .35, topo + h * (.4 - f * .7), p, i % 2 ? '#FF5A79' : '#FF8FB1', 1 - f); } break;
+    case 'rir': { const f = (s * 1.6) % 1; x.font = '900 ' + Math.round(h * .2) + 'px "Baloo 2",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.globalAlpha = 1 - f; x.fillStyle = '#FFD23F'; x.strokeStyle = '#3b2a00'; x.lineWidth = Math.max(2, p);
+      [-1, 1].forEach((l, i)=>{ const tx = cx + l * h * (.32 + f * .1), ty = topo + h * (.15 - f * .25) + i * h * .08; x.strokeText('HA', tx, ty); x.fillText('HA', tx, ty); }); x.globalAlpha = 1; break; }
+    case 'dormir': for(let i = 0; i < 3; i++){ const f = sobe(i, 3, .45); emPix(x, 'z', cx + h * (.25 + f * .3), topo + h * (.1 - f * .5), p * (.6 + f * .6), '#BFE6FF', 1 - f); } break;
+    case 'chorar': for(let i = 0; i < 4; i++){ const f = sobe(i, 4, 1.4); emPix(x, 'gota', cx + (i % 2 ? 1 : -1) * h * (.14 + f * .12), topo + h * (.38 + f * .4), p, '#5BC0FF', 1 - f * .8); } break;
+    case 'bravo': x.globalAlpha = .18 + .1 * sen(s * 20); x.fillStyle = '#FF2D2D'; x.beginPath(); x.ellipse(cx, topo + h * .5, h * .42, h * .55, 0, 0, PI * 2); x.fill(); x.globalAlpha = 1;
+      for(let i = 0; i < 2; i++){ const f = sobe(i, 2, 1.2); emPix(x, 'fumaca', cx + (i ? 1 : -1) * h * (.22 + f * .1), topo - f * h * .25, p, '#E8E8E8', 1 - f); } break;
+    case 'susto': emPix(x, 'exclama', cx, topo - h * .18 + sen(s * 30) * p, p * 1.4, '#FF3B30'); break;
+    case 'musica': case 'dancar': for(let i = 0; i < 3; i++){ const f = sobe(i, 3, .55); emPix(x, 'nota', cx + sen(i * 2.1 + s * 3) * h * .4, topo + h * (.35 - f * .6), p, ['#8FD3FF', '#C3A6FF', '#FFD23F'][i], 1 - f); } break;
+    case 'robo': if(Math.floor(s * 4) % 2){ emPix(x, 'brilho', cx + h * .3, topo + h * .05, p, '#46F0C3'); emPix(x, 'brilho', cx - h * .3, topo + h * .1, p, '#46F0C3'); } break;
+    case 'forte': if(sen(s * 6) > .7) for(let i = 0; i < 2; i++) emPix(x, 'brilho', cx + (i ? 1 : -1) * h * .4, topo + h * .4, p, '#FFD23F'); break;
+    case 'estrelas': for(let i = 0; i < 8; i++){ const a = i / 8 * PI * 2 + s, r = h * (.2 + k * .5); emPix(x, 'estrela', cx + cos(a) * r, topo + h * .5 + sen(a) * r * .6, p, i % 2 ? '#FFD23F' : '#FFF3B0', 1 - k * .7); } break;
+    case 'confete': for(let i = 0; i < 18; i++){ const f = sobe(i, 18, .7), xx = cx + sen(i * 12.9) * h * .6 + sen(s * 3 + i) * p * 2; x.fillStyle = ['#FF5A79', '#FFD23F', '#46F0C3', '#8FD3FF', '#C3A6FF'][i % 5]; x.globalAlpha = 1 - f * .5; x.fillRect(Math.round(xx), Math.round(topo - h * .3 + f * h * 1.2), Math.ceil(p), Math.ceil(p * (i % 2 ? 1 : 2))); } x.globalAlpha = 1; break;
+    case 'foguete': if(k > .15 && k < .5){ for(let i = 0; i < 5; i++){ const f = sobe(i, 5, 3); emPix(x, 'fumaca', cx + sen(i * 3) * p * 3, pe + f * h * .2, p, '#DDDDDD', 1 - f); } const yy = pe - Math.pow((k - .15) / .35, 2) * 4 * h; x.fillStyle = '#FF8A2A'; x.fillRect(Math.round(cx - p * 2), Math.round(yy), Math.ceil(p * 4), Math.ceil(p * 3 + sen(s * 40) * p)); } break;
+    case 'arcoiris': ['#FF3B30', '#FF8A2A', '#FFD23F', '#3ECF6A', '#2D7BFF', '#B03AC4'].forEach((c, i)=>{ x.strokeStyle = c; x.lineWidth = Math.ceil(p); x.globalAlpha = Math.min(1, k * 4) * (1 - Math.max(0, k - .8) * 5); x.beginPath(); x.arc(cx, pe, h * (.75 - i * .06), PI, 0); x.stroke(); }); x.globalAlpha = 1; break;
+    case 'fogos': for(let b = 0; b < 3; b++){ const f = ((k * 3) - b * .7); if(f < 0 || f > 1) continue; const bx = cx + (b - 1) * h * .5, by = topo - h * (.2 + (b % 2) * .25), cor = ['#FF5A79', '#FFD23F', '#46F0C3'][b];
+      for(let i = 0; i < 10; i++){ const a = i / 10 * PI * 2, r = f * h * .35; x.globalAlpha = 1 - f; x.fillStyle = cor; x.fillRect(Math.round(bx + cos(a) * r), Math.round(by + sen(a) * r), Math.ceil(p), Math.ceil(p)); } } x.globalAlpha = 1; break;
+    case 'coroa': emPix(x, 'coroa', cx, topo - p * 2 + sen(s * 3) * p, p * 1.3, '#FFC93C'); if(sen(s * 5) > .3) emPix(x, 'brilho', cx + h * .2, topo - p * 4, p * .8, '#FFF3B0'); break;
+    case 'teleporte': for(let i = 0; i < 10; i++){ const f = sobe(i, 10, 1.3); emPix(x, 'brilho', cx + sen(i * 7.7) * h * .35, pe - f * h, p, i % 2 ? '#C3A6FF' : '#8FD3FF', (1 - f) * (k < .9 ? 1 : (1 - k) * 10)); } break;
+  }
+}
+/* desenha o personagem (imagem) com o emote: cx, pe = meio e pés na tela; w, h = tamanho */
+function emoteDesenhar(x, img, id, k, s, cx, pe, w, h, vira){
+  const P = emotePose(id, k, s);
+  x.save();
+  x.globalAlpha = P.a;
+  x.translate(cx + P.dx * h, pe + P.dy * h);
+  x.rotate(P.rot);
+  x.scale(P.sx * (vira ? -1 : 1), P.sy);
+  if(img && img.complete && img.naturalWidth) x.drawImage(img, Math.round(-w / 2), Math.round(-h), Math.round(w), Math.round(h));
+  x.restore();
+  emoteEnfeites(x, id, k, s, cx + P.dx * h, pe + P.dy * h, h);
+}
+/* as prévias (o meu personagem fazendo cada emote, sem parar) nos canvas com data-em-prev */
+var emPrevRodando = false;
+function emotePrevias(raiz){
+  if(emPrevRodando) return;
+  const img = new Image();
+  img.src = pzImagemDe(meuCodigo()) || '';
+  emPrevRodando = true;
+  const t0 = performance.now();
+  const passo = ()=>{
+    const cvs = Array.from(document.querySelectorAll('canvas[data-em-prev]'));
+    if(!cvs.length){ emPrevRodando = false; return; }
+    const agora = performance.now();
+    cvs.forEach(c=>{
+      const id = c.dataset.emPrev, e = EMOTES.find(z=>z.id === id);
+      if(!e) return;
+      const x = c.getContext('2d'), d = Math.min(2, window.devicePixelRatio || 1), W = c.clientWidth || 96, H = c.clientHeight || 96;
+      if(c.width !== Math.round(W * d)){ c.width = Math.round(W * d); c.height = Math.round(H * d); }
+      x.setTransform(d, 0, 0, d, 0, 0); x.imageSmoothingEnabled = false;
+      x.clearRect(0, 0, W, H);
+      const ciclo = e.dur + 700, tt = (agora - t0) % ciclo, k = Math.min(1, tt / e.dur), s = tt / 1000;
+      const h = H * .62, w = h * 22 / 29;
+      if(tt > e.dur){ if(img.complete && img.naturalWidth) x.drawImage(img, Math.round(W / 2 - w / 2), Math.round(H * .84 - h), Math.round(w), Math.round(h)); return; }
+      emoteDesenhar(x, img, id, k, s, W / 2, H * .84, w, h, false);
+    });
+    requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
+/* os cartões dos emotes (na Loja e na Praça). naPraca = tocar no seu emote já usa */
+function emotesGradeHtml(naPraca){
+  const esc = chatListEscape;
+  return `<div class="em-grade${naPraca ? ' na-praca' : ''}">${EMOTES.map((e, i)=>{
+    const meu = emoteEhMeu(e.id);
+    return `<button type="button" class="em-card${meu ? ' meu' : ''}${e.moeda === 'd' ? ' dia' : ''}" data-emote="${i}">
+      <canvas data-em-prev="${e.id}" width="96" height="96" aria-hidden="true"></canvas>
+      <span class="em-nome">${esc(t('em_' + e.id))}</span>
+      <span class="em-preco">${meu ? (naPraca ? esc(t('emote_usar')) : (e.preco ? esc(t('emote_tem')) : esc(t('emote_gratis')))) : emotePrecoHtml(e)}</span>
+    </button>`;
+  }).join('')}</div>`;
+}
+
 const PRACA_JOGO = 'koda-praca';
 const PRACA_MAX = 20;
 const PRACA_ULTIMA = 999999999;   // a última praça: na prática não acabam (qualquer número de 9 dígitos)
 const PRACA_EMOS = ['👋', '❤️', '😂', '😮', '🔥', '👍', '🎉', '😎'];
-const PRACA_FRASES = 12;          // frases prontas (praca_f0..praca_f11): cada um vê na própria língua
+/* frases prontas: as 12 primeiras são praca_f0..praca_f11; as outras vêm da lista abaixo ('pt|en|es|it|fr|de|nl|ja|zh|ko').
+   Cada um vê na própria língua; pela rede só vai o número. Frase nova entra SEMPRE no fim. */
+const PRACA_FRASES_MAIS = [
+  'Olá!|Hello!|¡Hola a todos!|Salve!|Bonjour !|Hi!|Hallo!|こんにちは！|大家好！|안녕하세요!',
+  'Oi, gente!|Hi, everyone!|¡Hola, gente!|Ciao a tutti!|Salut tout le monde !|Hallo zusammen!|Hoi allemaal!|みんな、やあ！|大家好呀！|모두 안녕!',
+  'Bom dia!|Good morning!|¡Buenos días!|Buongiorno!|Bonjour !|Guten Morgen!|Goedemorgen!|おはよう！|早上好！|좋은 아침!',
+  'Boa tarde!|Good afternoon!|¡Buenas tardes!|Buon pomeriggio!|Bon après-midi !|Guten Tag!|Goedemiddag!|こんにちは！|下午好！|좋은 오후!',
+  'Boa noite!|Good evening!|¡Buenas noches!|Buonasera!|Bonsoir !|Guten Abend!|Goedenavond!|こんばんは！|晚上好！|좋은 저녁!',
+  'Cheguei!|I’m here!|¡Llegué!|Eccomi!|Me voilà !|Bin da!|Ik ben er!|来たよ！|我来啦！|나 왔어!',
+  'Tudo bem?|How are you?|¿Todo bien?|Tutto bene?|Ça va ?|Alles gut?|Alles goed?|元気？|你好吗？|잘 지내?',
+  'Tudo ótimo!|All good!|¡Todo genial!|Tutto benissimo!|Super bien !|Alles super!|Helemaal top!|元気だよ！|好得很！|아주 좋아!',
+  'E aí?|What’s up?|¿Qué tal?|Come va?|Quoi de neuf ?|Was geht?|Hoe is het?|調子どう？|最近怎么样？|어때?',
+  'Que bom te ver!|Good to see you!|¡Qué bueno verte!|Che bello vederti!|Content de te voir !|Schön, dich zu sehen!|Leuk je te zien!|会えてうれしい！|见到你真好！|만나서 반가워!',
+  'Bem-vindo!|Welcome!|¡Bienvenido!|Benvenuto!|Bienvenue !|Willkommen!|Welkom!|ようこそ！|欢迎！|환영해!',
+  'Voltei!|I’m back!|¡Volví!|Sono tornato!|Je suis de retour !|Bin wieder da!|Ik ben terug!|ただいま！|我回来了！|돌아왔어!',
+  'Oi, amigo!|Hi, friend!|¡Hola, amigo!|Ciao, amico!|Salut, l’ami !|Hallo, Freund!|Hoi, vriend!|やあ、友だち！|你好，朋友！|안녕, 친구!',
+  'Prazer!|Nice to meet you!|¡Mucho gusto!|Piacere!|Enchanté !|Freut mich!|Leuk je te ontmoeten!|はじめまして！|很高兴认识你！|반가워!',
+  'Alguém aí?|Anyone here?|¿Hay alguien?|C’è qualcuno?|Il y a quelqu’un ?|Ist jemand da?|Is er iemand?|だれかいる？|有人吗？|누구 있어?',
+  'Oi de novo!|Hi again!|¡Hola otra vez!|Ciao di nuovo!|Re-salut !|Hallo nochmal!|Hoi weer!|また会ったね！|又见面了！|또 만났네!',
+  'Oiê!|Hiya!|¡Holi!|Ciaooo!|Coucou !|Huhu!|Hoihoi!|やっほー！|嗨嗨！|안뇽!',
+  'Vamos jogar juntos!|Let’s play together!|¡Juguemos juntos!|Giochiamo insieme!|Jouons ensemble !|Lass uns zusammen spielen!|Laten we samen spelen!|いっしょに遊ぼう！|我们一起玩吧！|같이 놀자!',
+  'Qual jogo?|Which game?|¿Qué juego?|Quale gioco?|Quel jeu ?|Welches Spiel?|Welke game?|どのゲーム？|玩哪个？|무슨 게임?',
+  'Escolhe o jogo!|You pick the game!|¡Elige el juego!|Scegli tu il gioco!|Choisis le jeu !|Such du das Spiel aus!|Kies jij de game!|ゲームえらんで！|你选游戏！|게임 골라!',
+  'Mais uma partida?|One more round?|¿Otra partida?|Un’altra partita?|Encore une partie ?|Noch eine Runde?|Nog een potje?|もう一回？|再来一局？|한 판 더?',
+  'Revanche!|Rematch!|¡Revancha!|Rivincita!|Revanche !|Revanche!|Revanche!|リベンジ！|再比一次！|재대결!',
+  'Tô pronto!|I’m ready!|¡Estoy listo!|Sono pronto!|Je suis prêt !|Ich bin bereit!|Ik ben klaar!|準備オッケー！|我准备好了！|준비됐어!',
+  'Já vai começar!|It’s about to start!|¡Ya va a empezar!|Sta per iniziare!|Ça va commencer !|Gleich geht’s los!|Het begint zo!|もうすぐ始まるよ！|马上开始！|곧 시작해!',
+  'Corre pro banco!|Run to the bench!|¡Corre al banco!|Corri alla panchina!|Cours au banc !|Lauf zur Bank!|Ren naar het bankje!|ベンチに急いで！|快去长椅！|벤치로 뛰어!',
+  'Falta uma pessoa!|We need one more!|¡Falta una persona!|Manca una persona!|Il manque une personne !|Einer fehlt noch!|We missen er nog één!|あと一人！|还差一个人！|한 명 더 필요해!',
+  'Cabe mais um!|There’s room for one more!|¡Cabe uno más!|C’è posto per un altro!|Il reste une place !|Da passt noch einer hin!|Er kan er nog één bij!|あと一人入れるよ！|还能再坐一个！|한 명 더 앉을 수 있어!',
+  'Bora, bora!|Come on, come on!|¡Vamos, vamos!|Dai, dai!|Allez, allez !|Los, los!|Kom op, kom op!|行こう行こう！|快快快！|가자 가자!',
+  'Esse jogo é muito bom!|This game is so good!|¡Este juego es muy bueno!|Questo gioco è bellissimo!|Ce jeu est trop bien !|Das Spiel ist super!|Deze game is echt goed!|このゲーム最高！|这个游戏超好玩！|이 게임 진짜 좋아!',
+  'Já jogou esse?|Have you played this one?|¿Ya jugaste este?|Hai già giocato a questo?|Tu as déjà joué à celui-là ?|Hast du das schon gespielt?|Heb je deze al gespeeld?|これやったことある？|你玩过这个吗？|이거 해 봤어?',
+  'Eu criei um jogo!|I made a game!|¡Hice un juego!|Ho creato un gioco!|J’ai créé un jeu !|Ich hab ein Spiel gemacht!|Ik heb een game gemaakt!|ゲームを作ったよ！|我做了一个游戏！|게임 만들었어!',
+  'Joga o meu jogo!|Play my game!|¡Juega mi juego!|Gioca al mio gioco!|Joue à mon jeu !|Spiel mein Spiel!|Speel mijn game!|わたしのゲームやって！|玩玩我的游戏！|내 게임 해 봐!',
+  'Vamos criar um jogo juntos?|Shall we make a game together?|¿Creamos un juego juntos?|Creiamo un gioco insieme?|On crée un jeu ensemble ?|Machen wir zusammen ein Spiel?|Zullen we samen een game maken?|いっしょにゲーム作ろう？|一起做个游戏吧？|같이 게임 만들래?',
+  'Time azul!|Blue team!|¡Equipo azul!|Squadra blu!|Équipe bleue !|Team Blau!|Team blauw!|青チーム！|蓝队！|파란 팀!',
+  'Time vermelho!|Red team!|¡Equipo rojo!|Squadra rossa!|Équipe rouge !|Team Rot!|Team rood!|赤チーム！|红队！|빨간 팀!',
+  'Fica no meu time!|Join my team!|¡Únete a mi equipo!|Vieni nella mia squadra!|Viens dans mon équipe !|Komm in mein Team!|Kom in mijn team!|わたしのチームに入って！|来我的队！|우리 팀 해!',
+  'Quem ganhar escolhe!|Winner picks!|¡El que gane elige!|Chi vince sceglie!|Le gagnant choisit !|Wer gewinnt, sucht aus!|Wie wint, mag kiezen!|勝った人がえらぶ！|赢的人选！|이긴 사람이 골라!',
+  'Vamos jogar online!|Let’s play online!|¡Juguemos en línea!|Giochiamo online!|Jouons en ligne !|Lass uns online spielen!|Laten we online spelen!|オンラインで遊ぼう！|一起玩在线游戏！|온라인으로 하자!',
+  'Eu vou ganhar!|I’m going to win!|¡Voy a ganar!|Vincerò io!|Je vais gagner !|Ich werde gewinnen!|Ik ga winnen!|ぜったい勝つ！|我要赢了！|내가 이길 거야!',
+  'Vem me desafiar!|Come challenge me!|¡Ven a retarme!|Vieni a sfidarmi!|Viens me défier !|Fordere mich heraus!|Daag me uit!|勝負しよう！|来挑战我吧！|나한테 도전해!',
+  'Topa um desafio?|Up for a challenge?|¿Aceptas un reto?|Accetti una sfida?|Partant pour un défi ?|Bock auf eine Herausforderung?|Zin in een uitdaging?|チャレンジする？|接受挑战吗？|도전할래?',
+  'Partiu jogo!|Off to the game!|¡A jugar!|Si gioca!|C’est parti pour le jeu !|Auf zum Spiel!|Op naar de game!|ゲームへ出発！|出发去玩！|게임하러 가자!',
+  'Você é muito bom!|You’re really good!|¡Eres muy bueno!|Sei bravissimo!|Tu es trop fort !|Du bist echt gut!|Jij bent echt goed!|すごく上手だね！|你好厉害！|진짜 잘한다!',
+  'Mandou bem!|Well done!|¡Bien hecho!|Ben fatto!|Bien joué !|Gut gemacht!|Goed gedaan!|よくやった！|干得好！|잘했어!',
+  'Que jogada!|What a move!|¡Qué jugada!|Che mossa!|Quel coup !|Was für ein Zug!|Wat een actie!|すごいプレイ！|好一招！|대단한 플레이!',
+  'Você é demais!|You’re awesome!|¡Eres genial!|Sei fantastico!|Tu es génial !|Du bist toll!|Jij bent geweldig!|最高だね！|你太棒了！|너 최고야!',
+  'Adorei sua roupa!|I love your outfit!|¡Me encanta tu ropa!|Adoro il tuo vestito!|J’adore ta tenue !|Cooles Outfit!|Leuke outfit!|その服すてき！|你的衣服好好看！|옷 멋지다!',
+  'Seu personagem é lindo!|Your character looks great!|¡Tu personaje es precioso!|Il tuo personaggio è bellissimo!|Ton personnage est trop beau !|Dein Charakter sieht toll aus!|Je personage ziet er gaaf uit!|キャラかわいい！|你的角色好可爱！|캐릭터 예쁘다!',
+  'Que estilo!|What style!|¡Qué estilo!|Che stile!|Quel style !|Was für ein Style!|Wat een stijl!|おしゃれ！|好有型！|스타일 좋다!',
+  'Você é um craque!|You’re a pro!|¡Eres un crack!|Sei un campione!|Tu es un pro !|Du bist ein Profi!|Je bent een prof!|プロだね！|你是高手！|완전 프로네!',
+  'Parabéns!|Congratulations!|¡Felicidades!|Complimenti!|Bravo !|Glückwunsch!|Gefeliciteerd!|おめでとう！|恭喜！|축하해!',
+  'Muito legal!|Very cool!|¡Muy bueno!|Fortissimo!|Trop bien !|Sehr cool!|Heel gaaf!|とてもいいね！|非常酷！|정말 멋져!',
+  'Você é engraçado!|You’re funny!|¡Eres gracioso!|Sei simpatico!|Tu es drôle !|Du bist lustig!|Jij bent grappig!|おもしろいね！|你好有趣！|너 웃기다!',
+  'Que jogo legal você fez!|What a cool game you made!|¡Qué juego tan bueno hiciste!|Che bel gioco hai fatto!|Super le jeu que tu as fait !|Cooles Spiel, das du gemacht hast!|Wat een gave game heb je gemaakt!|いいゲーム作ったね！|你做的游戏真棒！|멋진 게임 만들었네!',
+  'Você joga muito!|You play really well!|¡Juegas muy bien!|Giochi benissimo!|Tu joues super bien !|Du spielst richtig gut!|Je speelt echt goed!|プレイうまい！|你玩得真好！|게임 진짜 잘해!',
+  'Melhor jogador!|Best player!|¡El mejor jugador!|Miglior giocatore!|Meilleur joueur !|Bester Spieler!|Beste speler!|最強プレイヤー！|最佳玩家！|최고의 플레이어!',
+  'Lenda!|Legend!|¡Leyenda!|Leggenda!|Légende !|Legende!|Legende!|レジェンド！|传奇！|레전드!',
+  'Brabo!|Beast!|¡Bestial!|Mitico!|Trop fort !|Krass!|Beest!|つよい！|太猛了！|대박!',
+  'Arrasou!|You rocked it!|¡La rompiste!|Spettacolo!|Tu as assuré !|Du hast es gerockt!|Je deed het geweldig!|最高だった！|你太牛了！|끝내줬어!',
+  'Gostei do seu nome!|I like your name!|¡Me gusta tu nombre!|Mi piace il tuo nome!|J’aime bien ton nom !|Cooler Name!|Leuke naam!|名前いいね！|你的名字很好听！|이름 멋지다!',
+  'Que cores bonitas!|What nice colors!|¡Qué colores tan bonitos!|Che bei colori!|Jolies couleurs !|Schöne Farben!|Mooie kleuren!|色がきれい！|颜色好漂亮！|색깔 예쁘다!',
+  'Você é gentil!|You’re kind!|¡Eres amable!|Sei gentile!|Tu es gentil !|Du bist nett!|Jij bent aardig!|やさしいね！|你真好！|친절하구나!',
+  'Uau!|Wow!|¡Guau!|Wow!|Waouh !|Wow!|Wauw!|わあ！|哇！|와!',
+  'Haha!|Haha!|¡Jaja!|Ahah!|Haha !|Haha!|Haha!|あはは！|哈哈！|하하!',
+  'Kkkkk!|LOL!|¡Jajaja!|Ahahah!|MDR !|LOL!|LOL!|ｗｗｗ|哈哈哈！|ㅋㅋㅋ!',
+  'Nossa!|Whoa!|¡Vaya!|Accidenti!|Oh là là !|Krass!|Jeetje!|すごっ！|天哪！|헐!',
+  'Sério?|Really?|¿En serio?|Davvero?|Sérieux ?|Echt?|Echt?|ほんと？|真的吗？|진짜?',
+  'Não acredito!|I can’t believe it!|¡No lo creo!|Non ci credo!|Je n’y crois pas !|Unglaublich!|Niet te geloven!|信じられない！|不敢相信！|말도 안 돼!',
+  'Que susto!|That scared me!|¡Qué susto!|Che spavento!|Quelle peur !|Was für ein Schreck!|Ik schrok!|びっくりした！|吓我一跳！|깜짝이야!',
+  'Ufa!|Phew!|¡Uf!|Uff!|Ouf !|Puh!|Pfoe!|ふう！|呼！|휴!',
+  'Eita!|Oops!|¡Ups!|Ops!|Oups !|Hoppla!|Oeps!|おっと！|哎呀！|앗!',
+  'Ai, não!|Oh no!|¡Oh, no!|Oh no!|Oh non !|Oh nein!|O nee!|ああ、だめ！|哦不！|안 돼!',
+  'Que pena!|Too bad!|¡Qué pena!|Peccato!|Dommage !|Schade!|Jammer!|ざんねん！|太可惜了！|아쉽다!',
+  'Que demais!|That’s awesome!|¡Qué pasada!|Che figata!|C’est génial !|Wie geil!|Wat vet!|最高！|太棒了！|최고다!',
+  'Incrível!|Amazing!|¡Increíble!|Incredibile!|Incroyable !|Unglaublich!|Ongelooflijk!|すばらしい！|不可思议！|굉장해!',
+  'Hmm…|Hmm…|Mmm…|Mmm…|Hmm…|Hmm…|Hmm…|うーん…|嗯……|흠…',
+  'Tô com sono…|I’m sleepy…|Tengo sueño…|Ho sonno…|J’ai sommeil…|Ich bin müde…|Ik ben moe…|ねむい…|我困了……|졸려…',
+  'Tô feliz!|I’m happy!|¡Estoy feliz!|Sono felice!|Je suis content !|Ich bin froh!|Ik ben blij!|うれしい！|我好开心！|행복해!',
+  'Que fome!|I’m hungry!|¡Qué hambre!|Che fame!|J’ai faim !|Ich hab Hunger!|Ik heb honger!|おなかすいた！|好饿！|배고파!',
+  'Oba!|Yay!|¡Bien!|Evviva!|Youpi !|Juhu!|Joepie!|やったー！|耶！|야호!',
+  'Ganhei!|I won!|¡Gané!|Ho vinto!|J’ai gagné !|Gewonnen!|Gewonnen!|勝った！|我赢了！|이겼다!',
+  'Perdi…|I lost…|Perdí…|Ho perso…|J’ai perdu…|Verloren…|Verloren…|負けた…|我输了……|졌어…',
+  'Quase!|So close!|¡Casi!|Quasi!|Presque !|Fast!|Bijna!|おしい！|差一点！|아깝다!',
+  'Na próxima eu ganho!|I’ll win next time!|¡La próxima gano yo!|La prossima vinco io!|La prochaine fois je gagne !|Nächstes Mal gewinne ich!|Volgende keer win ik!|次は勝つ！|下次我赢！|다음엔 내가 이겨!',
+  'Socorro!|Help!|¡Socorro!|Aiuto!|Au secours !|Hilfe!|Help!|たすけて！|救命！|살려줘!',
+  'Calma!|Easy!|¡Calma!|Calma!|Du calme !|Ruhig!|Rustig!|落ち着いて！|别急！|진정해!',
+  'Tá bom!|Okay!|¡Vale!|Va bene!|D’accord !|Okay!|Oké!|わかった！|好的！|알았어!',
+  'Sim!|Yes!|¡Sí!|Sì!|Oui !|Ja!|Ja!|うん！|是的！|응!',
+  'Não!|No!|¡No!|No!|Non !|Nein!|Nee!|ううん！|不！|아니!',
+  'Talvez!|Maybe!|¡Quizás!|Forse!|Peut-être !|Vielleicht!|Misschien!|たぶん！|也许！|아마도!',
+  'Claro!|Of course!|¡Claro!|Certo!|Bien sûr !|Klar!|Natuurlijk!|もちろん！|当然！|당연하지!',
+  'Desculpa!|Sorry!|¡Perdón!|Scusa!|Pardon !|Entschuldigung!|Sorry!|ごめんね！|对不起！|미안해!',
+  'Tudo bem!|It’s okay!|¡No pasa nada!|Tranquillo!|Pas grave !|Alles gut!|Geeft niks!|だいじょうぶ！|没关系！|괜찮아!',
+  'De nada!|You’re welcome!|¡De nada!|Prego!|De rien !|Gern geschehen!|Graag gedaan!|どういたしまして！|不客气！|천만에!',
+  'Obrigado!|Thank you!|¡Gracias!|Grazie mille!|Merci beaucoup !|Vielen Dank!|Dankjewel!|ありがとう！|非常感谢！|정말 고마워!',
+  'Quer ser meu amigo?|Want to be friends?|¿Quieres ser mi amigo?|Vuoi essere mio amico?|Tu veux être mon ami ?|Willst du mein Freund sein?|Wil je vrienden worden?|友だちになろう？|做朋友吗？|친구 할래?',
+  'Qual seu jogo favorito?|What’s your favorite game?|¿Cuál es tu juego favorito?|Qual è il tuo gioco preferito?|C’est quoi ton jeu préféré ?|Was ist dein Lieblingsspiel?|Wat is je favoriete game?|好きなゲームは？|你最喜欢什么游戏？|제일 좋아하는 게임은?',
+  'Qual sua cor favorita?|What’s your favorite color?|¿Cuál es tu color favorito?|Qual è il tuo colore preferito?|C’est quoi ta couleur préférée ?|Was ist deine Lieblingsfarbe?|Wat is je lievelingskleur?|好きな色は？|你最喜欢什么颜色？|좋아하는 색은?',
+  'Como se joga?|How do you play?|¿Cómo se juega?|Come si gioca?|Comment on joue ?|Wie spielt man das?|Hoe speel je het?|どうやって遊ぶの？|怎么玩？|어떻게 해?',
+  'Me ensina?|Can you teach me?|¿Me enseñas?|Mi insegni?|Tu m’apprends ?|Bringst du es mir bei?|Leer je het me?|教えて？|教我好吗？|알려 줄래?',
+  'Onde fica o banco?|Where is the bench?|¿Dónde está el banco?|Dov’è la panchina?|Où est le banc ?|Wo ist die Bank?|Waar is het bankje?|ベンチはどこ？|长椅在哪？|벤치 어디야?',
+  'Qual praça você tá?|Which plaza are you in?|¿En qué plaza estás?|In che piazza sei?|Tu es sur quelle place ?|Auf welchem Platz bist du?|Op welk plein ben je?|どの広場にいる？|你在几号广场？|몇 번 광장이야?',
+  'Vamos pra outra praça?|Shall we go to another plaza?|¿Vamos a otra plaza?|Andiamo in un’altra piazza?|On va sur une autre place ?|Gehen wir zu einem anderen Platz?|Zullen we naar een ander plein gaan?|ほかの広場に行く？|去别的广场吗？|다른 광장 갈래?',
+  'Quem quer jogar?|Who wants to play?|¿Quién quiere jugar?|Chi vuole giocare?|Qui veut jouer ?|Wer will spielen?|Wie wil er spelen?|だれか遊ぶ？|谁想玩？|누구 놀래?',
+  'Você criou um jogo?|Did you make a game?|¿Hiciste un juego?|Hai creato un gioco?|Tu as créé un jeu ?|Hast du ein Spiel gemacht?|Heb je een game gemaakt?|ゲーム作った？|你做过游戏吗？|게임 만들었어?',
+  'Como fez essa roupa?|How did you make that outfit?|¿Cómo hiciste esa ropa?|Come hai fatto quel vestito?|Comment tu as fait cette tenue ?|Wie hast du das Outfit gemacht?|Hoe heb je die outfit gemaakt?|その服どうやって作ったの？|那件衣服怎么做的？|그 옷 어떻게 만들었어?',
+  'Quantas moedas você tem?|How many coins do you have?|¿Cuántas monedas tienes?|Quante monete hai?|Tu as combien de pièces ?|Wie viele Münzen hast du?|Hoeveel munten heb je?|コイン何枚ある？|你有多少金币？|코인 몇 개 있어?',
+  'Tá pronto?|Are you ready?|¿Estás listo?|Sei pronto?|Tu es prêt ?|Bist du bereit?|Ben je klaar?|準備できた？|准备好了吗？|준비됐어?',
+  'Pode esperar?|Can you wait?|¿Puedes esperar?|Puoi aspettare?|Tu peux attendre ?|Kannst du warten?|Kun je wachten?|待ってくれる？|能等一下吗？|기다려 줄래?',
+  'Quer revanche?|Want a rematch?|¿Quieres la revancha?|Vuoi la rivincita?|Tu veux une revanche ?|Willst du Revanche?|Wil je een revanche?|リベンジする？|要再比一次吗？|재대결 할래?',
+  'Gostou?|Did you like it?|¿Te gustó?|Ti è piaciuto?|Ça t’a plu ?|Hat es dir gefallen?|Vond je het leuk?|気に入った？|喜欢吗？|마음에 들어?',
+  'Por quê?|Why?|¿Por qué?|Perché?|Pourquoi ?|Warum?|Waarom?|なんで？|为什么？|왜?',
+  'Pra onde vamos?|Where are we going?|¿A dónde vamos?|Dove andiamo?|On va où ?|Wohin gehen wir?|Waar gaan we heen?|どこ行く？|我们去哪？|어디 갈까?',
+  'O que vamos fazer?|What should we do?|¿Qué hacemos?|Cosa facciamo?|On fait quoi ?|Was machen wir?|Wat gaan we doen?|何する？|我们做什么？|뭐 할까?',
+  'Você joga sempre?|Do you play a lot?|¿Juegas mucho?|Giochi spesso?|Tu joues souvent ?|Spielst du oft?|Speel je vaak?|よく遊ぶ？|你常玩吗？|자주 해?',
+  'Viu meu emote?|Did you see my emote?|¿Viste mi emote?|Hai visto la mia emote?|Tu as vu mon emote ?|Hast du mein Emote gesehen?|Zag je mijn emote?|わたしのエモート見た？|看到我的表情动作了吗？|내 이모트 봤어?',
+  'Eu sou um ninja!|I’m a ninja!|¡Soy un ninja!|Sono un ninja!|Je suis un ninja !|Ich bin ein Ninja!|Ik ben een ninja!|わたしは忍者！|我是忍者！|나는 닌자다!',
+  'Pega eu se puder!|Catch me if you can!|¡Atrápame si puedes!|Prendimi se ci riesci!|Attrape-moi si tu peux !|Fang mich doch!|Vang me als je kan!|つかまえてみて！|有本事来抓我！|잡을 수 있으면 잡아 봐!',
+  'Corrida até a fonte!|Race to the fountain!|¡Carrera hasta la fuente!|Gara fino alla fontana!|Course jusqu’à la fontaine !|Wettrennen zum Brunnen!|Race naar de fontein!|噴水まで競争！|比赛跑到喷泉！|분수까지 달리기!',
+  'Cheguei primeiro!|I got here first!|¡Llegué primero!|Sono arrivato prima!|Je suis arrivé le premier !|Erster!|Ik was eerst!|一番乗り！|我先到！|내가 먼저 왔다!',
+  'Olha a minha dancinha!|Check out my dance!|¡Mira mi bailecito!|Guarda il mio balletto!|Regarde ma danse !|Schau, mein Tanz!|Kijk mijn dansje!|ダンス見て！|看我跳舞！|내 춤 봐!',
+  'Sou o rei da praça!|I’m the king of the plaza!|¡Soy el rey de la plaza!|Sono il re della piazza!|Je suis le roi de la place !|Ich bin der König vom Platz!|Ik ben de koning van het plein!|広場の王様だ！|我是广场之王！|나는 광장의 왕!',
+  'Sou a rainha da praça!|I’m the queen of the plaza!|¡Soy la reina de la plaza!|Sono la regina della piazza!|Je suis la reine de la place !|Ich bin die Königin vom Platz!|Ik ben de koningin van het plein!|広場の女王だ！|我是广场女王！|나는 광장의 여왕!',
+  'Tô voando!|I’m flying!|¡Estoy volando!|Sto volando!|Je vole !|Ich fliege!|Ik vlieg!|飛んでる！|我在飞！|날고 있어!',
+  'Quero pizza!|I want pizza!|¡Quiero pizza!|Voglio la pizza!|Je veux de la pizza !|Ich will Pizza!|Ik wil pizza!|ピザ食べたい！|我想吃披萨！|피자 먹고 싶어!',
+  'Bananaaa!|Bananaaa!|¡Plátanooo!|Bananaaa!|Bananeee !|Bananeee!|Banaaan!|バナナー！|香蕉——！|바나나아!',
+  'Miau!|Meow!|¡Miau!|Miao!|Miaou !|Miau!|Miauw!|ニャー！|喵！|야옹!',
+  'Au au!|Woof!|¡Guau guau!|Bau bau!|Ouaf !|Wuff!|Woef!|ワンワン！|汪汪！|멍멍!',
+  'Sou um robô! Bip bop!|I’m a robot! Beep boop!|¡Soy un robot! ¡Bip bop!|Sono un robot! Bip bop!|Je suis un robot ! Bip bop !|Ich bin ein Roboter! Piep piep!|Ik ben een robot! Biep boep!|ロボットだ！ピポパ！|我是机器人！哔哔！|나는 로봇! 삐빅!',
+  'Ninguém me alcança!|Nobody can catch me!|¡Nadie me alcanza!|Nessuno mi prende!|Personne ne me rattrape !|Mich kriegt keiner!|Niemand haalt me in!|だれも追いつけない！|没人追得上我！|아무도 날 못 잡아!',
+  'Tô perdido!|I’m lost!|¡Estoy perdido!|Mi sono perso!|Je suis perdu !|Ich hab mich verlaufen!|Ik ben verdwaald!|迷子になった！|我迷路了！|길 잃었어!',
+  'Esconde-esconde?|Hide and seek?|¿Escondite?|Nascondino?|Cache-cache ?|Verstecken?|Verstoppertje?|かくれんぼする？|捉迷藏？|숨바꼭질?',
+  'Achei você!|Found you!|¡Te encontré!|Ti ho trovato!|Je t’ai trouvé !|Gefunden!|Gevonden!|みーつけた！|找到你了！|찾았다!',
+  'Pega-pega! Tá com você!|Tag! You’re it!|¡Pilla pilla! ¡La llevas!|Acchiapparella! Tocca a te!|Chat ! C’est toi le chat !|Fangen! Du bist dran!|Tikkertje! Jij bent hem!|おにごっこ！きみがオニ！|抓人游戏！你来抓！|술래잡기! 네가 술래!',
+  'Faz a pose!|Strike a pose!|¡Haz una pose!|Mettiti in posa!|Prends la pose !|Mach eine Pose!|Neem een pose aan!|ポーズして！|摆个姿势！|포즈 취해!',
+  'Foto em grupo!|Group photo!|¡Foto de grupo!|Foto di gruppo!|Photo de groupe !|Gruppenfoto!|Groepsfoto!|集合写真！|合影！|단체 사진!',
+  'Hora da festa!|Party time!|¡Hora de la fiesta!|È ora di festa!|C’est la fête !|Party-Zeit!|Feesttijd!|パーティーだ！|派对时间！|파티 타임!',
+  'Dança comigo!|Dance with me!|¡Baila conmigo!|Balla con me!|Danse avec moi !|Tanz mit mir!|Dans met me!|いっしょに踊ろう！|和我一起跳舞！|나랑 춤추자!',
+  'Joguei uma moeda na fonte!|I threw a coin in the fountain!|¡Tiré una moneda a la fuente!|Ho lanciato una moneta nella fontana!|J’ai lancé une pièce dans la fontaine !|Ich hab eine Münze in den Brunnen geworfen!|Ik gooide een munt in de fontein!|噴水にコインを投げたよ！|我往喷泉里扔了个硬币！|분수에 동전 던졌어!',
+  'Fiz um pedido!|I made a wish!|¡Pedí un deseo!|Ho espresso un desiderio!|J’ai fait un vœu !|Ich hab mir was gewünscht!|Ik deed een wens!|お願いごとしたよ！|我许了个愿！|소원 빌었어!',
+  'Que dia lindo!|What a beautiful day!|¡Qué día tan bonito!|Che bella giornata!|Quelle belle journée !|Was für ein schöner Tag!|Wat een mooie dag!|いい天気！|天气真好！|날씨 좋다!',
+  'Olha as borboletas!|Look at the butterflies!|¡Mira las mariposas!|Guarda le farfalle!|Regarde les papillons !|Schau, Schmetterlinge!|Kijk, vlinders!|ちょうちょ見て！|看蝴蝶！|나비 봐!',
+  'Vamos dar uma volta!|Let’s take a walk!|¡Demos una vuelta!|Facciamo un giro!|Allons faire un tour !|Lass uns rumlaufen!|Laten we een rondje lopen!|お散歩しよう！|我们去逛逛吧！|한 바퀴 돌자!',
+  'Me espera na fonte!|Wait for me at the fountain!|¡Espérame en la fuente!|Aspettami alla fontana!|Attends-moi à la fontaine !|Warte am Brunnen auf mich!|Wacht op me bij de fontein!|噴水で待ってて！|在喷泉等我！|분수에서 기다려!',
+  'Tô na fonte!|I’m at the fountain!|¡Estoy en la fuente!|Sono alla fontana!|Je suis à la fontaine !|Ich bin am Brunnen!|Ik ben bij de fontein!|噴水にいるよ！|我在喷泉！|분수에 있어!',
+  'Tô no banco!|I’m on the bench!|¡Estoy en el banco!|Sono sulla panchina!|Je suis sur le banc !|Ich sitze auf der Bank!|Ik zit op het bankje!|ベンチにいるよ！|我在长椅上！|벤치에 있어!',
+  'Senta do meu lado!|Sit next to me!|¡Siéntate a mi lado!|Siediti accanto a me!|Assieds-toi à côté de moi !|Setz dich neben mich!|Kom naast me zitten!|となりにすわって！|坐我旁边！|내 옆에 앉아!',
+  'Vem pra cá!|Come over here!|¡Ven aquí!|Vieni qui!|Viens par ici !|Komm her!|Kom hierheen!|こっち来て！|过来！|이리 와!',
+  'Tô indo!|On my way!|¡Ya voy!|Sto arrivando!|J’arrive !|Ich komme!|Ik kom eraan!|今行く！|我来了！|가는 중!',
+  'Esquerda!|Left!|¡Izquierda!|Sinistra!|À gauche !|Links!|Links!|左！|左边！|왼쪽!',
+  'Direita!|Right!|¡Derecha!|Destra!|À droite !|Rechts!|Rechts!|右！|右边！|오른쪽!',
+  'Pra cima!|Up!|¡Arriba!|Su!|En haut !|Hoch!|Omhoog!|上！|上面！|위로!',
+  'Pra baixo!|Down!|¡Abajo!|Giù!|En bas !|Runter!|Omlaag!|下！|下面！|아래로!',
+  'Aqui!|Here!|¡Aquí!|Qui!|Ici !|Hier!|Hier!|ここ！|这里！|여기!',
+  'Ali!|Over there!|¡Allí!|Là!|Là-bas !|Da drüben!|Daar!|あそこ！|那边！|저기!',
+  'Essa praça tá animada!|This plaza is lively!|¡Esta plaza está animada!|Questa piazza è animata!|Cette place est animée !|Hier ist was los!|Dit plein is gezellig!|この広場にぎやか！|这个广场好热闹！|이 광장 북적인다!',
+  'Chama mais gente!|Invite more people!|¡Llama a más gente!|Chiama altra gente!|Invite plus de monde !|Hol mehr Leute!|Nodig meer mensen uit!|もっと人を呼ぼう！|多叫点人来！|사람 더 불러!',
+  'Anota o número da praça!|Write down the plaza number!|¡Apunta el número de la plaza!|Segna il numero della piazza!|Note le numéro de la place !|Merk dir die Platznummer!|Onthoud het pleinnummer!|広場の番号おぼえてね！|记住广场号码！|광장 번호 기억해!',
+  'Até amanhã aqui!|See you here tomorrow!|¡Hasta mañana aquí!|A domani qui!|À demain ici !|Bis morgen hier!|Tot morgen hier!|また明日ここで！|明天这里见！|내일 여기서 봐!',
+  'Até mais!|See you later!|¡Hasta luego!|A dopo!|À plus tard !|Bis später!|Tot later!|またね！|回头见！|다음에 봐!',
+  'Até amanhã!|See you tomorrow!|¡Hasta mañana!|A domani!|À demain !|Bis morgen!|Tot morgen!|また明日！|明天见！|내일 봐!',
+  'Preciso ir!|I have to go!|¡Tengo que irme!|Devo andare!|Je dois y aller !|Ich muss los!|Ik moet gaan!|もう行かなきゃ！|我得走了！|가야 해!',
+  'Volto já!|Be right back!|¡Ya vuelvo!|Torno subito!|Je reviens !|Bin gleich zurück!|Ik ben zo terug!|すぐもどる！|马上回来！|금방 올게!',
+  'Foi muito legal!|That was so fun!|¡Fue muy divertido!|È stato bellissimo!|C’était trop bien !|Das war super!|Dat was heel leuk!|楽しかった！|太好玩了！|정말 재밌었어!',
+  'Valeu pelo jogo!|Thanks for the game!|¡Gracias por el juego!|Grazie per la partita!|Merci pour la partie !|Danke fürs Spiel!|Bedankt voor het spel!|遊んでくれてありがとう！|谢谢一起玩！|같이 놀아 줘서 고마워!',
+  'Boa noite, gente!|Good night, everyone!|¡Buenas noches a todos!|Buonanotte a tutti!|Bonne nuit tout le monde !|Gute Nacht, Leute!|Welterusten allemaal!|みんなおやすみ！|大家晚安！|모두 잘 자!',
+  'Fui!|I’m out!|¡Me voy!|Vado!|J’y vais !|Bin weg!|Ik ben weg!|行ってきます！|我走啦！|간다!',
+  'Tchau, tchau!|Bye-bye!|¡Chao, chao!|Ciao ciao!|Bye bye !|Tschüssi!|Dag dag!|バイバーイ！|拜拜啦！|안녕 안녕!',
+  'Volta logo!|Come back soon!|¡Vuelve pronto!|Torna presto!|Reviens vite !|Komm bald wieder!|Kom snel terug!|また来てね！|早点回来！|빨리 와!',
+  'Até a próxima!|Until next time!|¡Hasta la próxima!|Alla prossima!|À la prochaine !|Bis zum nächsten Mal!|Tot de volgende keer!|また今度！|下次见！|다음에 또 봐!',
+  'Me chama depois!|Call me later!|¡Llámame después!|Chiamami dopo!|Appelle-moi plus tard !|Ruf mich später!|Roep me later!|あとで呼んでね！|待会儿叫我！|나중에 불러!'
+];
+/* as categorias das frases (o número é a posição da frase: praca_f0..11 e depois PRACA_FRASES_MAIS) */
+const PRACA_CATS = [
+  {id:'oi', f:[0,9,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
+  {id:'jogar', f:[1,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53]},
+  {id:'elogios', f:[5,6,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73]},
+  {id:'reacoes', f:[4,7,11,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106]},
+  {id:'perguntas', f:[107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127]},
+  {id:'engracadas', f:[128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153]},
+  {id:'praca', f:[2,3,10,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170]},
+  {id:'tchau', f:[8,171,172,173,174,175,176,177,178,179,180,181,182]}
+];
+const PRACA_FRASES = 12 + PRACA_FRASES_MAIS.length;
+function pracaFraseTxt(n){
+  if(n < 12) return t('praca_f' + n);
+  const l = String(PRACA_FRASES_MAIS[n - 12] || '').split('|'), i = Math.max(0, PZ_LING.indexOf(currentLang));
+  return l[i] || l[1] || l[0] || '';
+}
 const PRACA_VEL = 270;            // unidades do mundo por segundo
 const PRACA_ALT = 92;             // altura do personagem no mundo
 /* o mundo tem 1500 x 1002 unidades; o chão é desenhado em 250 x 167 "pixels" (cada um = 6 unidades),
@@ -24107,6 +24893,10 @@ function pracaReceber(P, m){
     const n = Number(m.t === 'emo' ? m.e : m.f);
     const ok = m.t === 'emo' ? !!PRACA_EMOS[n] : (n >= 0 && n < PRACA_FRASES && Math.floor(n) === n);
     if(p && ok){ p.fala = {tipo: m.t, n}; p.falaAte = performance.now() + (m.t === 'emo' ? 2600 : 3800); }
+  } else if(m.t === 'emote'){
+    /* alguém fez um emote (a animação do personagem) */
+    const p = P.gente.get(String(m.id)), e = emoteDe(m.e);
+    if(p && e){ p.emote = {id: e.id, t0: performance.now(), dur: e.dur}; p.emoteAnda = false; }
   } else if(m.t === 'moeda'){
     const p = P.gente.get(String(m.id));
     if(p && m.id !== P.eu) pracaEfeitoMoeda(P, p, {x: Math.max(0, Math.min(PRACA_W, Number(m.x) || 0)), y: Math.max(0, Math.min(PRACA_H, Number(m.y) || 0))});
@@ -24174,8 +24964,11 @@ function pracaMontarTela(){
     </div>
     <div class="praca-palco"><canvas></canvas><div class="praca-msg hidden" data-msg></div><div class="praca-dica hidden" data-dica></div><div class="praca-fade" data-fade></div>
       <div class="praca-chat hidden" data-chat role="dialog" aria-label="${chatListEscape(t('praca_chat'))}">
+        <div class="praca-abas" role="tablist">${['falas', 'emotes', 'figs'].map(a=>`<button type="button" role="tab" data-paba="${a}">${chatListEscape(t('praca_aba_' + a))}</button>`).join('')}</div>
+        <div class="praca-cats" data-cats></div>
         <div class="praca-frases" data-frases></div>
-        <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
+        <div class="praca-ems" data-ems></div>
+        <div class="praca-emos" data-figs>${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
       </div>
       <div class="praca-stick" data-stick role="application" aria-label="${chatListEscape(t('praca_analogico'))}"><i class="praca-stick-anel"></i><i class="praca-stick-bola" data-bola></i></div>
       <button type="button" class="praca-chat-btn" data-chatbtn aria-label="${chatListEscape(t('praca_chat'))}" aria-expanded="false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.6 21l4.3-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8S17.5 3 12 3z"/><circle cx="7.5" cy="11" r="1.4" fill="#fff"/><circle cx="12" cy="11" r="1.4" fill="#fff"/><circle cx="16.5" cy="11" r="1.4" fill="#fff"/></svg></button>
@@ -24193,8 +24986,24 @@ function pracaMontarTela(){
   pracaLigarAnalogico(el);
   /* o chat só abre quando toca no botãozinho: aí aparecem as frases prontas e as figurinhas */
   const chat = el.querySelector('[data-chat]'), btn = el.querySelector('[data-chatbtn]');
+  /* as abas do chat: falas (por categoria), emotes (os meus e os da loja) e figurinhas */
+  let aba = 'falas', cat = PRACA_CATS[0].id;
+  const pintarChat = ()=>{
+    chat.querySelectorAll('[data-paba]').forEach(b=>{ const on = b.dataset.paba === aba; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+    const cs = chat.querySelector('[data-cats]'), fr = chat.querySelector('[data-frases]'), em = chat.querySelector('[data-ems]'), fg = chat.querySelector('[data-figs]');
+    cs.hidden = fr.hidden = aba !== 'falas'; em.hidden = aba !== 'emotes'; fg.hidden = aba !== 'figs';
+    if(aba === 'falas'){
+      cs.innerHTML = PRACA_CATS.map(c=>`<button type="button" data-cat="${c.id}"${c.id === cat ? ' class="on"' : ''}>${chatListEscape(t('praca_cat_' + c.id))}</button>`).join('');
+      const c = PRACA_CATS.find(z=>z.id === cat) || PRACA_CATS[0];
+      fr.innerHTML = c.f.map(i=>`<button type="button" data-fr="${i}">${chatListEscape(pracaFraseTxt(i))}</button>`).join('');
+      fr.scrollTop = 0;
+    } else if(aba === 'emotes'){
+      em.innerHTML = emotesGradeHtml(true);
+      emotePrevias(em);
+    }
+  };
   const abrirChat = abre=>{
-    if(abre){ el.querySelector('[data-frases]').innerHTML = Array.from({length: PRACA_FRASES}, (_, i)=>`<button type="button" data-fr="${i}">${chatListEscape(t('praca_f' + i))}</button>`).join(''); }
+    if(abre) pintarChat();
     chat.classList.toggle('hidden', !abre);
     btn.classList.toggle('on', abre);
     btn.setAttribute('aria-expanded', abre ? 'true' : 'false');
@@ -24211,7 +25020,16 @@ function pracaMontarTela(){
     abrirChat(false);
   };
   chat.addEventListener('click', ev=>{
-    const f = ev.target.closest('[data-fr]'), e = ev.target.closest('[data-emo]');
+    const f = ev.target.closest('[data-fr]'), e = ev.target.closest('[data-emo]'), ab = ev.target.closest('[data-paba]'), ct = ev.target.closest('[data-cat]'), em = ev.target.closest('[data-emote]');
+    if(ab){ aba = ab.dataset.paba; playSound('click'); pintarChat(); return; }
+    if(ct){ cat = ct.dataset.cat; playSound('click'); pintarChat(); return; }
+    if(em){
+      const n = Number(em.dataset.emote), it = emoteDe(n);
+      if(!it) return;
+      if(emoteEhMeu(it.id)) falar({t: 'emote', e: n});
+      else emoteComprar(it.id, ()=>{ if(!chat.classList.contains('hidden')) pintarChat(); });
+      return;
+    }
     if(f) falar({t: 'frase', f: Number(f.dataset.fr)});
     else if(e) falar({t: 'emo', e: Number(e.dataset.emo)});
   });
@@ -24632,6 +25450,13 @@ function pracaQuadro(P, tm){
     const pulo = p.anda ? (passo % 2 ? 0 : 2.2 * v.s) : (jogando < 1 ? Math.sin(jogando * Math.PI) * 12 * v.s : 0);
     const im = passo === 0 ? (cima ? p.passoC[0] : p.passoF[0]) : passo === 2 ? (cima ? p.passoC[1] : p.passoF[1]) : (cima ? p.imC : p.im);
     const imOk = im.complete && im.naturalWidth ? im : (cima ? p.imC : p.im);
+    /* fazendo um emote: a animação no lugar do desenho normal (andar acaba com ela) */
+    if(p.emote && (p.anda || tm - p.emote.t0 >= p.emote.dur)) p.emote = null;
+    if(p.emote){
+      const ke = (tm - p.emote.t0) / p.emote.dur;
+      emoteDesenhar(x, p.dir === 'cima' ? p.im : imOk, p.emote.id, ke, (tm - p.emote.t0) / 1000, sx, sy, larg, alt, p.dir === 'lado' && p.vira);
+      return;
+    }
     if(imOk.complete && imOk.naturalWidth){
       x.save();
       if(p.dir === 'lado' && p.vira){ x.translate(sx, 0); x.scale(-1, 1); x.translate(-sx, 0); }
@@ -24688,7 +25513,7 @@ function pracaQuadro(P, tm){
     x.fillText(nm, sx, topo + 1);
     if(p.fala && tm < p.falaAte){
       if(p.fala.tipo === 'emo') pracaBalao(x, sx, topo - fNome * 1.2, PRACA_EMOS[p.fala.n], Math.round(fNome * 1.5) + 'px sans-serif', '#000');
-      else pracaBalao(x, sx, topo - fNome * 1.2, t('praca_f' + p.fala.n), '800 ' + Math.round(fNome * 1.05) + 'px "Baloo 2",sans-serif', '#08322B');
+      else pracaBalao(x, sx, topo - fNome * 1.2, pracaFraseTxt(p.fala.n), '800 ' + Math.round(fNome * 1.05) + 'px "Baloo 2",sans-serif', '#08322B');
     }
   });
   /* as placas dos bancos: o jogo, quantas pessoas e o tempo */
@@ -25287,19 +26112,29 @@ const KODA_BRIDGE = '<script>(function(){'
   +   'gameOver:function(n){ window.KODA.pontuar(n); }'
   + '};'
   /* o jogador (nome e personagem de quem está jogando): o Koda manda quando o jogo pede */
-  + 'var JOG={nome:"",personagem:"",img:null}, jogOuv=[];'
+  + 'var JOG={nome:"",personagem:"",img:null,poses:{}}, jogOuv=[];'
   + 'window.addEventListener("message",function(ev){'
   +   'var d=ev&&ev.data; if(ev.source!==parent||!d||d.__kodaJogador!==1) return;'
   +   'JOG.nome=String(d.nome||""); JOG.personagem=String(d.personagem||"");'
   +   'if(d.img){ var im=new Image(); im.onload=function(){ JOG.img=im; var l=jogOuv.slice(); jogOuv=[]; l.forEach(function(f){ try{ f(); }catch(e){} }); }; im.src=d.img; }'
+  /* as poses (de costas, os passos da caminhada, feliz): chegam juntas e vão carregando */
+  +   'var ps=d.poses||{}; Object.keys(ps).forEach(function(k){ if(typeof ps[k]!=="string") return; var p=new Image(); p.src=ps[k]; JOG.poses[k]=p; });'
   + '});'
+  /* o quadro certo pra pose: frente/costas, andando (alterna os passos 8x por segundo), feliz */
+  + 'function jogQuadro(op){ op=op||{}; var P=JOG.poses, ok=function(im){ return im&&im.naturalWidth>0?im:null; };'
+  +   'var andar=op.andando&&Math.floor(Date.now()/125)%4, q=null;'
+  +   'if(op.costas) q=andar===1?ok(P.costas1):andar===3?ok(P.costas2):ok(P.costas);'
+  +   'else if(op.feliz) q=ok(P.feliz);'
+  +   'else q=andar===1?ok(P.passo1):andar===3?ok(P.passo2):null;'
+  +   'return q||(op.costas?ok(P.costas):null)||JOG.img; }'
   + 'window.KODA.jogador={'
   +   'nome:function(){ return JOG.nome; },'
   +   'personagem:function(){ return JOG.img; },'
+  +   'quadro:function(nome){ if(!nome||nome==="frente") return JOG.img; var im=JOG.poses[nome]; return im&&im.naturalWidth>0?im:JOG.img; },'
   +   'pronto:function(){ return !!JOG.img; },'
   +   'aoPronto:function(f){ if(typeof f!=="function") return; if(JOG.img) f(); else jogOuv.push(f); },'
-  +   'desenharImagem:function(ctx,im,x,y,h){ if(!ctx||!im||!(im.naturalWidth>0)) return false; h=Number(h)||64; ctx.save(); ctx.imageSmoothingEnabled=false; ctx.drawImage(im,x,y,h*22/29,h); ctx.restore(); return true; },'
-  +   'desenhar:function(ctx,x,y,h){ return window.KODA.jogador.desenharImagem(ctx,JOG.img,x,y,h); }'
+  +   'desenharImagem:function(ctx,im,x,y,h,virar){ if(!ctx||!im||!(im.naturalWidth>0)) return false; h=Number(h)||64; var w=h*22/29; ctx.save(); ctx.imageSmoothingEnabled=false; if(virar){ ctx.translate(x+w,y); ctx.scale(-1,1); ctx.drawImage(im,0,0,w,h); } else ctx.drawImage(im,x,y,w,h); ctx.restore(); return true; },'
+  +   'desenhar:function(ctx,x,y,h,op){ op=op||{}; return window.KODA.jogador.desenharImagem(ctx,jogQuadro(op),x,y,h,!!op.virar); }'
   + '};'
   + 'manda("jogadorPedir",1);'
   + '(' + kodaOnlineNoJogo.toString() + ')(manda);'
@@ -27302,7 +28137,8 @@ function openThemeShop(aba){
     {id:'personagem', chave:'shop_tab_character', ic:'<rect x="7" y="3" width="10" height="9" rx="2"/><path d="M9.5 7.5h.01M14.5 7.5h.01"/><path d="M6 21v-5a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v5"/>'},
     {id:'agente',     chave:'ag_tab',             ic:'<rect x="6" y="6" width="12" height="11" rx="3"/><path d="M12 2.5V6M9.5 11h.01M14.5 11h.01M9.5 14h5M4 10v3M20 10v3"/>'},
     {id:'nome',    chave:'shop_tab_names',   ic:'<path d="M4 19L9 5l5 14M5.8 14h6.4"/><path d="M15 19v-5.5a2.6 2.6 0 0 1 5 0V19M15 16h5"/>'},
-    {id:'entrada', chave:'shop_tab_entries', ic:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>'}
+    {id:'entrada', chave:'shop_tab_entries', ic:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>'},
+    {id:'emote',   chave:'shop_tab_emotes',  ic:'<circle cx="12" cy="5" r="2.4"/><path d="M12 8v6M12 14l-4 6M12 14l4 6M5 9l7 1 7-3"/>'}
   ];
   let abaAtual = ABAS.some(a=>a.id===aba) ? aba : 'tema';
   const bg = document.createElement('div');
@@ -27511,8 +28347,8 @@ function openThemeShop(aba){
   document.addEventListener('koda-ugc', aoUgc);
 
   function desenha(){
-    const ehPers = abaAtual === 'personagem' || abaAtual === 'agente';
-    const lista = ehPers ? [] : listaDaAba();
+    const ehPers = abaAtual === 'personagem' || abaAtual === 'agente', ehEmote = abaAtual === 'emote';
+    const lista = (ehPers || ehEmote) ? [] : listaDaAba();
     const total = totalDoCarrinho();
     const totalD = totalDoCarrinho('d');
     const mudou = mudouAlgo();
@@ -27545,7 +28381,7 @@ function openThemeShop(aba){
           </button>
           <button class="admin-dia-btn" id="adminDiaBtn" type="button" title="${chatListEscape(t('admin_dia_btn'))}" aria-label="${chatListEscape(t('admin_dia_btn'))}">${ICONS.diamond} +10</button></div>` : ''}
         <div class="theme-list shop-list${ehPers ? ' pz-lista' : ''}">
-          ${ehPers ? pzPainelHtml(pzCtx()) : lista.map(x=>{
+          ${ehPers ? pzPainelHtml(pzCtx()) : ehEmote ? emotesGradeHtml(false) : lista.map(x=>{
             const meu      = jaEraMeu(abaAtual, x.id);
             const escolhido= rascunho[abaAtual] === x.id;
             const noCarrinho = estaNoCarrinho(abaAtual, x.id);
@@ -27606,6 +28442,17 @@ function openThemeShop(aba){
     const btCancelar = bg.querySelector('#shopCancel');
     if(btCancelar) btCancelar.addEventListener('click', ()=>{ devolverComoEra(); fechar(); });
     if(ehPers) pzLigarPainel();
+    /* emotes: compra na hora (não é coisa de vestir, então não passa pelo provador) */
+    if(ehEmote){
+      bg.querySelectorAll('[data-emote]').forEach(b=>b.addEventListener('click', ()=>{
+        const e = emoteDe(b.dataset.emote);
+        if(!e) return;
+        playSound('click');
+        if(emoteEhMeu(e.id)){ toast(t('emote_dica_usar')); return; }
+        emoteComprar(e.id, ()=>{ if(bg.isConnected && abaAtual === 'emote') desenha(); });
+      }));
+      emotePrevias(bg);
+    }
 
     bg.querySelectorAll('[data-item]').forEach(b=>{
       b.addEventListener('click', ()=>{
@@ -30126,6 +30973,7 @@ function msTempo(gameId, seg){
   seg = Math.floor(Number(seg) || 0);
   if(!gameId || seg <= 0) return;
   try{ conviteContarTempo(seg); }catch(e){}          // quem entrou por convite: esses segundos contam pra quem indicou
+  try{ recTempo(seg); }catch(e){}                    // jogou 30 minutos no dia: +100 moedas
   try{ nivelTempo(seg); }catch(e){}                  // XP do nível do jogador
   msEvento(rec=>{
     rec.s += seg;
@@ -33127,6 +33975,10 @@ function ugcMascara(tipo){
 }
 var UGC_ALF = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';   // 63 cores por peça ('.' = vazio)
 var UGC_PRECO_MAX = 3300, UGC_PARTE_CRIADOR = 0.7, UGC_MIN_PX = 8;
+/* peça vendida por Koda Diamonds (moeda 'd'): preço de 1 a UGC_PRECO_MAX_D; quem criou recebe 70% (pelo menos 1) */
+var UGC_PRECO_MAX_D = 50;
+function ugcParteCriador(preco, moeda){ return moeda === 'd' ? Math.max(1, Math.floor(preco * UGC_PARTE_CRIADOR)) : Math.floor(preco * UGC_PARTE_CRIADOR); }
+function ugcPrecoHtml(m){ return (m.moeda === 'd' ? ICONS.diamond : ICONS.coin) + ' ' + kshopMilhar(m.preco); }
 /* peça (e venda) de antes da escala nova das moedas: o preço gravado está na escala antiga (podia chegar a 10.000) */
 var UGC_PRECO_MAX_ANTIGO = 10000;
 function ugcPrecoDe(preco, quando){
@@ -33168,7 +34020,8 @@ function ugcDecodificar(d){
   /* pxC = o desenho das costas (as peças antigas não têm: de costas aparece o mesmo da frente) */
   let arrC = null;
   if(typeof d.pxC === 'string'){ if(d.pxC.length !== PZ_W * PZ_H) return null; arrC = lado(d.pxC); if(!arrC) return null; }
-  return {desenho: {tipo, px: arr, pxC: arrC, foto: ugcLerFoto(d.foto), fotoC: ugcLerFoto(d.fotoC)}, meta: {nome: String(d.nome || '').slice(0, 24), preco: ugcPrecoDe(d.preco, d.criadoEm),
+  return {desenho: {tipo, px: arr, pxC: arrC, foto: ugcLerFoto(d.foto), fotoC: ugcLerFoto(d.fotoC)}, meta: {nome: String(d.nome || '').slice(0, 24), moeda: d.moeda === 'd' ? 'd' : 'c',
+    preco: d.moeda === 'd' ? Math.max(0, Math.min(UGC_PRECO_MAX_D, Math.floor(Number(d.preco) || 0))) : ugcPrecoDe(d.preco, d.criadoEm),
     criador: String(d.criador || ''), criadorNome: String(d.criadorNome || '').slice(0, 40), criadoEm: Number(d.criadoEm) || 0, oculto: !!d.oculto}};
 }
 /* a FOTO da peça (frente: foto, costas: fotoC): a parte recortada da foto, lisinha (não vira quadradinho), com o lugar e o
@@ -33268,7 +34121,7 @@ function ugcCarregar(id){
     const d = bruto && !bruto.oculto ? ugcDecodificar(bruto) : null;
     if(!d){ E.falhou.add(id); ugcChegou(id); return; }
     E.cache.set(id, d.desenho); E.meta.set(id, d.meta);
-    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, pxC: typeof bruto.pxC === 'string' ? bruto.pxC : undefined, nome: bruto.nome, preco: bruto.preco, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm, foto: bruto.foto || undefined, fotoC: bruto.fotoC || undefined});
+    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, pxC: typeof bruto.pxC === 'string' ? bruto.pxC : undefined, nome: bruto.nome, preco: bruto.preco, moeda: bruto.moeda === 'd' ? 'd' : undefined, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm, foto: bruto.foto || undefined, fotoC: bruto.fotoC || undefined});
     ugcChegou(id);
   }).catch(()=>{ E.carregando.delete(id); });   // sem internet: tenta de novo na próxima vez que precisar
 }
@@ -33432,7 +34285,7 @@ async function ugcConferirPeca(frente, costas, tipo, nome, fotos){
   return {ok: true};
 }
 /* ---------- publicar ---------- */
-async function ugcPublicar(desenho, desenhoC, tipo, nome, preco, fotos){
+async function ugcPublicar(desenho, desenhoC, tipo, nome, preco, fotos, moeda){
   if(souVisitante() || !FIREBASE_ENABLED) return {ok: false, motivo: 'conta'};
   const u = fbAuth().currentUser;
   if(!u) return {ok: false, motivo: 'conta'};
@@ -33443,13 +34296,16 @@ async function ugcPublicar(desenho, desenhoC, tipo, nome, preco, fotos){
   if(!cod.cores.length) cod.cores = ['#000000'];          // só foto, sem nada pintado (o banco pede pelo menos uma cor)
   nome = String(nome || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24);
   if(nome.length < 2) return {ok: false, motivo: 'nome_curto'};
-  preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(preco) || 0)));
+  moeda = moeda === 'd' ? 'd' : 'c';
+  preco = Math.max(0, Math.min(moeda === 'd' ? UGC_PRECO_MAX_D : UGC_PRECO_MAX, Math.floor(Number(preco) || 0)));
+  if(!preco) moeda = 'c';                                   // de graça não tem moeda
   const id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const doc = {criador: u.uid, criadorNome: String(onlineNome() || '').slice(0, 40), nome, preco, tipo, cores: cod.cores, px: cod.px, pxC: cod.pxC, criadoEm: Date.now(), oculto: false};
   if(foto) doc.foto = foto;
   if(fotoC) doc.fotoC = fotoC;
+  if(moeda === 'd') doc.moeda = 'd';                        // só a peça de diamante leva o campo (a de moeda fica igual às antigas)
   try{ await fbDb().collection('pecasCriadas').doc(id).set(doc); }
-  catch(e){ return {ok: false, motivo: 'erro', detalhe: e && e.message}; }
+  catch(e){ return {ok: false, motivo: moeda === 'd' && /permission/i.test(String(e && (e.code || e.message))) ? 'dia_regra' : 'erro', detalhe: e && e.message}; }
   const d = ugcDecodificar(doc);
   const E = ugcEstado();
   E.cache.set(id, d.desenho); E.meta.set(id, d.meta);
@@ -33464,10 +34320,11 @@ function ugcComprar(id){
   if(!m) return {ok: false, motivo: 'peca'};
   if(souVisitante()) return {ok: false, motivo: 'conta'};
   if(ugcEhMinha(id)) return {ok: true, ja: true};
-  const preco = m.preco;
+  const preco = m.preco, dia = m.moeda === 'd';
   if(preco > 0){
-    if(!modoTesteDeMoedas() && loadCoins() < preco) return {ok: false, motivo: 'moedas', faltam: preco - loadCoins()};
-    if(!spendCoins(preco)) return {ok: false, motivo: 'moedas', faltam: preco};
+    const saldo = dia ? loadDiamonds() : loadCoins();
+    if(!modoTesteDeMoedas() && saldo < preco) return {ok: false, motivo: dia ? 'diamantes' : 'moedas', faltam: preco - saldo};
+    if(!(dia ? spendDiamonds(preco) : spendCoins(preco))) return {ok: false, motivo: dia ? 'diamantes' : 'moedas', faltam: preco};
   }
   ugcGanhar(id);
   const u = FIREBASE_ENABLED ? fbAuth().currentUser : null;
@@ -33503,14 +34360,22 @@ async function ugcChecarVendas(){
   try{
     await ugcEnviarVendas();
     const snap = await fbDb().collection('pecasVendas').where('creatorUid', '==', u.uid).where('claimed', '==', false).limit(50).get();
-    let total = 0, n = 0;
+    let total = 0, totalD = 0, n = 0;
     for(const doc of snap.docs){
       const v = doc.data();
       if(!Number.isInteger(v.price) || v.price < 1 || v.price > UGC_PRECO_MAX_ANTIGO) continue;
+      /* a moeda da venda é a da peça (peça de diamante paga em diamante) */
+      let moeda = (ugcMeta(v.pecaId) || {}).moeda;
+      if(!moeda && typeof v.pecaId === 'string' && /^u[a-z0-9]{8,20}$/.test(v.pecaId)){
+        try{ const pd = await fbDb().collection('pecasCriadas').doc(v.pecaId).get(); moeda = pd.exists && pd.data().moeda === 'd' ? 'd' : 'c'; }catch(e){ continue; }
+      }
       try{ await fbDb().collection('pecasVendas').doc(doc.id).update({claimed: true, claimedAt: Date.now()}); }catch(e){ continue; }
-      total += Math.floor(ugcPrecoDe(v.price, v.createdAt) * UGC_PARTE_CRIADOR); n++;
+      if(moeda === 'd') totalD += ugcParteCriador(Math.min(UGC_PRECO_MAX_D, v.price), 'd');
+      else total += ugcParteCriador(ugcPrecoDe(v.price, v.createdAt), 'c');
+      n++;
     }
     if(total > 0) addCoins(total, t(n === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n}));
+    if(totalD > 0) addDiamonds(totalD, t(n === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n}));
   }catch(e){}
   ugcConferindo = false;
 }
@@ -33540,7 +34405,7 @@ function ugcCartaoHtml(id, alvo){
   const minha = ugcEhMinha(id), usando = alvo.ugc === id, eu = !!m.criador && m.criador === meuUid;
   const etiq = usando ? '<span class="pz-ok">' + t('theme_in_use') + '</span>'
     : minha ? '<span class="pz-ok">' + t('theme_use') + '</span>'
-    : '<span class="pz-pr">' + (m.preco ? ICONS.coin + ' ' + kshopMilhar(m.preco) : esc(t('ugc_gratis'))) + '</span>';
+    : '<span class="pz-pr' + (m.moeda === 'd' && m.preco ? ' dia' : '') + '">' + (m.preco ? ugcPrecoHtml(m) : esc(t('ugc_gratis'))) + '</span>';
   return '<div class="ugc-cartao"><button type="button" class="pz-op' + (usando ? ' on' : '') + '" data-ugc-op="' + id + '" title="' + esc(m.nome) + '">'
     + '<span class="pz-mini corpo" style="background:' + pzFundo(c2) + '">' + pzSvg(c2, 'corpo') + '</span>'
     + '<span class="pz-n">' + esc(m.nome) + '</span><span class="ugc-por">' + esc(t('ugc_por', {nome: m.criadorNome || '?'})) + '</span>' + etiq + '</button>'
@@ -33568,12 +34433,12 @@ function ugcPerguntarCompra(id, alvo, aoComprar){
   kbsDialogo(`<h3 class="kbs-dlg-tit">${esc(m.nome)}</h3>
     <div class="ugc-compra-ver"><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo')}</span><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo', 'costas')}</span></div>
     <p class="kbs-dlg-dica">${esc(t('ugc_por', {nome: m.criadorNome || '?'}))}</p>
-    <div class="kbs-dlg-btns col"><button type="button" class="kbs-btn" data-ok>${m.preco ? ICONS.coin + ' ' + esc(t('ugc_comprar', {n: kshopMilhar(m.preco)})) : esc(t('ugc_pegar'))}</button></div>
+    <div class="kbs-dlg-btns col"><button type="button" class="kbs-btn" data-ok>${m.preco ? (m.moeda === 'd' ? ICONS.diamond : ICONS.coin) + ' ' + esc(t('ugc_comprar', {n: kshopMilhar(m.preco)})) : esc(t('ugc_pegar'))}</button></div>
     <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
     bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
     bg.querySelector('[data-ok]').addEventListener('click', ()=>{
       const r = ugcComprar(id);
-      if(!r.ok){ toast(r.motivo === 'moedas' ? t('ugc_falta', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'conta' ? t('ugc_sem_conta') : t('ugc_erro')); return; }
+      if(!r.ok){ toast(r.motivo === 'moedas' ? t('ugc_falta', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'diamantes' ? t('troca_falta_dia', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'conta' ? t('ugc_sem_conta') : t('ugc_erro')); return; }
       fechar(); toast(t('ugc_comprou'));
       if(typeof aoComprar === 'function') aoComprar();
     });
@@ -33954,6 +34819,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
   const E = {lados: {frente: lerLado(r && r.px), costas: lerLado(r && r.pxC)}, lado: 'frente',
     tipo: UGC_TIPOS.indexOf(tipoInicial) >= 0 ? tipoInicial : (r && UGC_TIPOS.indexOf(r.tipo) >= 0 ? r.tipo : 'roupa'), cor: '#E8413C', ferr: 'pincel', espelho: false, guia: true, desfaz: [], refaz: [], recentes: (r && Array.isArray(r.recentes) ? r.recentes : []).slice(0, 12),
     passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', preco: r && Number.isFinite(r.preco) ? Math.max(0, Math.min(UGC_PRECO_MAX, r.preco)) : 35,
+    moeda: r && r.moeda === 'd' ? 'd' : 'c', precoD: r && Number.isFinite(r.precoD) ? Math.max(1, Math.min(UGC_PRECO_MAX_D, r.precoD)) : 3,
     fotos: {frente: null, costas: null}, editando: false,
     texto: r && typeof r.texto === 'string' ? ugcTextoLimpo(r.texto) : '10', cheio: true, kit: false};
   /* a foto de cada lado: {s, ar, w, x, y, img} (x, y, w em quadradinhos). "editando" = arrastando/mudando o tamanho agora */
@@ -34038,7 +34904,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
   const coresOk = ()=>D > 1 || !!ugcCodificar(E.lados.frente, E.lados.costas);   // com mais quadradinhos o desenho vai como imagem (sem limite de cores)
   const poucoPintado = ()=>!E.fotos.frente && !E.fotos.costas && (E.lados.frente.filter(Boolean).length + E.lados.costas.filter(Boolean).length) / (D * D) < UGC_MIN_PX;
   const fotoRasc = F=>F ? {s: F.s, ar: F.ar, w: F.w, x: F.x, y: F.y} : null;
-  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, d: D, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco, texto: E.texto,
+  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, d: D, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco, moeda: E.moeda, precoD: E.precoD, texto: E.texto,
     fotos: {frente: fotoRasc(E.fotos.frente), costas: fotoRasc(E.fotos.costas)}})); }catch(e){} };
   const bg = document.createElement('div');
   bg.className = 'ugc-ed';
@@ -34127,8 +34993,12 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
           <div class="ugc-previa"><figure><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo')}</span><figcaption>${esc(t('ugc_frente'))}</figcaption></figure>
             <figure><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo', 'costas')}</span><figcaption>${esc(t('ugc_costas'))}</figcaption></figure></div>
           <label class="ugc-campo"><span>${esc(t('ugc_nome'))}</span><input type="text" data-nome maxlength="24" value="${esc(E.nome)}" autocomplete="off"></label>
-          <label class="ugc-campo"><span>${esc(t('ugc_preco'))}</span><input type="number" data-preco min="0" max="${UGC_PRECO_MAX}" step="10" value="${E.preco}" inputmode="numeric"></label>
-          <div class="ugc-precos">${[0, 15, 35, 85, 165, 335, 850, 1650].map(n=>`<button type="button" data-p="${n}"${n === E.preco ? ' class="on"' : ''}>${n ? kshopMilhar(n) : esc(t('ugc_gratis'))}</button>`).join('')}</div>
+          <div class="ugc-moedas" role="radiogroup" aria-label="${esc(t('ugc_vender_por'))}"><span>${esc(t('ugc_vender_por'))}</span>${['c', 'd'].map(m=>`<button type="button" role="radio" data-moeda="${m}" aria-checked="${E.moeda === m}"${E.moeda === m ? ' class="on"' : ''}>${m === 'd' ? ICONS.diamond + ' ' + esc(t('ugc_por_diamantes')) : ICONS.coin + ' ' + esc(t('ugc_por_moedas'))}</button>`).join('')}</div>
+          ${E.moeda === 'd' ? `<label class="ugc-campo"><span>${ICONS.diamond} ${esc(t('ugc_preco_d'))}</span><input type="number" data-preco min="1" max="${UGC_PRECO_MAX_D}" step="1" value="${E.precoD}" inputmode="numeric"></label>
+          <div class="ugc-precos dia">${[1, 2, 3, 5, 8, 10, 20, 35].map(n=>`<button type="button" data-p="${n}"${n === E.precoD ? ' class="on"' : ''}>${ICONS.diamond} ${n}</button>`).join('')}</div>
+          <p class="ugc-dica">${esc(t('ugc_dia_dica'))}</p>`
+          : `<label class="ugc-campo"><span>${esc(t('ugc_preco'))}</span><input type="number" data-preco min="0" max="${UGC_PRECO_MAX}" step="10" value="${E.preco}" inputmode="numeric"></label>
+          <div class="ugc-precos">${[0, 15, 35, 85, 165, 335, 850, 1650].map(n=>`<button type="button" data-p="${n}"${n === E.preco ? ' class="on"' : ''}>${n ? kshopMilhar(n) : esc(t('ugc_gratis'))}</button>`).join('')}</div>`}
           <p class="ugc-dica">${esc(t('ugc_70'))}</p>
           <p class="ugc-dica ugc-regras">${esc(t('ugc_regras'))}</p>
           <button type="button" class="kbs-btn ugc-publicar" data-publicar>${esc(t('ugc_publicar'))}</button>
@@ -34669,10 +35539,19 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
     bg.querySelector('[data-voltar]').addEventListener('click', ()=>{ playSound('click'); E.passo = 1; desenhaTela(); });
     const nome = bg.querySelector('[data-nome]'), preco = bg.querySelector('[data-preco]');
     nome.addEventListener('input', ()=>{ E.nome = nome.value; salvarRascunho(); });
-    preco.addEventListener('input', ()=>{ E.preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(preco.value) || 0))); salvarRascunho();
-      bg.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on', Number(b.dataset.p) === E.preco)); });
-    bg.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click', ()=>{ E.preco = Number(b.dataset.p); preco.value = E.preco; playSound('click'); salvarRascunho();
+    /* vender por moedas ou por diamantes (cada um guarda o seu preço) */
+    const dia = E.moeda === 'd';
+    const precoAgora = ()=>dia ? E.precoD : E.preco;
+    const poePreco = v=>{ if(dia) E.precoD = Math.max(1, Math.min(UGC_PRECO_MAX_D, Math.floor(Number(v) || 1))); else E.preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(v) || 0))); };
+    preco.addEventListener('input', ()=>{ poePreco(preco.value); salvarRascunho();
+      bg.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on', Number(b.dataset.p) === precoAgora())); });
+    preco.addEventListener('change', ()=>{ preco.value = precoAgora(); });
+    bg.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click', ()=>{ poePreco(b.dataset.p); preco.value = precoAgora(); playSound('click'); salvarRascunho();
       bg.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('on', x === b)); }));
+    bg.querySelectorAll('[data-moeda]').forEach(b=>b.addEventListener('click', ()=>{
+      if(b.dataset.moeda === E.moeda) return;
+      E.moeda = b.dataset.moeda; E.nome = nome.value; playSound('click'); salvarRascunho(); desenhaTela();
+    }));
     const pub = bg.querySelector('[data-publicar]');
     pub.addEventListener('click', async ()=>{
       if(pub.disabled) return;
@@ -34698,9 +35577,9 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
       tela.etapa(1);
       await new Promise(r=>setTimeout(r, 380));
       tela.etapa(2);
-      const r = await ugcPublicar(L.f, L.c, E.tipo, nome.value, E.preco, fotosPub);
+      const r = await ugcPublicar(L.f, L.c, E.tipo, nome.value, E.moeda === 'd' ? E.precoD : E.preco, fotosPub, E.moeda);
       if(!r.ok){
-        tela.falhou(2, t('ugc_conf_erro_tit'), [t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', cores: 'ugc_muitas_cores'}[r.motivo] || 'ugc_erro')], t('ugc_conf_voltar'), ()=>{ pub.disabled = false; });
+        tela.falhou(2, t('ugc_conf_erro_tit'), [t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', cores: 'ugc_muitas_cores', dia_regra: 'ugc_dia_regra'}[r.motivo] || 'ugc_erro')], t('ugc_conf_voltar'), ()=>{ pub.disabled = false; });
         return;
       }
       try{ localStorage.removeItem(UGC_RASCUNHO_KEY); }catch(e){}
@@ -35340,6 +36219,72 @@ var PZ_TXT = {
  ugc_zoom_menos:'Afastar|Zoom out|Alejar|Riduci|Dézoomer|Verkleinern|Uitzoomen|縮小|缩小|축소',
  ugc_zoom_mao:'Arrastar a tela|Move the canvas|Mover el lienzo|Sposta la tela|Déplacer la toile|Fläche verschieben|Doek verschuiven|画面を動かす|移动画布|화면 옮기기',
  ugc_zoom_caber:'Ver tudo|Fit to screen|Ver todo|Vedi tutto|Tout voir|Alles zeigen|Alles tonen|全体を見る|查看全部|전체 보기',
+ praca_aba_falas:'Falas|Phrases|Frases|Frasi|Phrases|Sätze|Zinnen|セリフ|话语|말',
+ praca_aba_emotes:'Emotes|Emotes|Emotes|Emote|Emotes|Emotes|Emotes|エモート|表情动作|이모트',
+ praca_aba_figs:'Figurinhas|Stickers|Stickers|Adesivi|Autocollants|Sticker|Stickers|スタンプ|贴纸|스티커',
+ praca_cat_oi:'Oi|Hi|Hola|Ciao|Salut|Hallo|Hoi|あいさつ|打招呼|인사',
+ praca_cat_jogar:'Jogar|Play|Jugar|Giocare|Jouer|Spielen|Spelen|あそぶ|玩|놀기',
+ praca_cat_elogios:'Elogios|Compliments|Elogios|Complimenti|Compliments|Komplimente|Complimenten|ほめる|夸奖|칭찬',
+ praca_cat_reacoes:'Reações|Reactions|Reacciones|Reazioni|Réactions|Reaktionen|Reacties|リアクション|反应|반응',
+ praca_cat_perguntas:'Perguntas|Questions|Preguntas|Domande|Questions|Fragen|Vragen|しつもん|提问|질문',
+ praca_cat_engracadas:'Engraçadas|Funny|Graciosas|Divertenti|Drôles|Lustig|Grappig|おもしろ|搞笑|웃긴 말',
+ praca_cat_praca:'Na praça|In the plaza|En la plaza|In piazza|Sur la place|Auf dem Platz|Op het plein|広場で|在广场|광장에서',
+ praca_cat_tchau:'Tchau|Bye|Adiós|Ciao|Au revoir|Tschüss|Doei|バイバイ|再见|안녕',
+ em_acenar:'Acenar|Wave|Saludar|Salutare|Saluer|Winken|Zwaaien|手をふる|挥手|손 흔들기',
+ em_pular:'Pular|Jump|Saltar|Saltare|Sauter|Springen|Springen|ジャンプ|跳跃|점프',
+ em_dancar:'Dançar|Dance|Bailar|Ballare|Danser|Tanzen|Dansen|ダンス|跳舞|춤추기',
+ em_girar:'Girar|Spin|Girar|Girare|Tourner|Drehen|Draaien|くるくる|转圈|빙글빙글',
+ em_palmas:'Palmas|Clap|Aplaudir|Applaudire|Applaudir|Klatschen|Klappen|はくしゅ|鼓掌|박수',
+ em_coracoes:'Corações|Hearts|Corazones|Cuori|Cœurs|Herzen|Hartjes|ハート|爱心|하트',
+ em_rir:'Rir|Laugh|Reír|Ridere|Rire|Lachen|Lachen|大笑い|大笑|웃기',
+ em_dormir:'Dormir|Sleep|Dormir|Dormire|Dormir|Schlafen|Slapen|おやすみ|睡觉|잠자기',
+ em_chorar:'Chorar|Cry|Llorar|Piangere|Pleurer|Weinen|Huilen|なく|哭哭|울기',
+ em_bravo:'Bravo|Angry|Enojado|Arrabbiato|Fâché|Wütend|Boos|おこる|生气|화내기',
+ em_susto:'Susto|Scared|Susto|Spavento|Peur|Schreck|Schrik|びっくり|吓一跳|깜짝',
+ em_musica:'Música|Music|Música|Musica|Musique|Musik|Muziek|おんがく|音乐|음악',
+ em_robo:'Robô|Robot|Robot|Robot|Robot|Roboter|Robot|ロボット|机器人|로봇',
+ em_forte:'Forte|Strong|Fuerte|Forte|Costaud|Stark|Sterk|ムキムキ|大力士|힘자랑',
+ em_moonwalk:'Moonwalk|Moonwalk|Moonwalk|Moonwalk|Moonwalk|Moonwalk|Moonwalk|ムーンウォーク|太空步|문워크',
+ em_estrelas:'Estrelas|Stars|Estrellas|Stelle|Étoiles|Sterne|Sterren|スター|星星|별',
+ em_confete:'Confete|Confetti|Confeti|Coriandoli|Confettis|Konfetti|Confetti|紙ふぶき|彩纸|색종이',
+ em_foguete:'Foguete|Rocket|Cohete|Razzo|Fusée|Rakete|Raket|ロケット|火箭|로켓',
+ em_arcoiris:'Arco-íris|Rainbow|Arcoíris|Arcobaleno|Arc-en-ciel|Regenbogen|Regenboog|にじ|彩虹|무지개',
+ em_fogos:'Fogos|Fireworks|Fuegos artificiales|Fuochi d’artificio|Feux d’artifice|Feuerwerk|Vuurwerk|花火|烟花|불꽃놀이',
+ em_coroa:'Coroa|Crown|Corona|Corona|Couronne|Krone|Kroon|王冠|王冠|왕관',
+ em_teleporte:'Teleporte|Teleport|Teletransporte|Teletrasporto|Téléportation|Teleport|Teleport|テレポート|传送|순간이동',
+ shop_tab_emotes:'Emotes|Emotes|Emotes|Emote|Emotes|Emotes|Emotes|エモート|表情动作|이모트',
+ shop_hint_emote:'Animações pro seu personagem. Use na Praça e todo mundo vê!|Animations for your character. Use them in the Plaza and everyone sees!|Animaciones para tu personaje. ¡Úsalas en la Plaza y todos las ven!|Animazioni per il tuo personaggio. Usale in Piazza e tutti le vedono!|Animations pour ton personnage. Utilise-les sur la Place et tout le monde les voit !|Animationen für deinen Charakter. Nutze sie auf dem Platz und alle sehen sie!|Animaties voor je personage. Gebruik ze op het plein en iedereen ziet ze!|キャラのアニメーション。広場で使うとみんなに見えるよ！|给角色用的动作。在广场上用，大家都能看到！|캐릭터 애니메이션이에요. 광장에서 쓰면 모두가 봐요!',
+ emote_usar:'Usar|Use|Usar|Usa|Utiliser|Benutzen|Gebruiken|使う|使用|사용',
+ emote_tem:'É seu|Yours|Es tuyo|È tuo|À toi|Deins|Van jou|持ってる|已拥有|보유 중',
+ emote_gratis:'Grátis|Free|Gratis|Gratis|Gratuit|Gratis|Gratis|無料|免费|무료',
+ emote_comprou:'Emote novo! Use na Praça, no botão de chat.|New emote! Use it in the Plaza, with the chat button.|¡Emote nuevo! Úsalo en la Plaza, con el botón del chat.|Nuova emote! Usala in Piazza, col pulsante della chat.|Nouvel emote ! Utilise-le sur la Place, avec le bouton du chat.|Neues Emote! Nutze es auf dem Platz über den Chat-Knopf.|Nieuwe emote! Gebruik hem op het plein, met de chatknop.|新しいエモート！広場のチャットボタンから使ってね。|新表情动作！在广场的聊天按钮里使用。|새 이모트! 광장의 채팅 버튼에서 써 보세요.',
+ emote_dica_usar:'Esse já é seu! Na Praça, toque no botão de chat e depois em Emotes.|This one is already yours! In the Plaza, tap the chat button and then Emotes.|¡Este ya es tuyo! En la Plaza, toca el botón del chat y luego Emotes.|Questa è già tua! In Piazza, tocca il pulsante della chat e poi Emote.|Celui-là est déjà à toi ! Sur la Place, touche le bouton du chat puis Emotes.|Das gehört dir schon! Tippe auf dem Platz auf den Chat-Knopf und dann auf Emotes.|Deze is al van jou! Tik op het plein op de chatknop en dan op Emotes.|もう持ってるよ！広場でチャットボタン→エモートをタップしてね。|这个已经是你的了！在广场点聊天按钮，再点表情动作。|이미 가지고 있어요! 광장에서 채팅 버튼을 누르고 이모트를 눌러요.',
+ rec_envio_why:'mandou pra alguém|sent to someone|enviaste a alguien|inviato a qualcuno|envoyé à quelqu’un|an jemanden geschickt|naar iemand gestuurd|だれかに送った|发给了别人|누군가에게 보냄',
+ rec_30_why:'jogou 30 minutos hoje|played 30 minutes today|jugaste 30 minutos hoy|30 minuti di gioco oggi|30 minutes de jeu aujourd’hui|heute 30 Minuten gespielt|vandaag 30 minuten gespeeld|今日30分遊んだ|今天玩了30分钟|오늘 30분 플레이',
+ rec_30_toast:'Você jogou 30 minutos hoje e ganhou 100 moedas!|You played 30 minutes today and earned 100 coins!|¡Jugaste 30 minutos hoy y ganaste 100 monedas!|Hai giocato 30 minuti oggi e hai vinto 100 monete!|Tu as joué 30 minutes aujourd’hui et gagné 100 pièces !|Du hast heute 30 Minuten gespielt und 100 Münzen bekommen!|Je hebt vandaag 30 minuten gespeeld en 100 munten verdiend!|今日30分遊んで100コインゲット！|你今天玩了30分钟，获得了100金币！|오늘 30분 플레이해서 100코인을 받았어요!',
+ rec_envio_card:'E mais: cada vez que você manda pra alguém, ganha {n} moedas na hora (até {max} vezes por dia).|Plus: every time you send it to someone, you get {n} coins right away (up to {max} times a day).|Y además: cada vez que lo envías a alguien, ganas {n} monedas al momento (hasta {max} veces al día).|In più: ogni volta che lo mandi a qualcuno, ricevi subito {n} monete (fino a {max} volte al giorno).|En plus : chaque fois que tu l’envoies à quelqu’un, tu gagnes {n} pièces tout de suite (jusqu’à {max} fois par jour).|Außerdem: Jedes Mal, wenn du es jemandem schickst, bekommst du sofort {n} Münzen (bis zu {max}-mal am Tag).|En: elke keer dat je het naar iemand stuurt, krijg je meteen {n} munten (tot {max} keer per dag).|さらに：だれかに送るたびにすぐ{n}コインもらえるよ（1日{max}回まで）。|还有：每次发给别人，马上得到{n}金币（每天最多{max}次）。|게다가: 누군가에게 보낼 때마다 바로 {n}코인을 받아요(하루 최대 {max}번).',
+ tour_ganhar_enviar:'Quer mais moedas? Toque aqui e mande o Koda ou um jogo pra alguém: você ganha 10 moedas na hora! (até 5 vezes por dia)|Want more coins? Tap here and send Koda or a game to someone: you get 10 coins right away! (up to 5 times a day)|¿Quieres más monedas? Toca aquí y envía Koda o un juego a alguien: ¡ganas 10 monedas al momento! (hasta 5 veces al día)|Vuoi più monete? Tocca qui e manda Koda o un gioco a qualcuno: ricevi subito 10 monete! (fino a 5 volte al giorno)|Tu veux plus de pièces ? Touche ici et envoie Koda ou un jeu à quelqu’un : tu gagnes 10 pièces tout de suite ! (jusqu’à 5 fois par jour)|Willst du mehr Münzen? Tippe hier und schick Koda oder ein Spiel an jemanden: Du bekommst sofort 10 Münzen! (bis zu 5-mal am Tag)|Wil je meer munten? Tik hier en stuur Koda of een game naar iemand: je krijgt meteen 10 munten! (tot 5 keer per dag)|コインがほしい？ここをタップしてKodaやゲームをだれかに送ると、すぐ10コインもらえるよ！（1日5回まで）|想要更多金币？点这里把Koda或游戏发给别人，马上得到10金币！（每天最多5次）|코인이 더 필요해요? 여기를 눌러 Koda나 게임을 누군가에게 보내면 바로 10코인을 받아요! (하루 최대 5번)',
+ tour_ganhar_30:'E jogando 30 minutos no dia você ganha 100 moedas! Vale qualquer jogo do Koda.|And if you play 30 minutes in a day, you get 100 coins! Any Koda game counts.|¡Y si juegas 30 minutos al día, ganas 100 monedas! Vale cualquier juego de Koda.|E se giochi 30 minuti in un giorno, ricevi 100 monete! Vale qualsiasi gioco di Koda.|Et si tu joues 30 minutes dans la journée, tu gagnes 100 pièces ! Tous les jeux de Koda comptent.|Und wenn du an einem Tag 30 Minuten spielst, bekommst du 100 Münzen! Jedes Koda-Spiel zählt.|En als je 30 minuten op een dag speelt, krijg je 100 munten! Elke Koda-game telt.|1日に30分遊ぶと100コインもらえるよ！Kodaのどのゲームでもオッケー。|每天玩满30分钟，就能得到100金币！Koda的任何游戏都算。|하루에 30분 플레이하면 100코인을 받아요! Koda의 어떤 게임이든 돼요.',
+ messages_record_video:'Gravar vídeo|Record video|Grabar vídeo|Registra video|Filmer une vidéo|Video aufnehmen|Video opnemen|動画をとる|录视频|동영상 촬영',
+ msg_hoje:'Hoje|Today|Hoy|Oggi|Aujourd’hui|Heute|Vandaag|今日|今天|오늘',
+ msg_ontem:'Ontem|Yesterday|Ayer|Ieri|Hier|Gestern|Gisteren|きのう|昨天|어제',
+ msg_rec_cancelar:'Cancelar áudio|Cancel voice message|Cancelar audio|Annulla audio|Annuler l’audio|Sprachnachricht abbrechen|Spraakbericht annuleren|音声をキャンセル|取消语音|음성 취소',
+ msg_rec_enviar:'Enviar áudio|Send voice message|Enviar audio|Invia audio|Envoyer l’audio|Sprachnachricht senden|Spraakbericht sturen|音声を送る|发送语音|음성 보내기',
+ msg_rec_curto:'Ficou curtinho demais. Grave de novo.|That was too short. Record again.|Quedó demasiado corto. Graba de nuevo.|Troppo corto. Registra di nuovo.|C’est trop court. Recommence.|Das war zu kurz. Nimm nochmal auf.|Dat was te kort. Neem opnieuw op.|短すぎたよ。もう一回とってね。|太短了，再录一次吧。|너무 짧아요. 다시 녹음해요.',
+ msg_audio_falhou:'Não deu pra tocar|Couldn’t play|No se pudo reproducir|Impossibile riprodurre|Lecture impossible|Kann nicht abspielen|Kan niet afspelen|再生できない|无法播放|재생할 수 없어요',
+ msg_enviando:'Enviando…|Sending…|Enviando…|Invio…|Envoi…|Wird gesendet…|Versturen…|送信中…|发送中…|보내는 중…',
+ video_cam_erro:'Não consegui abrir a câmera. Confira a permissão ou mande um vídeo da galeria.|Couldn’t open the camera. Check the permission or send a video from your gallery.|No pude abrir la cámara. Revisa el permiso o envía un vídeo de la galería.|Non riesco ad aprire la fotocamera. Controlla il permesso o invia un video dalla galleria.|Impossible d’ouvrir la caméra. Vérifie l’autorisation ou envoie une vidéo de ta galerie.|Kamera ließ sich nicht öffnen. Prüf die Berechtigung oder schick ein Video aus der Galerie.|Kon de camera niet openen. Controleer de toestemming of stuur een video uit je galerij.|カメラを開けなかったよ。許可を確認するか、アルバムから動画を送ってね。|打不开相机。请检查权限，或从相册发送视频。|카메라를 열 수 없어요. 권한을 확인하거나 갤러리에서 동영상을 보내요.',
+ video_cam_virar:'Trocar câmera|Switch camera|Cambiar cámara|Cambia fotocamera|Changer de caméra|Kamera wechseln|Camera wisselen|カメラ切り替え|切换镜头|카메라 전환',
+ video_cam_gravar:'Gravar|Record|Grabar|Registra|Filmer|Aufnehmen|Opnemen|録画|录制|녹화',
+ video_cam_dica:'Toque pra gravar (até 30 segundos). Toque de novo pra mandar.|Tap to record (up to 30 seconds). Tap again to send.|Toca para grabar (hasta 30 segundos). Toca otra vez para enviar.|Tocca per registrare (fino a 30 secondi). Tocca di nuovo per inviare.|Touche pour filmer (jusqu’à 30 secondes). Touche encore pour envoyer.|Tippe zum Aufnehmen (bis zu 30 Sekunden). Nochmal tippen zum Senden.|Tik om op te nemen (tot 30 seconden). Tik nog eens om te sturen.|タップで録画（30秒まで）。もう一度タップで送信。|点一下开始录（最长30秒），再点一下发送。|눌러서 녹화해요(최대 30초). 한 번 더 누르면 보내져요.',
+ ia_personagem:'Jogar com o personagem de quem joga|Play as the player’s own character|Jugar con el personaje de quien juega|Giocare con il personaggio di chi gioca|Jouer avec le personnage du joueur|Mit dem eigenen Charakter spielen|Spelen met het eigen personage|自分のキャラで遊べるようにする|用玩家自己的角色来玩|내 캐릭터로 플레이하기',
+ ia_pronto_personagem:'Pronto! Agora cada pessoa joga com o personagem dela. Toque em Testar pra ver o seu.|Done! Now everyone plays as their own character. Tap Test to see yours.|¡Listo! Ahora cada uno juega con su personaje. Toca Probar para ver el tuyo.|Fatto! Ora ognuno gioca con il proprio personaggio. Tocca Prova per vedere il tuo.|C’est prêt ! Chacun joue maintenant avec son personnage. Touche Tester pour voir le tien.|Fertig! Jetzt spielt jeder mit seinem eigenen Charakter. Tippe auf Testen, um deinen zu sehen.|Klaar! Nu speelt iedereen met zijn eigen personage. Tik op Testen om het jouwe te zien.|できた！みんな自分のキャラで遊べるよ。テストで自分のを見てみて。|好了！现在每个人都用自己的角色玩。点“测试”看看你的。|완성! 이제 모두 자기 캐릭터로 플레이해요. 테스트를 눌러 내 캐릭터를 봐요.',
+ ugc_vender_por:'Vender por|Sell for|Vender por|Vendi per|Vendre contre|Verkaufen für|Verkopen voor|売る通貨|出售方式|판매 화폐',
+ ugc_por_moedas:'Moedas|Coins|Monedas|Monete|Pièces|Münzen|Munten|コイン|金币|코인',
+ ugc_por_diamantes:'Diamantes|Diamonds|Diamantes|Diamanti|Diamants|Diamanten|Diamanten|ダイヤ|钻石|다이아',
+ ugc_preco_d:'Preço em diamantes (1 a 50)|Price in diamonds (1 to 50)|Precio en diamantes (1 a 50)|Prezzo in diamanti (da 1 a 50)|Prix en diamants (1 à 50)|Preis in Diamanten (1 bis 50)|Prijs in diamanten (1 tot 50)|ダイヤの値段（1〜50）|钻石价格（1到50）|다이아 가격(1~50)',
+ ugc_dia_dica:'Diamante é raro: peças de diamante vendem menos, mas valem mais. Você recebe 70% (pelo menos 1 diamante por venda).|Diamonds are rare: diamond items sell less but are worth more. You get 70% (at least 1 diamond per sale).|El diamante es raro: las piezas de diamante se venden menos, pero valen más. Recibes el 70% (al menos 1 diamante por venta).|Il diamante è raro: i pezzi in diamanti si vendono meno, ma valgono di più. Ricevi il 70% (almeno 1 diamante a vendita).|Le diamant est rare : les pièces en diamants se vendent moins, mais valent plus. Tu reçois 70 % (au moins 1 diamant par vente).|Diamanten sind selten: Diamant-Teile verkaufen sich seltener, sind aber mehr wert. Du bekommst 70 % (mindestens 1 Diamant pro Verkauf).|Diamanten zijn zeldzaam: diamantstukken verkopen minder, maar zijn meer waard. Jij krijgt 70% (minstens 1 diamant per verkoop).|ダイヤはレア：売れる数は少ないけど価値が高いよ。70%（1回の販売で最低1ダイヤ）もらえるよ。|钻石很稀有：钻石商品卖得少，但更值钱。你能得到70%（每卖一次至少1颗钻石）。|다이아는 귀해요: 다이아 아이템은 덜 팔리지만 가치가 높아요. 70%(판매마다 최소 1다이아)를 받아요.',
+ ugc_dia_regra:'Ainda não dá pra vender por diamantes (o Koda está terminando de ligar isso). Publique por moedas por enquanto.|Selling for diamonds isn’t available yet (Koda is finishing setting it up). Publish for coins for now.|Aún no se puede vender por diamantes (Koda está terminando de activarlo). Publica por monedas por ahora.|Non si può ancora vendere per diamanti (Koda sta finendo di attivarlo). Per ora pubblica in monete.|Pas encore possible de vendre contre des diamants (Koda finit de l’activer). Publie en pièces pour l’instant.|Verkauf für Diamanten geht noch nicht (Koda schaltet es gerade frei). Veröffentliche vorerst für Münzen.|Verkopen voor diamanten kan nog niet (Koda zet het nog aan). Publiceer voorlopig voor munten.|ダイヤでの販売はまだ準備中だよ。今はコインで出品してね。|暂时还不能用钻石出售（Koda正在开启这个功能），先用金币发布吧。|아직 다이아로 판매할 수 없어요(Koda가 준비 중). 지금은 코인으로 올려요.',
  ugc_f_limpar:'Limpar tudo|Clear all|Borrar todo|Cancella tutto|Tout effacer|Alles löschen|Alles wissen|全部消す|全部清除|모두 지우기',
  ugc_limpar_conf:'Apagar o desenho todo?|Erase the whole drawing?|¿Borrar todo el dibujo?|Cancellare tutto il disegno?|Effacer tout le dessin ?|Die ganze Zeichnung löschen?|De hele tekening wissen?|絵を全部消しますか？|要清除整幅画吗？|그림을 전부 지울까요?',
  ugc_cor_exata:'Cor exata|Exact color|Color exacto|Colore esatto|Couleur exacte|Genaue Farbe|Exacte kleur|ぴったりの色|精确颜色|정확한 색',
@@ -36758,7 +37703,9 @@ function pzImagemDe(codigo, variante){
 function jogadorParaJogo(){
   let cod = '';
   try{ cod = souVisitante() ? pzCodigo(pzNorm(PZ_PADRAO)) : meuCodigo(); }catch(e){ cod = pzCodigo(pzNorm(PZ_PADRAO)); }
-  return {nome: onlineNome(), personagem: cod, img: pzImagemDe(cod)};
+  const poses = {};
+  [['costas', 'costas'], ['passo1', 'p1'], ['passo2', 'p2'], ['costas1', 'costas1'], ['costas2', 'costas2'], ['feliz', 'feliz']].forEach(([k, v])=>{ try{ const u = pzImagemDe(cod, v); if(u) poses[k] = u; }catch(e){} });
+  return {nome: onlineNome(), personagem: cod, img: pzImagemDe(cod), poses};
 }
 window.addEventListener('message', function(ev){
   const d = ev.data;
@@ -37552,6 +38499,8 @@ const TOUR_PASSOS = [
   {id: 'p_novidades',     faca: true, vars: ()=>({aba: t('cat_feed')}), alvo: ()=>tourEl('.cat-chip[data-cat="feed"]'), feito: ()=>categoriaAtual === 'feed', depois: 500},
   {id: 'p_inicio',        faca: true, vars: ()=>({aba: t('cat_home')}), alvo: ()=>tourEl('.cat-chip[data-cat="home"]'), feito: ()=>categoriaAtual === 'home', so: ()=>categoriaAtual === 'feed'},
   {id: 'moedas',          alvo: ()=>tourEl('#coinChip')},
+  {id: 'ganhar_enviar',   alvo: ()=>tourEl('#shareSiteBtn') || tourEl('#coinChip')},
+  {id: 'ganhar_30',       alvo: ()=>tourEl('#coinChip')},
   {id: 'diarios',         alvo: ()=>tourEl('#diarios')},
   {id: 'p_jogo',          faca: true, alvo: ()=>tourEl('#grid > .card:not(.soon)') || tourEl('#grid > .card'), feito: tourModal, depois: 900},
   {id: 'barra',           alvo: ()=>tourEl('#gameControlsBar'), so: tourModal, espera: 25},

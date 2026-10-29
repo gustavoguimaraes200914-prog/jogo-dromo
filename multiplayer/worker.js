@@ -20,7 +20,8 @@ const BANCOS = 4;
 const BANCO_MIN = 2, BANCO_MAX = 10;
 const BANCO_MS = 30000;       // o banco sai pro jogo 30 s depois de criado (ou antes, se lotar)
 const EMOJIS = 8;             // quantas figurinhas prontas a praça tem (sem texto livre: é pra crianças)
-const FRASES = 12;            // e quantas frases prontas (o site mostra cada uma na língua de quem vê)
+const FRASES = 1000;          // até quantas frases prontas (o site mostra cada uma na língua de quem vê; hoje são 183)
+const EMOTES = 200;           // até quantos emotes (animações do personagem; o site confere quais existem)
 
 const limpa = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 /* o personagem de quem entra: só um texto curto "kp1:..." (o site confere e desenha; aqui só repassa) */
@@ -301,6 +302,12 @@ export class Sala {
     }
     if (m.t === 'moeda') {   // jogou uma moedinha na fonte (os outros veem a animação)
       this.transmitir({ t: 'moeda', id: a.id, x: coord(m.x, PRACA_W), y: coord(m.y, PRACA_H) }, ws);
+      return;
+    }
+    if (m.t === 'emote') {   // a animação do personagem (dançar, girar...): todo mundo vê, inclusive quem fez
+      const e = Math.floor(Number(m.e));
+      if (!(e >= 0 && e < EMOTES)) return;
+      this.transmitir({ t: 'emote', id: a.id, e });
       return;
     }
     if (m.t === 'frase') {
