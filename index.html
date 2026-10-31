@@ -15216,11 +15216,13 @@ async function openConversationThread(conv){
     msgsAtuais = messages;
     let raiz = messagesEl;
     if(soNoFim){
+      /* a minha mensagem já tinha entrado como "mandando…": a de verdade só toma o lugar dela (sem animar de novo) */
+      const tinhaEnviando = !!messagesEl.querySelector('.chat-msg.enviando');
       messagesEl.querySelectorAll('.req-card, .chat-msg.enviando, .g-msg').forEach(e=>e.remove());
       const caixa = document.createElement('div');
       caixa.innerHTML = messages.slice(knownAntes).map((m, k)=>{
         const i = knownAntes + k, prev = messages[i-1];
-        return bubbleHtml(m, !prev || prev.senderEmail !== m.senderEmail, true);
+        return bubbleHtml(m, !prev || prev.senderEmail !== m.senderEmail, !(tinhaEnviando && m.senderEmail === user.email));
       }).join('');
       raiz = document.createDocumentFragment();
       while(caixa.firstChild) raiz.appendChild(caixa.firstChild);
