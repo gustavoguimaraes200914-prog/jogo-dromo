@@ -305,7 +305,7 @@ console.log('== 18. contas com nome de usuário: nome livre, e-mail de seguranç
   t('freio: 1 por minuto e 6 por dia', f1.envios && f1.envios.length === 1 && f2.erro === 'espere' && f2.segundos > 0 && f3.erro === 'muitos_codigos', [f1, f2, f3]);
   const em = W.emailDoCodigo('ja', 'rec', 'pedro', '012345');
   t('e-mail do código no idioma, com o código', /012345/.test(em.assunto) && /pedro/.test(em.texto) && /012345/.test(em.html) && /15/.test(em.texto), em.assunto);
-  t('e-mail em idioma desconhecido cai no inglês', /Koda code/.test(W.emailDoCodigo('xx', 'conf', 'a', '1').assunto) || /Koda code/.test(W.emailDoCodigo('en', 'conf', 'a', '1').assunto));
+  t('e-mail em idioma desconhecido cai no inglês', /Koplay code/.test(W.emailDoCodigo('xx', 'conf', 'a', '1').assunto) || /Koplay code/.test(W.emailDoCodigo('en', 'conf', 'a', '1').assunto));
 
   const contas = { pedro: 'uid-pedro', ana: 'uid-ana' }, senhas = {}, emails = [];
   const fx = { db: bancoFalso(), async uidDe(n){ return contas[n] || null; }, async trocarSenha(uid, s){ senhas[uid] = s; }, async email(para, msg){ emails.push({ para, msg }); } };
@@ -332,7 +332,7 @@ console.log('== 18. contas com nome de usuário: nome livre, e-mail de seguranç
   t('recuperar: conta que não existe', (await W.contaCodigo(fx, { usuario: 'ninguem' })).erro === 'sem_conta');
   t('recuperar: conta sem e-mail de segurança', (await W.contaCodigo(fx, { usuario: 'ana' })).erro === 'sem_email');
   const r1 = await W.contaCodigo(fx, { usuario: 'Pedro', lang: 'en' });
-  t('recuperar: código vai pro e-mail de segurança', r1.ok && emails[emails.length - 1].para === 'pai.do.pedro@gmail.com' && /Koda code/.test(emails[emails.length - 1].msg.assunto), r1);
+  t('recuperar: código vai pro e-mail de segurança', r1.ok && emails[emails.length - 1].para === 'pai.do.pedro@gmail.com' && /Koplay code/.test(emails[emails.length - 1].msg.assunto), r1);
   t('recuperar: senha curta não', (await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: codigoDe(), senha: '123' })).erro === 'senha_fraca');
   const cod = codigoDe(), errado = cod === '999999' ? '888888' : '999999';
   for(let i = 0; i < 5; i++) await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: errado, senha: 'novaSenha1' });

@@ -1,4 +1,4 @@
-# Regras do Firestore (banco do Koda)
+# Regras do Firestore (banco do Koplay)
 
 Esta pasta **não vai para o ar com o site** (está no `.assetsignore`).
 

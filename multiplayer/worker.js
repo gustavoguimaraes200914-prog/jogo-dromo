@@ -2,7 +2,7 @@
    - Cada jogo tem um "Diretorio" que sabe quantas pessoas tem em cada sala.
    - Cada sala é uma "Sala" (máx. 20). Quando uma enche, o Diretorio abre a próxima (Sala 2, 3...).
    - A Sala só repassa as mensagens do jogo a todos (ou a um jogador). Não guarda nada nem lê o conteúdo.
-   - PRAÇA: a sala especial "koda-praca" é a praça do Koda. Cada praça tem um número (é o número da sala);
+   - PRAÇA: a sala especial "koda-praca" é a praça do Koplay. Cada praça tem um número (é o número da sala);
      quem digita o número entra nela. Lá a Sala guarda os 4 bancos: quem senta escolhe o jogo e quantas pessoas;
      em 30 s (ou quando lota) todo mundo do banco vai junto pra mesma sala do jogo (um "grupo"). */
 
