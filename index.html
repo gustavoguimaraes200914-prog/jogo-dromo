@@ -27338,6 +27338,7 @@ function setSoundOn(on){
   try{ localStorage.setItem(SOUND_KEY, on ? '1' : '0'); }catch(e){}
   updateSoundBtn();
   if(on) playSound('click');
+  musicaLobbyAtualizar();          // a música do lobby liga e desliga junto com o som
 }
 function audio(){
   if(!audioCtx){
@@ -28533,6 +28534,203 @@ function playSound(nome){
     }catch(e){}
   });
 }
+/* ============================================================
+   MÚSICA DO LOBBY: "Pizzaria do Koda" (composição original)
+   Jazz leve e alegre: piano elétrico com acordes de sétima, baixo, vibrafone na melodia
+   e bateria de vassourinha bem baixinha. Tudo é criado na hora pelo navegador (sem arquivo).
+   kodaMusicaTocar(ctx, saida, t0, compassos) agenda a música a partir do tempo t0.
+============================================================ */
+const KM_BPM = 104;
+const KM_BATIDA = 60 / KM_BPM;
+const KM_SWING = 0.62;                    // o "e" do tempo cai um pouquinho atrasado (swing)
+const kmHz = n=>440 * Math.pow(2, (n - 69) / 12);
+const KM_NOTA = (()=>{ const b = {C:0, 'C#':1, Db:1, D:2, 'D#':3, Eb:3, E:4, F:5, 'F#':6, Gb:6, G:7, 'G#':8, Ab:8, A:9, 'A#':10, Bb:10, B:11};
+  return s=>{ const m = /^([A-G][#b]?)(\d)$/.exec(s); return b[m[1]] + (Number(m[2]) + 1) * 12; }; })();
+/* os acordes (as notas do piano, sem a fundamental, que fica com o baixo) */
+const KM_ACORDES = {
+  Cmaj7: {r: 'C2', v: ['E3', 'G3', 'B3', 'D4']},
+  Am7:   {r: 'A1', v: ['C3', 'E3', 'G3', 'B3']},
+  Dm7:   {r: 'D2', v: ['F3', 'A3', 'C4', 'E4']},
+  G7:    {r: 'G1', v: ['F3', 'A3', 'B3', 'E4']},
+  Em7:   {r: 'E2', v: ['D3', 'G3', 'B3', 'F#4']},
+  A7:    {r: 'A1', v: ['C#3', 'G3', 'B3', 'E4']},
+  Fmaj7: {r: 'F1', v: ['E3', 'A3', 'C4', 'G4']},
+  Fm6:   {r: 'F1', v: ['D3', 'Ab3', 'C4', 'F4']}
+};
+/* parte A e parte B: um acorde por compasso, ou dois (cada um com 2 tempos) */
+const KM_A = [['Cmaj7'], ['Am7'], ['Dm7'], ['G7'], ['Em7'], ['A7'], ['Dm7', 'G7'], ['Cmaj7']];
+const KM_B = [['Fmaj7'], ['Fm6'], ['Em7'], ['A7'], ['Dm7'], ['G7'], ['Cmaj7', 'A7'], ['Dm7', 'G7']];
+/* a melodia (vibrafone): [tempo dentro do compasso, nota, duração em tempos] */
+const KM_MEL_A = [
+  [[0, 'E5', 1], [1, 'G5', .5], [1.5, 'B5', 1.5], [3.5, 'A5', .5]],
+  [[0, 'G5', 1], [1, 'E5', 1], [2, 'C5', 1.5]],
+  [[.5, 'F5', .5], [1, 'A5', 1], [2, 'C6', 1], [3, 'A5', 1]],
+  [[0, 'B5', 1.5], [1.5, 'G5', .5], [2, 'F5', 1], [3, 'D5', 1]],
+  [[0, 'E5', .5], [.5, 'G5', .5], [1, 'B5', 2], [3.5, 'D6', .5]],
+  [[0, 'C#6', 1], [1, 'A5', 1], [2, 'G5', 1], [3, 'E5', 1]],
+  [[0, 'F5', 1], [1, 'A5', .5], [1.5, 'D5', .5], [2, 'B4', 1], [3, 'D5', 1]],
+  [[0, 'C5', 2.5], [3, 'G4', .5], [3.5, 'A4', .5]]
+];
+const KM_MEL_B = [
+  [[0, 'C5', .5], [.5, 'F5', 1], [1.5, 'A5', 1], [2.5, 'C6', 1.5]],
+  [[0, 'Ab5', 1.5], [1.5, 'F5', .5], [2, 'D5', 2]],
+  [[0, 'G5', 1], [1, 'B5', 1], [2, 'D6', .5], [2.5, 'B5', 1.5]],
+  [[0, 'C#6', 1], [1, 'E6', .5], [1.5, 'C#6', .5], [2, 'A5', 2]],
+  [[0, 'A5', 1], [1, 'F5', 1], [2, 'D5', 1], [3, 'F5', 1]],
+  [[0, 'G5', .5], [.5, 'A5', .5], [1, 'B5', 1], [2, 'D6', 1], [3, 'F5', 1]],
+  [[0, 'E5', 1], [1, 'G5', 1], [2, 'C#5', 1], [3, 'E5', 1]],
+  [[0, 'D5', 1], [1, 'F5', .5], [1.5, 'A5', .5], [2, 'G5', 1], [3, 'B4', 1]]
+];
+/* a ordem da música: A A B A (32 compassos, ~1 minuto e 14), e depois recomeça */
+const KM_FORMA = [[KM_A, KM_MEL_A], [KM_A, KM_MEL_A], [KM_B, KM_MEL_B], [KM_A, KM_MEL_A]];
+function kmTempo(b){ const i = Math.floor(b), f = b - i; return (i + (Math.abs(f - .5) < 1e-6 ? KM_SWING : f)) * KM_BATIDA; }
+
+function kodaMusicaMontar(ctx, saida){
+  /* mesa de som: reverb leve (sala pequena), um filtro pra deixar tudo macio e o volume geral */
+  const geral = ctx.createGain(); geral.gain.value = .9;
+  const macio = ctx.createBiquadFilter(); macio.type = 'lowpass'; macio.frequency.value = 7500;
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3;
+  const fundo = ctx.createBiquadFilter(); fundo.type = 'highpass'; fundo.frequency.value = 45;   // tira o grave que caixinha de celular nem toca
+  geral.connect(fundo); fundo.connect(macio); macio.connect(comp); comp.connect(saida);
+  const sala = ctx.createConvolver();
+  const len = Math.floor(ctx.sampleRate * 1.6), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for(let c = 0; c < 2; c++){ const d = ir.getChannelData(c); for(let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+  sala.buffer = ir;
+  const molhado = ctx.createGain(); molhado.gain.value = .22;
+  sala.connect(molhado); molhado.connect(geral);
+  const bus = (vol, reverb)=>{ const g = ctx.createGain(); g.gain.value = vol; g.connect(geral); if(reverb){ const r = ctx.createGain(); r.gain.value = reverb; g.connect(r); r.connect(sala); } return g; };
+  /* o "vai e vem" do piano elétrico e do vibrafone */
+  const tremolo = (alvo, hz, fundo)=>{ const l = ctx.createOscillator(), a = ctx.createGain(); l.frequency.value = hz; a.gain.value = fundo; l.connect(a); a.connect(alvo.gain); l.start(); return l; };
+  const piano = bus(.2, .5), vibra = bus(.3, .7), baixo = bus(.16, .1), bateria = bus(.13, .25);
+  const lfos = [tremolo(piano, 4.2, .045), tremolo(vibra, 5.6, .05)];
+  let ruido = null;
+  const pegaRuido = ()=>{ if(ruido) return ruido; ruido = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = ruido.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return ruido; };
+  const env = (g, t, ataque, pico, queda, fim)=>{ g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(pico, t + ataque); g.gain.exponentialRampToValueAtTime(Math.max(.0001, pico * queda), fim); g.gain.linearRampToValueAtTime(0.0001, fim + .08); };
+
+  return {
+    lfos, geral,
+    /* piano elétrico: um "sino" de FM que vai ficando redondinho */
+    piano(n, t, dur, vel){
+      const f = kmHz(n), o = ctx.createOscillator(), m = ctx.createOscillator(), mg = ctx.createGain(), g = ctx.createGain();
+      o.frequency.value = f; m.frequency.value = f * 1; mg.gain.setValueAtTime(f * 1.4, t); mg.gain.exponentialRampToValueAtTime(f * .08, t + .5);
+      m.connect(mg); mg.connect(o.frequency); o.connect(g); g.connect(piano);
+      env(g, t, .006, vel, .25, t + dur);
+      o.start(t); m.start(t); o.stop(t + dur + .15); m.stop(t + dur + .15);
+    },
+    /* vibrafone: sininho redondo com um brilho em cima */
+    vibra(n, t, dur, vel){
+      const f = kmHz(n), g = ctx.createGain();
+      [[1, 1], [4, .12], [10, .03]].forEach(([h, a])=>{ const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = f * h; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 1.2); });
+      g.connect(vibra);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vel, t + .004); g.gain.exponentialRampToValueAtTime(vel * .35, t + Math.min(dur, .6)); g.gain.exponentialRampToValueAtTime(.0001, t + dur + 1.1);
+    },
+    /* baixo: grave e macio */
+    baixo(n, t, dur){
+      const f = kmHz(n), o = ctx.createOscillator(), o2 = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
+      o.type = 'triangle'; o.frequency.value = f; o2.frequency.value = f; fl.type = 'lowpass'; fl.frequency.value = 650;
+      o.connect(fl); o2.connect(fl); fl.connect(g); g.connect(baixo);
+      env(g, t, .012, .9, .45, t + dur * .92);
+      o.start(t); o2.start(t); o.stop(t + dur + .2); o2.stop(t + dur + .2);
+    },
+    /* vassourinha (chiado curtinho), aro da caixa e um bumbo bem fofo */
+    chiado(t, vel){
+      const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
+      s.buffer = pegaRuido(); fl.type = 'bandpass'; fl.frequency.value = 6500; fl.Q.value = .8;
+      s.connect(fl); fl.connect(g); g.connect(bateria);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vel, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + .11);
+      s.start(t, Math.random() * .5); s.stop(t + .14);
+    },
+    aro(t){
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = 1700;
+      o.connect(g); g.connect(bateria); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.0001, t + .05); o.start(t); o.stop(t + .06);
+    },
+    bumbo(t){
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(45, t + .12);
+      o.connect(g); g.connect(bateria); g.gain.setValueAtTime(.3, t); g.gain.exponentialRampToValueAtTime(.0001, t + .2); o.start(t); o.stop(t + .3);
+    }
+  };
+}
+/* agenda um compasso (k = quantos compassos desde o começo) */
+function kodaMusicaCompasso(S, t0, k){
+  const parte = KM_FORMA[Math.floor(k / 8) % KM_FORMA.length], i = k % 8;
+  const acordes = parte[0][i], melodia = parte[1][i], c0 = t0 + k * 4 * KM_BATIDA;
+  const T = b=>c0 + kmTempo(b);
+  acordes.forEach((nome, j)=>{
+    const A = KM_ACORDES[nome], ini = j * (4 / acordes.length), tam = 4 / acordes.length;
+    /* piano: no 1 e no "e" do 2 (ou só no começo, quando são dois acordes no compasso) */
+    const toques = tam === 4 ? [[0, 1.4], [1.5, 2.2]] : [[0, 1.4]];
+    toques.forEach(([b, d])=>A.v.forEach((n, q)=>S.piano(KM_NOTA(n), T(ini + b) + q * .006, d * KM_BATIDA, q === 3 ? .5 : .42)));
+    /* baixo: fundamental, quinta e uma notinha de passagem chegando no próximo acorde */
+    const r = KM_NOTA(A.r);
+    if(tam === 4){ S.baixo(r, T(ini), 1.4 * KM_BATIDA); S.baixo(r + 7, T(ini + 2), .9 * KM_BATIDA); S.baixo(r + 12, T(ini + 3), .4 * KM_BATIDA); S.baixo(r + 11, T(ini + 3.5), .45 * KM_BATIDA); }
+    else { S.baixo(r, T(ini), .9 * KM_BATIDA); S.baixo(r + 7, T(ini + 1), .9 * KM_BATIDA); }
+  });
+  melodia.forEach(([b, n, d])=>S.vibra(KM_NOTA(n), T(b), d * KM_BATIDA, .55));
+  for(let b = 0; b < 4; b += .5) S.chiado(T(b), b % 1 ? .16 : .26);
+  S.aro(T(1)); S.aro(T(3));
+  S.bumbo(T(0)); if(i % 2) S.bumbo(T(2.5));
+}
+
+/* ---------- tocando no lobby ----------
+   A música toca sem parar em todo o site, MENOS dentro de um jogo (e no "Testar" do Studio).
+   Abriu um jogo: ela some devagar. Saiu do jogo: recomeça do começo. O botão de som liga e desliga.
+   O celular só deixa tocar som depois do primeiro toque na tela, então ela entra no primeiro toque.
+   Se um áudio ou vídeo do chat estiver tocando, ela fica bem baixinha. */
+const MUSICA_VOL = .32;
+const ML = {sessao: null, destravado: false, timer: 0};
+function musicaPodeTocar(){
+  if(!ML.destravado || !soundOn()) return false;
+  if(document.visibilityState && document.visibilityState !== 'visible') return false;
+  try{ if(jogoNaTela()) return false; }catch(e){}
+  if(document.querySelector('.direct-preview-bg.show')) return false;   // "Testar" do Studio também é jogo
+  return true;
+}
+function musicaComecar(){
+  const ctx = audio();
+  if(!ctx || ML.sessao) return;
+  const bus = ctx.createGain();
+  bus.gain.setValueAtTime(.0001, ctx.currentTime);
+  bus.gain.linearRampToValueAtTime(MUSICA_VOL, ctx.currentTime + 2.5);     // entra devagarzinho
+  bus.connect(ctx.destination);
+  const S = kodaMusicaMontar(ctx, bus);
+  ML.sessao = {ctx, bus, S, t0: ctx.currentTime + .25, k: 0, baixo: false};
+}
+function musicaParar(rapido){
+  const m = ML.sessao;
+  if(!m) return;
+  ML.sessao = null;
+  const agora = m.ctx.currentTime, fim = rapido ? .25 : 1.2;
+  try{ m.bus.gain.cancelScheduledValues(agora); m.bus.gain.setValueAtTime(m.bus.gain.value, agora); m.bus.gain.linearRampToValueAtTime(.0001, agora + fim); }catch(e){}
+  setTimeout(()=>{ try{ m.bus.disconnect(); }catch(e){} try{ m.S.lfos.forEach(l=>l.stop()); }catch(e){} }, fim * 1000 + 100);
+}
+/* agenda os compassos que faltam até ~3 s na frente (a música volta pro começo sozinha a cada 32 compassos) */
+function musicaAgendar(){
+  const m = ML.sessao;
+  if(!m) return;
+  const compasso = 4 * KM_BATIDA;
+  while(m.t0 + m.k * compasso < m.ctx.currentTime + 3){
+    if(m.t0 + (m.k + 1) * compasso > m.ctx.currentTime) kodaMusicaCompasso(m.S, m.t0, m.k);   // atrasou muito (aparelho travou): pula, não amontoa
+    m.k++;
+  }
+  /* áudio ou vídeo do chat tocando: a música abaixa */
+  const outro = Array.from(document.querySelectorAll('audio, video')).some(a=>!a.paused && !a.ended && !a.muted);
+  if(outro !== m.baixo){
+    m.baixo = outro;
+    const agora = m.ctx.currentTime;
+    try{ m.bus.gain.cancelScheduledValues(agora); m.bus.gain.setValueAtTime(m.bus.gain.value, agora); m.bus.gain.linearRampToValueAtTime(outro ? MUSICA_VOL * .12 : MUSICA_VOL, agora + .6); }catch(e){}
+  }
+}
+function musicaLobbyAtualizar(){
+  if(musicaPodeTocar()){ if(!ML.sessao) musicaComecar(); musicaAgendar(); }
+  else if(ML.sessao) musicaParar(!soundOn());
+}
+(function(){
+  const destravar = ()=>{ if(ML.destravado) return; ML.destravado = true; musicaLobbyAtualizar(); };
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev=>window.addEventListener(ev, destravar, {capture: true, passive: true}));
+  document.addEventListener('visibilitychange', musicaLobbyAtualizar);
+  ML.timer = setInterval(musicaLobbyAtualizar, 400);
+})();
 function updateSoundBtn(){
   const btn = document.getElementById('soundBtn');
   if(!btn) return;
