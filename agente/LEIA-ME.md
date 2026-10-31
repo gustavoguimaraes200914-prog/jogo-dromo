@@ -20,7 +20,7 @@ Dá pra conferir em `https://jogodromo-agente.gamersite.workers.dev/` (campo `mo
 **Pra religar a análise quando tiver a chave da API com crédito:**
 1. Confira a `ANTHROPIC_API_KEY` (Secret) no mesmo lugar.
 2. Crie (ou troque) a variável `MODERACAO` com o valor `completa` e salve. Não precisa colar o código de novo.
-3. No Koda, abra o painel do admin (análise de jogos) e toque em **Analisar jogos antigos**. Isso passa pela análise de verdade
+3. No Koplay, abra o painel do admin (análise de jogos) e toque em **Analisar jogos antigos**. Isso passa pela análise de verdade
    todos os jogos que foram publicados enquanto estava desligada (eles ficam marcados como `sem-analise`/`basica`);
    os que não passarem saem do catálogo e o criador vê o motivo.
 
@@ -47,12 +47,12 @@ Se esquecer a senha, o servidor manda um **código de 6 números** pra esse e-ma
 Não precisa mudar nada nas regras do Firestore: só o servidor mexe em `contaSegura` e `recuperacao`.
 
 Para os códigos saírem por e-mail (grátis, até 300 por dia), uma vez só:
-1. Crie um Gmail **só do Koda** (nunca use o e-mail pessoal: ele aparece como remetente).
+1. Crie um Gmail **só do Koplay** (nunca use o e-mail pessoal: ele aparece como remetente).
 2. Entre em **brevo.com** com esse Gmail → **Senders** (Remetentes) → adicione esse Gmail e confirme pelo link que chega nele.
 3. Brevo → **SMTP & API** → **API Keys** → **Generate a new API key** → copie a chave.
 4. Cloudflare → Workers & Pages → **jogodromo-agente** → **Settings** → **Variables and Secrets**:
    - `BREVO_API_KEY` (tipo **Secret**) = a chave do Brevo;
-   - `EMAIL_REMETENTE` (tipo **Text**) = o Gmail do Koda.
+   - `EMAIL_REMETENTE` (tipo **Text**) = o Gmail do Koplay.
 5. Publique o código novo do worker (passos acima) e abra `https://jogodromo-agente.gamersite.workers.dev/?testar`:
    tem que aparecer `"email_de_recuperacao": "configurado"` e `"contas": "ok..."`.
 
