@@ -185,7 +185,7 @@
   @media (prefers-reduced-motion: reduce){
     .bg-blob{animation:none !important;}
     .card, .card.card-fresh{animation:none !important;}
-    .chat-msg.msg-new{animation:none !important;}
+    .chat-msg.msg-new, .chat-msg.user.msg-new, .chat-msg.agent.msg-new, .chat-send-btn:not(.hidden){animation:none !important;}
     .online-counter .online-dot, .online-counter.bump{animation:none !important;}
     .ttt-cell.pop{animation:none !important;}
     .mem-card.flip, .mem-card.matched{animation:none !important;}
@@ -2039,7 +2039,7 @@
   html[data-tema="ouronegro"]{--on-mint:#0b0a05;}
   html[data-tema="rubi"],html[data-tema="retro"],html[data-tema="algodao"]{--on-mint:#ffffff;}
   html:is([data-tema="escuro"],[data-tema="neon"],[data-tema="cristal"],[data-tema="rubi"],[data-tema="ouronegro"]) :is(.chip,.card .badge,.auth-tab.on,.auth-google,.people-search input,.role-toggle-btn,.profile-page-edit-btn,.profile-icon-btn,.ttt-cell,.seg-btn,.diff-tag,.pad-btn,.rec-chip,.form-field input[type="text"],.form-field textarea,.form-field select,.auth-input,#chatInput,#threadInput):not(.arcade-theme *),
-  html:is([data-tema="escuro"],[data-tema="neon"],[data-tema="cristal"],[data-tema="rubi"],[data-tema="ouronegro"]) :is(.lang-menu-card,.auth-card,.confirm-card,.game-menu-sheet:not(.shop-sheet):not(.hl-chances):not(.kbs-sheet),.msg-game-card,.msg-audio,.g-stat,.mic-preview,.rps-btn,.mem-card.flip,.mod-previa-frame,.chat-msg.agent .chat-bubble,.chat-attach-btn,.chat-mic-btn,.file-btn,.publish-card):not(.arcade-theme *){--ink:#08322B;color:#08322B;}
+  html:is([data-tema="escuro"],[data-tema="neon"],[data-tema="cristal"],[data-tema="rubi"],[data-tema="ouronegro"]) :is(.lang-menu-card,.auth-card,.confirm-card,.game-menu-sheet:not(.shop-sheet):not(.hl-chances):not(.kbs-sheet),.msg-game-card,.msg-audio,.msg-audio2,.g-stat,.mic-preview,.rps-btn,.mem-card.flip,.mod-previa-frame,.chat-msg.agent .chat-bubble,.chat-attach-btn,.chat-mic-btn,.file-btn,.publish-card):not(.arcade-theme *){--ink:#08322B;color:#08322B;}
   html:is([data-tema="escuro"],[data-tema="neon"],[data-tema="cristal"],[data-tema="rubi"],[data-tema="ouronegro"]) .pad-hint{color:var(--ink);opacity:.8;}
   /* a janela de criar jogo é sempre roxa de fliperama: os temas claros (retrô, algodão) pintavam o fundo de bege e o texto claro sumia */
   html[data-tema] .modal.arcade-theme{background:linear-gradient(180deg,#1b0e33,#0a0518);color:#eafcff;}
@@ -2554,6 +2554,43 @@
   .msg-audio-bar{flex:1;height:4px;background:rgba(0,0,0,.1);border-radius:999px;overflow:hidden;}
   .msg-audio-fill{height:100%;width:0%;background:var(--mint);}
   .chat-send-btn.recording{background:#e05a5a;animation:recordPulse 1s ease-in-out infinite;}
+  /* áudio novo: onda da voz, tempo e velocidade */
+  .msg-audio2{display:flex;align-items:center;gap:8px;background:#fff;border-radius:22px;padding:7px 10px 7px 7px;box-shadow:var(--shadow);width:min(270px,72vw);margin-bottom:4px;box-sizing:border-box;}
+  .msg-audio2.meu{background:var(--mint);color:#08322B;}
+  .msg-audio2 .msg-audio-play{width:36px;height:36px;transition:transform .15s;}
+  .msg-audio2.meu .msg-audio-play{background:#08322B;color:#fff;}
+  .msg-audio2 .msg-audio-play:active{transform:scale(.88);}
+  .msg-audio2.tocando .msg-audio-play{box-shadow:0 0 0 4px rgba(23,199,158,.25);}
+  .msg-onda{flex:1;display:flex;align-items:center;gap:2px;height:30px;cursor:pointer;min-width:0;}
+  .msg-onda i{flex:1;min-height:3px;border-radius:2px;background:rgba(8,50,43,.22);transition:background .12s;}
+  .msg-onda i.on{background:#17c79e;}
+  .msg-audio2.meu .msg-onda i{background:rgba(8,50,43,.28);}
+  .msg-audio2.meu .msg-onda i.on{background:#08322B;}
+  .msg-audio-tempo{font-size:.74rem;font-weight:800;font-variant-numeric:tabular-nums;min-width:30px;text-align:right;opacity:.8;}
+  .msg-audio-vel{border:none;border-radius:999px;padding:3px 7px;background:rgba(8,50,43,.08);color:inherit;font:800 .7rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .msg-audio-vel.on{background:#08322B;color:#fff;}
+  /* vídeo em partes: capa com o play; baixa só quando toca */
+  .msg-video-box{position:relative;width:min(240px,66vw);min-height:130px;border-radius:14px;overflow:hidden;background:#0b1f1a;margin-bottom:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .msg-video-box img{display:block;width:100%;max-height:300px;object-fit:cover;}
+  .msg-video-play{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);transition:transform .15s;}
+  .msg-video-play svg{width:24px;height:24px;margin-left:3px;}
+  .msg-video-box:active .msg-video-play{transform:scale(.9);}
+  .msg-video-dur{position:absolute;left:8px;bottom:8px;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font:800 .72rem 'Baloo 2',sans-serif;}
+  .msg-video-carrega{position:absolute;left:0;bottom:0;height:4px;width:var(--p,0%);background:#7CFFC4;transition:width .2s;display:none;}
+  .msg-video-box.carregando .msg-video-carrega{display:block;}
+  .msg-video-box.carregando .msg-video-play svg{animation:msgGira 1s linear infinite;}
+  /* gravando áudio: o painel cobre a barra de escrever */
+  .chat-inputbar{position:relative;}
+  .chat-gravando{position:absolute;inset:6px 8px;display:flex;align-items:center;gap:10px;padding:2px 6px;background:#fff;color:#08322B;border-radius:28px;box-shadow:0 4px 16px rgba(0,0,0,.14);opacity:0;transform:translateY(8px);transition:opacity .18s,transform .18s;z-index:2;}
+  .chat-gravando.show{opacity:1;transform:none;}
+  .chat-gravando button{flex-shrink:0;width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .chat-gravando button svg{width:20px;height:20px;}
+  .chat-gravando .rec-x{background:rgba(224,90,90,.12);color:#c62828;}
+  .chat-gravando .rec-ok{background:var(--mint);color:var(--on-mint,#08322B);}
+  .rec-ponto{width:10px;height:10px;border-radius:50%;background:#e53935;animation:recordPulse 1s ease-in-out infinite;flex-shrink:0;}
+  .rec-tempo{font-weight:800;font-variant-numeric:tabular-nums;min-width:38px;}
+  .rec-niveis{flex:1;display:flex;align-items:center;gap:2px;height:30px;min-width:0;}
+  .rec-niveis i{flex:1;height:100%;border-radius:2px;background:#17c79e;transform:scaleY(.08);transition:transform .08s linear;}
   @keyframes recordPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
   .verified-badge svg{width:.95em;height:.95em;}
   .profile-card{text-align:center;}
@@ -3554,7 +3591,22 @@
   .chat-msg{display:flex;margin-bottom:12px;}
   /* mensagem que chegou sozinha (sem precisar recarregar) entra deslizando */
   @keyframes msgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  /* mensagem nova: a sua sai da direita e a dos outros chega da esquerda, com um pulinho de mola */
+  @keyframes msgInEu{0%{opacity:0;transform:translate(22px,10px) scale(.86);}60%{opacity:1;transform:translate(-3px,0) scale(1.03);}100%{opacity:1;transform:none;}}
+  @keyframes msgInEle{0%{opacity:0;transform:translate(-22px,10px) scale(.86);}60%{opacity:1;transform:translate(3px,0) scale(1.03);}100%{opacity:1;transform:none;}}
   .chat-msg.msg-new{animation:msgIn .3s cubic-bezier(.22,1,.36,1) both;}
+  .chat-msg.user.msg-new{animation:msgInEu .42s cubic-bezier(.2,.9,.3,1.2) both;transform-origin:100% 100%;}
+  .chat-msg.agent.msg-new{animation:msgInEle .42s cubic-bezier(.2,.9,.3,1.2) both;transform-origin:0 100%;}
+  .chat-msg.enviando .chat-bubble{opacity:.78;}
+  .msg-relogio{display:inline-block;width:11px;height:11px;margin-left:6px;vertical-align:-1px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.55;animation:msgGira .8s linear infinite;}
+  @keyframes msgGira{to{transform:rotate(360deg);}}
+  .msg-enviando-midia{display:flex;align-items:center;gap:6px;position:relative;overflow:hidden;}
+  .msg-enviando-midia svg{width:16px;height:16px;}
+  .msg-enviando-barra{position:absolute;left:0;bottom:0;height:3px;width:0;background:rgba(8,50,43,.45);transition:width .25s;}
+  .chat-send-btn{transition:transform .15s ease,background .2s;}
+  .chat-send-btn:active,.chat-attach-btn:active{transform:scale(.88);}
+  .chat-send-btn:not(.hidden){animation:btnPop .22s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes btnPop{from{transform:scale(.4);opacity:0;}to{transform:none;opacity:1;}}
   .chat-msg.user{justify-content:flex-end;}
   .chat-msg.agent{justify-content:flex-start;}
   .chat-bubble{max-width:84%;border-radius:16px;padding:11px 14px;font-size:.92rem;line-height:1.45;}
@@ -12789,10 +12841,23 @@ var PRACA2_TXT = {
  praca_emote_comprou:'Emote novo! Use na praça: {nome}|New emote! Use it in the plaza: {nome}|¡Emote nuevo! Úsalo en la plaza: {nome}',
  praca_emote_tit:'Emote: {nome}|Emote: {nome}|Emote: {nome}'
 };
+/* textos novos das mensagens (áudio, vídeo e a bolha "mandando") */
+var MSG2_TXT = {
+ msg_audio_vel:'Velocidade|Speed|Velocidad',
+ msg_audio_erro:'Não deu pra tocar esse áudio.|Couldn’t play this audio.|No se pudo reproducir este audio.',
+ msg_audio_cancelar:'Cancelar áudio|Cancel audio|Cancelar audio',
+ msg_audio_mandar:'Mandar áudio|Send audio|Enviar audio',
+ msg_audio_curto:'Segure um pouquinho mais: o áudio ficou curto demais.|Hold a bit longer: the audio was too short.|Mantén un poco más: el audio quedó muy corto.',
+ msg_enviando:'Mandando…|Sending…|Enviando…',
+ msg_enviando_video:'Mandando vídeo…|Sending video…|Enviando video…',
+ msg_enviando_audio:'Mandando áudio…|Sending audio…|Enviando audio…',
+ video_falhou_ver:'Não deu pra abrir o vídeo. Tente de novo.|Couldn’t open the video. Try again.|No se pudo abrir el video. Inténtalo de nuevo.'
+};
 (function(){
   const ling = ['pt', 'en', 'es'];
   const por = (k, txt)=>{ const v = String(txt).split('|'); ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; }); };
   Object.keys(PRACA2_TXT).forEach(k=>por(k, PRACA2_TXT[k]));
+  Object.keys(MSG2_TXT).forEach(k=>por(k, MSG2_TXT[k]));
   PRACA_FALAS_CATS.forEach(c=>por('praca_cat_' + c[0], c[2]));
   PRACA_FALAS_EXTRA.forEach((f, i)=>por('praca_f' + (12 + i), f[1]));
   PRACA_EMOTES.forEach(e=>por('praca_emote_' + e.id, e.nome));
@@ -13918,20 +13983,24 @@ async function editChatMessage(messageId, newText){
   }catch(e){ return false; }
 }
 let lastSendError = null;
-async function sendChatMessage(conversationId, text, gameRef, agentChatRef, replyTo, imageData, audioData, challengeRef, videoData){
+async function sendChatMessage(conversationId, text, gameRef, agentChatRef, replyTo, imageData, audioData, challengeRef, videoData, extras){
   lastSendError = null;
   if(!FIREBASE_ENABLED) return false;
   const user = fbAuth().currentUser;
-  if(!user || ((!text || !text.trim()) && !gameRef && !agentChatRef && !imageData && !audioData && !challengeRef && !videoData)) return false;
+  const videoRef = extras && extras.videoRef || null;
+  if(!user || ((!text || !text.trim()) && !gameRef && !agentChatRef && !imageData && !audioData && !challengeRef && !videoData && !videoRef)) return false;
   try{
-    await fbDb().collection('messages').add({
+    const doc = {
       conversationId, senderEmail:user.email, senderName:getDisplayName(user), senderAvatar:getDisplayAvatar(user)||null,
       text: (text||'').trim().slice(0,1000), gameRef: gameRef||null, agentChatRef: agentChatRef||null,
       imageData: imageData||null, audioData: audioData||null, videoData: videoData||null, challengeRef: challengeRef||null,
       replyTo: replyTo||null, createdAt: Date.now()
-    });
+    };
+    if(videoRef) doc.videoRef = videoRef;                                         // vídeo em partes (coleção midias)
+    if(extras && Number(extras.audioSeg) > 0) doc.audioSeg = Number(extras.audioSeg);   // quanto tempo o áudio tem
+    await fbDb().collection('messages').add(doc);
     const preview = challengeRef ? (t('challenge_preview',{name:challengeRef.name, n:challengeRef.score}))
-      : agentChatRef ? ('🕹️ '+agentChatRef.name) : gameRef ? ('🎮 '+gameRef.name) : imageData ? '📷 '+t('msg_photo_label') : videoData ? '🎬 '+t('msg_video_label') : audioData ? '🎤 '+t('msg_audio_label') : (text||'').slice(0,60);
+      : agentChatRef ? ('🕹️ '+agentChatRef.name) : gameRef ? ('🎮 '+gameRef.name) : imageData ? '📷 '+t('msg_photo_label') : (videoData || videoRef) ? '🎬 '+t('msg_video_label') : audioData ? '🎤 '+t('msg_audio_label') : (text||'').slice(0,60);
     await fbDb().collection('conversations').doc(conversationId).set({
       lastMessageAt: Date.now(), lastMessageText: preview, lastMessageBy: user.email
     }, {merge:true});
@@ -14959,13 +15028,8 @@ async function openConversationThread(conv){
         <div class="msg-challenge-btn">${t('challenge_card_play')}</div>
       </div>` : '';
     const imageHtml = m.imageData ? `<img src="${m.imageData}" class="msg-image" data-full="${chatListEscape(m.imageData)}">` : '';
-    const videoHtml = m.videoData ? `<video class="msg-video" src="${m.videoData}" controls playsinline preload="metadata"></video>` : '';
-    const audioHtml = m.audioData ? `
-      <div class="msg-audio">
-        <button class="msg-audio-play" data-audio-id="${chatListEscape(m.id)}">${ICONS.play}</button>
-        <div class="msg-audio-bar"><div class="msg-audio-fill" id="audioFill_${chatListEscape(m.id)}"></div></div>
-        <audio id="audioEl_${chatListEscape(m.id)}" src="${m.audioData}" preload="metadata"></audio>
-      </div>` : '';
+    const videoHtml = m.videoRef ? chatVideoHtml(m) : m.videoData ? `<video class="msg-video" src="${m.videoData}" controls playsinline preload="metadata"></video>` : '';
+    const audioHtml = m.audioData ? chatAudioHtml(m, mine) : '';
     const replyQuote = m.replyTo ? `<div class="msg-reply-quote"><b>${chatListEscape(m.replyTo.senderName)}</b>${chatListEscape(m.replyTo.text)}</div>` : '';
     const editedTag = m.edited ? `<span class="msg-edited-tag">${t('msg_edited_tag')}</span>` : '';
     const textHtml = (m.text || replyQuote) ? `<div class="chat-bubble">${replyQuote}${chatListEscape(m.text||'')}${editedTag}</div>` : '';
@@ -15007,6 +15071,48 @@ async function openConversationThread(conv){
   }
   let lastMsgSig = null;      // retrato das mensagens, pra só redesenhar quando muda algo
   let knownMsgIds = null;     // null = primeira carga; depois vira um Set
+  let partesAntes = null, knownAntes = 0;   // as mensagens que já estão desenhadas (pra só acrescentar as novas)
+  let msgsAtuais = [];
+  /* liga os toques de um pedaço da conversa (a conversa toda ou só as mensagens novas) */
+  function ligar(raiz){
+    raiz.querySelectorAll('.msg-image').forEach(img=>{
+      img.addEventListener('click', ()=>openImageViewer(img.dataset.full));
+    });
+    chatAudioLigar(raiz, messagesEl);
+    chatVideoLigar(raiz);
+    raiz.querySelectorAll('.msg-game-card[data-game-id]').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const gid = card.dataset.gameId;
+        const g = GAMES.find(x=>x.id===gid);
+        if(g) openGame(g.id, g.name); else toast(t('messages_game_unavailable'));
+      });
+    });
+    raiz.querySelectorAll('.msg-challenge[data-challenge-id]').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const msg = msgsAtuais.find(x=>x.id===card.dataset.challengeId);
+        if(msg) abrirDesafio(Object.assign({conversationId:conv.id}, msg));
+      });
+    });
+    raiz.querySelectorAll('.msg-game-card[data-msg-id]').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const msg = msgsAtuais.find(x=>x.id===card.dataset.msgId);
+        if(msg && msg.agentChatRef) openSharedAgentChatView(msg.agentChatRef);
+      });
+    });
+    raiz.querySelectorAll('.chat-msg[data-msg-id]').forEach(el=>{
+      let pressTimer = null;
+      el.addEventListener('pointerdown', ()=>{
+        pressTimer = setTimeout(()=>{
+          const msg = msgsAtuais.find(x=>x.id===el.dataset.msgId);
+          if(msg) openMessageMenu(msg, user.email===msg.senderEmail, isVisitor ? null : setReplyTo, draw);
+        }, 480);
+      });
+      const cancel = ()=>clearTimeout(pressTimer);
+      el.addEventListener('pointerup', cancel);
+      el.addEventListener('pointerleave', cancel);
+      el.addEventListener('pointercancel', cancel);
+    });
+  }
   /* opts.live = redesenho automático (a pessoa não pediu nada): nesse caso só
      mexe na tela se chegou mensagem nova, e sem estragar o que ela está fazendo */
   async function draw(opts){
@@ -15026,77 +15132,46 @@ async function openConversationThread(conv){
       if(sig === lastMsgSig) return;                                    // nada novo
       if(document.querySelector('.game-menu-bg')) return;               // menu de mensagem aberto: espera
       const playing = Array.from(messagesEl.querySelectorAll('audio, video')).some(a=>!a.paused && !a.ended);
-      if(playing) return;                                              // não corta o áudio que está tocando
+      const soAcrescenta = !!(partesAntes && messages.length > partesAntes.length && partesAntes.every((x, i)=>x === JSON.stringify([messages[i].id, messages[i].text||'', messages[i].edited?1:0])));
+      if(playing && !soAcrescenta) return;                             // não corta o áudio que está tocando (mensagem nova só entra no fim)
     }
     lastMsgSig = sig;
     const seenBefore = knownMsgIds;
     knownMsgIds = new Set(messages.map(m=>m.id));
     const keepScroll = messagesEl.scrollTop;
     const wasAtBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 80;
-    messagesEl.innerHTML = messages.length ? messages.map((m,i)=>{
-      const prev = messages[i-1];
-      const showHeader = !prev || prev.senderEmail !== m.senderEmail;
-      return bubbleHtml(m, showHeader, !!(seenBefore && !seenBefore.has(m.id)));
-    }).join('') : ((conv.requestStatus === 'pending' || conv.requestStatus === 'declined') ? '' : `<p class="g-msg" style="text-align:center;">${t('messages_thread_empty')}</p>`);
+    /* só chegaram mensagens novas no fim (o normal): desenha só elas, sem piscar a conversa inteira
+       (o áudio e o vídeo que já estão na tela não recarregam). Qualquer outra mudança redesenha tudo. */
+    const partes = messages.map(m=>JSON.stringify([m.id, m.text||'', m.edited?1:0]));
+    const soNoFim = !!(partesAntes && partesAntes.length && messages.length > partesAntes.length
+      && partesAntes.every((x, i)=>x === partes[i]) && messagesEl.querySelector('.chat-msg[data-msg-id]'));
+    partesAntes = partes;
+    msgsAtuais = messages;
+    let raiz = messagesEl;
+    if(soNoFim){
+      messagesEl.querySelectorAll('.req-card, .chat-msg.enviando, .g-msg').forEach(e=>e.remove());
+      const caixa = document.createElement('div');
+      caixa.innerHTML = messages.slice(knownAntes).map((m, k)=>{
+        const i = knownAntes + k, prev = messages[i-1];
+        return bubbleHtml(m, !prev || prev.senderEmail !== m.senderEmail, true);
+      }).join('');
+      raiz = document.createDocumentFragment();
+      while(caixa.firstChild) raiz.appendChild(caixa.firstChild);
+    } else {
+      messagesEl.innerHTML = messages.length ? messages.map((m,i)=>{
+        const prev = messages[i-1];
+        const showHeader = !prev || prev.senderEmail !== m.senderEmail;
+        return bubbleHtml(m, showHeader, !!(seenBefore && !seenBefore.has(m.id)));
+      }).join('') : ((conv.requestStatus === 'pending' || conv.requestStatus === 'declined') ? '' : `<p class="g-msg" style="text-align:center;">${t('messages_thread_empty')}</p>`);
+    }
+    knownAntes = messages.length;
+    ligar(raiz);
+    if(soNoFim) messagesEl.appendChild(raiz);
     pintarPedidoDeChat();
-    messagesEl.querySelectorAll('.msg-image').forEach(img=>{
-      img.addEventListener('click', ()=>openImageViewer(img.dataset.full));
-    });
-    messagesEl.querySelectorAll('.msg-audio-play').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = btn.dataset.audioId;
-        const audioEl = document.getElementById('audioEl_'+id);
-        const fill = document.getElementById('audioFill_'+id);
-        if(audioEl.paused){
-          messagesEl.querySelectorAll('audio').forEach(a=>{ if(a!==audioEl) a.pause(); });
-          messagesEl.querySelectorAll('.msg-audio-play').forEach(b=>{ if(b!==btn) b.innerHTML = ICONS.play; });
-          audioEl.play();
-          btn.innerHTML = ICONS.pause;
-          audioEl.ontimeupdate = ()=>{
-            if(audioEl.duration) fill.style.width = (audioEl.currentTime/audioEl.duration*100)+'%';
-          };
-          audioEl.onended = ()=>{ btn.innerHTML = ICONS.play; fill.style.width='0%'; };
-        } else {
-          audioEl.pause();
-          btn.innerHTML = ICONS.play;
-        }
-      });
-    });
-    messagesEl.querySelectorAll('.msg-game-card[data-game-id]').forEach(card=>{
-      card.addEventListener('click', ()=>{
-        const gid = card.dataset.gameId;
-        const g = GAMES.find(x=>x.id===gid);
-        if(g) openGame(g.id, g.name); else toast(t('messages_game_unavailable'));
-      });
-    });
-    messagesEl.querySelectorAll('.msg-challenge[data-challenge-id]').forEach(card=>{
-      card.addEventListener('click', ()=>{
-        const msg = messages.find(x=>x.id===card.dataset.challengeId);
-        if(msg) abrirDesafio(Object.assign({conversationId:conv.id}, msg));
-      });
-    });
-    messagesEl.querySelectorAll('.msg-game-card[data-msg-id]').forEach(card=>{
-      card.addEventListener('click', ()=>{
-        const msg = messages.find(x=>x.id===card.dataset.msgId);
-        if(msg && msg.agentChatRef) openSharedAgentChatView(msg.agentChatRef);
-      });
-    });
-    messagesEl.querySelectorAll('.chat-msg').forEach(el=>{
-      let pressTimer = null;
-      el.addEventListener('pointerdown', ()=>{
-        pressTimer = setTimeout(()=>{
-          const msg = messages.find(x=>x.id===el.dataset.msgId);
-          if(msg) openMessageMenu(msg, user.email===msg.senderEmail, isVisitor ? null : setReplyTo, draw);
-        }, 480);
-      });
-      const cancel = ()=>clearTimeout(pressTimer);
-      el.addEventListener('pointerup', cancel);
-      el.addEventListener('pointerleave', cancel);
-      el.addEventListener('pointercancel', cancel);
-    });
     /* se a pessoa estava lendo mensagens antigas, a chegada de uma nova não
-       arrasta a tela pra baixo à força — só acompanha se ela já estava no fim */
+       arrasta a tela pra baixo à força — só acompanha se ela já estava no fim (deslizando, quando é mensagem nova) */
     if(opts.live && !wasAtBottom) messagesEl.scrollTop = keepScroll;
+    else if(soNoFim) chatRolarProFim(messagesEl, true);
     else messagesEl.scrollTop = messagesEl.scrollHeight;
     /* com a conversa aberta na tela, o que chega já conta como visto — a bolinha
        é recontada na próxima batida do relógio (as outras conversas continuam contando) */
@@ -15113,8 +15188,10 @@ async function openConversationThread(conv){
     updateSendMicVisibility();
     const rt = replyingTo;
     setReplyTo(null);
+    const bolha = chatBolhaEnviando(messagesEl, text, 'texto');      // aparece na hora; some quando a de verdade chega
     const enviou = await sendChatMessage(conv.id, text, null, null, rt);
     if(!enviou){
+      if(bolha) bolha.remove();
       input.value = text; updateSendMicVisibility();
       showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : ''));
     }
@@ -15175,55 +15252,34 @@ async function openConversationThread(conv){
       e.target.value = '';
       if(!file) return;
       const prog = mostrarPreparoVideo();
+      let bolha = null;
       try{
-        const dados = await prepararVideo(file, prog.set);
+        const capa = await chatVideoCapa(file);
+        const dados = await prepararVideo(file, p=>prog.set(p * .9));
         prog.close();
-        const enviou = await sendChatMessage(conv.id, '', null, null, null, null, null, null, dados);
-        if(!enviou) showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : ''));
+        bolha = chatBolhaEnviando(messagesEl, t('msg_enviando_video'), 'video');
+        const barra = bolha && bolha.querySelector('.msg-enviando-barra');
+        const videoRef = await chatVideoEnviar(conv.id, dados, capa, p=>{ if(barra) barra.style.width = Math.round(p * 100) + '%'; });
+        const enviou = await sendChatMessage(conv.id, '', null, null, null, null, null, null, null, {videoRef});
+        if(!enviou){ if(bolha) bolha.remove(); chatVideoApagar(videoRef); showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : '')); }
         draw();
       }catch(err){
         prog.close();
+        if(bolha) bolha.remove();
         const m = err && err.message;
         showInfo(t(m === 'longo' ? 'video_longo' : m === 'grande' ? 'video_grande' : 'video_falhou', {n: VIDEO_MAX_SEG}));
       }
     });
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let recordTimer = null;
-    let recordSeconds = 0;
-    micBtn.addEventListener('click', async ()=>{
-      if(mediaRecorder && mediaRecorder.state==='recording'){
-        mediaRecorder.stop();
-        return;
-      }
-      try{
-        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-        audioChunks = [];
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) audioChunks.push(e.data); };
-        mediaRecorder.onstop = async ()=>{
-          clearInterval(recordTimer);
-          micBtn.classList.remove('recording');
-          micBtn.innerHTML = ICONS.mic;
-          stream.getTracks().forEach(tr=>tr.stop());
-          if(audioChunks.length && recordSeconds>=1){
-            const blob = new Blob(audioChunks, {type:mediaRecorder.mimeType||'audio/webm'});
-            const reader = new FileReader();
-            reader.onload = async ()=>{
-              await sendChatMessage(conv.id, '', null, null, null, null, reader.result);
-              draw();
-            };
-            reader.readAsDataURL(blob);
-          }
-        };
-        mediaRecorder.start();
-        recordSeconds = 0;
-        micBtn.classList.add('recording');
-        micBtn.innerHTML = ICONS.stop;
-        recordTimer = setInterval(()=>{ recordSeconds++; }, 1000);
-      }catch(e){
-        toast(t('messages_mic_denied'));
-      }
+    /* gravar áudio: abre o painel por cima da barra (tempo, volume, cancelar e mandar) */
+    micBtn.addEventListener('click', ()=>{
+      if(modalBody.querySelector('.chat-gravando')) return;
+      playSound('click');
+      chatGravarAudio(modalBody.querySelector('.chat-inputbar'), async ({dataUrl, seg})=>{
+        const bolha = chatBolhaEnviando(messagesEl, t('msg_enviando_audio'), 'audio');
+        const enviou = await sendChatMessage(conv.id, '', null, null, null, null, dataUrl, null, null, {audioSeg: seg});
+        if(!enviou){ if(bolha) bolha.remove(); showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : '')); }
+        draw();
+      });
     });
   }
   updateSendMicVisibility();
@@ -15321,7 +15377,7 @@ function openConversationSettings(conv, currentTitle, otherEmail){
   });
 }
 function openMessageMenu(msg, isMine, onReply, onChanged){
-  const canEdit = isMine && msg.text && !msg.gameRef && !msg.agentChatRef && !msg.imageData && !msg.audioData && !msg.videoData;
+  const canEdit = isMine && msg.text && !msg.gameRef && !msg.agentChatRef && !msg.imageData && !msg.audioData && !msg.videoData && !msg.videoRef;
   const bg = document.createElement('div');
   bg.className = 'game-menu-bg';
   bg.innerHTML = `
@@ -15364,6 +15420,7 @@ function openMessageMenu(msg, isMine, onReply, onChanged){
     close();
     showConfirm(t('msg_delete_confirm'), t('menu_remove'), async ()=>{
       await deleteChatMessage(msg.id);
+      if(msg.videoRef) chatVideoApagar(msg.videoRef);
       onChanged();
     });
   });
@@ -15415,10 +15472,294 @@ function openPrivacyMenu(){
   });
 }
 
+/* ============================================================
+   MENSAGENS: áudio, vídeo em partes e as animações
+   - Áudio: grava com redução de ruído e eco (mp4 quando o aparelho deixa, que toca em todo celular),
+     mostra o tempo e o volume enquanto grava (dá pra cancelar), e toca com a onda da voz, o tempo
+     e a velocidade (1×, 1,5×, 2×). Tocar na onda pula pra aquele ponto.
+   - Vídeo: até 60 segundos. O banco guarda no máximo ~1 MB por documento, então o vídeo vai em
+     partes (coleção 'midias', uma parte por documento) e a mensagem leva só a capinha e o tempo.
+     Quem vê baixa as partes só quando toca no play.
+   - A mensagem que você manda aparece na hora (com um reloginho até chegar) e as novas entram
+     deslizando, sem a conversa inteira piscar.
+============================================================ */
+function chatRolarProFim(el, suave){
+  if(!el) return;
+  try{ el.scrollTo({top: el.scrollHeight, behavior: suave ? 'smooth' : 'auto'}); }catch(e){ el.scrollTop = el.scrollHeight; }
+}
+function chatTempo(seg){ seg = Math.max(0, Math.round(Number(seg) || 0)); return Math.floor(seg / 60) + ':' + String(seg % 60).padStart(2, '0'); }
+/* ---------- áudio: a onda ---------- */
+const CHAT_AUDIO_BARRAS = 30;
+const chatOndas = new Map();          // id da mensagem -> {barras, dur}
+function chatOndaFalsa(id){            // enquanto a onda de verdade não fica pronta: barras "de voz" sorteadas pelo id
+  let h = pzHash(id) || 1; const r = [];
+  for(let i = 0; i < CHAT_AUDIO_BARRAS; i++){ h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0; r.push(.22 + (h % 1000) / 1000 * .62); }
+  return r;
+}
+async function chatOndaDe(id, src){
+  if(chatOndas.has(id)) return chatOndas.get(id);
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    const buf = await (await fetch(src)).arrayBuffer();
+    const ac = new AC();
+    const au = await new Promise((ok, no)=>{ const p = ac.decodeAudioData(buf, ok, no); if(p && p.then) p.then(ok, no); });
+    try{ ac.close(); }catch(e){}
+    const d = au.getChannelData(0), n = CHAT_AUDIO_BARRAS, passo = Math.max(1, Math.floor(d.length / n)), r = [];
+    for(let i = 0; i < n; i++){ let m = 0; for(let k = i * passo; k < (i + 1) * passo && k < d.length; k += 8){ const v = Math.abs(d[k]); if(v > m) m = v; } r.push(m); }
+    const max = Math.max.apply(null, r.concat([.01]));
+    const o = {barras: r.map(v=>.14 + .86 * Math.min(1, v / max)), dur: au.duration};
+    chatOndas.set(id, o);
+    return o;
+  }catch(e){ return null; }
+}
+function chatAudioHtml(m, mine){
+  const id = chatListEscape(m.id), o = chatOndas.get(m.id), barras = o ? o.barras : chatOndaFalsa(m.id);
+  const seg = Number(m.audioSeg) > 0 ? Number(m.audioSeg) : (o && isFinite(o.dur) ? o.dur : 0);
+  return `<div class="msg-audio2${mine ? ' meu' : ''}" data-audio="${id}" data-seg="${seg ? seg.toFixed(1) : ''}">
+      <button type="button" class="msg-audio-play" aria-label="${chatListEscape(t('msg_audio_label'))}">${ICONS.play}</button>
+      <div class="msg-onda" aria-hidden="true">${barras.map(b=>`<i style="height:${Math.round(b * 100)}%"></i>`).join('')}</div>
+      <span class="msg-audio-tempo">${seg ? chatTempo(seg) : '0:00'}</span>
+      <button type="button" class="msg-audio-vel" aria-label="${chatListEscape(t('msg_audio_vel'))}">1×</button>
+      <audio src="${m.audioData}" preload="metadata"></audio>
+    </div>`;
+}
+function chatAudioLigar(raiz, area){
+  raiz.querySelectorAll('.msg-audio2').forEach(box=>{
+    const au = box.querySelector('audio'), play = box.querySelector('.msg-audio-play'), onda = box.querySelector('.msg-onda');
+    const tempo = box.querySelector('.msg-audio-tempo'), vel = box.querySelector('.msg-audio-vel'), id = box.dataset.audio;
+    const barras = Array.from(onda.querySelectorAll('i'));
+    let raf = 0;
+    /* áudio gravado no navegador às vezes diz que dura "infinito": aí vale o tempo que veio na mensagem */
+    const dur = ()=>isFinite(au.duration) && au.duration > 0 ? au.duration : (Number(box.dataset.seg) || 0);
+    const pintar = ()=>{
+      const d = dur(), f = d ? Math.min(1, au.currentTime / d) : 0, n = f * barras.length;
+      barras.forEach((b, i)=>b.classList.toggle('on', i < n));
+      tempo.textContent = chatTempo(au.currentTime > 0 ? au.currentTime : d);
+    };
+    const loop = ()=>{ pintar(); if(!au.paused) raf = requestAnimationFrame(loop); };
+    au.addEventListener('loadedmetadata', ()=>{ if(!au.currentTime) pintar(); });
+    play.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      if(au.paused){
+        (area || document).querySelectorAll('audio, video').forEach(a=>{ if(a !== au && !a.paused) a.pause(); });
+        const p = au.play(); if(p && p.catch) p.catch(()=>toast(t('msg_audio_erro')));
+      } else au.pause();
+    });
+    au.addEventListener('play', ()=>{ play.innerHTML = ICONS.pause; box.classList.add('tocando'); cancelAnimationFrame(raf); loop(); });
+    au.addEventListener('pause', ()=>{ play.innerHTML = ICONS.play; box.classList.remove('tocando'); cancelAnimationFrame(raf); pintar(); });
+    au.addEventListener('ended', ()=>{ try{ au.currentTime = 0; }catch(e){} pintar(); });
+    vel.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const v = au.playbackRate >= 2 ? 1 : au.playbackRate >= 1.5 ? 2 : 1.5;
+      au.playbackRate = v; vel.textContent = String(v).replace('.', ',') + '×';
+      vel.classList.toggle('on', v !== 1);
+    });
+    onda.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const d = dur(); if(!d) return;
+      const r = onda.getBoundingClientRect();
+      try{ au.currentTime = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * d; }catch(e){}
+      pintar();
+    });
+    if(!chatOndas.has(id)) chatOndaDe(id, au.src).then(o=>{
+      if(!o || !box.isConnected) return;
+      o.barras.forEach((v, i)=>{ if(barras[i]) barras[i].style.height = Math.round(v * 100) + '%'; });
+      if(!Number(box.dataset.seg) && isFinite(o.dur)){ box.dataset.seg = o.dur.toFixed(1); if(!au.currentTime) pintar(); }
+    });
+  });
+}
+/* ---------- áudio: gravar ---------- */
+const AUDIO_MAX_SEG = 120;
+const AUDIO_MIMES = ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+/* abre o painel de gravação por cima da barra de escrever. aoTerminar({dataUrl, seg}) quando a pessoa manda. */
+async function chatGravarAudio(barra, aoTerminar){
+  let stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1}});
+  }catch(e){ toast(t('messages_mic_denied')); return; }
+  let mime = '';
+  try{ mime = AUDIO_MIMES.find(m=>MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || ''; }catch(e){}
+  let rec;
+  try{ rec = new MediaRecorder(stream, mime ? {mimeType: mime, audioBitsPerSecond: 32000} : {audioBitsPerSecond: 32000}); }
+  catch(e){ try{ rec = new MediaRecorder(stream); }catch(e2){ stream.getTracks().forEach(tr=>tr.stop()); toast(t('messages_mic_denied')); return; } }
+  const partes = [];
+  rec.ondataavailable = e=>{ if(e.data && e.data.size) partes.push(e.data); };
+  const painel = document.createElement('div');
+  painel.className = 'chat-gravando';
+  painel.innerHTML = `<button type="button" class="rec-x" aria-label="${chatListEscape(t('msg_audio_cancelar'))}">${ICONS.trash}</button>
+    <span class="rec-ponto" aria-hidden="true"></span><span class="rec-tempo">0:00</span>
+    <div class="rec-niveis" aria-hidden="true">${'<i></i>'.repeat(28)}</div>
+    <button type="button" class="rec-ok" aria-label="${chatListEscape(t('msg_audio_mandar'))}">${ICONS.send}</button>`;
+  barra.appendChild(painel);
+  requestAnimationFrame(()=>painel.classList.add('show'));
+  /* o volume da voz em barrinhas que andam */
+  let ac = null, an = null, raf = 0, ultimo = 0;
+  const niveis = Array.from(painel.querySelectorAll('.rec-niveis i')), hist = new Array(niveis.length).fill(.08);
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    ac = new AC(); an = ac.createAnalyser(); an.fftSize = 512;
+    ac.createMediaStreamSource(stream).connect(an);
+  }catch(e){ an = null; }
+  const dados = an ? new Uint8Array(an.fftSize) : null;
+  const t0 = Date.now();
+  const tempoEl = painel.querySelector('.rec-tempo');
+  const quadro = tm=>{
+    const seg = (Date.now() - t0) / 1000;
+    tempoEl.textContent = chatTempo(Math.floor(seg));
+    if(an && tm - ultimo > 70){
+      ultimo = tm;
+      an.getByteTimeDomainData(dados);
+      let soma = 0; for(let i = 0; i < dados.length; i++){ const v = (dados[i] - 128) / 128; soma += v * v; }
+      hist.push(Math.min(1, .08 + Math.sqrt(soma / dados.length) * 3.2)); hist.shift();
+      niveis.forEach((el, i)=>{ el.style.transform = 'scaleY(' + hist[i].toFixed(2) + ')'; });
+    }
+    if(seg >= AUDIO_MAX_SEG){ terminar(true); return; }
+    raf = requestAnimationFrame(quadro);
+  };
+  raf = requestAnimationFrame(quadro);
+  let acabou = false;
+  function terminar(mandar){
+    if(acabou) return;
+    acabou = true;
+    cancelAnimationFrame(raf);
+    const seg = (Date.now() - t0) / 1000;
+    rec.onstop = ()=>{
+      stream.getTracks().forEach(tr=>tr.stop());
+      try{ if(ac) ac.close(); }catch(e){}
+      painel.classList.remove('show');
+      setTimeout(()=>painel.remove(), 200);
+      if(!mandar || !partes.length) return;
+      if(seg < 1){ toast(t('msg_audio_curto')); return; }
+      const blob = new Blob(partes, {type: (rec.mimeType || mime || 'audio/webm').split(';')[0]});
+      const r = new FileReader();
+      r.onload = ()=>aoTerminar({dataUrl: r.result, seg: Math.round(seg * 10) / 10});
+      r.readAsDataURL(blob);
+    };
+    try{ if(rec.state !== 'inactive') rec.stop(); else rec.onstop(); }catch(e){ rec.onstop(); }
+  }
+  painel.querySelector('.rec-x').addEventListener('click', ()=>{ playSound('click'); terminar(false); });
+  painel.querySelector('.rec-ok').addEventListener('click', ()=>terminar(true));
+  try{ rec.start(250); }catch(e){ terminar(false); toast(t('messages_mic_denied')); }
+}
+/* ---------- vídeo em partes ---------- */
+const VIDEO_PARTE = 900000, VIDEO_MAX_PARTES = 6;
+const chatVideoUrls = new Map();       // id do vídeo -> endereço (blob:) já montado
+function chatVideoRefOk(r){
+  return !!r && typeof r === 'object' && /^v[a-z0-9]{8,24}$/.test(String(r.id)) && Number.isInteger(r.n) && r.n >= 1 && r.n <= VIDEO_MAX_PARTES
+    && /^video\/[a-z0-9.+-]{1,30}$/i.test(String(r.tipo || ''));
+}
+function chatVideoHtml(m){
+  const r = m.videoRef;
+  if(!chatVideoRefOk(r)) return '';
+  const capa = typeof r.poster === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(r.poster) ? r.poster : '';
+  return `<div class="msg-video-box" data-vid="${r.id}" data-n="${r.n}" data-tipo="${chatListEscape(r.tipo)}">
+      ${capa ? `<img src="${capa}" alt="">` : ''}
+      <button type="button" class="msg-video-play" aria-label="${chatListEscape(t('msg_video_label'))}">${ICONS.play}</button>
+      ${Number(r.seg) > 0 ? `<span class="msg-video-dur">${chatTempo(r.seg)}</span>` : ''}
+      <i class="msg-video-carrega" aria-hidden="true"></i>
+    </div>`;
+}
+async function chatVideoCarregar(ref, aoProgresso){
+  if(chatVideoUrls.has(ref.id)) return chatVideoUrls.get(ref.id);
+  const pedacos = [];
+  for(let i = 0; i < ref.n; i++){
+    const d = await fbDb().collection('midias').doc(ref.id + '_' + i).get();
+    if(!d.exists) throw new Error('falta');
+    pedacos.push(String((d.data() || {}).dados || ''));
+    if(aoProgresso) aoProgresso((i + 1) / ref.n);
+  }
+  const bin = atob(pedacos.join('')), u8 = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u8], {type: ref.tipo}));
+  chatVideoUrls.set(ref.id, url);
+  return url;
+}
+function chatVideoLigar(raiz){
+  raiz.querySelectorAll('.msg-video-box').forEach(box=>{
+    box.addEventListener('click', async ev=>{
+      ev.stopPropagation();
+      if(box.classList.contains('carregando') || box.querySelector('video')) return;
+      const ref = {id: box.dataset.vid, n: Number(box.dataset.n), tipo: box.dataset.tipo};
+      if(!chatVideoRefOk(ref)) return;
+      box.classList.add('carregando');
+      const barra = box.querySelector('.msg-video-carrega');
+      try{
+        const url = await chatVideoCarregar(ref, p=>{ barra.style.setProperty('--p', Math.round(p * 100) + '%'); });
+        const v = document.createElement('video');
+        v.className = 'msg-video'; v.controls = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.src = url;
+        const capa = box.querySelector('img'); if(capa) v.poster = capa.src;
+        box.replaceWith(v);
+        document.querySelectorAll('.chat-messages audio, .chat-messages video').forEach(a=>{ if(a !== v && !a.paused) a.pause(); });
+        const p = v.play(); if(p && p.catch) p.catch(()=>{});
+      }catch(e){
+        box.classList.remove('carregando');
+        toast(t('video_falhou_ver'));
+      }
+    });
+  });
+}
+/* a capinha (um quadro do começo, pequeno) e quanto tempo o vídeo tem */
+async function chatVideoCapa(file){
+  const url = URL.createObjectURL(file);
+  const v = document.createElement('video');
+  v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = url;
+  v.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+  document.body.appendChild(v);
+  try{
+    await new Promise((ok, no)=>{ v.onloadeddata = ok; v.onerror = ()=>no(new Error('leitura')); setTimeout(()=>no(new Error('leitura')), 8000); });
+    const seg = isFinite(v.duration) ? v.duration : 0;
+    try{ v.currentTime = Math.min(.4, seg / 3 || .1); await new Promise(ok=>{ v.onseeked = ok; setTimeout(ok, 1500); }); }catch(e){}
+    const e = Math.min(1, 320 / Math.max(v.videoWidth || 1, v.videoHeight || 1));
+    const c = document.createElement('canvas');
+    c.width = Math.max(2, Math.round((v.videoWidth || 320) * e)); c.height = Math.max(2, Math.round((v.videoHeight || 240) * e));
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    return {poster: c.toDataURL('image/jpeg', .62), seg};
+  }catch(err){ return {poster: '', seg: 0}; }
+  finally{ v.remove(); URL.revokeObjectURL(url); }
+}
+/* manda as partes do vídeo (dataUrl) e devolve o videoRef que vai na mensagem */
+async function chatVideoEnviar(convId, dataUrl, info, aoProgresso){
+  const k = dataUrl.indexOf(';base64,');
+  if(dataUrl.indexOf('data:') !== 0 || k < 0) throw new Error('leitura');
+  const tipo = dataUrl.slice(5, k).split(';')[0] || 'video/mp4', b64 = dataUrl.slice(k + 8);
+  const n = Math.ceil(b64.length / VIDEO_PARTE);
+  if(n > VIDEO_MAX_PARTES) throw new Error('grande');
+  const id = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const email = fbAuth().currentUser.email;
+  for(let i = 0; i < n; i++){
+    await fbDb().collection('midias').doc(id + '_' + i).set({conversationId: convId, senderEmail: email, i, n, dados: b64.slice(i * VIDEO_PARTE, (i + 1) * VIDEO_PARTE), createdAt: Date.now()});
+    if(aoProgresso) aoProgresso((i + 1) / n);
+  }
+  const ref = {id, n, tipo};
+  if(info && info.poster && info.poster.length < 60000) ref.poster = info.poster;
+  if(info && info.seg > 0) ref.seg = Math.round(info.seg * 10) / 10;
+  chatVideoUrls.set(id, URL.createObjectURL(new Blob([Uint8Array.from(atob(b64), c=>c.charCodeAt(0))], {type: tipo})));
+  return ref;
+}
+/* apagou a mensagem do vídeo: as partes vão junto */
+async function chatVideoApagar(ref){
+  if(!chatVideoRefOk(ref)) return;
+  for(let i = 0; i < ref.n; i++){ try{ await fbDb().collection('midias').doc(ref.id + '_' + i).delete(); }catch(e){} }
+}
+/* a bolha "mandando…" que aparece na hora, antes do banco responder */
+function chatBolhaEnviando(area, txt, tipo){
+  if(!area) return null;
+  area.querySelectorAll('.g-msg').forEach(e=>e.remove());
+  const el = document.createElement('div');
+  el.className = 'chat-msg user enviando msg-new';
+  el.innerHTML = tipo === 'texto'
+    ? `<div class="chat-bubble">${chatListEscape(txt)}<span class="msg-relogio" aria-label="${chatListEscape(t('msg_enviando'))}"></span></div>`
+    : `<div class="chat-bubble msg-enviando-midia">${tipo === 'video' ? ICONS.play : ICONS.mic} ${chatListEscape(txt)}<span class="msg-relogio"></span><i class="msg-enviando-barra"></i></div>`;
+  area.appendChild(el);
+  chatRolarProFim(area, true);
+  return el;
+}
+
 /* ---------- vídeo no chat ----------
    O banco guarda no máximo ~1 MB por mensagem, então o vídeo é refeito pequeno aqui no aparelho
    (até 20 segundos, tela menor) antes de mandar. */
-const VIDEO_MAX_SEG = 20, VIDEO_MAX_BYTES = 600000;
+const VIDEO_MAX_SEG = 60, VIDEO_MAX_BYTES = 3800000;   // vai em partes (ver chatVideoEnviar): até 6 partes de ~900 mil letras
 function lerComoDataUrl(blob){
   return new Promise((ok, no)=>{ const r = new FileReader(); r.onload = ()=>ok(r.result); r.onerror = ()=>no(new Error('leitura')); r.readAsDataURL(blob); });
 }
@@ -15446,6 +15787,8 @@ async function prepararVideo(file, aoProgresso){
     const dur = v.duration;
     if(!isFinite(dur) || dur <= 0) throw new Error('leitura');
     if(dur > VIDEO_MAX_SEG + 0.5) throw new Error('longo');
+    /* vídeo pequeno e num formato que toca em todo lugar: vai como está (melhor qualidade e mais rápido) */
+    if(file.size <= VIDEO_MAX_BYTES * 0.9 && /^video\/(mp4|webm)$/i.test(file.type || '')) return await lerComoDataUrl(file);
     const mimes = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
     const mime = (typeof MediaRecorder !== 'undefined' && HTMLCanvasElement.prototype.captureStream) ? mimes.find(m=>MediaRecorder.isTypeSupported(m)) : null;
     if(!mime){
@@ -15453,7 +15796,7 @@ async function prepararVideo(file, aoProgresso){
       throw new Error('grande');
     }
     const vw = v.videoWidth || 320, vh = v.videoHeight || 240;
-    const lado = dur <= 8 ? 480 : dur <= 14 ? 400 : 320;
+    const lado = dur <= 15 ? 640 : dur <= 30 ? 480 : 400;
     const esc = Math.min(1, lado / Math.max(vw, vh));
     const w = Math.max(2, Math.round(vw * esc / 2) * 2), h = Math.max(2, Math.round(vh * esc / 2) * 2);
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
@@ -15470,8 +15813,8 @@ async function prepararVideo(file, aoProgresso){
       if(ac.state === 'suspended') await ac.resume();
     }catch(e){ comSom = false; }
     const total = Math.floor(VIDEO_MAX_BYTES * 0.8 * 8 / Math.max(dur, 1));
-    const opts = {mimeType: mime, videoBitsPerSecond: Math.max(80000, total - 24000)};
-    if(comSom) opts.audioBitsPerSecond = 24000;
+    const opts = {mimeType: mime, videoBitsPerSecond: Math.max(120000, Math.min(1200000, total - 48000))};
+    if(comSom) opts.audioBitsPerSecond = 48000;
     const rec = new MediaRecorder(stream, opts);
     const partes = [];
     rec.ondataavailable = e=>{ if(e.data && e.data.size) partes.push(e.data); };

@@ -234,6 +234,23 @@ service cloud.firestore {
       allow delete: if souAdmin() || sou(resource.data.senderEmail);
     }
 
+    // ---------- partes dos vídeos do chat ----------
+    // o vídeo vai em partes (cada uma até ~900 mil letras); só quem está na conversa manda e vê
+    match /midias/{midiaId} {
+      allow read: if logado()
+                  && meuEmail() in get(/databases/$(database)/documents/conversations/$(resource.data.conversationId)).data.participants;
+      allow create: if logado() && naoEstouBanido()
+                    && midiaId.matches('v[a-z0-9]{8,24}_[0-9]')
+                    && request.resource.data.keys().hasOnly(['conversationId','senderEmail','i','n','dados','createdAt'])
+                    && request.resource.data.senderEmail == meuEmail()
+                    && meuEmail() in get(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)).data.participants
+                    && request.resource.data.i is int && request.resource.data.n is int
+                    && request.resource.data.i >= 0 && request.resource.data.i < request.resource.data.n && request.resource.data.n <= 6
+                    && request.resource.data.dados is string && request.resource.data.dados.size() <= 900000;
+      allow update: if false;
+      allow delete: if souAdmin() || sou(resource.data.senderEmail);
+    }
+
     // ---------- denúncias ----------
     // qualquer pessoa denuncia; só o admin lê e resolve
     match /gameReports/{reportId} {
