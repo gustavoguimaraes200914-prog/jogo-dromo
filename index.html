@@ -4147,6 +4147,28 @@
   .praca-frases button{border:none;border-radius:12px;padding:8px 6px;background:#fff;color:#08322B;cursor:pointer;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.9rem;line-height:1.15;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);}
   .praca-frases button:active{background:#dffcf3;transform:scale(.97);}
   .praca-emos{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin-top:8px;}
+  /* abas Falas / Emotes, assuntos das falas e a grade dos emotes */
+  .praca-abas{display:flex;gap:6px;margin-bottom:8px;}
+  .praca-abas button{flex:1;border:none;border-radius:12px;padding:7px 4px;background:rgba(8,50,43,.08);color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .praca-abas button.on{background:#08322B;color:#fff;}
+  .praca-cats{display:flex;gap:5px;overflow-x:auto;padding-bottom:6px;margin-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .praca-cats::-webkit-scrollbar{display:none;}
+  .praca-cats button{flex:0 0 auto;display:flex;align-items:center;gap:4px;border:none;border-radius:999px;padding:5px 10px;background:#fff;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);-webkit-tap-highlight-color:transparent;}
+  .praca-cats button.on{background:#17c79e;color:#fff;box-shadow:none;}
+  .praca-emote-dica{margin:0 0 8px;font-size:.8rem;line-height:1.2;opacity:.75;font-weight:700;}
+  .praca-emotes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-height:min(46vh,300px);overflow-y:auto;}
+  .praca-emotes button{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;border:none;border-radius:14px;padding:7px 3px 6px;background:#fff;color:#08322B;cursor:pointer;font-family:'Baloo 2',sans-serif;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+  .praca-emotes button:active{transform:scale(.94);}
+  .praca-emotes button.tem{box-shadow:inset 0 0 0 2px #17c79e;}
+  .praca-emotes button.trancado .praca-emote-ic{filter:grayscale(.65);opacity:.7;}
+  .praca-emote-ic{font-size:1.7rem;line-height:1.1;}
+  .praca-emotes b{font-size:.72rem;line-height:1.05;font-weight:800;text-align:center;}
+  .praca-emote-preco{display:flex;align-items:center;gap:2px;font-style:normal;font-weight:800;font-size:.72rem;color:#8a5a00;}
+  .praca-emote-preco.dia{color:#1d6fd6;}
+  .praca-emote-preco svg{width:12px;height:12px;}
+  .praca-emote-cadeado{position:absolute;top:3px;right:4px;font-size:.7rem;}
+  .praca-emote-arte{font-size:2.4rem;line-height:1;}
+  .praca-chat:not(.hidden) ~ .praca-stick{visibility:hidden;}   /* com o chat aberto o analógico some (ele ficava por cima da lista) */
   .praca-emos button{height:38px;border:none;border-radius:10px;background:#fff;font-size:1.25rem;line-height:1;cursor:pointer;padding:0;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);-webkit-tap-highlight-color:transparent;}
   .praca-emos button:active{transform:scale(.9);background:#dffcf3;}
   @media (max-width:360px){ .praca-num{font-size:.95rem;} .praca-emos button{height:34px;font-size:1.05rem;} .praca-frases button{font-size:.84rem;} }
@@ -12356,6 +12378,417 @@ var ONLINE_TXT = {
     const v = tab[k].split('|');
     ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; });
   }));
+})();
+/* ---------- as falas prontas da praça ----------
+   As 12 primeiras são as antigas (praca_f0..praca_f11). Estas vêm depois delas (praca_f12 em diante) e ficam
+   separadas por assunto. Cada uma é "português|inglês|espanhol"; nas outras línguas aparece a do inglês.
+   Só se fala por número (nunca texto livre): o servidor da praça só repassa o número. Pra pôr mais,
+   é só juntar no FIM da lista (nunca no meio, senão o número de uma fala vira outra). */
+var PRACA_FALAS_CATS = [
+  ["oi", "👋", "Oi|Hi|Hola"],
+  ["jogar", "🎮", "Jogar|Play|Jugar"],
+  ["elogio", "⭐", "Elogios|Compliments|Elogios"],
+  ["reacao", "😂", "Reações|Reactions|Reacciones"],
+  ["pergunta", "❓", "Perguntas|Questions|Preguntas"],
+  ["amigo", "💛", "Amizade|Friends|Amistad"],
+  ["engracado", "🤪", "Engraçado|Funny|Divertido"],
+  ["praca", "⛲", "Praça|Plaza|Plaza"],
+  ["criar", "🛠️", "Criar|Create|Crear"],
+  ["tchau", "🌙", "Tchau|Bye|Adiós"]
+];
+var PRACA_FALAS_EXTRA = [
+  ["oi", "Olá, pessoal!|Hello, everyone!|¡Hola a todos!"],
+  ["oi", "E aí?|What's up?|¿Qué tal?"],
+  ["oi", "Bom dia!|Good morning!|¡Buenos días!"],
+  ["oi", "Boa tarde!|Good afternoon!|¡Buenas tardes!"],
+  ["oi", "Boa noite!|Good evening!|¡Buenas noches!"],
+  ["oi", "Tudo bem?|How are you?|¿Todo bien?"],
+  ["oi", "Tudo ótimo!|All great!|¡Todo genial!"],
+  ["oi", "Tudo certo por aqui!|All good here!|¡Todo bien por aquí!"],
+  ["oi", "Cheguei!|I'm here!|¡Llegué!"],
+  ["oi", "Voltei!|I'm back!|¡Volví!"],
+  ["oi", "Quem tá aí?|Who's here?|¿Quién está aquí?"],
+  ["oi", "Oi, sumido!|Long time no see!|¡Cuánto tiempo!"],
+  ["oi", "Que bom te ver!|Nice to see you!|¡Qué bueno verte!"],
+  ["oi", "Bem-vindo à praça!|Welcome to the plaza!|¡Bienvenido a la plaza!"],
+  ["oi", "Primeira vez aqui?|First time here?|¿Primera vez aquí?"],
+  ["oi", "Olá, novato!|Hi, newbie!|¡Hola, novato!"],
+  ["oi", "Oi, galera do Koda!|Hi, Koda crew!|¡Hola, gente de Koda!"],
+  ["oi", "Saudações!|Greetings!|¡Saludos!"],
+  ["oi", "Bom te ver de novo!|Good to see you again!|¡Qué bueno verte otra vez!"],
+  ["oi", "Como foi seu dia?|How was your day?|¿Cómo te fue hoy?"],
+  ["oi", "Oi oi oi!|Hey hey hey!|¡Hola hola hola!"],
+  ["oi", "Chegou a festa!|The party is here!|¡Llegó la fiesta!"],
+  ["oi", "Alguém aí?|Anybody here?|¿Hay alguien?"],
+  ["oi", "Que praça cheia hoje!|The plaza is packed today!|¡Qué llena está la plaza hoy!"],
+  ["oi", "Que praça vazia...|The plaza is so empty...|Qué vacía está la plaza..."],
+  ["oi", "Seja bem-vindo!|You're welcome here!|¡Sé bienvenido!"],
+  ["oi", "Oi, vizinho!|Hi, neighbor!|¡Hola, vecino!"],
+  ["oi", "Opa, beleza?|Hey, all good?|¡Ey! ¿Todo bien?"],
+  ["oi", "Bom te encontrar aqui!|Glad to find you here!|¡Qué bueno encontrarte aquí!"],
+  ["oi", "Acordei agora!|I just woke up!|¡Me acabo de despertar!"],
+  ["oi", "Cheguei da escola!|Just got back from school!|¡Llegué de la escuela!"],
+  ["oi", "Feliz fim de semana!|Happy weekend!|¡Feliz fin de semana!"],
+  ["jogar", "Quem quer jogar?|Who wants to play?|¿Quién quiere jugar?"],
+  ["jogar", "Vamos jogar juntos!|Let's play together!|¡Juguemos juntos!"],
+  ["jogar", "Mais uma partida?|One more round?|¿Otra partida?"],
+  ["jogar", "Bora mais uma!|Let's go again!|¡Vamos otra vez!"],
+  ["jogar", "Revanche!|Rematch!|¡Revancha!"],
+  ["jogar", "Qual jogo vamos jogar?|Which game should we play?|¿A qué juego jugamos?"],
+  ["jogar", "Escolhe o jogo!|You pick the game!|¡Elige el juego!"],
+  ["jogar", "Eu crio o banco!|I'll make the bench!|¡Yo creo el banco!"],
+  ["jogar", "Senta no meu banco!|Sit on my bench!|¡Siéntate en mi banco!"],
+  ["jogar", "Falta uma pessoa!|We need one more!|¡Falta una persona!"],
+  ["jogar", "Falta pouco pra começar!|Almost starting!|¡Ya casi empieza!"],
+  ["jogar", "Já vai começar!|It's about to start!|¡Ya va a empezar!"],
+  ["jogar", "Bora, bora, bora!|Go, go, go!|¡Vamos, vamos, vamos!"],
+  ["jogar", "Tô pronto!|I'm ready!|¡Estoy listo!"],
+  ["jogar", "Tá pronto?|Are you ready?|¿Estás listo?"],
+  ["jogar", "Quem perder paga a próxima!|Loser picks next!|¡El que pierde elige!"],
+  ["jogar", "Joga comigo?|Play with me?|¿Juegas conmigo?"],
+  ["jogar", "Time azul ou vermelho?|Blue or red team?|¿Equipo azul o rojo?"],
+  ["jogar", "Vamos no mesmo time!|Let's be on the same team!|¡Vamos en el mismo equipo!"],
+  ["jogar", "Me ajuda nesse jogo?|Help me with this game?|¿Me ayudas en este juego?"],
+  ["jogar", "Esse jogo é muito bom!|This game is so good!|¡Este juego es muy bueno!"],
+  ["jogar", "Conhece esse jogo?|Do you know this game?|¿Conoces este juego?"],
+  ["jogar", "Joguei a noite toda!|I played all night!|¡Jugué toda la noche!"],
+  ["jogar", "Bati meu recorde!|I beat my record!|¡Superé mi récord!"],
+  ["jogar", "Quero bater o recorde!|I want to beat the record!|¡Quiero romper el récord!"],
+  ["jogar", "Bora jogar online!|Let's play online!|¡Juguemos en línea!"],
+  ["jogar", "Corrida ou luta?|Race or battle?|¿Carrera o pelea?"],
+  ["jogar", "Jogo de pular ou de tiro?|Jumping or shooting game?|¿Juego de saltar o de disparar?"],
+  ["jogar", "Partida rápida?|Quick match?|¿Partida rápida?"],
+  ["jogar", "Só mais uma, juro!|Just one more, I promise!|¡Solo una más, lo juro!"],
+  ["jogar", "Quem ganhar escolhe!|Winner picks!|¡El que gane elige!"],
+  ["jogar", "Vou te alcançar!|I'll catch you!|¡Te voy a alcanzar!"],
+  ["jogar", "Ninguém me pega!|Nobody can catch me!|¡Nadie me atrapa!"],
+  ["jogar", "Último a chegar é ovo podre!|Last one there is a rotten egg!|¡El último es un huevo podrido!"],
+  ["jogar", "Bora pro banco!|To the bench!|¡Al banco!"],
+  ["jogar", "Já sentei!|I sat down!|¡Ya me senté!"],
+  ["jogar", "Esperando vocês!|Waiting for you all!|¡Los estoy esperando!"],
+  ["jogar", "Começa sem mim não!|Don't start without me!|¡No empiecen sin mí!"],
+  ["jogar", "Partiu jogo!|Game time!|¡A jugar!"],
+  ["elogio", "Você joga muito!|You play so well!|¡Juegas muy bien!"],
+  ["elogio", "Você é fera!|You're awesome!|¡Eres un crack!"],
+  ["elogio", "Que jogada incrível!|What an amazing move!|¡Qué jugada increíble!"],
+  ["elogio", "Mandou bem!|Well done!|¡Bien hecho!"],
+  ["elogio", "Arrasou!|You rocked it!|¡Lo arrasaste!"],
+  ["elogio", "Você é muito bom!|You're really good!|¡Eres muy bueno!"],
+  ["elogio", "Parabéns!|Congrats!|¡Felicidades!"],
+  ["elogio", "Foi por pouco!|That was close!|¡Por poco!"],
+  ["elogio", "Quase!|Almost!|¡Casi!"],
+  ["elogio", "Joga demais!|You're a pro!|¡Juegas demasiado bien!"],
+  ["elogio", "Que roupa linda!|What a nice outfit!|¡Qué ropa tan linda!"],
+  ["elogio", "Amei seu visual!|Love your look!|¡Me encanta tu look!"],
+  ["elogio", "Que skin estilosa!|What a stylish skin!|¡Qué skin tan estilosa!"],
+  ["elogio", "Seu cabelo é muito legal!|Your hair is so cool!|¡Tu pelo es genial!"],
+  ["elogio", "Combinou tudo!|It all matches!|¡Todo combina!"],
+  ["elogio", "Você é campeão!|You're a champion!|¡Eres un campeón!"],
+  ["elogio", "Você é muito gente boa!|You're super nice!|¡Eres muy buena onda!"],
+  ["elogio", "Você é engraçado!|You're funny!|¡Eres gracioso!"],
+  ["elogio", "Seu jogo é muito bom!|Your game is great!|¡Tu juego es muy bueno!"],
+  ["elogio", "Criou um jogo top!|You made a great game!|¡Hiciste un juego genial!"],
+  ["elogio", "Que habilidade!|What skill!|¡Qué habilidad!"],
+  ["elogio", "Você é rápido!|You're fast!|¡Eres rápido!"],
+  ["elogio", "Lenda!|Legend!|¡Leyenda!"],
+  ["elogio", "Show de bola!|Awesome!|¡Genial!"],
+  ["elogio", "Nota 10!|Perfect 10!|¡Un diez!"],
+  ["elogio", "Você manda bem demais!|You're too good!|¡Eres demasiado bueno!"],
+  ["elogio", "Melhor jogador da praça!|Best player in the plaza!|¡Mejor jugador de la plaza!"],
+  ["elogio", "Que estilo!|What style!|¡Qué estilo!"],
+  ["elogio", "Você é inspiração!|You inspire me!|¡Me inspiras!"],
+  ["elogio", "Boa partida!|Good game!|¡Buena partida!"],
+  ["elogio", "Jogou limpo!|Fair play!|¡Juego limpio!"],
+  ["elogio", "Valeu pela partida!|Thanks for the game!|¡Gracias por la partida!"],
+  ["reacao", "Hahaha!|Hahaha!|¡Jajaja!"],
+  ["reacao", "Kkkkk|LOL|Jajaja"],
+  ["reacao", "Uau!|Wow!|¡Guau!"],
+  ["reacao", "Nossa!|Whoa!|¡Vaya!"],
+  ["reacao", "Que isso?!|What was that?!|¡¿Qué fue eso?!"],
+  ["reacao", "Não acredito!|I can't believe it!|¡No lo puedo creer!"],
+  ["reacao", "Socorro!|Help!|¡Socorro!"],
+  ["reacao", "Ops!|Oops!|¡Ups!"],
+  ["reacao", "Eita!|Yikes!|¡Ay!"],
+  ["reacao", "Sério?|Seriously?|¿En serio?"],
+  ["reacao", "Que susto!|What a scare!|¡Qué susto!"],
+  ["reacao", "Que demais!|So awesome!|¡Qué genial!"],
+  ["reacao", "Que fofo!|So cute!|¡Qué tierno!"],
+  ["reacao", "Que irado!|So rad!|¡Qué chido!"],
+  ["reacao", "Incrível!|Incredible!|¡Increíble!"],
+  ["reacao", "Sensacional!|Sensational!|¡Sensacional!"],
+  ["reacao", "Caramba!|Gosh!|¡Caramba!"],
+  ["reacao", "Ufa!|Phew!|¡Uf!"],
+  ["reacao", "Hmm...|Hmm...|Mmm..."],
+  ["reacao", "Que pena!|What a shame!|¡Qué pena!"],
+  ["reacao", "Que sorte!|So lucky!|¡Qué suerte!"],
+  ["reacao", "Que azar!|Bad luck!|¡Qué mala suerte!"],
+  ["reacao", "Tô chocado!|I'm shocked!|¡Estoy en shock!"],
+  ["reacao", "Morri de rir!|I'm dying of laughter!|¡Me muero de risa!"],
+  ["reacao", "Não para de rir!|Can't stop laughing!|¡No paro de reír!"],
+  ["reacao", "Isso foi épico!|That was epic!|¡Eso fue épico!"],
+  ["reacao", "Que loucura!|That's crazy!|¡Qué locura!"],
+  ["reacao", "Vixe!|Uh-oh!|¡Uy!"],
+  ["reacao", "Ai, ai, ai...|Oh dear...|Ay, ay, ay..."],
+  ["reacao", "Aaaaah!|Aaaaah!|¡Aaaaah!"],
+  ["reacao", "Uhuuul!|Woohoo!|¡Yuju!"],
+  ["reacao", "Partiu!|Let's go!|¡Vámonos!"],
+  ["reacao", "É isso aí!|That's it!|¡Eso es!"],
+  ["reacao", "Tá de brincadeira!|You're kidding!|¡Estás bromeando!"],
+  ["reacao", "Que medo!|So scary!|¡Qué miedo!"],
+  ["reacao", "Que vergonha!|So embarrassing!|¡Qué vergüenza!"],
+  ["reacao", "Tô feliz!|I'm happy!|¡Estoy feliz!"],
+  ["reacao", "Tô com sono...|I'm sleepy...|Tengo sueño..."],
+  ["reacao", "Tô com fome!|I'm hungry!|¡Tengo hambre!"],
+  ["reacao", "Que tédio...|So bored...|Qué aburrido..."],
+  ["reacao", "Perdi tudo!|I lost everything!|¡Lo perdí todo!"],
+  ["reacao", "Ganhei!|I won!|¡Gané!"],
+  ["reacao", "Perdi...|I lost...|Perdí..."],
+  ["reacao", "Empatou!|It's a tie!|¡Empate!"],
+  ["reacao", "Foi sem querer!|It was an accident!|¡Fue sin querer!"],
+  ["pergunta", "Qual seu jogo favorito?|What's your favorite game?|¿Cuál es tu juego favorito?"],
+  ["pergunta", "Qual sua cor favorita?|What's your favorite color?|¿Cuál es tu color favorito?"],
+  ["pergunta", "Qual seu bicho favorito?|What's your favorite animal?|¿Cuál es tu animal favorito?"],
+  ["pergunta", "Você cria jogos?|Do you make games?|¿Creas juegos?"],
+  ["pergunta", "Já criou algum jogo?|Have you made a game?|¿Ya creaste algún juego?"],
+  ["pergunta", "Como se joga isso?|How do you play this?|¿Cómo se juega esto?"],
+  ["pergunta", "Como você fez isso?|How did you do that?|¿Cómo hiciste eso?"],
+  ["pergunta", "Onde comprou essa roupa?|Where did you get that outfit?|¿Dónde compraste esa ropa?"],
+  ["pergunta", "Quantas moedas você tem?|How many coins do you have?|¿Cuántas monedas tienes?"],
+  ["pergunta", "Qual praça é a melhor?|Which plaza is the best?|¿Qué plaza es la mejor?"],
+  ["pergunta", "Vamos pra outra praça?|Shall we go to another plaza?|¿Vamos a otra plaza?"],
+  ["pergunta", "O que vamos fazer?|What should we do?|¿Qué hacemos?"],
+  ["pergunta", "Alguém sabe jogar?|Does anyone know how to play?|¿Alguien sabe jugar?"],
+  ["pergunta", "Quem ganhou?|Who won?|¿Quién ganó?"],
+  ["pergunta", "De quem é esse banco?|Whose bench is this?|¿De quién es este banco?"],
+  ["pergunta", "Qual o melhor jogo do Koda?|What's the best Koda game?|¿Cuál es el mejor juego de Koda?"],
+  ["pergunta", "Você é novo aqui?|Are you new here?|¿Eres nuevo aquí?"],
+  ["pergunta", "Quer ser meu amigo?|Want to be my friend?|¿Quieres ser mi amigo?"],
+  ["pergunta", "Gostou do jogo?|Did you like the game?|¿Te gustó el juego?"],
+  ["pergunta", "Tá gostando da praça?|Enjoying the plaza?|¿Te gusta la plaza?"],
+  ["pergunta", "Qual emote você tem?|Which emotes do you have?|¿Qué emotes tienes?"],
+  ["pergunta", "Já jogou a fonte?|Tried the fountain yet?|¿Ya probaste la fuente?"],
+  ["pergunta", "Quem vem comigo?|Who's coming with me?|¿Quién viene conmigo?"],
+  ["pergunta", "Esperamos mais alguém?|Should we wait for more?|¿Esperamos a alguien más?"],
+  ["pergunta", "Pronto pra próxima?|Ready for the next one?|¿Listo para la siguiente?"],
+  ["pergunta", "Tá me ouvindo?|Can you hear me?|¿Me escuchas?"],
+  ["pergunta", "Me espera?|Will you wait for me?|¿Me esperas?"],
+  ["pergunta", "Tá aí ainda?|Are you still there?|¿Sigues ahí?"],
+  ["pergunta", "Quer revanche?|Want a rematch?|¿Quieres revancha?"],
+  ["pergunta", "Sabe dançar?|Can you dance?|¿Sabes bailar?"],
+  ["pergunta", "Qual é o recorde?|What's the record?|¿Cuál es el récord?"],
+  ["pergunta", "Que horas são aí?|What time is it there?|¿Qué hora es ahí?"],
+  ["pergunta", "Qual sua comida favorita?|What's your favorite food?|¿Cuál es tu comida favorita?"],
+  ["pergunta", "Gosta de música?|Do you like music?|¿Te gusta la música?"],
+  ["pergunta", "Gosta de futebol?|Do you like soccer?|¿Te gusta el fútbol?"],
+  ["pergunta", "Prefere gato ou cachorro?|Cats or dogs?|¿Gatos o perros?"],
+  ["pergunta", "Pizza ou hambúrguer?|Pizza or burger?|¿Pizza o hamburguesa?"],
+  ["pergunta", "Praia ou montanha?|Beach or mountains?|¿Playa o montaña?"],
+  ["pergunta", "Sol ou chuva?|Sun or rain?|¿Sol o lluvia?"],
+  ["pergunta", "Dia ou noite?|Day or night?|¿Día o noche?"],
+  ["amigo", "Vamos ser amigos!|Let's be friends!|¡Seamos amigos!"],
+  ["amigo", "Você é meu amigo!|You're my friend!|¡Eres mi amigo!"],
+  ["amigo", "Melhores amigos!|Best friends!|¡Mejores amigos!"],
+  ["amigo", "Gostei de você!|I like you!|¡Me caes bien!"],
+  ["amigo", "Obrigado, amigo!|Thanks, friend!|¡Gracias, amigo!"],
+  ["amigo", "De nada!|You're welcome!|¡De nada!"],
+  ["amigo", "Por nada!|No problem!|¡No hay de qué!"],
+  ["amigo", "Desculpa!|Sorry!|¡Perdón!"],
+  ["amigo", "Tudo bem, sem problema!|It's okay, no problem!|¡Está bien, no pasa nada!"],
+  ["amigo", "Sem briga, tá?|No fighting, okay?|Sin peleas, ¿vale?"],
+  ["amigo", "Vamos fazer as pazes!|Let's make up!|¡Hagamos las paces!"],
+  ["amigo", "Sinto sua falta!|I miss you!|¡Te extraño!"],
+  ["amigo", "Que bom que você veio!|So glad you came!|¡Qué bueno que viniste!"],
+  ["amigo", "Você é muito legal!|You're really cool!|¡Eres muy genial!"],
+  ["amigo", "Vem comigo!|Come with me!|¡Ven conmigo!"],
+  ["amigo", "Te espero aqui!|I'll wait here!|¡Te espero aquí!"],
+  ["amigo", "Juntos somos mais fortes!|Together we're stronger!|¡Juntos somos más fuertes!"],
+  ["amigo", "Toca aqui!|High five!|¡Choca esos cinco!"],
+  ["amigo", "Abraço!|Hug!|¡Abrazo!"],
+  ["amigo", "Abraço de urso!|Bear hug!|¡Abrazo de oso!"],
+  ["amigo", "Você é demais!|You're the best!|¡Eres lo máximo!"],
+  ["amigo", "Conta comigo!|Count on me!|¡Cuenta conmigo!"],
+  ["amigo", "Eu te ajudo!|I'll help you!|¡Te ayudo!"],
+  ["amigo", "Precisa de ajuda?|Need help?|¿Necesitas ayuda?"],
+  ["amigo", "Pode deixar!|Leave it to me!|¡Déjamelo a mí!"],
+  ["amigo", "Combinado!|Deal!|¡Trato hecho!"],
+  ["amigo", "Fechado!|You got it!|¡Hecho!"],
+  ["amigo", "Tamo junto!|We're in this together!|¡Estamos juntos!"],
+  ["amigo", "Bora ser time!|Let's team up!|¡Hagamos equipo!"],
+  ["amigo", "Seja gentil!|Be kind!|¡Sé amable!"],
+  ["amigo", "Respeito sempre!|Always respect!|¡Respeto siempre!"],
+  ["amigo", "Fica tranquilo!|Don't worry!|¡Tranquilo!"],
+  ["amigo", "Você consegue!|You can do it!|¡Tú puedes!"],
+  ["amigo", "Não desiste!|Don't give up!|¡No te rindas!"],
+  ["amigo", "Força!|Stay strong!|¡Ánimo!"],
+  ["amigo", "Acredito em você!|I believe in you!|¡Creo en ti!"],
+  ["amigo", "Que dia legal com vocês!|Such a fun day with you all!|¡Qué día tan genial con ustedes!"],
+  ["engracado", "Eu sou uma batata!|I'm a potato!|¡Soy una papa!"],
+  ["engracado", "Alguém viu meu sapato?|Has anyone seen my shoe?|¿Alguien vio mi zapato?"],
+  ["engracado", "Cuidado com o pombo!|Watch out for the pigeon!|¡Cuidado con la paloma!"],
+  ["engracado", "Tô perdido na praça!|I'm lost in the plaza!|¡Estoy perdido en la plaza!"],
+  ["engracado", "Dancinha da vitória!|Victory dance!|¡Baile de la victoria!"],
+  ["engracado", "Sou o rei da praça!|I'm the king of the plaza!|¡Soy el rey de la plaza!"],
+  ["engracado", "Sou a rainha da praça!|I'm the queen of the plaza!|¡Soy la reina de la plaza!"],
+  ["engracado", "Pisei numa folha!|I stepped on a leaf!|¡Pisé una hoja!"],
+  ["engracado", "A fonte é minha!|The fountain is mine!|¡La fuente es mía!"],
+  ["engracado", "Me pega se puder!|Catch me if you can!|¡Atrápame si puedes!"],
+  ["engracado", "Corre que é tarde!|Run, it's late!|¡Corre que es tarde!"],
+  ["engracado", "Banana!|Banana!|¡Plátano!"],
+  ["engracado", "Pão de queijo!|Cheese bread!|¡Pan de queso!"],
+  ["engracado", "Meu gato joga melhor!|My cat plays better!|¡Mi gato juega mejor!"],
+  ["engracado", "Sou ninja!|I'm a ninja!|¡Soy ninja!"],
+  ["engracado", "Modo turbo ligado!|Turbo mode on!|¡Modo turbo activado!"],
+  ["engracado", "Bip bop, sou um robô!|Beep boop, I'm a robot!|¡Bip bop, soy un robot!"],
+  ["engracado", "Miau!|Meow!|¡Miau!"],
+  ["engracado", "Au au!|Woof woof!|¡Guau guau!"],
+  ["engracado", "Quack!|Quack!|¡Cuac!"],
+  ["engracado", "Muuu!|Moo!|¡Muuu!"],
+  ["engracado", "Tô voando!|I'm flying!|¡Estoy volando!"],
+  ["engracado", "Vou virar estátua!|I'll turn into a statue!|¡Me voy a volver estatua!"],
+  ["engracado", "Brincadeira!|Just kidding!|¡Es broma!"],
+  ["engracado", "Tô de olho!|I'm watching!|¡Te estoy vigilando!"],
+  ["engracado", "Esconde-esconde!|Hide and seek!|¡Escondidas!"],
+  ["engracado", "Pique-pega!|Tag, you're it!|¡Tú la llevas!"],
+  ["engracado", "Tá com você!|You're it!|¡La llevas tú!"],
+  ["engracado", "Peguei!|Got you!|¡Te atrapé!"],
+  ["engracado", "Fui pego!|I got caught!|¡Me atraparon!"],
+  ["engracado", "Sou invisível!|I'm invisible!|¡Soy invisible!"],
+  ["engracado", "Abracadabra!|Abracadabra!|¡Abracadabra!"],
+  ["engracado", "Cadê o tesouro?|Where's the treasure?|¿Dónde está el tesoro?"],
+  ["engracado", "Achei uma moeda!|I found a coin!|¡Encontré una moneda!"],
+  ["engracado", "Tô rico!|I'm rich!|¡Soy rico!"],
+  ["engracado", "Tô pobre de moedas!|I'm out of coins!|¡Me quedé sin monedas!"],
+  ["engracado", "Vou dar uma volta!|Going for a walk!|¡Voy a dar una vuelta!"],
+  ["engracado", "Volta ao mundo na praça!|Around the plaza tour!|¡Vuelta a la plaza!"],
+  ["engracado", "Trenzinho! Vem atrás!|Conga line! Follow me!|¡Trencito! ¡Síganme!"],
+  ["engracado", "Fila indiana!|Single file!|¡En fila india!"],
+  ["engracado", "Todo mundo pula!|Everybody jump!|¡Todos a saltar!"],
+  ["engracado", "Sou muito rápido!|I'm super fast!|¡Soy rapidísimo!"],
+  ["engracado", "Sou uma lesma...|I'm a snail...|Soy un caracol..."],
+  ["praca", "Vamos pra fonte!|Let's go to the fountain!|¡Vamos a la fuente!"],
+  ["praca", "Joguei uma moeda na fonte!|I threw a coin in the fountain!|¡Tiré una moneda a la fuente!"],
+  ["praca", "Faz um pedido!|Make a wish!|¡Pide un deseo!"],
+  ["praca", "Encontro na fonte!|Meet at the fountain!|¡Nos vemos en la fuente!"],
+  ["praca", "Encontro na árvore!|Meet at the tree!|¡Nos vemos en el árbol!"],
+  ["praca", "Vamos pro banco!|Let's go to the bench!|¡Vamos al banco!"],
+  ["praca", "Que praça bonita!|What a pretty plaza!|¡Qué plaza tan bonita!"],
+  ["praca", "Olha as borboletas!|Look at the butterflies!|¡Mira las mariposas!"],
+  ["praca", "Que dia lindo!|What a beautiful day!|¡Qué día tan lindo!"],
+  ["praca", "Vem pra cá!|Come over here!|¡Ven aquí!"],
+  ["praca", "Tô aqui em cima!|I'm up here!|¡Estoy aquí arriba!"],
+  ["praca", "Tô aqui embaixo!|I'm down here!|¡Estoy aquí abajo!"],
+  ["praca", "Tô na esquerda!|I'm on the left!|¡Estoy a la izquierda!"],
+  ["praca", "Tô na direita!|I'm on the right!|¡Estoy a la derecha!"],
+  ["praca", "Onde você tá?|Where are you?|¿Dónde estás?"],
+  ["praca", "Te achei!|Found you!|¡Te encontré!"],
+  ["praca", "Vamos pra praça vizinha!|Let's go to the next plaza!|¡Vamos a la plaza de al lado!"],
+  ["praca", "Essa praça tá animada!|This plaza is lively!|¡Esta plaza está animada!"],
+  ["praca", "Mostra seu emote!|Show your emote!|¡Muestra tu emote!"],
+  ["praca", "Olha meu emote novo!|Check out my new emote!|¡Mira mi emote nuevo!"],
+  ["praca", "Bora fazer uma roda!|Let's make a circle!|¡Hagamos una ronda!"],
+  ["praca", "Foto de grupo!|Group photo!|¡Foto de grupo!"],
+  ["praca", "Todo mundo junto!|Everyone together!|¡Todos juntos!"],
+  ["praca", "Bora dançar!|Let's dance!|¡A bailar!"],
+  ["praca", "Festa na praça!|Party in the plaza!|¡Fiesta en la plaza!"],
+  ["praca", "Hora do desfile!|Fashion show time!|¡Hora del desfile!"],
+  ["praca", "Desfile de roupas!|Outfit show!|¡Desfile de ropa!"],
+  ["praca", "Concurso de dança!|Dance contest!|¡Concurso de baile!"],
+  ["praca", "Fica parado aí!|Stay right there!|¡Quédate ahí!"],
+  ["praca", "Vou sentar um pouco.|I'll sit for a bit.|Me voy a sentar un rato."],
+  ["praca", "Que calor!|So hot!|¡Qué calor!"],
+  ["praca", "Que vento gostoso!|What a nice breeze!|¡Qué rica brisa!"],
+  ["criar", "Fiz um jogo novo!|I made a new game!|¡Hice un juego nuevo!"],
+  ["criar", "Joga meu jogo!|Play my game!|¡Juega mi juego!"],
+  ["criar", "Meu jogo tá no Koda!|My game is on Koda!|¡Mi juego está en Koda!"],
+  ["criar", "Vamos criar um jogo juntos?|Shall we make a game together?|¿Creamos un juego juntos?"],
+  ["criar", "Me dá uma ideia de jogo!|Give me a game idea!|¡Dame una idea de juego!"],
+  ["criar", "Tive uma ideia!|I had an idea!|¡Tuve una idea!"],
+  ["criar", "Fiz uma roupa nova!|I made a new outfit!|¡Hice una ropa nueva!"],
+  ["criar", "Compra minha roupa!|Buy my outfit!|¡Compra mi ropa!"],
+  ["criar", "Tô no Koda Studio!|I'm in Koda Studio!|¡Estoy en Koda Studio!"],
+  ["criar", "Jogo de corrida é o melhor!|Racing games are the best!|¡Los juegos de carreras son lo mejor!"],
+  ["criar", "Vou fazer um jogo de terror!|I'll make a horror game!|¡Haré un juego de terror!"],
+  ["criar", "Quero fazer um jogo de pulo!|I want to make a jumping game!|¡Quiero hacer un juego de saltos!"],
+  ["criar", "Dá like no meu jogo!|Like my game!|¡Dale like a mi juego!"],
+  ["criar", "Seu jogo foi publicado?|Was your game published?|¿Publicaron tu juego?"],
+  ["criar", "Publiquei agora!|Just published!|¡Lo acabo de publicar!"],
+  ["criar", "Tô testando meu jogo!|Testing my game!|¡Estoy probando mi juego!"],
+  ["criar", "Achei um bug!|I found a bug!|¡Encontré un bug!"],
+  ["criar", "Consertei o bug!|I fixed the bug!|¡Arreglé el bug!"],
+  ["criar", "Coloquei minha skin no jogo!|I put my skin in the game!|¡Puse mi skin en el juego!"],
+  ["criar", "Joga com sua skin!|Play with your skin!|¡Juega con tu skin!"],
+  ["criar", "Ganhei moedas jogando!|I earned coins playing!|¡Gané monedas jugando!"],
+  ["criar", "Ganhei diamantes!|I got diamonds!|¡Gané diamantes!"],
+  ["criar", "Comprei um emote!|I bought an emote!|¡Compré un emote!"],
+  ["criar", "Vou juntar moedas!|I'm saving up coins!|¡Voy a juntar monedas!"],
+  ["criar", "Abri um baú!|I opened a chest!|¡Abrí un cofre!"],
+  ["criar", "Completei a missão!|Mission complete!|¡Misión cumplida!"],
+  ["criar", "Subi de nível!|I leveled up!|¡Subí de nivel!"],
+  ["tchau", "Até mais!|See you later!|¡Hasta luego!"],
+  ["tchau", "Até amanhã!|See you tomorrow!|¡Hasta mañana!"],
+  ["tchau", "Fui!|Gotta go!|¡Me voy!"],
+  ["tchau", "Preciso ir!|I have to go!|¡Tengo que irme!"],
+  ["tchau", "Já volto!|Be right back!|¡Ya vuelvo!"],
+  ["tchau", "Volto já!|Back in a bit!|¡Vuelvo enseguida!"],
+  ["tchau", "Vou jantar!|Going to have dinner!|¡Voy a cenar!"],
+  ["tchau", "Vou almoçar!|Going to have lunch!|¡Voy a almorzar!"],
+  ["tchau", "Hora de dormir!|Bedtime!|¡Hora de dormir!"],
+  ["tchau", "Vou fazer a lição!|Going to do homework!|¡Voy a hacer la tarea!"],
+  ["tchau", "Boa noite, pessoal!|Good night, everyone!|¡Buenas noches a todos!"],
+  ["tchau", "Durma bem!|Sleep well!|¡Que duermas bien!"],
+  ["tchau", "Foi muito legal!|That was so fun!|¡Fue muy divertido!"],
+  ["tchau", "Amanhã tem mais!|More tomorrow!|¡Mañana hay más!"],
+  ["tchau", "Até a próxima partida!|See you next game!|¡Hasta la próxima partida!"],
+  ["tchau", "Te vejo na praça!|See you at the plaza!|¡Nos vemos en la plaza!"],
+  ["tchau", "Cuidem-se!|Take care!|¡Cuídense!"],
+  ["tchau", "Beijo, tchau!|Kisses, bye!|¡Besos, adiós!"],
+  ["tchau", "Valeu, galera!|Thanks, everyone!|¡Gracias a todos!"],
+  ["tchau", "Adorei jogar com vocês!|Loved playing with you!|¡Me encantó jugar con ustedes!"],
+  ["tchau", "Saindo da praça!|Leaving the plaza!|¡Saliendo de la plaza!"],
+  ["tchau", "Fiquem bem!|Be well!|¡Estén bien!"],
+  ["tchau", "Tchauzinho!|Bye-bye!|¡Chaíto!"]
+];
+
+/* ---------- os emotes da praça ----------
+   Animações do personagem (dançar, girar, foguete...). Os 2 primeiros são de graça; o resto se compra com
+   moedas ou com Koda Diamonds (moeda:'d') e fica guardado na conta (cosméticos → emotes).
+   Na rede vai só o número (t:'emote', k): pra pôr mais, junte no FIM da lista.
+   anim: o jeito que o corpo mexe (ver pracaEmoteCorpo). fx: as coisinhas que saem em volta (ver pracaEmoteFx). */
+var PRACA_EMOTES = [
+  {id:'aceno',    ic:'👋', price:0,    anim:'aceno',   fx:'',        nome:'Acenar|Wave|Saludar'},
+  {id:'pulinho',  ic:'🦘', price:0,    anim:'pulinho', fx:'',        nome:'Pulinhos|Hops|Saltitos'},
+  {id:'danca',    ic:'💃', price:300,  anim:'danca',   fx:'notas',   nome:'Dancinha|Little dance|Bailecito'},
+  {id:'risada',   ic:'🤣', price:300,  anim:'treme',   fx:'risos',   nome:'Rolar de rir|LOL|Morir de risa'},
+  {id:'palmas',   ic:'👏', price:350,  anim:'palmas',  fx:'brilhos', nome:'Palmas|Clapping|Aplausos'},
+  {id:'giro',     ic:'🌀', price:450,  anim:'giro',    fx:'vento',   nome:'Pião|Spin|Trompo'},
+  {id:'coracao',  ic:'💖', price:500,  anim:'pulsa',   fx:'coracoes',nome:'Corações|Hearts|Corazones'},
+  {id:'robo',     ic:'🤖', price:600,  anim:'robo',    fx:'faiscas', nome:'Robô|Robot|Robot'},
+  {id:'minhoca',  ic:'🐛', price:650,  anim:'minhoca', fx:'',        nome:'Minhoca|Wiggle|Gusanito'},
+  {id:'confete',  ic:'🎉', price:750,  anim:'pulinho', fx:'confete', nome:'Festa|Party|Fiesta'},
+  {id:'estrela',  ic:'⭐', price:900,  anim:'salto',   fx:'estrelas',nome:'Estrelinha|Star jump|Estrellita'},
+  {id:'zumbi',    ic:'🧟', price:1000, anim:'zumbi',   fx:'',        nome:'Zumbi|Zombie|Zombi'},
+  {id:'fantasma', ic:'👻', moeda:'d', price:3,  anim:'fantasma', fx:'nevoa',   nome:'Fantasminha|Ghost|Fantasmita'},
+  {id:'foguete',  ic:'🚀', moeda:'d', price:5,  anim:'foguete',  fx:'fogo',    nome:'Foguete|Rocket|Cohete'},
+  {id:'arcoiris', ic:'🌈', moeda:'d', price:7,  anim:'flutua',   fx:'arcoiris',nome:'Arco-íris|Rainbow|Arcoíris'},
+  {id:'coroa',    ic:'👑', moeda:'d', price:10, anim:'coroa',    fx:'ouro',    nome:'Rei da praça|Plaza royalty|Realeza de la plaza'}
+];
+var PRACA_EMOTE_MS = 3200;           // quanto tempo o emote dura
+var PRACA2_TXT = {
+ praca_aba_falas:'Falas|Phrases|Frases',
+ praca_aba_emotes:'Emotes|Emotes|Emotes',
+ praca_recentes:'Recentes|Recent|Recientes',
+ praca_emote_dica:'Toque num emote pra fazer na praça. Os com cadeado dá pra comprar!|Tap an emote to do it in the plaza. Locked ones can be bought!|¡Toca un emote para hacerlo en la plaza. Los que tienen candado se pueden comprar!',
+ praca_emote_gratis:'Grátis|Free|Gratis',
+ praca_emote_comprou:'Emote novo! Use na praça: {nome}|New emote! Use it in the plaza: {nome}|¡Emote nuevo! Úsalo en la plaza: {nome}',
+ praca_emote_tit:'Emote: {nome}|Emote: {nome}|Emote: {nome}'
+};
+(function(){
+  const ling = ['pt', 'en', 'es'];
+  const por = (k, txt)=>{ const v = String(txt).split('|'); ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; }); };
+  Object.keys(PRACA2_TXT).forEach(k=>por(k, PRACA2_TXT[k]));
+  PRACA_FALAS_CATS.forEach(c=>por('praca_cat_' + c[0], c[2]));
+  PRACA_FALAS_EXTRA.forEach((f, i)=>por('praca_f' + (12 + i), f[1]));
+  PRACA_EMOTES.forEach(e=>por('praca_emote_' + e.id, e.nome));
 })();
 function tTexto(key, vars){
   let s = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || (I18N.pt && I18N.pt[key])
@@ -23616,7 +24049,55 @@ const PRACA_JOGO = 'koda-praca';
 const PRACA_MAX = 20;
 const PRACA_ULTIMA = 999999999;   // a última praça: na prática não acabam (qualquer número de 9 dígitos)
 const PRACA_EMOS = ['👋', '❤️', '😂', '😮', '🔥', '👍', '🎉', '😎'];
-const PRACA_FRASES = 12;          // frases prontas (praca_f0..praca_f11): cada um vê na própria língua
+const PRACA_FRASES = 12 + PRACA_FALAS_EXTRA.length;   // frases prontas (praca_f0, praca_f1...): cada um vê na própria língua
+const PRACA_FALAS_ANTIGAS_CAT = ['oi', 'jogar', 'jogar', 'jogar', 'jogar', 'elogio', 'elogio', 'amigo', 'tchau', 'oi', 'praca', 'reacao'];
+const PRACA_RECENTES_KEY = 'koda_praca_recentes';
+function pracaCatDaFala(i){ return i < 12 ? PRACA_FALAS_ANTIGAS_CAT[i] : (PRACA_FALAS_EXTRA[i - 12] || [])[0]; }
+function pracaFalasDaCat(cat){
+  if(cat === 'recentes') return pracaRecentes();
+  const r = [];
+  for(let i = 0; i < PRACA_FRASES; i++) if(pracaCatDaFala(i) === cat) r.push(i);
+  return r;
+}
+function pracaRecentes(){
+  try{ const l = JSON.parse(localStorage.getItem(PRACA_RECENTES_KEY) || '[]'); if(Array.isArray(l)) return l.filter(n=>Number.isInteger(n) && n >= 0 && n < PRACA_FRASES).slice(0, 12); }catch(e){}
+  return [];
+}
+function pracaGuardarRecente(n){
+  const l = pracaRecentes().filter(x=>x !== n); l.unshift(n);
+  try{ localStorage.setItem(PRACA_RECENTES_KEY, JSON.stringify(l.slice(0, 12))); }catch(e){}
+}
+/* emotes: os de graça e os que a pessoa comprou (guardados nos cosméticos, que vão junto com a conta) */
+function pracaEmoteTem(i){
+  const e = PRACA_EMOTES[i];
+  if(!e) return false;
+  if(!e.price || modoTesteDeMoedas()) return true;
+  try{ const c = loadCosm(); return Array.isArray(c.emotes) && c.emotes.indexOf(e.id) >= 0; }catch(err){ return false; }
+}
+function pracaComprarEmote(i, depois){
+  const e = PRACA_EMOTES[i];
+  if(!e) return;
+  const moeda = e.moeda === 'd' ? 'd' : 'c', nome = t('praca_emote_' + e.id);
+  compraFluxo({
+    nome: t('praca_emote_tit', {nome}),
+    arte: `<span class="praca-emote-arte">${e.ic}</span>`,
+    custo: {moeda, preco: e.price},
+    presente: null,
+    paraMim: ()=>{
+      if(pracaEmoteTem(i)) return {ok: true};
+      if(!modoTesteDeMoedas() && presenteSaldoDe(moeda) < e.price) return {ok: false, motivo: moeda === 'd' ? 'diamantes' : 'moedas', faltam: e.price - presenteSaldoDe(moeda)};
+      if(!gastarItem({moeda, price: e.price})) return {ok: false, motivo: moeda === 'd' ? 'diamantes' : 'moedas', faltam: e.price};
+      const c = loadCosm();
+      c.emotes = Array.isArray(c.emotes) ? c.emotes : [];
+      if(c.emotes.indexOf(e.id) < 0) c.emotes.push(e.id);
+      saveCosm(c);
+      try{ syncToServer(); }catch(err){}
+      return {ok: true};
+    },
+    ok: ()=>toast(t('praca_emote_comprou', {nome})),
+    depois: ()=>{ if(typeof depois === 'function') depois(); }
+  });
+}
 const PRACA_VEL = 270;            // unidades do mundo por segundo
 const PRACA_ALT = 92;             // altura do personagem no mundo
 /* o mundo tem 1500 x 1002 unidades; o chão é desenhado em 250 x 167 "pixels" (cada um = 6 unidades),
@@ -24070,6 +24551,9 @@ function pracaReceber(P, m){
     const n = Number(m.t === 'emo' ? m.e : m.f);
     const ok = m.t === 'emo' ? !!PRACA_EMOS[n] : (n >= 0 && n < PRACA_FRASES && Math.floor(n) === n);
     if(p && ok){ p.fala = {tipo: m.t, n}; p.falaAte = performance.now() + (m.t === 'emo' ? 2600 : 3800); }
+  } else if(m.t === 'emote'){
+    const p = P.gente.get(String(m.id)), k = Number(m.k);
+    if(p && PRACA_EMOTES[k] && Math.floor(k) === k){ p.emote = {k, ini: performance.now()}; p.fala = {tipo: 'emo', n: -1, ic: PRACA_EMOTES[k].ic}; p.falaAte = performance.now() + 1400; }
   } else if(m.t === 'moeda'){
     const p = P.gente.get(String(m.id));
     if(p && m.id !== P.eu) pracaEfeitoMoeda(P, p, {x: Math.max(0, Math.min(PRACA_W, Number(m.x) || 0)), y: Math.max(0, Math.min(PRACA_H, Number(m.y) || 0))});
@@ -24137,8 +24621,16 @@ function pracaMontarTela(){
     </div>
     <div class="praca-palco"><canvas></canvas><div class="praca-msg hidden" data-msg></div><div class="praca-dica hidden" data-dica></div><div class="praca-fade" data-fade></div>
       <div class="praca-chat hidden" data-chat role="dialog" aria-label="${chatListEscape(t('praca_chat'))}">
-        <div class="praca-frases" data-frases></div>
-        <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
+        <div class="praca-abas" role="tablist"><button type="button" role="tab" data-aba="falas" class="on">${chatListEscape(t('praca_aba_falas'))}</button><button type="button" role="tab" data-aba="emotes">${chatListEscape(t('praca_aba_emotes'))}</button></div>
+        <div data-painel="falas">
+          <div class="praca-cats" data-cats></div>
+          <div class="praca-frases" data-frases></div>
+          <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
+        </div>
+        <div data-painel="emotes" class="hidden">
+          <p class="praca-emote-dica">${chatListEscape(t('praca_emote_dica'))}</p>
+          <div class="praca-emotes" data-emotes></div>
+        </div>
       </div>
       <div class="praca-stick" data-stick role="application" aria-label="${chatListEscape(t('praca_analogico'))}"><i class="praca-stick-anel"></i><i class="praca-stick-bola" data-bola></i></div>
       <button type="button" class="praca-chat-btn" data-chatbtn aria-label="${chatListEscape(t('praca_chat'))}" aria-expanded="false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4.6 21l4.3-2.4c1 .3 2 .4 3.1.4 5.5 0 10-3.6 10-8S17.5 3 12 3z"/><circle cx="7.5" cy="11" r="1.4" fill="#fff"/><circle cx="12" cy="11" r="1.4" fill="#fff"/><circle cx="16.5" cy="11" r="1.4" fill="#fff"/></svg></button>
@@ -24156,8 +24648,31 @@ function pracaMontarTela(){
   pracaLigarAnalogico(el);
   /* o chat só abre quando toca no botãozinho: aí aparecem as frases prontas e as figurinhas */
   const chat = el.querySelector('[data-chat]'), btn = el.querySelector('[data-chatbtn]');
+  /* as falas ficam separadas por assunto (com as Recentes primeiro); os emotes têm a aba deles */
+  let cat = pracaRecentes().length ? 'recentes' : 'oi', aba = 'falas';
+  const pintarFalas = ()=>{
+    const cats = (pracaRecentes().length ? [['recentes', '🕘']] : []).concat(PRACA_FALAS_CATS.map(c=>[c[0], c[1]]));
+    if(!cats.some(c=>c[0] === cat)) cat = cats[0][0];
+    el.querySelector('[data-cats]').innerHTML = cats.map(c=>`<button type="button" data-cat="${c[0]}" class="${c[0] === cat ? 'on' : ''}"><span aria-hidden="true">${c[1]}</span>${chatListEscape(t(c[0] === 'recentes' ? 'praca_recentes' : 'praca_cat_' + c[0]))}</button>`).join('');
+    const fr = el.querySelector('[data-frases]');
+    fr.innerHTML = pracaFalasDaCat(cat).map(i=>`<button type="button" data-fr="${i}">${chatListEscape(t('praca_f' + i))}</button>`).join('');
+    fr.scrollTop = 0;
+  };
+  const pintarEmotes = ()=>{
+    el.querySelector('[data-emotes]').innerHTML = PRACA_EMOTES.map((e, i)=>{
+      const tem = pracaEmoteTem(i);
+      const preco = tem ? '' : `<i class="praca-emote-preco${e.moeda === 'd' ? ' dia' : ''}">${e.moeda === 'd' ? ICONS.diamond : ICONS.coin} ${kshopMilhar(e.price)}</i>`;
+      return `<button type="button" data-emote="${i}" class="${tem ? 'tem' : 'trancado'}"><span class="praca-emote-ic" aria-hidden="true">${e.ic}</span><b>${chatListEscape(t('praca_emote_' + e.id))}</b>${preco}${tem ? '' : '<span class="praca-emote-cadeado" aria-hidden="true">🔒</span>'}</button>`;
+    }).join('');
+  };
+  const trocarAba = nova=>{
+    aba = nova;
+    el.querySelectorAll('[data-aba]').forEach(b=>{ b.classList.toggle('on', b.dataset.aba === aba); b.setAttribute('aria-selected', b.dataset.aba === aba ? 'true' : 'false'); });
+    el.querySelectorAll('[data-painel]').forEach(p=>p.classList.toggle('hidden', p.dataset.painel !== aba));
+    if(aba === 'emotes') pintarEmotes(); else pintarFalas();
+  };
   const abrirChat = abre=>{
-    if(abre){ el.querySelector('[data-frases]').innerHTML = Array.from({length: PRACA_FRASES}, (_, i)=>`<button type="button" data-fr="${i}">${chatListEscape(t('praca_f' + i))}</button>`).join(''); }
+    if(abre) trocarAba(aba);
     chat.classList.toggle('hidden', !abre);
     btn.classList.toggle('on', abre);
     btn.setAttribute('aria-expanded', abre ? 'true' : 'false');
@@ -24175,8 +24690,16 @@ function pracaMontarTela(){
   };
   chat.addEventListener('click', ev=>{
     const f = ev.target.closest('[data-fr]'), e = ev.target.closest('[data-emo]');
-    if(f) falar({t: 'frase', f: Number(f.dataset.fr)});
+    const a = ev.target.closest('[data-aba]'), c = ev.target.closest('[data-cat]'), em = ev.target.closest('[data-emote]');
+    if(a){ playSound('click'); trocarAba(a.dataset.aba); }
+    else if(c){ playSound('click'); cat = c.dataset.cat; pintarFalas(); }
+    else if(f){ pracaGuardarRecente(Number(f.dataset.fr)); falar({t: 'frase', f: Number(f.dataset.fr)}); }
     else if(e) falar({t: 'emo', e: Number(e.dataset.emo)});
+    else if(em){
+      const k = Number(em.dataset.emote);
+      if(pracaEmoteTem(k)) falar({t: 'emote', k});
+      else { playSound('click'); pracaComprarEmote(k, ()=>{ if(aba === 'emotes') pintarEmotes(); }); }
+    }
   });
   el.querySelector('canvas').addEventListener('pointerdown', ev=>{
     ev.preventDefault();
@@ -24470,16 +24993,119 @@ function pracaInfoBanco(P, i){
 /* ---------- o desenho de cada quadro ---------- */
 function pracaBalao(x, sx, topo, texto, fonte, cor){
   x.font = fonte;
-  const w = x.measureText(texto).width, alt = parseInt((/(\d+)px/.exec(fonte) || [0, 14])[1], 10);
-  const pad = alt * .55, bw = w + pad * 2, bh = alt * 1.55, bx = sx - bw / 2, by = topo - bh - 6;
+  const alt = parseInt((/(\d+)px/.exec(fonte) || [0, 14])[1], 10);
+  /* fala comprida quebra em 2 linhas (as falas novas são maiores que as antigas) */
+  let linhas = [texto];
+  if(x.measureText(texto).width > alt * 11 && texto.indexOf(' ') > 0){
+    const ps = texto.split(' ');
+    let melhor = 1, dif = Infinity;
+    for(let i = 1; i < ps.length; i++){
+      const d = Math.abs(x.measureText(ps.slice(0, i).join(' ')).width - x.measureText(ps.slice(i).join(' ')).width);
+      if(d < dif){ dif = d; melhor = i; }
+    }
+    linhas = [ps.slice(0, melhor).join(' '), ps.slice(melhor).join(' ')];
+  }
+  const w = Math.max.apply(null, linhas.map(l=>x.measureText(l).width));
+  const pad = alt * .55, bw = w + pad * 2, lh = alt * 1.12, bh = alt * .43 + lh * linhas.length, bx = sx - bw / 2, by = topo - bh - 6;
   x.fillStyle = '#ffffff'; x.strokeStyle = 'rgba(0,0,0,.28)'; x.lineWidth = 2;
   x.beginPath();
-  if(x.roundRect) x.roundRect(bx, by, bw, bh, bh / 2.4); else x.rect(bx, by, bw, bh);
+  if(x.roundRect) x.roundRect(bx, by, bw, bh, Math.min(bh, alt * 1.55) / 2.4); else x.rect(bx, by, bw, bh);
   x.fill(); x.stroke();
   x.beginPath(); x.moveTo(sx - 5, by + bh - 1); x.lineTo(sx, by + bh + 6); x.lineTo(sx + 5, by + bh - 1); x.closePath(); x.fill();
   x.fillStyle = cor; x.textBaseline = 'middle';
-  x.fillText(texto, sx, by + bh / 2 + 1);
+  linhas.forEach((l, i)=>x.fillText(l, sx, by + alt * .215 + lh * (i + .5) + 1));
   x.textBaseline = 'bottom';
+}
+/* ---------- emotes: como o corpo mexe (a origem é o pé do personagem; dy positivo = pra cima) ---------- */
+function pracaEmoteCorpo(e, f, ms, s){
+  const r = {dx: 0, dy: 0, rot: 0, sx: 1, sy: 1, alfa: 1};
+  const sen = Math.sin, abs = Math.abs, PI = Math.PI;
+  const fim = Math.min(1, (1 - f) * 8);                 // tudo volta pro normal no finalzinho
+  switch(e && e.anim){
+    case 'aceno': r.rot = sen(ms / 120) * .12; break;
+    case 'pulinho': r.dy = abs(sen(ms / 170)) * 22 * s; r.sy = 1 + abs(sen(ms / 170)) * .05; break;
+    case 'danca': r.dx = sen(ms / 210) * 9 * s; r.rot = sen(ms / 210) * .16; r.dy = abs(sen(ms / 105)) * 7 * s; break;
+    case 'treme': r.dx = sen(ms / 22) * 3 * s; r.rot = sen(ms / 70) * .07; r.sy = 1 + sen(ms / 90) * .04; break;
+    case 'palmas': r.sy = 1 - abs(sen(ms / 110)) * .07; r.sx = 1 + abs(sen(ms / 110)) * .04; r.dy = abs(sen(ms / 220)) * 5 * s; break;
+    case 'giro': { const c = Math.cos(ms / 85); r.sx = abs(c) < .1 ? (c < 0 ? -.1 : .1) : c; r.dy = sen(f * PI) * 12 * s; break; }
+    case 'pulsa': { const b = 1 + abs(sen(ms / 170)) * .12; r.sx = b; r.sy = b; break; }
+    case 'robo': { const passo = Math.floor(ms / 260); r.dx = (passo % 4 < 2 ? 1 : -1) * 6 * s; r.rot = (passo % 2 ? .08 : -.08); r.dy = (passo % 2) * 3 * s; break; }
+    case 'minhoca': r.sx = 1 + sen(ms / 120) * .16; r.sy = 1 - sen(ms / 120) * .14; r.dx = sen(ms / 240) * 5 * s; break;
+    case 'salto': { const g = Math.min(1, f * 1.6); r.dy = sen(g * PI) * 75 * s; r.rot = g < 1 ? g * PI * 2 : 0; break; }
+    case 'zumbi': r.rot = .14 + sen(ms / 380) * .05; r.dx = sen(ms / 380) * 12 * s; r.dy = abs(sen(ms / 190)) * 3 * s; break;
+    case 'fantasma': r.alfa = .42 + .3 * (.5 + .5 * sen(ms / 260)); r.dy = (18 + sen(ms / 240) * 8) * s; r.dx = sen(ms / 520) * 8 * s; break;
+    case 'foguete': {
+      const sobe = f < .45 ? f / .45 : f < .6 ? 1 : Math.max(0, 1 - (f - .6) / .32);
+      r.dy = sobe * sobe * 280 * s; r.dx = (f < .1 ? sen(ms / 18) * 2 * s : 0); r.sy = f < .1 ? 1 - .1 * sen(f / .1 * PI) : 1; break;
+    }
+    case 'flutua': r.dy = (24 + sen(ms / 300) * 10) * s; r.rot = sen(ms / 600) * .05; break;
+    case 'coroa': { const b = 1.06 + sen(ms / 300) * .02; r.sx = b; r.sy = b; r.dy = (4 + sen(ms / 250) * 4) * s; break; }
+  }
+  r.dx *= fim; r.rot *= fim; r.sx = 1 + (r.sx - 1) * fim; r.sy = 1 + (r.sy - 1) * fim; r.alfa = 1 + (r.alfa - 1) * fim;
+  if(e && e.anim !== 'foguete') r.dy *= fim;
+  return r;
+}
+/* ---------- emotes: as coisinhas que saem em volta (dá pra calcular tudo pelo tempo, sem guardar nada) ---------- */
+function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s){
+  if(!e || !e.fx) return;
+  const sen = Math.sin, cos = Math.cos, PI = Math.PI, meio = sy - alt * .55, topo = sy - alt;
+  const some = Math.max(0, Math.min(1, (PRACA_EMOTE_MS - ms) / 500));
+  x.save();
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  const glifo = (txt, gx, gy, tam, cor, a)=>{ x.globalAlpha = Math.max(0, Math.min(1, a)) * some; x.fillStyle = cor || '#fff'; x.font = '800 ' + Math.round(tam) + 'px sans-serif'; x.fillText(txt, gx, gy); };
+  const quad = (qx, qy, q, cor, a)=>{ x.globalAlpha = Math.max(0, Math.min(1, a)) * some; x.fillStyle = cor; x.fillRect(Math.round(qx - q / 2), Math.round(qy - q / 2), Math.round(q), Math.round(q)); };
+  /* sobe: coisas que nascem perto do corpo e sobem sumindo */
+  const sobe = (n, desenha)=>{
+    for(let k = 0; k < n; k++){
+      const ciclo = 1100, tk = (ms + k * ciclo / n) % ciclo, g = tk / ciclo;
+      if(ms < k * ciclo / n) continue;
+      const lado = (k % 2 ? 1 : -1) * (larg * .45 + (k * 7 % 11) * s);
+      desenha(sx + lado + sen(g * PI * 2 + k) * 6 * s, meio - g * alt * .9, g, k);
+    }
+  };
+  switch(e.fx){
+    case 'notas': sobe(6, (gx, gy, g, k)=>glifo(k % 2 ? '♪' : '♫', gx, gy, 22 * s + 8, ['#ff5fa2', '#5fb8ff', '#ffd23f'][k % 3], 1 - g)); break;
+    case 'risos': sobe(4, (gx, gy, g)=>glifo('😂', gx, gy, 18 * s + 8, '#000', 1 - g)); break;
+    case 'coracoes': sobe(7, (gx, gy, g, k)=>glifo('❤', gx, gy, (18 + (k % 3) * 5) * s + 6, ['#ff3d6e', '#ff7fb0', '#e0245e'][k % 3], 1 - g)); break;
+    case 'brilhos':
+      for(let k = 0; k < 8; k++){ const a = k / 8 * PI * 2 + ms / 600, d = larg * (.7 + .15 * sen(ms / 150 + k)); if(sen(ms / 90 + k * 1.7) > -.2) quad(sx + cos(a) * d, meio + sen(a) * d * .8, 5 * s + 2, '#fff3a0', .9); }
+      break;
+    case 'vento':
+      x.strokeStyle = '#ffffff'; x.lineWidth = Math.max(2, 3 * s);
+      for(let k = 0; k < 3; k++){ x.globalAlpha = .55 * some; x.beginPath(); x.ellipse(sx, sy - alt * (.2 + k * .3), larg * (.7 + k * .1), larg * .22, 0, ms / 120 + k, ms / 120 + k + PI * 1.1); x.stroke(); }
+      break;
+    case 'faiscas':
+      for(let k = 0; k < 10; k++){ if(sen(ms / 60 + k * 2.3) < .3) continue; const a = k * 2.4 + Math.floor(ms / 120), d = larg * (.4 + (k % 4) * .15); quad(sx + cos(a) * d, topo + alt * .15 + sen(a) * d * .5, 4 * s + 2, k % 2 ? '#7fe7ff' : '#ffffff', 1); }
+      break;
+    case 'confete':
+      for(let k = 0; k < 26; k++){
+        const g = Math.min(1, ms / 1600), a = (k / 26) * PI * 2 + k, v0 = (90 + (k * 37 % 70)) * s;
+        const cx = sx + cos(a) * v0 * g, cy = topo - sen(Math.min(1, ms / 500) * PI / 2) * 60 * s + (g * g) * alt * 1.2 + sen(a) * 20 * s;
+        x.save(); x.translate(cx, cy); x.rotate(ms / 150 + k); x.globalAlpha = some * (1 - Math.max(0, g - .8) * 5);
+        x.fillStyle = ['#ff5fa2', '#5fb8ff', '#ffd23f', '#5fe08a', '#b07aff'][k % 5]; x.fillRect(-4 * s - 1, -2 * s - 1, 8 * s + 2, 4 * s + 2); x.restore();
+      }
+      break;
+    case 'estrelas':
+      for(let k = 0; k < 5; k++){ const a = k / 5 * PI * 2 + ms / 280; glifo('★', sx + cos(a) * larg * .85, meio + sen(a) * larg * .35, 20 * s + 6, '#ffd23f', .95); }
+      break;
+    case 'nevoa':
+      for(let k = 0; k < 5; k++){ const g = ((ms / 900) + k / 5) % 1; x.globalAlpha = .35 * (1 - g) * some; x.fillStyle = '#e8f0ff'; x.beginPath(); x.ellipse(sx + sen(k * 2 + ms / 500) * larg * .6, sy - g * alt * .5, larg * (.35 + g * .3), larg * (.15 + g * .1), 0, 0, PI * 2); x.fill(); }
+      break;
+    case 'fogo':
+      for(let k = 0; k < 14; k++){ const g = ((ms / 300) + k / 14) % 1; quad(sx + sen(k * 1.9 + ms / 70) * larg * .18 * (1 - g), sy + g * 60 * s, (9 - g * 6) * s + 2, g < .35 ? '#fff3a0' : g < .7 ? '#ffa31a' : '#ff4a1a', 1 - g); }
+      break;
+    case 'arcoiris': {
+      const cores = ['#ff4a4a', '#ff9a1a', '#ffe04a', '#4ad66a', '#4aa8ff', '#9a6aff'], g = Math.min(1, ms / 700);
+      x.lineWidth = Math.max(2, 5 * s);
+      cores.forEach((c, k)=>{ x.globalAlpha = .85 * some; x.strokeStyle = c; x.beginPath(); x.arc(sx, topo + alt * .25, larg * (1.05 - k * .09), PI + PI * (1 - g) / 2, PI * 2 - PI * (1 - g) / 2); x.stroke(); });
+      break;
+    }
+    case 'ouro':
+      glifo('👑', sx, topo - 10 * s + sen(ms / 260) * 4 * s, 30 * s + 10, '#000', 1);
+      for(let k = 0; k < 8; k++){ if(sen(ms / 100 + k * 1.3) < 0) continue; const a = k / 8 * PI * 2 - ms / 700; quad(sx + cos(a) * larg * .8, meio + sen(a) * larg * .5, 5 * s + 2, '#ffd23f', 1); }
+      break;
+  }
+  x.restore();
 }
 function pracaQuadro(P, tm){
   if(P.fechado || pracaAtiva !== P) return;
@@ -24595,12 +25221,28 @@ function pracaQuadro(P, tm){
     const pulo = p.anda ? (passo % 2 ? 0 : 2.2 * v.s) : (jogando < 1 ? Math.sin(jogando * Math.PI) * 12 * v.s : 0);
     const im = passo === 0 ? (cima ? p.passoC[0] : p.passoF[0]) : passo === 2 ? (cima ? p.passoC[1] : p.passoF[1]) : (cima ? p.imC : p.im);
     const imOk = im.complete && im.naturalWidth ? im : (cima ? p.imC : p.im);
+    /* emote: andar corta a animação */
+    let em = null;
+    if(p.emote){
+      const et = tm - p.emote.ini;
+      if(p.anda || et > PRACA_EMOTE_MS || et < 0){ p.emote = null; p.emoteDy = 0; }
+      else em = pracaEmoteCorpo(PRACA_EMOTES[p.emote.k], et / PRACA_EMOTE_MS, et, v.s);
+    }
+    p.emoteDy = em ? Math.max(0, em.dy) : 0;
     if(imOk.complete && imOk.naturalWidth){
       x.save();
+      if(em){
+        x.globalAlpha = em.alfa;
+        x.translate(sx + em.dx, sy - em.dy);
+        x.rotate(em.rot);
+        x.scale(em.sx, em.sy);
+        x.translate(-sx, -sy);
+      }
       if(p.dir === 'lado' && p.vira){ x.translate(sx, 0); x.scale(-1, 1); x.translate(-sx, 0); }
       x.drawImage(imOk, Math.round(sx - larg / 2), Math.round(sy - alt - pulo), Math.round(larg), Math.round(alt));
       x.restore();
     }
+    if(em) pracaEmoteFx(x, PRACA_EMOTES[p.emote.k], tm - p.emote.ini, sx, sy - em.dy, alt, larg, v.s);
   }}));
   itens.sort((a, b)=>a.y - b.y).forEach(it=>it.f());
   /* borboletas e pétalas voando */
@@ -24639,7 +25281,7 @@ function pracaQuadro(P, tm){
   x.textAlign = 'center'; x.textBaseline = 'bottom';
   lista.forEach(p=>{
     const [sx, sy] = tela(p.x, p.y);
-    const topo = sy - alt - 6;
+    const topo = sy - alt - 6 - (p.emoteDy || 0);
     x.font = '800 ' + fNome + 'px "Baloo 2",sans-serif';
     const nm = p.nome.length > 14 ? p.nome.slice(0, 13) + '…' : p.nome;
     const w = x.measureText(nm).width + fNome * .8;
@@ -24650,7 +25292,7 @@ function pracaQuadro(P, tm){
     x.fillStyle = p.id === P.eu ? '#ffe066' : '#fff';
     x.fillText(nm, sx, topo + 1);
     if(p.fala && tm < p.falaAte){
-      if(p.fala.tipo === 'emo') pracaBalao(x, sx, topo - fNome * 1.2, PRACA_EMOS[p.fala.n], Math.round(fNome * 1.5) + 'px sans-serif', '#000');
+      if(p.fala.tipo === 'emo') pracaBalao(x, sx, topo - fNome * 1.2 - (p.emoteDy || 0), p.fala.ic || PRACA_EMOS[p.fala.n], Math.round(fNome * 1.5) + 'px sans-serif', '#000');
       else pracaBalao(x, sx, topo - fNome * 1.2, t('praca_f' + p.fala.n), '800 ' + Math.round(fNome * 1.05) + 'px "Baloo 2",sans-serif', '#08322B');
     }
   });
