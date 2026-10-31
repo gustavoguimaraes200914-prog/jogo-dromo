@@ -28726,10 +28726,25 @@ function musicaLobbyAtualizar(){
   else if(ML.sessao) musicaParar(!soundOn());
 }
 (function(){
-  const destravar = ()=>{ if(ML.destravado) return; ML.destravado = true; musicaLobbyAtualizar(); };
-  ['pointerdown', 'keydown', 'touchstart'].forEach(ev=>window.addEventListener(ev, destravar, {capture: true, passive: true}));
+  /* O iPhone/iPad só libera o som quando o dedo SAI da tela (touchend/click), não quando encosta.
+     Por isso escuta todos esses toques e tenta de novo em cada um, até o som estar liberado de verdade
+     ('running'). Também volta a tentar se o aparelho "pausar" o som (ligação, outro app, voltar do fundo). */
+  const liberado = c=>!!c && c.state === 'running';
+  const destravar = ()=>{
+    const c = audio();                       // audio() já pede pro som voltar, dentro do toque
+    if(!c) return;
+    if(liberado(c)){ ML.destravado = true; musicaLobbyAtualizar(); return; }
+    try{ c.resume().then(()=>{ if(liberado(c)){ ML.destravado = true; musicaLobbyAtualizar(); } }, ()=>{}); }catch(e){}
+  };
+  ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(ev=>window.addEventListener(ev, destravar, {capture: true, passive: true}));
   document.addEventListener('visibilitychange', musicaLobbyAtualizar);
-  ML.timer = setInterval(musicaLobbyAtualizar, 400);
+  /* no computador o navegador às vezes já deixa tocar sem toque nenhum: aí a música começa sozinha */
+  setTimeout(()=>{ try{ const c = audio(); if(c) c.resume().then(()=>{ if(liberado(c)){ ML.destravado = true; musicaLobbyAtualizar(); } }, ()=>{}); }catch(e){} }, 600);
+  ML.timer = setInterval(()=>{
+    const c = audioCtx;
+    if(ML.destravado && c && !liberado(c)) ML.destravado = false;   // o aparelho pausou o som: espera o próximo toque
+    musicaLobbyAtualizar();
+  }, 400);
 })();
 function updateSoundBtn(){
   const btn = document.getElementById('soundBtn');
