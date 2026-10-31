@@ -59,3 +59,8 @@ Para os códigos saírem por e-mail (grátis, até 300 por dia), uma vez só:
 No Firebase: Authentication → **Sign-in method** → **E-mail/senha** ligado, e em Authentication → **Settings** → **User actions**,
 "Enable create (sign-up)" ligado (senão o site avisa que criar conta com nome de usuário ainda não está ligado).
 
+## Jogos feitos em dupla (versão `moderacao-sim-ou-nao-2026-10-31-jogo-em-dupla`)
+O jogo `dupla_<projeto>` pode ser mandado por qualquer um dos dois que estão em `projetosDupla/<projeto>.membros`.
+O servidor confere isso, grava o jogo em nome do criador do projeto e põe os dois em `coautores` (os dois
+veem o jogo em "Meus jogos" e podem editar). Precisa das regras novas do Firestore (pasta `firebase/`).
+

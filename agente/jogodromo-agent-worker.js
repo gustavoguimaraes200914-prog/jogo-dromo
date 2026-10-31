@@ -50,7 +50,7 @@
 /* ---------------------------------------------------------------------------
    CONFIGURAÇÃO
 --------------------------------------------------------------------------- */
-const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-20-modo-sem-ia';
+const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-31-jogo-em-dupla';
 const PROJETO_PADRAO   = 'jogodromo';
 /* modo da análise de jogos quando a variável MODERACAO não existe: 'desligada' | 'basica' | 'completa'.
    Está 'desligada' enquanto não há chave/crédito da IA. Pra religar: crie a variável MODERACAO = completa no Cloudflare. */
@@ -86,7 +86,17 @@ const MAX_IMAGEM_B64    = 1400000;   // ~1MB por imagem
 /* bibliotecas conhecidas podem vir de fora (o resto tem que estar dentro do jogo) */
 const CDNS_PERMITIDOS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'code.jquery.com'];
 /* campos do jogo que vão para o catálogo */
-const CAMPOS_JOGO = ['id','name','category','bg','cover','shape','codeB64','hasDifficulty','multiplayerCounts','trad','creatorEmail','creatorUid','creatorName','updatedAt'];
+const CAMPOS_JOGO = ['id','name','category','bg','cover','shape','codeB64','hasDifficulty','multiplayerCounts','trad','creatorEmail','creatorUid','creatorName','updatedAt','coautores'];
+/* jogo feito em dupla no Koda Studio: o id é 'dupla_<projeto>' e quem pode mandar é quem está em
+   projetosDupla/<projeto>.membros (os dois). Devolve o projeto (criador e membros) ou null. */
+async function projetoDaDupla(db, id){
+  const m = /^dupla_([a-z0-9]{8,30})$/.exec(String(id || ''));
+  if(!m) return null;
+  const p = await db.ler('projetosDupla/' + m[1]).catch(() => null);
+  const d = p && p.dados;
+  if(!d || !Array.isArray(d.membros) || d.membros.length !== 2 || typeof d.criador !== 'string') return null;
+  return { criador: d.criador.toLowerCase(), membros: d.membros.map(e => String(e).toLowerCase()) };
+}
 /* campos que, se mudarem, exigem análise completa (trad sozinha tem análise rápida) */
 const CAMPOS_CONTEUDO = ['name','category','bg','cover','codeB64','hasDifficulty','multiplayerCounts'];
 
@@ -1732,9 +1742,14 @@ async function moderarEnvio(db, cfg, id, quem, extras){
   if(!lido) return { erro: 'nao_encontrado', httpStatus: 404 };
   const sub = lido.dados;
   const ehAdmin = quem.email === cfg.admin;
-  if(String(sub.creatorEmail || '').toLowerCase() !== quem.email && !ehAdmin) return { erro: 'nao_e_seu', httpStatus: 403 };
+  /* jogo em dupla: os dois membros do projeto podem mandar; o jogo sai em nome do projeto (criador + coautores) */
+  const dupla = await projetoDaDupla(db, id);
+  const daDupla = !!dupla && dupla.membros.includes(quem.email);
+  if(dupla){ sub.creatorEmail = dupla.criador; sub.coautores = dupla.membros; }
+  else delete sub.coautores;
+  if(String(sub.creatorEmail || '').toLowerCase() !== quem.email && !ehAdmin && !daDupla) return { erro: 'nao_e_seu', httpStatus: 403 };
   /* um id que já é de outra pessoa no catálogo não pode ser sobrescrito */
-  if(!ehAdmin){
+  if(!ehAdmin && !daDupla){
     const jaNoCatalogo = await db.ler('publicGames/' + id);
     const dono = jaNoCatalogo && jaNoCatalogo.dados && String(jaNoCatalogo.dados.creatorEmail || '').toLowerCase();
     if(dono && dono !== quem.email) return { erro: 'id_em_uso', httpStatus: 403 };
