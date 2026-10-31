@@ -5161,6 +5161,13 @@
   .ugc-previa svg{height:100%;width:auto;display:block;}
   .ugc-campo{display:flex;flex-direction:column;gap:4px;font:800 .8rem 'Baloo 2',sans-serif;}
   .ugc-campo input{height:44px;border-radius:12px;border:2px solid #D3E4DF;padding:0 12px;font:700 1rem 'Nunito Sans',sans-serif;background:#fff;color:inherit;}
+  .ugc-moeda{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font:800 .85rem 'Baloo 2',sans-serif;}
+  .ugc-moeda>span{flex:1 0 100%;opacity:.8;}
+  .ugc-moeda button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:2px solid rgba(0,0,0,.1);border-radius:14px;padding:8px 10px;background:#fff;color:inherit;font:800 .9rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .ugc-moeda button svg{width:18px;height:18px;}
+  .ugc-moeda button.on{border-color:#17C79E;background:#DDF7EF;}
+  .ugc-moeda button[data-moeda="d"].on{border-color:#3d8bff;background:#e3efff;}
+  .ugc-precos button svg{width:12px;height:12px;vertical-align:-2px;}
   .ugc-precos{display:flex;flex-wrap:wrap;gap:6px;}
   .ugc-precos button{border:2px solid transparent;border-radius:999px;padding:5px 11px;background:#fff;color:inherit;font:800 .78rem 'Baloo 2',sans-serif;cursor:pointer;}
   .ugc-precos button.on{border-color:#17C79E;background:#DDF7EF;}
@@ -33732,6 +33739,10 @@ function ugcMascara(tipo){
 }
 var UGC_ALF = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';   // 63 cores por peça ('.' = vazio)
 var UGC_PRECO_MAX = 3300, UGC_PARTE_CRIADOR = 0.7, UGC_MIN_PX = 8;
+/* a peça também pode ser vendida por Koda Diamonds (campo moeda:'d' no banco; sem o campo = moedas) */
+var UGC_PRECO_MAX_DIA = 100;
+function ugcMoedaDe(m){ return m && m.moeda === 'd' ? 'd' : 'c'; }
+function ugcPrecoTxt(m){ return (ugcMoedaDe(m) === 'd' ? ICONS.diamond : ICONS.coin) + ' ' + kshopMilhar(m.preco); }
 /* peça (e venda) de antes da escala nova das moedas: o preço gravado está na escala antiga (podia chegar a 10.000) */
 var UGC_PRECO_MAX_ANTIGO = 10000;
 function ugcPrecoDe(preco, quando){
@@ -33773,7 +33784,8 @@ function ugcDecodificar(d){
   /* pxC = o desenho das costas (as peças antigas não têm: de costas aparece o mesmo da frente) */
   let arrC = null;
   if(typeof d.pxC === 'string'){ if(d.pxC.length !== PZ_W * PZ_H) return null; arrC = lado(d.pxC); if(!arrC) return null; }
-  return {desenho: {tipo, px: arr, pxC: arrC, foto: ugcLerFoto(d.foto), fotoC: ugcLerFoto(d.fotoC)}, meta: {nome: String(d.nome || '').slice(0, 24), preco: ugcPrecoDe(d.preco, d.criadoEm),
+  return {desenho: {tipo, px: arr, pxC: arrC, foto: ugcLerFoto(d.foto), fotoC: ugcLerFoto(d.fotoC)}, meta: {nome: String(d.nome || '').slice(0, 24), moeda: d.moeda === 'd' ? 'd' : 'c',
+    preco: d.moeda === 'd' ? Math.max(0, Math.min(UGC_PRECO_MAX_DIA, Math.floor(Number(d.preco) || 0))) : ugcPrecoDe(d.preco, d.criadoEm),
     criador: String(d.criador || ''), criadorNome: String(d.criadorNome || '').slice(0, 40), criadoEm: Number(d.criadoEm) || 0, oculto: !!d.oculto}};
 }
 /* a FOTO da peça (frente: foto, costas: fotoC): a parte recortada da foto, lisinha (não vira quadradinho), com o lugar e o
@@ -33864,7 +33876,7 @@ function ugcCarregar(id){
     const d = bruto && !bruto.oculto ? ugcDecodificar(bruto) : null;
     if(!d){ E.falhou.add(id); ugcChegou(id); return; }
     E.cache.set(id, d.desenho); E.meta.set(id, d.meta);
-    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, pxC: typeof bruto.pxC === 'string' ? bruto.pxC : undefined, nome: bruto.nome, preco: bruto.preco, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm, foto: bruto.foto || undefined, fotoC: bruto.fotoC || undefined});
+    ugcGuardarNoAparelho(id, {tipo: bruto.tipo, cores: bruto.cores, px: bruto.px, pxC: typeof bruto.pxC === 'string' ? bruto.pxC : undefined, nome: bruto.nome, preco: bruto.preco, moeda: bruto.moeda === 'd' ? 'd' : undefined, criador: bruto.criador, criadorNome: bruto.criadorNome, criadoEm: bruto.criadoEm, foto: bruto.foto || undefined, fotoC: bruto.fotoC || undefined});
     ugcChegou(id);
   }).catch(()=>{ E.carregando.delete(id); });   // sem internet: tenta de novo na próxima vez que precisar
 }
@@ -34028,7 +34040,7 @@ async function ugcConferirPeca(frente, costas, tipo, nome, fotos){
   return {ok: true};
 }
 /* ---------- publicar ---------- */
-async function ugcPublicar(desenho, desenhoC, tipo, nome, preco, fotos){
+async function ugcPublicar(desenho, desenhoC, tipo, nome, preco, fotos, moeda){
   if(souVisitante() || !FIREBASE_ENABLED) return {ok: false, motivo: 'conta'};
   const u = fbAuth().currentUser;
   if(!u) return {ok: false, motivo: 'conta'};
@@ -34039,11 +34051,13 @@ async function ugcPublicar(desenho, desenhoC, tipo, nome, preco, fotos){
   if(!cod.cores.length) cod.cores = ['#000000'];          // só foto, sem nada pintado (o banco pede pelo menos uma cor)
   nome = String(nome || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24);
   if(nome.length < 2) return {ok: false, motivo: 'nome_curto'};
-  preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(preco) || 0)));
+  const dia = moeda === 'd';
+  preco = Math.max(0, Math.min(dia ? UGC_PRECO_MAX_DIA : UGC_PRECO_MAX, Math.floor(Number(preco) || 0)));
   const id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const doc = {criador: u.uid, criadorNome: String(onlineNome() || '').slice(0, 40), nome, preco, tipo, cores: cod.cores, px: cod.px, pxC: cod.pxC, criadoEm: Date.now(), oculto: false};
   if(foto) doc.foto = foto;
   if(fotoC) doc.fotoC = fotoC;
+  if(dia && preco > 0) doc.moeda = 'd';
   try{ await fbDb().collection('pecasCriadas').doc(id).set(doc); }
   catch(e){ return {ok: false, motivo: 'erro', detalhe: e && e.message}; }
   const d = ugcDecodificar(doc);
@@ -34060,16 +34074,17 @@ function ugcComprar(id){
   if(!m) return {ok: false, motivo: 'peca'};
   if(souVisitante()) return {ok: false, motivo: 'conta'};
   if(ugcEhMinha(id)) return {ok: true, ja: true};
-  const preco = m.preco;
+  const preco = m.preco, moeda = ugcMoedaDe(m), motivo = moeda === 'd' ? 'diamantes' : 'moedas';
   if(preco > 0){
-    if(!modoTesteDeMoedas() && loadCoins() < preco) return {ok: false, motivo: 'moedas', faltam: preco - loadCoins()};
-    if(!spendCoins(preco)) return {ok: false, motivo: 'moedas', faltam: preco};
+    if(!modoTesteDeMoedas() && presenteSaldoDe(moeda) < preco) return {ok: false, motivo, faltam: preco - presenteSaldoDe(moeda)};
+    if(!gastarItem({moeda, price: preco})) return {ok: false, motivo, faltam: preco};
   }
   ugcGanhar(id);
   const u = FIREBASE_ENABLED ? fbAuth().currentUser : null;
   if(preco > 0 && u && m.criador && m.criador !== u.uid && !modoTesteDeMoedas()){
     const pend = ugcPendLer();
     pend.push({id: id + '_' + u.uid, tries: 0, d: {buyerUid: u.uid, buyerName: String(onlineNome() || '').slice(0, 60), creatorUid: m.criador, pecaId: id, nome: m.nome, price: preco, createdAt: Date.now(), claimed: false}});
+    if(moeda === 'd') pend[pend.length - 1].d.moeda = 'd';
     ugcPendSalvar(pend);
     ugcEnviarVendas();
   }
@@ -34099,14 +34114,17 @@ async function ugcChecarVendas(){
   try{
     await ugcEnviarVendas();
     const snap = await fbDb().collection('pecasVendas').where('creatorUid', '==', u.uid).where('claimed', '==', false).limit(50).get();
-    let total = 0, n = 0;
+    let total = 0, n = 0, totalDia = 0, nDia = 0;
     for(const doc of snap.docs){
-      const v = doc.data();
-      if(!Number.isInteger(v.price) || v.price < 1 || v.price > UGC_PRECO_MAX_ANTIGO) continue;
+      const v = doc.data(), dia = v.moeda === 'd';
+      if(!Number.isInteger(v.price) || v.price < 1 || v.price > (dia ? UGC_PRECO_MAX_DIA : UGC_PRECO_MAX_ANTIGO)) continue;
       try{ await fbDb().collection('pecasVendas').doc(doc.id).update({claimed: true, claimedAt: Date.now()}); }catch(e){ continue; }
-      total += Math.floor(ugcPrecoDe(v.price, v.createdAt) * UGC_PARTE_CRIADOR); n++;
+      /* diamante: 70% arredondado pra baixo, mas a venda nunca rende menos de 1 */
+      if(dia){ totalDia += Math.max(1, Math.floor(v.price * UGC_PARTE_CRIADOR)); nDia++; }
+      else { total += Math.floor(ugcPrecoDe(v.price, v.createdAt) * UGC_PARTE_CRIADOR); n++; }
     }
     if(total > 0) addCoins(total, t(n === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n}));
+    if(totalDia > 0) addDiamonds(totalDia, t(nDia === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n: nDia}));
   }catch(e){}
   ugcConferindo = false;
 }
@@ -34136,7 +34154,7 @@ function ugcCartaoHtml(id, alvo){
   const minha = ugcEhMinha(id), usando = alvo.ugc === id, eu = !!m.criador && m.criador === meuUid;
   const etiq = usando ? '<span class="pz-ok">' + t('theme_in_use') + '</span>'
     : minha ? '<span class="pz-ok">' + t('theme_use') + '</span>'
-    : '<span class="pz-pr">' + (m.preco ? ICONS.coin + ' ' + kshopMilhar(m.preco) : esc(t('ugc_gratis'))) + '</span>';
+    : '<span class="pz-pr">' + (m.preco ? ugcPrecoTxt(m) : esc(t('ugc_gratis'))) + '</span>';
   return '<div class="ugc-cartao"><button type="button" class="pz-op' + (usando ? ' on' : '') + '" data-ugc-op="' + id + '" title="' + esc(m.nome) + '">'
     + '<span class="pz-mini corpo" style="background:' + pzFundo(c2) + '">' + pzSvg(c2, 'corpo') + '</span>'
     + '<span class="pz-n">' + esc(m.nome) + '</span><span class="ugc-por">' + esc(t('ugc_por', {nome: m.criadorNome || '?'})) + '</span>' + etiq + '</button>'
@@ -34151,7 +34169,7 @@ function ugcDaCategoria(tipo){
   const ids = minhas.concat((E.lista || []).filter(id=>minhas.indexOf(id) < 0));
   return ids.map(id=>{
     const d = E.cache.get(id), m = E.meta.get(id);
-    return d && m && d.tipo === tipo ? {id, preco: Number(m.preco) || 0, minha: minhas.indexOf(id) >= 0} : null;
+    return d && m && d.tipo === tipo ? {id, preco: Number(m.preco) || 0, dia: ugcMoedaDe(m) === 'd', minha: minhas.indexOf(id) >= 0} : null;
   }).filter(Boolean);
 }
 /* a janela de comprar uma peça (aoComprar: depois de comprar, pra vestir) */
@@ -34164,12 +34182,12 @@ function ugcPerguntarCompra(id, alvo, aoComprar){
   kbsDialogo(`<h3 class="kbs-dlg-tit">${esc(m.nome)}</h3>
     <div class="ugc-compra-ver"><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo')}</span><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo', 'costas')}</span></div>
     <p class="kbs-dlg-dica">${esc(t('ugc_por', {nome: m.criadorNome || '?'}))}</p>
-    <div class="kbs-dlg-btns col"><button type="button" class="kbs-btn" data-ok>${m.preco ? ICONS.coin + ' ' + esc(t('ugc_comprar', {n: kshopMilhar(m.preco)})) : esc(t('ugc_pegar'))}</button></div>
+    <div class="kbs-dlg-btns col"><button type="button" class="kbs-btn" data-ok>${m.preco ? (ugcMoedaDe(m) === 'd' ? ICONS.diamond : ICONS.coin) + ' ' + esc(t('ugc_comprar', {n: kshopMilhar(m.preco)})) : esc(t('ugc_pegar'))}</button></div>
     <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
     bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
     bg.querySelector('[data-ok]').addEventListener('click', ()=>{
       const r = ugcComprar(id);
-      if(!r.ok){ toast(r.motivo === 'moedas' ? t('ugc_falta', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'conta' ? t('ugc_sem_conta') : t('ugc_erro')); return; }
+      if(!r.ok){ toast(r.motivo === 'moedas' ? t('ugc_falta', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'diamantes' ? t('troca_falta_dia', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'conta' ? t('ugc_sem_conta') : t('ugc_erro')); return; }
       fechar(); toast(t('ugc_comprou'));
       if(typeof aoComprar === 'function') aoComprar();
     });
@@ -34541,7 +34559,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
   const lerLado = a=>(Array.isArray(a) && a.length === N) ? a.map(c=>typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c) ? c.toUpperCase() : null) : new Array(N).fill(null);
   const E = {lados: {frente: lerLado(r && r.px), costas: lerLado(r && r.pxC)}, lado: 'frente',
     tipo: UGC_TIPOS.indexOf(tipoInicial) >= 0 ? tipoInicial : (r && UGC_TIPOS.indexOf(r.tipo) >= 0 ? r.tipo : 'roupa'), cor: '#E8413C', ferr: 'pincel', espelho: false, guia: true, desfaz: [], refaz: [], recentes: (r && Array.isArray(r.recentes) ? r.recentes : []).slice(0, 12),
-    passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', preco: r && Number.isFinite(r.preco) ? Math.max(0, Math.min(UGC_PRECO_MAX, r.preco)) : 35,
+    passo: 1, nome: r && typeof r.nome === 'string' ? r.nome : '', moeda: r && r.moeda === 'd' ? 'd' : 'c', preco: r && Number.isFinite(r.preco) ? Math.max(0, Math.min(r.moeda === 'd' ? UGC_PRECO_MAX_DIA : UGC_PRECO_MAX, r.preco)) : 35,
     fotos: {frente: null, costas: null}, editando: false,
     texto: r && typeof r.texto === 'string' ? ugcTextoLimpo(r.texto) : '10', cheio: true, kit: false};
   /* a foto de cada lado: {s, ar, w, x, y, img} (x, y, w em quadradinhos). "editando" = arrastando/mudando o tamanho agora */
@@ -34561,7 +34579,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
   Object.defineProperty(E, 'px', {get(){ return E.lados[E.lado]; }, set(v){ E.lados[E.lado] = v; }});
   let mascara = ugcMascara(E.tipo);
   const fotoRasc = F=>F ? {s: F.s, ar: F.ar, w: F.w, x: F.x, y: F.y} : null;
-  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco, texto: E.texto,
+  const salvarRascunho = ()=>{ try{ localStorage.setItem(UGC_RASCUNHO_KEY, JSON.stringify({px: E.lados.frente, pxC: E.lados.costas, tipo: E.tipo, recentes: E.recentes, nome: E.nome, preco: E.preco, moeda: E.moeda, texto: E.texto,
     fotos: {frente: fotoRasc(E.fotos.frente), costas: fotoRasc(E.fotos.costas)}})); }catch(e){} };
   const bg = document.createElement('div');
   bg.className = 'ugc-ed';
@@ -34640,9 +34658,12 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
           <div class="ugc-previa"><figure><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo')}</span><figcaption>${esc(t('ugc_frente'))}</figcaption></figure>
             <figure><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo', 'costas')}</span><figcaption>${esc(t('ugc_costas'))}</figcaption></figure></div>
           <label class="ugc-campo"><span>${esc(t('ugc_nome'))}</span><input type="text" data-nome maxlength="24" value="${esc(E.nome)}" autocomplete="off"></label>
-          <label class="ugc-campo"><span>${esc(t('ugc_preco'))}</span><input type="number" data-preco min="0" max="${UGC_PRECO_MAX}" step="10" value="${E.preco}" inputmode="numeric"></label>
-          <div class="ugc-precos">${[0, 15, 35, 85, 165, 335, 850, 1650].map(n=>`<button type="button" data-p="${n}"${n === E.preco ? ' class="on"' : ''}>${n ? kshopMilhar(n) : esc(t('ugc_gratis'))}</button>`).join('')}</div>
-          <p class="ugc-dica">${esc(t('ugc_70'))}</p>
+          <div class="ugc-moeda" role="radiogroup" aria-label="${esc(t('ugc_vender_por'))}"><span>${esc(t('ugc_vender_por'))}</span>
+            <button type="button" data-moeda="c" role="radio"${E.moeda !== 'd' ? ' class="on" aria-checked="true"' : ' aria-checked="false"'}>${ICONS.coin} ${esc(t('ugc_moedas'))}</button>
+            <button type="button" data-moeda="d" role="radio"${E.moeda === 'd' ? ' class="on" aria-checked="true"' : ' aria-checked="false"'}>${ICONS.diamond} ${esc(t('ugc_diamantes'))}</button></div>
+          <label class="ugc-campo"><span data-preco-tit>${esc(t(E.moeda === 'd' ? 'ugc_preco_dia' : 'ugc_preco'))}</span><input type="number" data-preco min="0" max="${E.moeda === 'd' ? UGC_PRECO_MAX_DIA : UGC_PRECO_MAX}" step="${E.moeda === 'd' ? 1 : 10}" value="${E.preco}" inputmode="numeric"></label>
+          <div class="ugc-precos" data-precos></div>
+          <p class="ugc-dica" data-dica70>${esc(t(E.moeda === 'd' ? 'ugc_70_dia' : 'ugc_70'))}</p>
           <p class="ugc-dica ugc-regras">${esc(t('ugc_regras'))}</p>
           <button type="button" class="kbs-btn ugc-publicar" data-publicar>${esc(t('ugc_publicar'))}</button>
         </div>`;
@@ -35070,10 +35091,33 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
     bg.querySelector('[data-voltar]').addEventListener('click', ()=>{ playSound('click'); E.passo = 1; desenhaTela(); });
     const nome = bg.querySelector('[data-nome]'), preco = bg.querySelector('[data-preco]');
     nome.addEventListener('input', ()=>{ E.nome = nome.value; salvarRascunho(); });
-    preco.addEventListener('input', ()=>{ E.preco = Math.max(0, Math.min(UGC_PRECO_MAX, Math.floor(Number(preco.value) || 0))); salvarRascunho();
+    /* vender por moedas ou por diamantes: cada um tem os preços prontos dele */
+    const maxPreco = ()=>E.moeda === 'd' ? UGC_PRECO_MAX_DIA : UGC_PRECO_MAX;
+    const pintarPrecos = ()=>{
+      const lista = E.moeda === 'd' ? [0, 1, 2, 3, 5, 8, 12, 20] : [0, 15, 35, 85, 165, 335, 850, 1650];
+      bg.querySelector('[data-precos]').innerHTML = lista.map(n=>`<button type="button" data-p="${n}"${n === E.preco ? ' class="on"' : ''}>${n ? (E.moeda === 'd' ? ICONS.diamond + ' ' : '') + kshopMilhar(n) : esc(t('ugc_gratis'))}</button>`).join('');
+      bg.querySelector('[data-preco-tit]').textContent = t(E.moeda === 'd' ? 'ugc_preco_dia' : 'ugc_preco');
+      bg.querySelector('[data-dica70]').textContent = t(E.moeda === 'd' ? 'ugc_70_dia' : 'ugc_70');
+      preco.max = maxPreco(); preco.step = E.moeda === 'd' ? 1 : 10;
+      bg.querySelectorAll('[data-moeda]').forEach(b=>{ b.classList.toggle('on', b.dataset.moeda === E.moeda); b.setAttribute('aria-checked', b.dataset.moeda === E.moeda ? 'true' : 'false'); });
+    };
+    pintarPrecos();
+    bg.querySelectorAll('[data-moeda]').forEach(b=>b.addEventListener('click', ()=>{
+      if(E.moeda === b.dataset.moeda) return;
+      playSound('click');
+      E.moeda = b.dataset.moeda;
+      E.preco = E.moeda === 'd' ? 3 : 35;            // trocou a moeda: começa num preço que faz sentido pra ela
+      preco.value = E.preco;
+      pintarPrecos(); salvarRascunho();
+    }));
+    preco.addEventListener('input', ()=>{ E.preco = Math.max(0, Math.min(maxPreco(), Math.floor(Number(preco.value) || 0))); salvarRascunho();
       bg.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on', Number(b.dataset.p) === E.preco)); });
-    bg.querySelectorAll('[data-p]').forEach(b=>b.addEventListener('click', ()=>{ E.preco = Number(b.dataset.p); preco.value = E.preco; playSound('click'); salvarRascunho();
-      bg.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('on', x === b)); }));
+    bg.querySelector('[data-precos]').addEventListener('click', ev=>{
+      const b = ev.target.closest('[data-p]');
+      if(!b) return;
+      E.preco = Number(b.dataset.p); preco.value = E.preco; playSound('click'); salvarRascunho();
+      bg.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('on', x === b));
+    });
     const pub = bg.querySelector('[data-publicar]');
     pub.addEventListener('click', async ()=>{
       if(pub.disabled) return;
@@ -35098,7 +35142,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
       tela.etapa(1);
       await new Promise(r=>setTimeout(r, 380));
       tela.etapa(2);
-      const r = await ugcPublicar(E.lados.frente, E.lados.costas, E.tipo, nome.value, E.preco, fotosParaPeca());
+      const r = await ugcPublicar(E.lados.frente, E.lados.costas, E.tipo, nome.value, E.preco, fotosParaPeca(), E.moeda);
       if(!r.ok){
         tela.falhou(2, t('ugc_conf_erro_tit'), [t({conta: 'ugc_sem_conta', pouco: 'ugc_pouco', nome_curto: 'ugc_nome_curto', cores: 'ugc_muitas_cores'}[r.motivo] || 'ugc_erro')], t('ugc_conf_voltar'), ()=>{ pub.disabled = false; });
         return;
@@ -35733,6 +35777,11 @@ var PZ_TXT = {
  ugc_frente:'Frente|Front|Frente|Davanti|Face|Vorne|Voorkant|前|正面|앞',
  ugc_costas:'Costas|Back|Espalda|Dietro|Dos|Hinten|Achterkant|後ろ|背面|뒤',
  ugc_nome:'Nome da peça|Item name|Nombre de la prenda|Nome del capo|Nom de la pièce|Name des Teils|Naam van het item|アイテム名|作品名称|아이템 이름',
+ ugc_vender_por:'Vender por|Sell for|Vender por',
+ ugc_moedas:'Moedas|Coins|Monedas',
+ ugc_diamantes:'Diamantes|Diamonds|Diamantes',
+ ugc_preco_dia:'Preço (diamantes)|Price (diamonds)|Precio (diamantes)',
+ ugc_70_dia:'Você ganha 70% de cada venda em diamantes (no mínimo 1 por venda).|You get 70% of each sale in diamonds (at least 1 per sale).|Ganas el 70% de cada venta en diamantes (al menos 1 por venta).',
  ugc_preco:'Preço (moedas)|Price (coins)|Precio (monedas)|Prezzo (monete)|Prix (pièces)|Preis (Münzen)|Prijs (munten)|値段（コイン）|价格（金币）|가격(코인)',
  ugc_70:'Você ganha 70% de cada venda. Quem compra vê seu nome na peça.|You get 70% of every sale. Buyers see your name on the item.|Ganas el 70% de cada venta. Quien compra ve tu nombre en la prenda.|Ricevi il 70% di ogni vendita. Chi compra vede il tuo nome.|Tu gagnes 70 % de chaque vente. Les acheteurs voient ton nom.|Du bekommst 70 % jedes Verkaufs. Käufer sehen deinen Namen.|Je krijgt 70% van elke verkoop. Kopers zien jouw naam.|売れるたびに70%がもらえます。買った人にはあなたの名前が見えます。|每卖出一件你得到70%，买家能看到你的名字。|팔릴 때마다 70%를 받아요. 구매자에게 내 이름이 보여요.',
  ugc_regras:'Pode desenhar quase tudo: times, marcas, bandeiras, memes, monstros… Só não pode: partes íntimas, símbolos de ódio (como a suástica), gesto ou palavrão, e foto do rosto de pessoas de verdade.|You can draw almost anything: teams, brands, flags, memes, monsters… Just not: private parts, hate symbols (like the swastika), rude gestures or swear words, or photos of real people’s faces.|Puedes dibujar casi todo: equipos, marcas, banderas, memes, monstruos… Solo no: partes íntimas, símbolos de odio (como la esvástica), gestos o groserías, ni fotos de caras de personas reales.|Puoi disegnare quasi tutto: squadre, marchi, bandiere, meme, mostri… Solo no: parti intime, simboli d’odio (come la svastica), gesti o parolacce, né foto di volti di persone vere.|Tu peux dessiner presque tout : équipes, marques, drapeaux, mèmes, monstres… Sauf : parties intimes, symboles de haine (comme la croix gammée), gestes ou gros mots, ni photos du visage de vraies personnes.|Du darfst fast alles malen: Teams, Marken, Flaggen, Memes, Monster… Nur nicht: Intimbereiche, Hasssymbole (wie das Hakenkreuz), Gesten oder Schimpfwörter und keine Fotos von Gesichtern echter Menschen.|Je mag bijna alles tekenen: teams, merken, vlaggen, memes, monsters… Alleen niet: intieme delen, haatsymbolen (zoals het hakenkruis), gebaren of scheldwoorden, en geen foto’s van gezichten van echte mensen.|ほとんど何でも描けるよ：チーム、ブランド、国旗、ミーム、モンスター…。ダメなのは、体の大事なところ、にくしみのマーク（かぎ十字など）、下品なジェスチャーや悪口、本物の人の顔の写真だけ。|几乎什么都能画：球队、品牌、国旗、表情包、怪物……只是不能画：私密部位、仇恨符号（比如纳粹标志）、不雅手势或脏话，也不能放真人脸部的照片。|거의 다 그려도 돼요: 팀, 브랜드, 국기, 밈, 괴물… 안 되는 건 신체 은밀한 부위, 혐오 상징(나치 문양 등), 욕이나 나쁜 손동작, 그리고 실제 사람 얼굴 사진이에요.',
@@ -37330,7 +37379,7 @@ function pzPainelHtml(ctx){
     });
     let criadas = [];
     if(tipoUgc){
-      criadas = ugcDaCategoria(tipoUgc).map((u, i)=>({grupo: u.preco ? 1 : 0, preco: u.preco, i: -1000 + i, minha: u.minha, html: ugcCartaoHtml(u.id, alvo)}));
+      criadas = ugcDaCategoria(tipoUgc).map((u, i)=>({grupo: u.preco ? 1 : 0, preco: u.dia ? u.preco * KSHOP_PRECO : u.preco, i: -1000 + i, minha: u.minha, html: ugcCartaoHtml(u.id, alvo)}));
     }
     const todos = itens.concat(criadas).sort((a, b)=>(a.grupo - b.grupo) || (a.preco - b.preco) || (a.i - b.i));
     const tileCriar = tipoUgc ? '<button type="button" class="pz-op pz-criar" data-ugc-criar="' + tipoUgc + '"><span class="pz-criar-mais" aria-hidden="true">＋</span><span class="pz-n">' + esc(t('ugc_criar_curto')) + '</span><span class="pz-ok">' + esc(t('ugc_criar_dica')) + '</span></button>' : '';
