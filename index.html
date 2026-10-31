@@ -12963,6 +12963,36 @@ function rememberAccount(email, name, avatar, provider){
 function forgetAccount(email){
   saveKnownAccounts(loadKnownAccounts().filter(a=>a.email!==email));
 }
+/* ============================================================
+   PRÊMIOS DO DIA (os que o tour mostra logo no começo)
+   - Mandou o Koda (ou um jogo) pra alguém: +10 moedas na hora, até 5 vezes por dia.
+   - Jogou 30 minutos no dia (somando todos os jogos): +100 moedas, uma vez por dia.
+   Fica no aparelho e zera a cada dia. (O prêmio do convite, abaixo, continua: quando o amigo joga 30 minutos.)
+============================================================ */
+const PREMIO_ENVIO = 10, PREMIO_ENVIO_MAX_DIA = 5, PREMIO_TEMPO = 100, PREMIO_TEMPO_SEG = 1800;
+const PREMIO_DIA_KEY = 'koda_premios_dia';
+function premioHoje(){ const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function premioLer(){
+  try{ const o = JSON.parse(localStorage.getItem(PREMIO_DIA_KEY)); if(o && o.dia === premioHoje()) return o; }catch(e){}
+  return {dia: premioHoje(), env: 0, seg: 0, pago: false};
+}
+function premioGravar(o){ try{ localStorage.setItem(PREMIO_DIA_KEY, JSON.stringify(o)); }catch(e){} }
+function premioPorEnvio(){
+  if(souVisitante()) return 0;
+  const o = premioLer();
+  if(o.env >= PREMIO_ENVIO_MAX_DIA) return 0;
+  o.env++; premioGravar(o);
+  addCoins(PREMIO_ENVIO, t('premio_envio_why'));
+  return PREMIO_ENVIO;
+}
+function premioPorTempo(seg){
+  if(souVisitante()) return;
+  const o = premioLer();
+  if(o.pago) return;
+  o.seg += Math.max(0, Math.floor(Number(seg) || 0));
+  if(o.seg >= PREMIO_TEMPO_SEG){ o.pago = true; premioGravar(o); addCoins(PREMIO_TEMPO, t('premio_tempo_why')); }
+  else premioGravar(o);
+}
 /* compartilhar rende moeda: 35 moedas por amigo que JOGAR 30 minutos, até 10 amigos (ver premiarCompartilhamento) */
 const COMPARTILHOU_KEY = 'jogodromo_compartilhou';
 const COMPARTILHAR_MAX = 10;
@@ -20748,7 +20778,8 @@ async function compartilharAgora(alvo){
     }
   }catch(e){ /* a pessoa cancelou */ }
   if(feito && ehJogo){ try{ msGuardarId('compartilhar', alvo.g.id); }catch(e){} }   // missão "compartilhe jogos"
-  return feito;   // as moedas só vêm quando um amigo diferente entra pelo link
+  if(feito){ try{ premioPorEnvio(); }catch(e){} }          // +10 moedas na hora (até 5 por dia); o prêmio maior vem quando o amigo joga
+  return feito;
 }
 /* o cartão que abre ao tocar no ícone de compartilhar */
 function abrirCartaoCompartilhar(alvo){
@@ -20760,6 +20791,7 @@ function abrirCartaoCompartilhar(alvo){
       <div class="share-card-icon">${ICONS.share}</div>
       <p class="confirm-msg">${t('share_card_title')}</p>
       <p class="share-card-sub" id="shareCardSub"></p>
+      <p class="share-card-sub share-card-agora">${t('premio_envio_cartao', {n: PREMIO_ENVIO, max: PREMIO_ENVIO_MAX_DIA})}</p>
       <div class="share-card-dots" id="shareCardDots">${Array.from({length: COMPARTILHAR_MAX}, ()=>`<span class="share-dot">${ICONS.coin}</span>`).join('')}</div>
       <div class="confirm-actions">
         <button class="confirm-ok" id="shareCardGo">${t('menu_share')}</button>
@@ -30738,6 +30770,7 @@ function msTempo(gameId, seg){
   seg = Math.floor(Number(seg) || 0);
   if(!gameId || seg <= 0) return;
   try{ conviteContarTempo(seg); }catch(e){}          // quem entrou por convite: esses segundos contam pra quem indicou
+  try{ premioPorTempo(seg); }catch(e){}              // 30 minutos jogando no dia = +100 moedas
   try{ nivelTempo(seg); }catch(e){}                  // XP do nível do jogador
   msEvento(rec=>{
     rec.s += seg;
@@ -35611,6 +35644,10 @@ var PZ_TXT = {
  tour_diarios:'Todo dia tem presente! Sequência de dias, baú grátis e roleta. Passa aqui sempre.|There’s a gift every day! Daily streak, free chest and prize wheel. Come back here often.|¡Hay regalo todos los días! Racha de días, cofre gratis y ruleta. Pasa por aquí siempre.|C’è un regalo ogni giorno! Serie di giorni, baule gratis e ruota. Passa di qui spesso.|Il y a un cadeau chaque jour ! Série de jours, coffre gratuit et roue. Passe ici souvent.|Jeden Tag gibt es ein Geschenk! Tagesserie, Gratis-Truhe und Glücksrad. Schau oft vorbei.|Elke dag een cadeau! Dagenreeks, gratis kist en rad. Kom hier vaak langs.|毎日プレゼントがあるよ！連続ログイン、無料の宝箱、ルーレット。いつも見に来てね。|每天都有礼物！连续签到、免费宝箱和转盘，记得常来看看。|매일 선물이 있어! 연속 출석, 무료 상자, 룰렛. 자주 들러 줘.',
  tour_studio:'Esse é o Koda Studio. Aqui você cria o seu próprio jogo e publica pra todo mundo jogar!|This is Koda Studio. Here you make your own game and publish it for everyone to play!|Este es Koda Studio. ¡Aquí creas tu propio juego y lo publicas para que todos jueguen!|Questo è Koda Studio. Qui crei il tuo gioco e lo pubblichi perché tutti ci giochino!|Voici Koda Studio. Ici, tu crées ton propre jeu et tu le publies pour que tout le monde y joue !|Das ist Koda Studio. Hier baust du dein eigenes Spiel und veröffentlichst es für alle!|Dit is Koda Studio. Hier maak je je eigen game en publiceer je hem zodat iedereen kan spelen!|これはKoda Studio。ここで自分だけのゲームを作って、みんなに公開できるよ！|这是 Koda Studio。你可以在这里做自己的游戏，发布给大家玩！|여기는 Koda Studio야. 여기서 너만의 게임을 만들고 모두가 할 수 있게 올릴 수 있어!',
  tour_kshop:'Na Koda shop você troca moedas por diamantes e compra baús cheios de prêmios.|In the Koda shop you swap coins for diamonds and buy chests full of prizes.|En la Koda shop cambias monedas por diamantes y compras cofres llenos de premios.|Nel Koda shop scambi monete con diamanti e compri bauli pieni di premi.|Dans la Koda shop, tu échanges des pièces contre des diamants et tu achètes des coffres pleins de cadeaux.|Im Koda Shop tauschst du Münzen gegen Diamanten und kaufst Truhen voller Preise.|In de Koda shop ruil je munten voor diamanten en koop je kisten vol prijzen.|Koda shopでは、コインをダイヤにかえたり、ごほうびいっぱいの宝箱を買えたりするよ。|在 Koda shop，你可以用金币换钻石，还能买装满奖励的宝箱。|Koda shop에서는 코인을 다이아몬드로 바꾸고, 상품이 가득한 상자를 살 수 있어.',
+ tour_ganhar:'Quer mais moedas? Mande o Koda pra alguém e ganhe {n1} moedas na hora! E jogando 30 minutos no dia você ganha {n2} moedas.|Want more coins? Send Koda to someone and get {n1} coins right away! And play for 30 minutes in a day to get {n2} coins.|¿Quieres más monedas? ¡Manda Koda a alguien y gana {n1} monedas al instante! Y si juegas 30 minutos en el día, ganas {n2} monedas.',
+ premio_envio_why:'Você mandou pra alguém!|You sent it to someone!|¡Lo mandaste a alguien!',
+ premio_tempo_why:'30 minutos jogando hoje!|30 minutes of play today!|¡30 minutos jugando hoy!',
+ premio_envio_cartao:'Mandou pra alguém: +{n} moedas na hora (até {max} vezes por dia).|Sent it to someone: +{n} coins right away (up to {max} times a day).|Lo mandaste a alguien: +{n} monedas al instante (hasta {max} veces al día).',
  tour_moedas:'Essas são suas moedas e diamantes. Você ganha jogando e usa na loja.|These are your coins and diamonds. You earn them by playing and spend them in the shop.|Estas son tus monedas y diamantes. Los ganas jugando y los usas en la tienda.|Queste sono le tue monete e i tuoi diamanti. Li guadagni giocando e li usi nel negozio.|Voici tes pièces et tes diamants. Tu les gagnes en jouant et tu les utilises à la boutique.|Das sind deine Münzen und Diamanten. Du verdienst sie beim Spielen und gibst sie im Shop aus.|Dit zijn je munten en diamanten. Je verdient ze door te spelen en gebruikt ze in de winkel.|これはきみのコインとダイヤだよ。遊ぶともらえて、お店で使えるよ。|这是你的金币和钻石。玩游戏就能赚到，可以在商店里用。|이건 너의 코인이랑 다이아몬드야. 게임하면 받고, 상점에서 쓸 수 있어.',
  tour_p_novidades:'Aqui em cima tem as abas. Toque em {aba} pra ver o que tem de novo!|Up here are the tabs. Tap {aba} to see what’s new!|Aquí arriba están las pestañas. ¡Toca {aba} para ver qué hay de nuevo!|Qui sopra ci sono le schede. Tocca {aba} per vedere cosa c’è di nuovo!|Ici en haut, il y a les onglets. Touche {aba} pour voir ce qu’il y a de nouveau !|Hier oben sind die Tabs. Tippe auf {aba}, um zu sehen, was es Neues gibt!|Hierboven staan de tabbladen. Tik op {aba} om te zien wat er nieuw is!|上にはタブがあるよ。「{aba}」をタップして、新しいものを見てみよう！|上面是分类标签。点“{aba}”看看有什么新东西！|위에는 탭이 있어. {aba}을(를) 눌러서 뭐가 새로 나왔는지 봐!',
  tour_p_inicio:'Aqui aparece quando alguém posta um jogo novo ou atualiza um jogo. Agora toque em {aba} pra voltar.|This is where you see when someone posts a new game or updates one. Now tap {aba} to go back.|Aquí aparece cuando alguien publica un juego nuevo o actualiza uno. Ahora toca {aba} para volver.|Qui compare quando qualcuno pubblica un gioco nuovo o ne aggiorna uno. Ora tocca {aba} per tornare.|Ici, tu vois quand quelqu’un publie un nouveau jeu ou en met un à jour. Maintenant, touche {aba} pour revenir.|Hier siehst du, wenn jemand ein neues Spiel postet oder eins aktualisiert. Tippe jetzt auf {aba}, um zurückzugehen.|Hier zie je wanneer iemand een nieuwe game plaatst of er een bijwerkt. Tik nu op {aba} om terug te gaan.|ここには、だれかが新しいゲームを投稿したり更新したりすると出てくるよ。じゃあ「{aba}」をタップしてもどろう。|有人发布新游戏或更新游戏时，就会出现在这里。现在点“{aba}”回去吧。|누가 새 게임을 올리거나 업데이트하면 여기에 나와. 이제 {aba}을(를) 눌러서 돌아가자.',
@@ -37988,6 +38025,7 @@ const TOUR_PASSOS = [
   {id: 'p_novidades',     faca: true, vars: ()=>({aba: t('cat_feed')}), alvo: ()=>tourEl('.cat-chip[data-cat="feed"]'), feito: ()=>categoriaAtual === 'feed', depois: 500},
   {id: 'p_inicio',        faca: true, vars: ()=>({aba: t('cat_home')}), alvo: ()=>tourEl('.cat-chip[data-cat="home"]'), feito: ()=>categoriaAtual === 'home', so: ()=>categoriaAtual === 'feed'},
   {id: 'moedas',          alvo: ()=>tourEl('#coinChip')},
+  {id: 'ganhar',          vars: ()=>({n1: PREMIO_ENVIO, n2: PREMIO_TEMPO}), alvo: ()=>tourVisivel(tourEl('#shareSiteBtn')) ? tourEl('#shareSiteBtn') : tourEl('#coinChip')},
   {id: 'diarios',         alvo: ()=>tourEl('#diarios')},
   {id: 'p_jogo',          faca: true, alvo: ()=>tourEl('#grid > .card:not(.soon)') || tourEl('#grid > .card'), feito: tourModal, depois: 900},
   {id: 'barra',           alvo: ()=>tourEl('#gameControlsBar'), so: tourModal, espera: 25},
