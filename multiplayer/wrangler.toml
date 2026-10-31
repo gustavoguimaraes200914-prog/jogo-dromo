@@ -4,7 +4,7 @@ compatibility_date = "2026-09-16"
 
 # Quem pode abrir salas (o endereço do site). Se um dia você tiver domínio próprio, junte aqui, separado por vírgula.
 [vars]
-ORIGENS = "https://koda.gamersite.workers.dev"
+ORIGENS = "https://koda.gamersite.workers.dev,https://koplay.gamersite.workers.dev"
 
 [[durable_objects.bindings]]
 name = "SALA"
