@@ -21588,6 +21588,7 @@ const KODA_DOC_JOGADOR = `## O personagem de quem joga (use sempre que fizer sen
 Cada criança no Koda tem um personagem em pixel art. Use ele como o herói/jogador do jogo: a criança joga como ela mesma, e isso deixa o jogo muito mais especial. Use \`window.KODA.jogador\` (já existe no ambiente; sempre cheque \`if(window.KODA && window.KODA.jogador)\` e, se não existir ou ainda não chegou, desenhe um personagem simples seu):
 - \`KODA.jogador.aoPronto(function(){ ... })\` — chamada quando o personagem já pode ser desenhado (na hora, se já pode). \`KODA.jogador.pronto()\` diz se já dá.
 - \`KODA.jogador.desenhar(ctx, x, y, altura)\` — desenha o personagem no canvas (x,y = canto de cima à esquerda; a largura é calculada, cerca de 0,76 x a altura). Devolve false se ainda não dá. Use no lugar de um quadrado/bolinha que seria o jogador, com altura de uns 48 a 96 pixels. Para virar pro outro lado: \`ctx.save(); ctx.translate(x+largura, y); ctx.scale(-1,1); KODA.jogador.desenhar(ctx, 0, 0, altura); ctx.restore();\`
+- \`KODA.jogador.andar(ctx, x, y, altura, {direcao: 'frente'|'costas'|'esquerda'|'direita', andando: true|false})\` — igual ao desenhar, mas com a caminhada animada (pernas mexendo) e virado pro lado certo. Use para o jogador que anda pela tela (jogos de plataforma, de explorar, de correr): passe \`andando: true\` enquanto ele se mexe. Também dá pra desenhar uma pose só: \`KODA.jogador.desenhar(ctx, x, y, altura, 'costas')\` (poses: 'frente', 'costas', 'passo1', 'passo2', 'costas1', 'costas2').
 - \`KODA.jogador.nome()\` — o apelido da pessoa (nunca é e-mail). Dá pra escrever "Bem-vindo, <nome>!" ou pôr no placar.
 - \`KODA.jogador.personagem()\` — a imagem pronta (Image), se você precisar dela de outro jeito (por exemplo, em CSS/HTML use \`.src\` dela).
 Em jogos com HTML comum (não canvas), use \`<img>\` com \`image-rendering: pixelated\` e \`.src = KODA.jogador.personagem().src\`. Nunca desenhe o personagem esticado: mantenha a proporção (largura = altura x 22/29).`;
@@ -21629,10 +21630,12 @@ const IA_TAREFAS = {
            doc: ()=>KODA_DOC_ONLINE + '\n\n' + KODA_DOC_JOGADOR},
   loja:   {txt: '- Colocar uma LOJA dentro do jogo que cobra em Koda Coins (moedas) e Koda Diamonds (API abaixo), com itens que façam sentido neste jogo e que funcionem de verdade quando comprados.',
            doc: ()=>KODA_DOC_LOJA},
+  skin:   {txt: '- Fazer a pessoa JOGAR COM A SKIN DELA: o herói/jogador do jogo passa a ser o personagem do Koda de quem está jogando (API abaixo), com a roupa, o cabelo e tudo que ela escolheu. Troque o desenho do jogador (quadrado, bolinha, nave, boneco ou imagem) pelo personagem, com KODA.jogador.andar quando ele anda pela tela. Ajuste o tamanho da área de colisão ao personagem novo sem deixar o jogo mais fácil nem mais difícil. Se fizer sentido, mostre o nome da pessoa (KODA.jogador.nome()) na tela inicial ou no placar. Se o personagem não chegar, o jogo continua com o desenho antigo.',
+           doc: ()=>KODA_DOC_JOGADOR},
   salvar: {txt: '- Fazer o jogo SALVAR A JORNADA de quem joga (API abaixo): a pessoa sai e, quando volta, continua de onde parou. Escolha o que faz sentido guardar neste jogo (fase, pontos, itens, vida, lugar no mapa...) e ponha "Continuar" e "Novo jogo" na tela inicial.',
            doc: ()=>KODA_DOC_SALVAR}
 };
-const IA_ORDEM = ['online', 'loja', 'salvar'];
+const IA_ORDEM = ['skin', 'online', 'loja', 'salvar'];
 function assistenteRegra(tarefas){
   const lista = IA_ORDEM.filter(k=>(Array.isArray(tarefas) ? tarefas : [tarefas]).indexOf(k) >= 0);
   const varias = lista.length > 1;
@@ -21647,14 +21650,14 @@ Regras:
 - Se o jogo já tiver o que foi pedido, só conserte o que estiver quebrado.
 - Responda com UMA frase curta (no idioma: ${(typeof TRAD_NOME_EN !== 'undefined' && TRAD_NOME_EN[currentLang]) || 'Portuguese (Brazil)'}) dizendo o que você fez e depois o ARQUIVO INTEIRO do jogo dentro de um bloco \`\`\`html ... \`\`\` (nunca só as mudanças).
 
-${lista.map(k=>IA_TAREFAS[k].doc()).join('\n\n')}`;
+${lista.filter(k=>!(k === 'skin' && lista.indexOf('online') >= 0)).map(k=>IA_TAREFAS[k].doc()).join('\n\n')}`;   // online já traz a API do personagem
 }
 /* ---------- PERGUNTAR: tirar dúvida com o Agente Koda (por que o jogo não funciona, como criar um jogo, ideias...) ---------- */
 const AJUDA_REGRA = `Você é o Agente Koda, o ajudante do Koda: um site de jogos de navegador onde as próprias pessoas (muitas são crianças) criam e publicam jogos. Responda dúvidas sobre o Koda e sobre criar jogos.
 O que você sabe do Koda:
 - Criar um jogo: no Koda Studio a pessoa cola o CÓDIGO do jogo (um arquivo HTML só, com HTML, CSS e JavaScript juntos). Pra ter esse código ela pode: pedir pra uma IA (como o Claude ou o ChatGPT) escrever o jogo, escrever o código ela mesma (dá pra aprender HTML e JavaScript aos poucos) ou pedir ajuda pra alguém que sabe programar.
 - Botão "Testar": roda o jogo antes de publicar. Ao publicar, o jogo passa por uma análise de segurança e depois é traduzido sozinho pra todas as línguas do Koda (uma rodinha girando no Koda Studio mostra que a tradução está acontecendo).
-- O Agente Koda (o robozinho no Koda Studio) pode: deixar o jogo online (várias pessoas juntas), colocar uma loja de moedas e diamantes no jogo e fazer o jogo salvar a jornada (continuar de onde parou).
+- O Agente Koda (o robozinho no Koda Studio) pode: fazer cada pessoa jogar com a skin dela (o personagem do Koda vira o herói do jogo), deixar o jogo online (várias pessoas juntas), colocar uma loja de moedas e diamantes no jogo e fazer o jogo salvar a jornada (continuar de onde parou).
 - Não pode ter no jogo: preconceito, bullying, política, conteúdo sexual, violência pesada, drogas, apostas, palavrões, pedir senha ou dados pessoais, contato fora do Koda, personagens e marcas famosas, nem imagens, sons ou códigos de outros sites (tudo precisa estar dentro do próprio jogo).
 - Jogo que não funciona ou fica com a tela preta/branca: primeiro atualize a página (ou feche e abra o Koda de novo), feche e abra o jogo, confira a internet e use o "Testar". Depois confira se o código está inteiro (do <!DOCTYPE html> até o </html>), se não usa nada de outro site e se não é grande demais. localStorage não guarda nada dentro dos jogos do Koda: pra salvar use o botão "salvar a jornada" do Agente Koda. Se ainda assim não der, peça pro Agente Koda arrumar ou pra quem fez o código.
 - Ideias de jogos: dê ideias curtas, divertidas e fáceis de fazer (com o nome, como se joga em uma frase e o que deixa legal).
@@ -21864,7 +21867,7 @@ let iaPronto = null;              // terminou com a tela fechada: {codigo, antes
 const iaTelas = new Set();        // as telas com o botão do agente abertas agora (pra mostrar o "Creating" em todas)
 const iaApis = new WeakMap();     // caixa do código -> {aplicar, mostrar}
 function iaRepintar(){ iaTelas.forEach(f=>{ if(f.vivo()) f.pintar(); else iaTelas.delete(f); }); }
-function iaMsgPronto(tarefas){ return t(tarefas.length > 1 ? 'ia_pronto_varios' : tarefas[0] === 'online' ? 'ia_pronto_online' : tarefas[0] === 'salvar' ? 'ia_pronto_salvar' : 'ia_pronto_loja'); }
+function iaMsgPronto(tarefas){ return t(tarefas.length > 1 ? 'ia_pronto_varios' : tarefas[0] === 'online' ? 'ia_pronto_online' : tarefas[0] === 'salvar' ? 'ia_pronto_salvar' : tarefas[0] === 'skin' ? 'ia_pronto_skin' : 'ia_pronto_loja'); }
 /* o botão "Cancelar" do Agente Koda: interrompe o pedido na hora e a tela volta ao normal (o código da caixa não muda) */
 function iaCancelar(){
   const job = iaTrabalho;
@@ -25936,14 +25939,23 @@ const KODA_BRIDGE = '<script>(function(){'
   +   'var d=ev&&ev.data; if(ev.source!==parent||!d||d.__kodaJogador!==1) return;'
   +   'JOG.nome=String(d.nome||""); JOG.personagem=String(d.personagem||"");'
   +   'if(d.img){ var im=new Image(); im.onload=function(){ JOG.img=im; var l=jogOuv.slice(); jogOuv=[]; l.forEach(function(f){ try{ f(); }catch(e){} }); }; im.src=d.img; }'
+  +   'JOG.poses={}; if(d.poses&&typeof d.poses==="object") Object.keys(d.poses).forEach(function(k){ if(typeof d.poses[k]==="string"&&d.poses[k].indexOf("data:image/")===0){ var p=new Image(); p.src=d.poses[k]; JOG.poses[k]=p; } });'
   + '});'
+  + 'function jogPose(nome){ var m={frente:null,costas:"costas",passo1:"p1",passo2:"p2",costas1:"costas1",costas2:"costas2"}; var k=m[nome]; var im=k&&JOG.poses?JOG.poses[k]:null; return im&&im.naturalWidth>0?im:JOG.img; }'
   + 'window.KODA.jogador={'
   +   'nome:function(){ return JOG.nome; },'
   +   'personagem:function(){ return JOG.img; },'
   +   'pronto:function(){ return !!JOG.img; },'
   +   'aoPronto:function(f){ if(typeof f!=="function") return; if(JOG.img) f(); else jogOuv.push(f); },'
   +   'desenharImagem:function(ctx,im,x,y,h){ if(!ctx||!im||!(im.naturalWidth>0)) return false; h=Number(h)||64; ctx.save(); ctx.imageSmoothingEnabled=false; ctx.drawImage(im,x,y,h*22/29,h); ctx.restore(); return true; },'
-  +   'desenhar:function(ctx,x,y,h){ return window.KODA.jogador.desenharImagem(ctx,JOG.img,x,y,h); }'
+  +   'desenhar:function(ctx,x,y,h,pose){ return window.KODA.jogador.desenharImagem(ctx,pose?jogPose(pose):JOG.img,x,y,h); },'
+  +   'pose:function(nome){ return jogPose(nome); },'
+  /* andar(ctx,x,y,h,{direcao:"frente"|"costas"|"esquerda"|"direita", andando:true}): escolhe o passo da caminhada sozinho */
+  +   'andar:function(ctx,x,y,h,o){ o=o||{}; h=Number(h)||64; var dir=o.direcao||"frente", costas=dir==="costas", q=o.andando?Math.floor(Date.now()/118)%4:1;'
+  +     'var nome=q===0?(costas?"costas1":"passo1"):q===2?(costas?"costas2":"passo2"):(costas?"costas":"frente");'
+  +     'var pulo=o.andando&&q%2===0?h*0.03:0, w=h*22/29;'
+  +     'if(dir==="esquerda"){ ctx.save(); ctx.translate(x+w,0); ctx.scale(-1,1); var r=window.KODA.jogador.desenhar(ctx,0,y-pulo,h,nome); ctx.restore(); return r; }'
+  +     'return window.KODA.jogador.desenhar(ctx,x,y-pulo,h,nome); }'
   + '};'
   + 'manda("jogadorPedir",1);'
   + '(' + kodaOnlineNoJogo.toString() + ')(manda);'
@@ -35617,6 +35629,8 @@ var PZ_TXT = {
  ia_trabalhando:'Trabalhando… (1 ou 2 minutos)|Working… (1 or 2 minutes)|Trabajando… (1 o 2 minutos)|Al lavoro… (1 o 2 minuti)|Ça travaille… (1 ou 2 minutes)|Arbeitet… (1–2 Minuten)|Bezig… (1 of 2 minuten)|作業中…（1〜2分）|处理中……（1到2分钟）|작업 중… (1~2분)',
  ia_pronto_online:'Pronto! Seu jogo agora é online. Toque em Testar pra ver.|Done! Your game is online now. Tap Test to see it.|¡Listo! Tu juego ahora es online. Toca Probar para verlo.|Fatto! Il tuo gioco ora è online. Tocca Prova per vederlo.|C’est fait ! Ton jeu est en ligne. Touche Tester pour voir.|Fertig! Dein Spiel ist jetzt online. Tippe auf Testen.|Klaar! Je game is nu online. Tik op Testen om te kijken.|できた！ゲームがオンラインになったよ。「テスト」で見てみてね。|好了！你的游戏现在可以联机了。点“测试”看看。|완료! 이제 게임이 온라인이에요. 테스트를 눌러 보세요.',
  ia_pronto_loja:'Pronto! Seu jogo agora tem loja. Toque em Testar pra ver.|Done! Your game has a shop now. Tap Test to see it.|¡Listo! Tu juego ahora tiene tienda. Toca Probar para verlo.|Fatto! Il tuo gioco ora ha un negozio. Tocca Prova per vederlo.|C’est fait ! Ton jeu a une boutique. Touche Tester pour voir.|Fertig! Dein Spiel hat jetzt einen Shop. Tippe auf Testen.|Klaar! Je game heeft nu een winkel. Tik op Testen om te kijken.|できた！ゲームにショップが入ったよ。「テスト」で見てみてね。|好了！你的游戏现在有商店了。点“测试”看看。|완료! 이제 게임에 상점이 있어요. 테스트를 눌러 보세요.',
+ ia_skin:'Jogar com a skin de quem joga|Play as the player’s own skin|Jugar con la skin de quien juega',
+ ia_pronto_skin:'Pronto! Agora cada pessoa joga com a skin dela. Toque em Testar pra ver.|Done! Now everyone plays as their own skin. Tap Test to see it.|¡Listo! Ahora cada persona juega con su propia skin. Toca Probar para verlo.',
  ia_salvar:'Salvar a jornada de quem joga|Save the player’s journey|Guardar el progreso de quien juega|Salva i progressi di chi gioca|Sauvegarder la progression du joueur|Spielstand speichern|Voortgang van de speler opslaan|プレイの続きをセーブする|保存玩家的游戏进度|플레이 진행 상황 저장하기',
  ia_pronto_salvar:'Pronto! Seu jogo agora salva a jornada. Toque em Testar pra ver.|Done! Your game now saves the player’s journey. Tap Test to see it.|¡Listo! Tu juego ahora guarda el progreso. Toca Probar para verlo.|Fatto! Il tuo gioco ora salva i progressi. Tocca Prova per vederlo.|C’est fait ! Ton jeu sauvegarde la progression. Touche Tester pour voir.|Fertig! Dein Spiel speichert jetzt den Spielstand. Tippe auf Testen.|Klaar! Je game slaat de voortgang nu op. Tik op Testen om te kijken.|できた！ゲームがプレイの続きをセーブするようになったよ。「テスト」で見てみてね。|好了！你的游戏现在可以保存进度了。点“测试”看看。|완료! 이제 게임이 진행 상황을 저장해요. 테스트를 눌러 보세요.',
  salvo_ok:'Jornada salva!|Progress saved!|¡Progreso guardado!|Progressi salvati!|Progression sauvegardée !|Spielstand gespeichert!|Voortgang opgeslagen!|セーブしたよ！|进度已保存！|저장했어요!',
@@ -37231,7 +37245,10 @@ function pzImagemDe(codigo, variante){
 function jogadorParaJogo(){
   let cod = '';
   try{ cod = souVisitante() ? pzCodigo(pzNorm(PZ_PADRAO)) : meuCodigo(); }catch(e){ cod = pzCodigo(pzNorm(PZ_PADRAO)); }
-  return {nome: onlineNome(), personagem: cod, img: pzImagemDe(cod)};
+  /* as poses: de costas e os passos da caminhada (as mesmas da praça), pro personagem andar dentro do jogo */
+  const poses = {};
+  ['costas', 'p1', 'p2', 'costas1', 'costas2'].forEach(v=>{ try{ const u = pzImagemDe(cod, v); if(u) poses[v] = u; }catch(e){} });
+  return {nome: onlineNome(), personagem: cod, img: pzImagemDe(cod), poses};
 }
 window.addEventListener('message', function(ev){
   const d = ev.data;
