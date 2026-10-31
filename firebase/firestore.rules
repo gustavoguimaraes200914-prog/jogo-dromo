@@ -60,13 +60,30 @@ service cloud.firestore {
     match /gameSubmissions/{gameId} {
       function camposDoEnvio() {
         return ['id', 'name', 'category', 'bg', 'cover', 'shape', 'codeB64', 'hasDifficulty', 'multiplayerCounts', 'trad',
-                'creatorEmail', 'creatorUid', 'creatorName', 'updatedAt', 'status', 'enviadoEm', 'lang'];
+                'creatorEmail', 'creatorUid', 'creatorName', 'updatedAt', 'status', 'enviadoEm', 'lang', 'coautores'];
       }
-      allow read: if souAdmin() || (logado() && (resource == null || resource.data.creatorEmail == meuEmail()));
+      // jogo feito em dupla ('dupla_<projeto>'): os dois membros do projeto mandam, sempre em nome do projeto
+      function projetoDoJogo(gameId) {
+        return /databases/$(database)/documents/projetosDupla/$(gameId.split('_')[1]);
+      }
+      function souDaDupla(gameId) {
+        return gameId.matches('dupla_[a-z0-9]{8,30}') && exists(projetoDoJogo(gameId))
+            && meuEmail() in get(projetoDoJogo(gameId)).data.membros;
+      }
+      function envioDaDupla(gameId) {
+        return souDaDupla(gameId)
+            && request.resource.data.creatorEmail == get(projetoDoJogo(gameId)).data.criador
+            && request.resource.data.coautores == get(projetoDoJogo(gameId)).data.membros;
+      }
+      function envioMeu() {
+        return request.resource.data.creatorEmail == meuEmail() && !('coautores' in request.resource.data);
+      }
+      allow read: if souAdmin() || (logado() && (resource == null || resource.data.creatorEmail == meuEmail() || souDaDupla(gameId)));
       // o id não pode ser de um jogo que já está no catálogo em nome de outra pessoa
       function idLivreOuMeu(gameId) {
         return !exists(/databases/$(database)/documents/publicGames/$(gameId))
-            || get(/databases/$(database)/documents/publicGames/$(gameId)).data.creatorEmail == meuEmail();
+            || get(/databases/$(database)/documents/publicGames/$(gameId)).data.creatorEmail == meuEmail()
+            || souDaDupla(gameId);
       }
       function formatoOk() {
         return request.resource.data.name is string && request.resource.data.name.size() <= 120
@@ -77,12 +94,11 @@ service cloud.firestore {
                     && gameId.matches('[A-Za-z0-9_-]{1,150}')
                     && idLivreOuMeu(gameId) && formatoOk()
                     && request.resource.data.id == gameId
-                    && request.resource.data.creatorEmail == meuEmail()
+                    && (envioMeu() || envioDaDupla(gameId))
                     && request.resource.data.status == 'analise'
                     && request.resource.data.keys().hasOnly(camposDoEnvio());
       allow update: if souAdmin() || (logado() && naoEstouBanido()
-                    && resource.data.creatorEmail == meuEmail()
-                    && request.resource.data.creatorEmail == meuEmail()
+                    && ((resource.data.creatorEmail == meuEmail() && envioMeu()) || envioDaDupla(gameId))
                     && request.resource.data.id == gameId
                     && (
                       // versão nova do jogo: volta para a análise, sem tocar no veredito
@@ -95,6 +111,36 @@ service cloud.firestore {
                         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'recurso']))
                     ));
       allow delete: if souAdmin() || (logado() && resource.data.creatorEmail == meuEmail());
+    }
+
+    // ---------- jogos feitos em dupla no Koda Studio ----------
+    // os dois (membros) leem e mexem no mesmo jogo; ninguém troca quem está na dupla
+    match /projetosDupla/{projId} {
+      function camposDaDupla() {
+        return ['criador', 'membros', 'nomes', 'nome', 'codigo', 'capa', 'formato', 'versao', 'atualizadoEm', 'atualizadoPor',
+                'visto0', 'visto1', 'criadoEm', 'publicadoEm'];
+      }
+      function tamanhosDaDupla() {
+        return request.resource.data.codigo is string && request.resource.data.codigo.size() <= 900000
+            && request.resource.data.nome is string && request.resource.data.nome.size() <= 80
+            && (!('capa' in request.resource.data) || request.resource.data.capa == null
+                || (request.resource.data.capa is string && request.resource.data.capa.size() <= 120000));
+      }
+      allow read: if logado() && (resource == null || meuEmail() in resource.data.membros);
+      allow create: if logado() && naoEstouBanido()
+                    && projId.matches('[a-z0-9]{8,30}')
+                    && request.resource.data.keys().hasOnly(camposDaDupla())
+                    && request.resource.data.criador == meuEmail()
+                    && request.resource.data.membros is list && request.resource.data.membros.size() == 2
+                    && request.resource.data.membros[0] == meuEmail()
+                    && request.resource.data.membros[1] is string && request.resource.data.membros[1] != meuEmail()
+                    && tamanhosDaDupla();
+      allow update: if logado() && naoEstouBanido()
+                    && meuEmail() in resource.data.membros
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['nome', 'codigo', 'capa', 'formato', 'versao', 'atualizadoEm', 'atualizadoPor', 'visto0', 'visto1', 'publicadoEm'])
+                    && tamanhosDaDupla();
+      allow delete: if souAdmin() || (logado() && resource.data.criador == meuEmail());
     }
 
     // ---------- registros e limites da análise ----------
