@@ -3709,6 +3709,30 @@
   .dupla-status.ruim{color:#ff8a80;opacity:1;}
   @keyframes duplaChegou{0%{box-shadow:0 0 0 3px #ffd23f;}100%{box-shadow:0 0 0 0 rgba(255,210,63,0);}}
   .dupla-chegou{animation:duplaChegou 1.4s ease-out;}
+  /* resgate da sequência: aviso urgente em tela cheia */
+  .resg-bg{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,rgba(200,20,40,.92),rgba(40,4,10,.97) 70%);opacity:0;transition:opacity .2s;}
+  .resg-bg.show{opacity:1;}
+  .resg{width:100%;max-width:400px;text-align:center;color:#fff;animation:pvEntra .45s cubic-bezier(.2,1.3,.4,1) both;}
+  .resg-alerta{display:inline-block;padding:4px 18px;border-radius:999px;background:#FFE14D;color:#7a0010;font:900 1.1rem 'Baloo 2',sans-serif;letter-spacing:2px;box-shadow:0 0 0 0 rgba(255,225,77,.7);animation:resgAlerta 1s ease-in-out infinite;}
+  @keyframes resgAlerta{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,225,77,.7);}50%{transform:scale(1.08);box-shadow:0 0 0 14px rgba(255,225,77,0);}}
+  .resg-arte{position:relative;width:170px;height:170px;margin:14px auto 4px;}
+  .resg-chama{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;animation:resgTreme .35s ease-in-out infinite;filter:drop-shadow(0 0 22px rgba(255,140,0,.75));}
+  .resg-chama svg{width:150px !important;height:150px !important;}
+  .resg-escudo{position:absolute;right:-4px;bottom:0;width:72px;height:78px;animation:resgEscudo 1.6s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));}
+  .resg-escudo svg{width:100%;height:100%;}
+  @keyframes resgTreme{0%,100%{transform:rotate(-2deg) scale(1);}50%{transform:rotate(2deg) scale(1.04);}}
+  @keyframes resgEscudo{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-8px) rotate(6deg);}}
+  .resg-tit{margin:6px 0 4px;font:800 1.6rem/1.1 'Baloo 2',sans-serif;text-shadow:0 3px 0 rgba(0,0,0,.35);}
+  .resg-sub{margin:0 0 12px;font-weight:700;font-size:.95rem;opacity:.95;}
+  .resg-relogio{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 auto 14px;padding:8px 14px;border-radius:14px;background:rgba(0,0,0,.3);font-weight:700;font-size:.8rem;}
+  .resg-relogio b{font:800 1.5rem 'Baloo 2',sans-serif;color:#FFE14D;font-variant-numeric:tabular-nums;letter-spacing:1px;}
+  .resg-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:18px;padding:16px;cursor:pointer;background:linear-gradient(180deg,#FFE27A,#FFB800);color:#5a1a00;font:800 1.25rem 'Baloo 2',sans-serif;box-shadow:0 6px 0 #B86A00;animation:pvCompra 1.3s ease-in-out infinite;}
+  .resg-btn svg{width:1.1em !important;height:1.1em !important;}
+  .resg-nao{margin-top:10px;border:none;background:none;color:#fff;opacity:.65;font:700 .85rem 'Baloo 2',sans-serif;cursor:pointer;padding:6px;}
+  .resg-faixa{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+  .resg-faixa-btn{border:none;border-radius:999px;padding:7px 14px;background:#FFE14D;color:#7a0010;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:4px;animation:resgAlerta 1.2s ease-in-out infinite;}
+  .resg-faixa-btn svg{width:1em !important;height:1em !important;}
+  @media (prefers-reduced-motion: reduce){ .resg-alerta,.resg-chama,.resg-escudo,.resg-btn,.resg-faixa-btn,.resg{animation:none !important;} }
   .msg-relogio{display:inline-block;width:11px;height:11px;margin-left:6px;vertical-align:-1px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.55;animation:msgGira .8s linear infinite;}
   @keyframes msgGira{to{transform:rotate(360deg);}}
   .msg-enviando-midia{display:flex;align-items:center;gap:6px;position:relative;overflow:hidden;}
@@ -12964,6 +12988,18 @@ var PRACA2_TXT = {
  praca_emote_comprou:'Emote novo! Use na praça: {nome}|New emote! Use it in the plaza: {nome}|¡Emote nuevo! Úsalo en la plaza: {nome}',
  praca_emote_tit:'Emote: {nome}|Emote: {nome}|Emote: {nome}'
 };
+/* textos do resgate da sequência */
+var RESG_TXT = {
+ resg_agora:'AGORA!|NOW!|¡AHORA!',
+ resg_tit:'Sua sequência de {n} dias está acabando!|Your {n}-day streak is ending!|¡Tu racha de {n} días se está acabando!',
+ resg_sub_1:'Você faltou 1 dia. Resgate com o escudo de foguinho e ela continua!|You missed 1 day. Rescue it with the flame shield and it keeps going!|Faltaste 1 día. ¡Rescátala con el escudo de fueguito y sigue!',
+ resg_sub:'Você faltou {n} dias. Resgate com os escudos de foguinho e ela continua!|You missed {n} days. Rescue it with flame shields and it keeps going!|Faltaste {n} días. ¡Rescátala con los escudos de fueguito y sigue!',
+ resg_relogio:'Amanhã fica mais caro. Acaba em|Tomorrow it costs more. Ends in|Mañana cuesta más. Termina en',
+ resg_btn:'Resgatar agora|Rescue now|Rescatar ahora',
+ resg_nao:'Deixar a sequência acabar|Let the streak end|Dejar que la racha termine',
+ resg_compra_nome:'Resgate da sequência ({n} escudos)|Streak rescue ({n} shields)|Rescate de la racha ({n} escudos)',
+ resg_ok:'Sequência de {n} dias salva! Pegue o prêmio de hoje.|{n}-day streak saved! Grab today’s reward.|¡Racha de {n} días salvada! Toma el premio de hoy.'
+};
 /* textos da vitrine do Koda Pass */
 var PV_TXT = {
  pv_melhor:'Melhor oferta|Best deal|Mejor oferta',
@@ -13025,6 +13061,7 @@ var MSG2_TXT = {
   Object.keys(MSG2_TXT).forEach(k=>por(k, MSG2_TXT[k]));
   Object.keys(DUPLA_TXT).forEach(k=>por(k, DUPLA_TXT[k]));
   Object.keys(PV_TXT).forEach(k=>por(k, PV_TXT[k]));
+  Object.keys(RESG_TXT).forEach(k=>por(k, RESG_TXT[k]));
   PRACA_FALAS_CATS.forEach(c=>por('praca_cat_' + c[0], c[2]));
   PRACA_FALAS_EXTRA.forEach((f, i)=>por('praca_f' + (12 + i), f[1]));
   PRACA_EMOTES.forEach(e=>por('praca_emote_' + e.id, e.nome));
@@ -33846,6 +33883,78 @@ function seqComprarProtetor(){
   playSound('protetor');
   return {ok:true};
 }
+/* ---------- RESGATAR A SEQUÊNCIA ----------
+   Voltou depois de faltar mais dias do que tem de protetor: antes de pegar o prêmio (que zeraria a sequência)
+   dá pra comprar na hora os protetores que faltam e a sequência continua. Vale pra quem faltou até 7 dias.
+   Cada dia que passa custa mais um protetor (por isso o "amanhã fica mais caro" é verdade). */
+var SEQ_RESGATE_MAX_FALTAS = 7, SEQ_RESGATE_VISTO_KEY = 'koda_seq_resgate_visto';
+function seqResgateInfo(o){
+  o = o || rotLer();
+  const s = o.seq;
+  if(!s.u || !(s.n >= 2)) return null;
+  const gap = rotDiasEntre(s.u, rotHoje()), faltou = gap - 1, prot = seqProtetores(o);
+  if(faltou <= prot || faltou > SEQ_RESGATE_MAX_FALTAS) return null;
+  const faltam = faltou - prot;
+  return {n: s.n, faltou, faltam, preco: faltam * SEQ_PROT_PRECO};
+}
+function seqResgatar(){
+  if(souVisitante()) return {ok:false, motivo:'login'};
+  const info = seqResgateInfo();
+  if(!info) return {ok:false, motivo:'nada'};
+  if(!modoTesteDeMoedas() && loadDiamonds() < info.preco) return {ok:false, motivo:'diamantes', faltam: info.preco - loadDiamonds()};
+  if(!spendDiamonds(info.preco)) return {ok:false, motivo:'diamantes', faltam: info.preco};
+  const o = rotLer();
+  o.seq.pb += info.faltam;          // os protetores entram e já são gastos quando a pessoa pegar o prêmio de hoje
+  rotGuardar(o);
+  rotSync(true);
+  playSound('protetor');
+  return {ok:true, n: info.n};
+}
+/* o aviso urgente (tela cheia, vermelho, com o relógio até a meia-noite) */
+function seqResgateAbrir(aoFechar){
+  const info = seqResgateInfo();
+  if(!info || document.querySelector('.resg-bg')) return null;      // nunca dois avisos ao mesmo tempo
+  try{ localStorage.setItem(SEQ_RESGATE_VISTO_KEY, rotHoje()); }catch(e){}
+  const esc = chatListEscape;
+  const bg = document.createElement('div');
+  bg.className = 'resg-bg';
+  bg.innerHTML = `<div class="resg" role="alertdialog" aria-modal="true" aria-labelledby="resgTit">
+      <div class="resg-alerta">${esc(t('resg_agora'))}</div>
+      <div class="resg-arte" aria-hidden="true"><span class="resg-chama">${chamaSvg(info.n, true)}</span><span class="resg-escudo">${protetorSvg(true)}</span></div>
+      <h2 class="resg-tit" id="resgTit">${esc(t('resg_tit', {n: info.n}))}</h2>
+      <p class="resg-sub">${esc(t(info.faltam === 1 ? 'resg_sub_1' : 'resg_sub', {n: info.faltam}))}</p>
+      <div class="resg-relogio"><span>${esc(t('resg_relogio'))}</span><b data-resg-rel>--:--:--</b></div>
+      <button type="button" class="resg-btn" data-resg-sim>${esc(t('resg_btn'))} ${ICONS.diamond} ${info.preco}</button>
+      <button type="button" class="resg-nao" data-resg-nao>${esc(t('resg_nao'))}</button>
+    </div>`;
+  document.body.appendChild(bg);
+  requestAnimationFrame(()=>bg.classList.add('show'));
+  const rel = bg.querySelector('[data-resg-rel]');
+  const tic = ()=>{ rel.textContent = rotRelogio(rotFaltaDia()); };
+  tic();
+  const timer = setInterval(tic, 1000);
+  let fechou = false;
+  const fechar = depois=>{
+    if(fechou) return;
+    fechou = true;
+    clearInterval(timer);
+    bg.classList.remove('show');
+    setTimeout(()=>{ bg.remove(); if(typeof aoFechar === 'function'){ try{ aoFechar(depois); }catch(e){} } }, 220);
+  };
+  bg.querySelector('[data-resg-nao]').addEventListener('click', ()=>{ playSound('click'); fechar('nao'); });
+  bg.querySelector('[data-resg-sim]').addEventListener('click', ()=>{
+    playSound('click');
+    compraFluxo({
+      nome: t('resg_compra_nome', {n: info.faltam}),
+      arte: protetorSvg(true),
+      custo: {moeda: 'd', preco: info.preco},
+      presente: null,
+      paraMim: ()=>seqResgatar(),
+      ok: r=>{ toast(t('resg_ok', {n: r.n})); fechar('salvou'); }
+    });
+  });
+  return bg;
+}
 /* desenho do prêmio de um dia (cartão da semana) */
 function seqArteDia(p){
   if(p.b && p.d) return `<span class="seq-arte-bau">${bauSvg(p.b, true)}<i class="seq-arte-dia">${ICONS.diamond}${p.d}</i></span>`;
@@ -33870,7 +33979,9 @@ function seqAbrir(opts){
       const semIdx = Math.floor((Math.max(1, diaRef) - 1) / 7), sem = Math.min(4, semIdx), ini = semIdx * 7 + 1;
       const titulo = mostra > 0 ? t(mostra === 1 ? 'seq_tit_1' : 'seq_tit', {n: mostra}) : t('seq_tit_0');
       let aviso = '';
-      if(e.perdeu > 0) aviso = `<div class="seq-aviso perdeu">${chatListEscape(t('seq_perdeu', {n: e.perdeu}))}</div>`;
+      const resg = e.perdeu > 0 ? seqResgateInfo(o) : null;
+      if(resg) aviso = `<div class="seq-aviso perdeu resg-faixa"><span>${chatListEscape(t('resg_tit', {n: resg.n}))}</span><button type="button" class="resg-faixa-btn" id="seqResgBtn">${chatListEscape(t('resg_btn'))} ${ICONS.diamond} ${resg.preco}</button></div>`;
+      else if(e.perdeu > 0) aviso = `<div class="seq-aviso perdeu">${chatListEscape(t('seq_perdeu', {n: e.perdeu}))}</div>`;
       else if(e.gastar > 0) aviso = `<div class="seq-aviso salvou">${protetorSvg(true)}<span>${chatListEscape(t(e.gastar === 1 ? 'seq_salva_1' : 'seq_salva', {n: e.gastar}))}</span></div>`;
       const dias = [];
       for(let d = ini; d < ini + 7; d++){
@@ -33927,6 +34038,21 @@ function seqAbrir(opts){
           desenha();
         }, 650);
       });
+      const rb = api.miolo.querySelector('#seqResgBtn');
+      if(rb) rb.addEventListener('click', ()=>{
+        playSound('click');
+        const info = seqResgateInfo();
+        if(!info) return;
+        compraFluxo({
+          nome: t('resg_compra_nome', {n: info.faltam}),
+          arte: protetorSvg(true),
+          custo: {moeda: 'd', preco: info.preco},
+          presente: null,
+          paraMim: ()=>seqResgatar(),
+          ok: r=>toast(t('resg_ok', {n: r.n})),
+          depois: ()=>{ if(api.aberta()) desenha(); }
+        });
+      });
       const pb = api.miolo.querySelector('#seqProtBtn');
       if(pb) pb.addEventListener('click', ()=>{
         playSound('click');
@@ -33969,6 +34095,8 @@ function rotAutoAbrir(){
   if(!seqEstado().pode) return;
   if(!rotTelaLivre() || tourPendente()) return;   // na primeira vez, a apresentação do agente vem antes
   try{ localStorage.setItem(SEQ_AUTO_KEY, hoje); }catch(e){}
+  /* a sequência ia acabar: primeiro o aviso urgente de resgate (depois, a janela da sequência como sempre) */
+  if(seqResgateInfo()){ seqResgateAbrir(()=>seqAbrir({auto:true})); return; }
   seqAbrir({auto:true});
 }
 
