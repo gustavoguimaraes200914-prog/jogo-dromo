@@ -29031,8 +29031,8 @@ function openThemeShop(aba){
     const poe = cfg=>{
       const antes = Object.assign({}, cfg); cfg[campo] = valor; if(antes[campo] !== valor) pzNovaPeca(cfg, campo, antes);
       /* uma peça normal da categoria tira a criada do mesmo tipo (a criada fica por cima e a troca nem apareceria) */
-      const tp = PZ_UGC_DO[campo];
-      if(tp && cfg.ugc && cfg.ugc !== 'nenhum' && ((ugcEstado().cache.get(cfg.ugc) || {}).tipo === tp)) cfg.ugc = 'nenhum';
+      const tps = pzUgcTipos(campo).filter(x=>x !== 'livre');      // a peça 'livre' fica por cima de tudo e não sai sozinha
+      if(tps.length && cfg.ugc && cfg.ugc !== 'nenhum' && tps.indexOf((ugcEstado().cache.get(cfg.ugc) || {}).tipo) >= 0) cfg.ugc = 'nenhum';
     };
     if(abaAtual === 'agente'){
       const a = pzAgDeTexto(rascunho.agente) || meuAgente();
@@ -34691,7 +34691,9 @@ var PZ_W = 22, PZ_H = 29;
      (pecasVendas/{id}_{comprador}, uma por pessoa), confere ao entrar no site e o valor cai na conta dele.
    - Desenho ofensivo: o admin apaga (botão na própria peça).
 ============================================================ */
-var UGC_TIPOS = ['roupa', 'calca', 'pes', 'cabeca', 'costas', 'mao'];   // 'roupa' = a camisa (tronco e braços); 'pes' = tênis, bota...
+var UGC_TIPOS = ['roupa', 'vestido', 'calca', 'pes', 'cabeca', 'rosto', 'costas', 'mao', 'livre'];
+/* 'roupa' = a camisa (tronco e braços); 'pes' = tênis, bota...; 'vestido' = corpo inteiro (vestido, macacão, fantasia);
+   'rosto' = óculos, máscara, pintura no rosto; 'livre' = pinta em qualquer lugar e fica por cima de tudo */
 /* onde cada tipo pode ser pintado (colunas x0..x1 e linhas y0..y1 da grade 22 x 29; a mão tem os dois lados)
    e a caixa onde a foto entra (a foto é recortada já do formato dela) */
 var UGC_AREA = {
@@ -34700,7 +34702,10 @@ var UGC_AREA = {
   pes:    {partes: [[5, 16, 22, 27]], foto: [6, 15, 23, 27]},
   cabeca: {partes: [[0, 21, 0, 15]], foto: [3, 18, 0, 15]},
   costas: {partes: [[0, 21, 0, 28]], foto: [0, 21, 0, 28]},
-  mao:    {partes: [[0, 6, 6, 28], [15, 21, 6, 28]], foto: [15, 21, 8, 28]}
+  mao:    {partes: [[0, 6, 6, 28], [15, 21, 6, 28]], foto: [15, 21, 8, 28]},
+  vestido:{partes: [[2, 19, 15, 27]], foto: [4, 17, 15, 26]},
+  rosto:  {partes: [[3, 18, 4, 15]], foto: [5, 16, 8, 14]},
+  livre:  {partes: [[0, 21, 0, 28]], foto: [0, 21, 0, 28]}
 };
 function ugcMascara(tipo){
   const m = new Uint8Array(PZ_W * PZ_H), a = UGC_AREA[tipo] || UGC_AREA.costas;
@@ -34981,7 +34986,7 @@ async function ugcPerguntarIA(frente, costas, tipo, nome, palavra, fotos){
   const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timer = ctrl ? setTimeout(()=>ctrl.abort(), 25000) : null;
   try{
-    const texto = 'Item type: ' + ({roupa: 'shirt', calca: 'pants', pes: 'shoes', cabeca: 'head item (hat, mask, hair)', costas: 'back item (wings, cape, backpack)', mao: 'item held in the hand'}[tipo] || tipo)
+    const texto = 'Item type: ' + ({roupa: 'shirt', calca: 'pants', pes: 'shoes', cabeca: 'head item (hat, mask, hair)', costas: 'back item (wings, cape, backpack)', mao: 'item held in the hand', vestido: 'full-body outfit (dress, overalls, costume)', rosto: 'face item (glasses, mask, face paint)', livre: 'free drawing over the whole character'}[tipo] || tipo)
       + '\nItem name: "' + String(nome).slice(0, 40) + '"'
       + (palavra ? '\nA simple word list flagged the word "' + palavra + '" in the name (this list often gives false alarms; decide yourself).' : '');
     const res = await fetch(SERVER_URL + '/agent', {
@@ -35327,6 +35332,16 @@ function ugcTextoLimpo(s){ return String(s || '').normalize('NFD').replace(/[̀-
 var UGC_KIT_CORES = {w:'#FFFFFF', k:'#2B2B33', g:'#F2C84B', x:'#D5DBE3', y:'#FFD23F', o:'#FF8A2A', p:'#FF9EC4'};
 /* os modelos prontos de cada tipo, no mesmo jeito das peças da loja: [linha onde começa, 'linhas'...]; f = frente, c = costas (sem c = igual à frente) */
 var UGC_MODELOS = {
+  rosto: [
+    {id:'oculos', f:[[9,'.....111111111111.....','....11...1..1...11....','.....11111..11111.....']], c:[]},
+    {id:'oculos_sol', f:[[9,'.....kkkkkkkkkkkk.....','....kkxxxk..kxxxkk....','.....kkkkk..kkkkk.....']], c:[]},
+    {id:'mascara', f:[[11,'....2.1111111111.2....','.....211111111112.....','......3333333333......','.......11111111.......']], c:[]},
+    {id:'heroi', f:[[8,'.....111111111111.....','.....11ww1111ww11.....','.....11ww1111ww11.....','......1111111111......']], c:[]}
+  ],
+  vestido: [
+    {id:'macacao', f:[[16,'........1....1........','........1....1........','........11gg11........','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........22..22........']], c:[[16,'........1....1........','.........1..1.........','..........11..........','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........22..22........']]},
+    {id:'fantasia', f:[[16,'....11111111111111....','....11.11111111.11....','....11133333333111....','....22211111111222....','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........11..11........','.......222..222.......']], c:[[16,'....11111111111111....','....11.11111111.11....','....11133333333111....','....22211111111222....','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........11..11........','.......222..222.......']]}
+  ],
   roupa: [
     {id:'camiseta', f:[[16,'....11111....11111....','....22.11111111.22....','.......11111111.......','.......11111111.......','.......22222222.......']],
       c:[[16,'....11111111111111....','....22.11111111.22....','.......11111111.......','.......11111111.......','.......22222222.......']]},
@@ -36649,6 +36664,18 @@ var PZ_TXT = {
  ugc_f_guia:'Mostrar o boneco|Show the character|Mostrar el personaje|Mostra il personaggio|Afficher le personnage|Figur zeigen|Figuur tonen|キャラを表示|显示角色|캐릭터 보기',
  ugc_f_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|실행 취소',
  ugc_f_refazer:'Refazer|Redo|Rehacer|Ripeti|Rétablir|Wiederholen|Opnieuw|やり直す|重做|다시 실행',
+ ugc_t_vestido:'Corpo inteiro|Full body|Cuerpo entero',
+ ugc_t_rosto:'Rosto|Face|Cara',
+ ugc_t_livre:'Livre|Free|Libre',
+ ugc_dica_vestido:'Corpo inteiro: do pescoço até os pés (vestido, macacão, fantasia). Pinte a frente e as costas.|Full body: from the neck down to the feet (dress, overalls, costume). Paint the front and the back.|Cuerpo entero: del cuello a los pies (vestido, overol, disfraz). Pinta el frente y la espalda.',
+ ugc_dica_rosto:'Rosto: óculos, máscara, pintura no rosto. Aparece de frente.|Face: glasses, mask, face paint. Shows from the front.|Cara: gafas, máscara, pintura en la cara. Se ve de frente.',
+ ugc_dica_livre:'Livre: pinte em qualquer lugar do personagem. Fica por cima de tudo.|Free: paint anywhere on the character. It goes over everything.|Libre: pinta en cualquier parte del personaje. Va encima de todo.',
+ ugc_m_oculos:'Óculos|Glasses|Gafas',
+ ugc_m_oculos_sol:'Óculos escuros|Sunglasses|Gafas de sol',
+ ugc_m_mascara:'Máscara|Mask|Mascarilla',
+ ugc_m_heroi:'Máscara de herói|Hero mask|Antifaz de héroe',
+ ugc_m_macacao:'Macacão|Overalls|Overol',
+ ugc_m_fantasia:'Fantasia|Costume|Disfraz',
  ugc_t_pes:'Pés|Feet|Pies|Piedi|Pieds|Füße|Voeten|あし|鞋子|신발',
  ugc_dica_pes:'Pés: só nos pés e no fim das pernas (tênis, bota, chinelo, meia).|Feet: only on the feet and lower legs (sneakers, boots, flip-flops, socks).|Pies: solo en los pies y el final de las piernas (tenis, botas, chanclas, calcetines).|Piedi: solo sui piedi e in fondo alle gambe (scarpe, stivali, ciabatte, calzini).|Pieds : seulement sur les pieds et le bas des jambes (baskets, bottes, tongs, chaussettes).|Füße: nur an den Füßen und unten an den Beinen (Turnschuhe, Stiefel, Flip-Flops, Socken).|Voeten: alleen op de voeten en onderaan de benen (sneakers, laarzen, slippers, sokken).|あし：足と足首のところだけ（スニーカー、ブーツ、サンダル、くつした）。|鞋子：只能画在脚和小腿下面（运动鞋、靴子、拖鞋、袜子）。|신발: 발과 다리 아랫부분에만 칠해요(운동화, 부츠, 슬리퍼, 양말).',
  ugc_f_linha:'Linha|Line|Línea|Linea|Ligne|Linie|Lijn|せん|直线|선',
@@ -38066,6 +38093,7 @@ function pzGrade(c, variante){
   pintaU('pes');
   pintaU('calca');
   pintaU('roupa');
+  pintaU('vestido');
   if(!deCostas) pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
   pzPint(g, tags, Mao.px, Mao.cores, 'mao', null, Mao.fn);
   pintaU('mao');
@@ -38081,6 +38109,7 @@ function pzGrade(c, variante){
     if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
     pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
     pintaU('cabeca');
+    pintaU('livre');
     g.tags = tags;            // pra foto da peça saber em cima de quê ela pode aparecer
     return g;
   }
@@ -38090,11 +38119,13 @@ function pzGrade(c, variante){
   if(c.genero === 'menina') pzPint(g, tags, PZ_MENINA, Object.assign({}, base, {p:'#FFA3BE'}), 'olhos');
   pzPint(g, tags, P.boca.px, c.genero === 'menina' ? Object.assign({}, base, {m:'#D9506E'}) : base, 'boca');
   pzPint(g, tags, Ace.px, Ace.cores, 'aces', null, Ace.fn);
+  pintaU('rosto');
   pzPint(g, tags, Cab.px, Cab.cores, 'cab', null, Cab.fn);
   /* chapéu que cobre a cabeça esconde o cabelo de cima (senão o topete atravessa o boné) */
   if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
   pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
   pintaU('cabeca');
+  pintaU('livre');
   g.tags = tags;
   return g;
 }
@@ -38288,7 +38319,8 @@ function pzMigrarMolduras(){
 
 /* ---------- as abas "Personagem" e "Seu agente" da Loja do Koda ---------- */
 /* cada categoria de peça do personagem → o tipo de peça criada que cabe nela */
-const PZ_UGC_DO = {camisa: 'roupa', calca: 'calca', sapato: 'pes', chapeu: 'cabeca', cab: 'cabeca', costas: 'costas', mao: 'mao'};
+const PZ_UGC_DO = {camisa: ['roupa', 'vestido'], calca: 'calca', sapato: 'pes', chapeu: 'cabeca', cab: 'cabeca', aces: ['rosto', 'livre'], costas: 'costas', mao: 'mao'};
+function pzUgcTipos(sub){ return [].concat(PZ_UGC_DO[sub] || []); }
 const PZ_SUBS = ['genero', 'pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'];
 const PZ_COR_DO = {cab:'corCab', olhos:'corOlhos', camisa:'corCamisa', estampa:'corEstampa', calca:'corCalca', sapato:'corSapato',
   chapeu:'corChapeu', aces:'corAces', costas:'corCostas', mao:'corMao'};
@@ -38343,12 +38375,12 @@ function pzPainelHtml(ctx){
   h += '<div class="pz-chips" role="tablist">' + subs.map(s=>'<button type="button" class="pz-chip' + (s === sub ? ' on' : '') + '" data-pz-sub="' + s + '" role="tab" aria-selected="' + (s === sub) + '">' + esc(t('pz_s_' + s)) + '</button>').join('') + '</div>';
   if(sub !== 'balao'){
     /* as peças criadas pela comunidade moram junto das outras da mesma categoria; o primeiro cartão é o "Criar" daquela categoria */
-    const tipoUgc = PZ_UGC_DO[sub] || '';
+    const tiposUgc = pzUgcTipos(sub), tipoUgc = tiposUgc[0] || '';
     const ugcAtivo = alvo.ugc && alvo.ugc !== 'nenhum' ? (ugcEstado().cache.get(alvo.ugc) || {}).tipo : '';
     const itens = pzVisiveis(sub, ctx.testando).map((x, i)=>{
       const c2 = Object.assign({}, alvo); c2[sub] = x.id;
       if(alvo[sub] !== x.id) pzNovaPeca(c2, sub, alvo);   // do jeito que vem ao tocar
-      const id = sub + '_' + x.id, escolhido = alvo[sub] === x.id && !(tipoUgc && ugcAtivo === tipoUgc), car = escolhido && noCarrinho(id);
+      const id = sub + '_' + x.id, escolhido = alvo[sub] === x.id && !(ugcAtivo && tiposUgc.filter(x=>x !== 'livre').indexOf(ugcAtivo) >= 0), car = escolhido && noCarrinho(id);
       const rosto = !!PZ_ROSTO[sub];
       return {grupo: pzLivre(x) ? 0 : x.ev ? 3 : x.d ? 2 : 1, preco: x.d || x.p || 0, i,
         html: '<button type="button" class="pz-op' + (escolhido ? ' on' : '') + (car ? ' carrinho' : '') + '" data-pz-op="' + sub + '|' + x.id + '" title="' + esc(t('cosm_pers_' + id)) + '">'
@@ -38358,7 +38390,7 @@ function pzPainelHtml(ctx){
     });
     let criadas = [];
     if(tipoUgc){
-      criadas = ugcDaCategoria(tipoUgc).map((u, i)=>({grupo: u.preco ? 1 : 0, preco: u.dia ? u.preco * KSHOP_PRECO : u.preco, i: -1000 + i, minha: u.minha, html: ugcCartaoHtml(u.id, alvo)}));
+      criadas = [].concat.apply([], tiposUgc.map(tp=>ugcDaCategoria(tp))).map((u, i)=>({grupo: u.preco ? 1 : 0, preco: u.dia ? u.preco * KSHOP_PRECO : u.preco, i: -1000 + i, minha: u.minha, html: ugcCartaoHtml(u.id, alvo)}));
     }
     const todos = itens.concat(criadas).sort((a, b)=>(a.grupo - b.grupo) || (a.preco - b.preco) || (a.i - b.i));
     const tileCriar = tipoUgc ? '<button type="button" class="pz-op pz-criar" data-ugc-criar="' + tipoUgc + '"><span class="pz-criar-mais" aria-hidden="true">＋</span><span class="pz-n">' + esc(t('ugc_criar_curto')) + '</span><span class="pz-ok">' + esc(t('ugc_criar_dica')) + '</span></button>' : '';
