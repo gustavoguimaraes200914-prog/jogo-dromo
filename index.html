@@ -164,7 +164,7 @@
   .disp-tela.saindo{opacity:0;transition:opacity .25s ease;pointer-events:none;}
   /* escolher o idioma */
   .idioma-tela{z-index:9100;}
-  .idioma-globo{font-size:3.4rem;line-height:1;animation:idiomaGira 6s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(8,50,43,.2));}
+  .idioma-globo{width:64px;height:64px;line-height:1;animation:idiomaGira 6s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(8,50,43,.2));}
   @keyframes idiomaGira{0%,100%{transform:rotate(-10deg);}50%{transform:rotate(10deg) scale(1.06);}}
   .idioma-outras{margin:0;font:600 .8rem 'Nunito Sans',sans-serif;color:#3f6a5d;opacity:.8;max-width:340px;}
   .idioma-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(380px,100%);margin-top:4px;}
@@ -172,7 +172,9 @@
     font:800 1rem 'Baloo 2',sans-serif;color:#08322B;text-align:left;transition:transform .15s,border-color .2s;}
   .idioma-op:active{transform:scale(.96);}
   .idioma-op.on{border-color:#17C79E;background:#e3fbf2;}
-  .idioma-band{font-size:1.5rem;line-height:1;}
+  .idioma-globo svg{width:100%;height:100%;}
+  .idioma-band{flex:0 0 auto;min-width:34px;padding:3px 6px;border-radius:8px;background:#17C79E;color:#fff;font:800 .8rem 'Baloo 2',sans-serif;text-align:center;line-height:1.2;}
+  .idioma-op.on .idioma-band{background:#0E8F70;}
   .idioma-nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .idioma-ok{margin-top:8px;width:min(380px,100%);border:none;border-radius:18px;padding:14px;cursor:pointer;background:#17C79E;color:#fff;font:800 1.15rem 'Baloo 2',sans-serif;box-shadow:0 5px 0 #0E8F70;}
   .idioma-ok:active{transform:translateY(3px);box-shadow:0 2px 0 #0E8F70;}
@@ -3733,7 +3735,8 @@
   .eva-bg.ev-fv{background:radial-gradient(ellipse at 50% 30%,#FFC14D 0%,#1597D8 55%,#063A5C 100%);}
   .eva-bg.show{opacity:1;}
   .eva-enfeites{position:absolute;inset:0;pointer-events:none;}
-  .eva-enfeites i,.ev-vivo-enfeites i{position:absolute;top:-10%;font-style:normal;animation:evaCai linear infinite;opacity:.9;}
+  .eva-enfeites i,.ev-vivo-enfeites i{position:absolute;top:-10%;font-style:normal;animation:evaCai linear infinite;opacity:.9;display:block;}
+  .eva-enfeites i svg,.ev-vivo-enfeites i svg{width:100%;height:100%;display:block;}
   .ev-hl .eva-enfeites i,.ev-fv .eva-enfeites i{top:auto;bottom:-10%;animation-name:evaSobe;}
   @keyframes evaCai{from{transform:translateY(0) rotate(0);}to{transform:translateY(120vh) rotate(260deg);}}
   @keyframes evaSobe{0%{transform:translateY(0) translateX(0);}50%{transform:translateY(-60vh) translateX(18px);}100%{transform:translateY(-120vh) translateX(-10px);}}
@@ -4400,17 +4403,20 @@
   .praca-emotes button:active{transform:scale(.94);}
   .praca-emotes button.tem{box-shadow:inset 0 0 0 2px #17c79e;}
   .praca-emotes button.trancado .praca-emote-ic{filter:grayscale(.65);opacity:.7;}
-  .praca-emote-ic{font-size:1.7rem;line-height:1.1;}
+  .praca-emote-ic{display:block;width:34px;height:34px;}
+  .praca-emote-ic svg,.praca-emote-arte svg{width:100%;height:100%;display:block;}
   .praca-emotes b{font-size:.72rem;line-height:1.05;font-weight:800;text-align:center;}
   .praca-emote-preco{display:flex;align-items:center;gap:2px;font-style:normal;font-weight:800;font-size:.72rem;color:#8a5a00;}
   .praca-emote-preco.dia{color:#1d6fd6;}
   .praca-emote-preco svg{width:12px;height:12px;}
-  .praca-emote-cadeado{position:absolute;top:3px;right:4px;font-size:.7rem;}
-  .praca-emote-arte{font-size:2.4rem;line-height:1;}
+  .praca-emote-cadeado{position:absolute;top:3px;right:4px;width:14px;height:14px;opacity:.75;}
+  .praca-emote-cadeado svg{width:100% !important;height:100% !important;vertical-align:0 !important;}
+  .praca-emote-arte{display:inline-block;width:58px;height:58px;}
   .praca-chat:not(.hidden) ~ .praca-stick{visibility:hidden;}   /* com o chat aberto o analógico some (ele ficava por cima da lista) */
+  .praca-emos button svg{width:26px;height:26px;display:block;margin:0 auto;}
   .praca-emos button{height:38px;border:none;border-radius:10px;background:#fff;font-size:1.25rem;line-height:1;cursor:pointer;padding:0;box-shadow:inset 0 0 0 2px rgba(8,50,43,.14);-webkit-tap-highlight-color:transparent;}
   .praca-emos button:active{transform:scale(.9);background:#dffcf3;}
-  @media (max-width:360px){ .praca-num{font-size:.95rem;} .praca-emos button{height:34px;font-size:1.05rem;} .praca-frases button{font-size:.84rem;} }
+  @media (max-width:360px){ .praca-num{font-size:.95rem;} .praca-emos button{height:34px;font-size:1.05rem;} .praca-emos button svg{width:22px;height:22px;} .praca-frases button{font-size:.84rem;} }
   @media (max-height:430px) and (orientation:landscape){ .praca-stick{width:116px;height:116px;bottom:6px;left:8px;} .praca-stick-anel{inset:8px;} .praca-stick-bola{width:48px;height:48px;} .praca-dica{bottom:132px;} .praca-topo{padding:4px 10px;} .praca-voltar{width:32px;height:32px;} .praca-chat-btn{width:48px;height:48px;bottom:10px;} .praca-chat{bottom:66px;} .praca-frases{grid-template-columns:repeat(3,minmax(0,1fr));max-height:calc(100vh - 190px);} }
   .praca-campo{width:100%;box-sizing:border-box;margin:0 0 12px;padding:12px;border-radius:14px;border:2px solid rgba(8,50,43,.25);font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;text-align:center;color:#08322B;background:#fff;}
   .banco-rot{margin:4px 0 6px;font-weight:800;font-size:.92rem;text-align:left;}
@@ -6256,10 +6262,10 @@ const I18N = {
     season_empty:'A temporada começou agora. Jogue pra aparecer aqui!',
     messages_send_challenge:'Desafiar num jogo', messages_input_ph:'Escreva uma mensagem...',
     challenge_need_score:'Jogue uma vez antes pra ter um recorde pra desafiar.',
-    challenge_preview:'🏆 desafio em {name}: {n}',
+    challenge_preview:'desafio em {name}: {n}',
     challenge_card_title:'DESAFIO', challenge_card_beat:'bater {n} pontos', challenge_card_play:'Aceitar e jogar',
     challenge_won_toast:'Desafio vencido com {n} pontos!',
-    challenge_won_msg:'Passei o seu desafio em {name}: {n} pontos! 🏆',
+    challenge_won_msg:'Passei o seu desafio em {name}: {n} pontos!',
     sound_on:'Som ligado', sound_off:'Som desligado',
     theme_title:'Tema do site', theme_use:'Usar', theme_in_use:'Em uso',
     theme_no_coins:'Faltam {n} moedas pra esse tema.',
@@ -6932,10 +6938,10 @@ const I18N = {
     season_empty:'The season just started. Play to show up here!',
     messages_send_challenge:'Challenge on a game', messages_input_ph:'Write a message...',
     challenge_need_score:'Play once first so you have a record to challenge with.',
-    challenge_preview:'🏆 challenge on {name}: {n}',
+    challenge_preview:'challenge on {name}: {n}',
     challenge_card_title:'CHALLENGE', challenge_card_beat:'beat {n} points', challenge_card_play:'Accept and play',
     challenge_won_toast:'Challenge beaten with {n} points!',
-    challenge_won_msg:'I beat your challenge on {name}: {n} points! 🏆',
+    challenge_won_msg:'I beat your challenge on {name}: {n} points!',
     sound_on:'Sound on', sound_off:'Sound off',
     theme_title:'Site theme', theme_use:'Use', theme_in_use:'In use',
     theme_no_coins:'You need {n} more coins for this theme.',
@@ -7591,9 +7597,9 @@ const I18N = {
     rank_game_empty:'Qui non ha ancora fatto punti nessuno. Gioca e sii il primo!', rank_your_place:'Sei al #{n} con {v}', cat_season:'Stagione', season_title:'Stagione del mese',
     season_head:'Stagione di {mes} — la somma del tuo meglio in ogni gioco', season_last_champ:'campione di {mes}', season_games:'{n} gioco/giochi questo mese',
     season_empty:'La stagione è appena iniziata. Gioca per comparire qui!', messages_send_challenge:'Sfida in un gioco', messages_input_ph:'Scrivi un messaggio...',
-    challenge_need_score:'Gioca prima una volta, così hai un record con cui sfidare.', challenge_preview:'🏆 sfida in {name}: {n}', challenge_card_title:'SFIDA',
+    challenge_need_score:'Gioca prima una volta, così hai un record con cui sfidare.', challenge_preview:'sfida in {name}: {n}', challenge_card_title:'SFIDA',
     challenge_card_beat:'battere {n} punti', challenge_card_play:'Accetta e gioca', challenge_won_toast:'Sfida vinta con {n} punti!',
-    challenge_won_msg:'Ho battuto la tua sfida in {name}: {n} punti! 🏆', sound_on:'Audio attivo', sound_off:'Audio disattivato', theme_title:'Tema del sito', theme_use:'Usa',
+    challenge_won_msg:'Ho battuto la tua sfida in {name}: {n} punti!', sound_on:'Audio attivo', sound_off:'Audio disattivato', theme_title:'Tema del sito', theme_use:'Usa',
     theme_in_use:'In uso', theme_no_coins:'Ti mancano {n} monete per questo tema.', cat_home:'Home', cat_most_liked:'Più piaciuti', cat_most_saved:'Più salvati',
     cat_most_commented:'Più commentati', rank_title_liked:'Top 10 più piaciuti', rank_title_saved:'Top 10 più salvati', rank_title_commented:'Top 10 più commentati',
     rank_empty:'Qui non c\'è ancora niente. Metti mi piace, salva e commenta i giochi per costruire questa classifica!', rank_loading:'Sto preparando la classifica...',
@@ -8220,9 +8226,9 @@ const I18N = {
     rank_game_empty:'Hier heeft nog niemand gescoord. Speel en wees de eerste!', rank_your_place:'Jij staat op #{n} met {v}', cat_season:'Seizoen', season_title:'Seizoen van de maand',
     season_head:'Seizoen van {mes} — je beste score van elke game bij elkaar', season_last_champ:'kampioen van {mes}', season_games:'{n} game(s) deze maand',
     season_empty:'Het seizoen is net begonnen. Speel om hier te verschijnen!', messages_send_challenge:'Uitdagen in een game', messages_input_ph:'Schrijf een bericht...',
-    challenge_need_score:'Speel eerst een keer, dan heb je een record om mee uit te dagen.', challenge_preview:'🏆 uitdaging in {name}: {n}', challenge_card_title:'UITDAGING',
+    challenge_need_score:'Speel eerst een keer, dan heb je een record om mee uit te dagen.', challenge_preview:'uitdaging in {name}: {n}', challenge_card_title:'UITDAGING',
     challenge_card_beat:'{n} punten verslaan', challenge_card_play:'Aannemen en spelen', challenge_won_toast:'Uitdaging verslagen met {n} punten!',
-    challenge_won_msg:'Ik heb je uitdaging in {name} verslagen: {n} punten! 🏆', sound_on:'Geluid aan', sound_off:'Geluid uit', theme_title:'Thema van de site', theme_use:'Gebruiken',
+    challenge_won_msg:'Ik heb je uitdaging in {name} verslagen: {n} punten!', sound_on:'Geluid aan', sound_off:'Geluid uit', theme_title:'Thema van de site', theme_use:'Gebruiken',
     theme_in_use:'In gebruik', theme_no_coins:'Je hebt nog {n} munten nodig voor dit thema.', cat_home:'Home', cat_most_liked:'Meest geliked', cat_most_saved:'Meest opgeslagen',
     cat_most_commented:'Meeste reacties', rank_title_liked:'Top 10 meest geliked', rank_title_saved:'Top 10 meest opgeslagen', rank_title_commented:'Top 10 met de meeste reacties',
     rank_empty:'Hier is nog niets. Like games, sla ze op en reageer erop om deze ranglijst te vullen!', rank_loading:'Ranglijst wordt gemaakt...',
@@ -8850,9 +8856,9 @@ const I18N = {
     rank_your_place:'Du bist auf #{n} mit {v}', cat_season:'Saison', season_title:'Saison des Monats', season_head:'Saison {mes} — dein Bestes aus jedem Spiel, zusammengezählt',
     season_last_champ:'Champion von {mes}', season_games:'{n} Spiel(e) in diesem Monat', season_empty:'Die Saison hat gerade angefangen. Spiel, um hier aufzutauchen!',
     messages_send_challenge:'Zu einem Spiel herausfordern', messages_input_ph:'Schreib eine Nachricht...',
-    challenge_need_score:'Spiel erst mal eine Runde, damit du einen Rekord zum Herausfordern hast.', challenge_preview:'🏆 Herausforderung in {name}: {n}',
+    challenge_need_score:'Spiel erst mal eine Runde, damit du einen Rekord zum Herausfordern hast.', challenge_preview:'Herausforderung in {name}: {n}',
     challenge_card_title:'HERAUSFORDERUNG', challenge_card_beat:'{n} Punkte knacken', challenge_card_play:'Annehmen und spielen',
-    challenge_won_toast:'Herausforderung mit {n} Punkten geknackt!', challenge_won_msg:'Ich hab deine Herausforderung in {name} geknackt: {n} Punkte! 🏆', sound_on:'Ton an',
+    challenge_won_toast:'Herausforderung mit {n} Punkten geknackt!', challenge_won_msg:'Ich hab deine Herausforderung in {name} geknackt: {n} Punkte!', sound_on:'Ton an',
     sound_off:'Ton aus', theme_title:'Theme der Seite', theme_use:'Nutzen', theme_in_use:'In Benutzung', theme_no_coins:'Dir fehlen {n} Münzen für dieses Theme.', cat_home:'Start',
     cat_most_liked:'Meiste Likes', cat_most_saved:'Meist gespeichert', cat_most_commented:'Meist kommentiert', rank_title_liked:'Top 10 mit den meisten Likes',
     rank_title_saved:'Top 10 der meist gespeicherten', rank_title_commented:'Top 10 der meist kommentierten',
@@ -9492,9 +9498,9 @@ const I18N = {
     rank_game_empty:'Personne n\'a encore marqué ici. Joue et sois le premier !', rank_your_place:'Tu es #{n} avec {v}', cat_season:'Saison', season_title:'Saison du mois',
     season_head:'Saison {mes} — la somme de tes meilleurs scores dans chaque jeu', season_last_champ:'champion : {mes}', season_games:'{n} jeu(x) ce mois-ci',
     season_empty:'La saison vient de commencer. Joue pour apparaître ici !', messages_send_challenge:'Défier sur un jeu', messages_input_ph:'Écris un message...',
-    challenge_need_score:'Joue une fois d\'abord pour avoir un record à défier.', challenge_preview:'🏆 défi sur {name} : {n}', challenge_card_title:'DÉFI',
+    challenge_need_score:'Joue une fois d\'abord pour avoir un record à défier.', challenge_preview:'défi sur {name} : {n}', challenge_card_title:'DÉFI',
     challenge_card_beat:'battre {n} points', challenge_card_play:'Accepter et jouer', challenge_won_toast:'Défi relevé avec {n} points !',
-    challenge_won_msg:'J\'ai battu ton défi sur {name} : {n} points ! 🏆', sound_on:'Son activé', sound_off:'Son coupé', theme_title:'Thème du site', theme_use:'Utiliser',
+    challenge_won_msg:'J\'ai battu ton défi sur {name} : {n} points !', sound_on:'Son activé', sound_off:'Son coupé', theme_title:'Thème du site', theme_use:'Utiliser',
     theme_in_use:'Utilisé', theme_no_coins:'Il te manque {n} pièces pour ce thème.', cat_home:'Accueil', cat_most_liked:'Les plus aimés', cat_most_saved:'Les plus enregistrés',
     cat_most_commented:'Les plus commentés', rank_title_liked:'Top 10 des plus aimés', rank_title_saved:'Top 10 des plus enregistrés', rank_title_commented:'Top 10 des plus commentés',
     rank_empty:'Il n\'y a encore rien ici. Aime, enregistre et commente les jeux pour construire ce classement !', rank_loading:'Construction du classement...',
@@ -10120,8 +10126,8 @@ const I18N = {
     feed_published:'<b>{name}</b> が <b>{game}</b> を公開したよ', feed_record:'<b>{name}</b> が <b>{game}</b> で自己新記録: {n}', comment_reply:'返信', comment_replying_to:'{name} に返信中',
     rank_btn_title:'ゲームのランキング', rank_game_title:'トップ10 — {name}', rank_game_empty:'まだ誰もスコアを出してないよ。プレイして一番になろう！', rank_your_place:'あなたは {v} で #{n} 位だよ', cat_season:'シーズン',
     season_title:'今月のシーズン', season_head:'{mes}のシーズン — 各ゲームの自己ベストの合計', season_last_champ:'{mes}のチャンピオン', season_games:'今月 {n} ゲーム', season_empty:'シーズンが始まったよ。プレイしてここに登場しよう！',
-    messages_send_challenge:'ゲームで挑戦状を送る', messages_input_ph:'メッセージを書く...', challenge_need_score:'挑戦状を出すには、まず1回プレイして記録を作ってね。', challenge_preview:'🏆 {name} で挑戦状: {n}',
-    challenge_card_title:'挑戦状', challenge_card_beat:'{n} 点を超えよう', challenge_card_play:'受けて立つ', challenge_won_toast:'{n} 点で挑戦クリア！', challenge_won_msg:'{name} の挑戦、{n} 点でクリアしたよ！ 🏆',
+    messages_send_challenge:'ゲームで挑戦状を送る', messages_input_ph:'メッセージを書く...', challenge_need_score:'挑戦状を出すには、まず1回プレイして記録を作ってね。', challenge_preview:'{name} で挑戦状: {n}',
+    challenge_card_title:'挑戦状', challenge_card_beat:'{n} 点を超えよう', challenge_card_play:'受けて立つ', challenge_won_toast:'{n} 点で挑戦クリア！', challenge_won_msg:'{name} の挑戦、{n} 点でクリアしたよ！',
     sound_on:'サウンド オン', sound_off:'サウンド オフ', theme_title:'サイトのテーマ', theme_use:'使う', theme_in_use:'使用中', theme_no_coins:'このテーマにはあと {n} コイン必要だよ。', cat_home:'ホーム', cat_most_liked:'いいねが多い',
     cat_most_saved:'保存が多い', cat_most_commented:'コメントが多い', rank_title_liked:'いいねトップ10', rank_title_saved:'保存トップ10', rank_title_commented:'コメントトップ10',
     rank_empty:'まだ何もないよ。ゲームにいいね・保存・コメントして、このランキングを作ろう！', rank_loading:'ランキングを作成中...', role_picker_title:'グループでのそれぞれの役割', role_member:'メンバー', role_visitor:'ゲスト',
@@ -10687,8 +10693,8 @@ const I18N = {
     feed_empty:'这里还空着。去找人页面关注几个人，就能看到他们发布的游戏和刷新的纪录啦。', feed_published:'<b>{name}</b> 发布了 <b>{game}</b>', feed_record:'<b>{name}</b> 在 <b>{game}</b> 刷新了纪录：{n}', comment_reply:'回复',
     comment_replying_to:'正在回复 {name}', rank_btn_title:'游戏排行榜', rank_game_title:'前十名 — {name}', rank_game_empty:'这里还没人得分。快来玩一局，抢第一！', rank_your_place:'你排第 {n} 名，成绩 {v}', cat_season:'赛季',
     season_title:'本月赛季', season_head:'{mes}赛季 — 你每个游戏的最好成绩加起来', season_last_champ:'{mes}冠军', season_games:'本月玩了 {n} 个游戏', season_empty:'赛季刚刚开始。来玩一局，出现在这里！', messages_send_challenge:'发起游戏挑战',
-    messages_input_ph:'写条消息...', challenge_need_score:'先玩一局，有了成绩才能发起挑战。', challenge_preview:'🏆 {name} 挑战：{n}', challenge_card_title:'挑战', challenge_card_beat:'超过 {n} 分',
-    challenge_card_play:'接受挑战，开始玩', challenge_won_toast:'挑战成功，拿下 {n} 分！', challenge_won_msg:'我在 {name} 赢了你的挑战：{n} 分！🏆', sound_on:'声音已开', sound_off:'声音已关', theme_title:'网站主题', theme_use:'使用',
+    messages_input_ph:'写条消息...', challenge_need_score:'先玩一局，有了成绩才能发起挑战。', challenge_preview:'{name} 挑战：{n}', challenge_card_title:'挑战', challenge_card_beat:'超过 {n} 分',
+    challenge_card_play:'接受挑战，开始玩', challenge_won_toast:'挑战成功，拿下 {n} 分！', challenge_won_msg:'我在 {name} 赢了你的挑战：{n} 分！', sound_on:'声音已开', sound_off:'声音已关', theme_title:'网站主题', theme_use:'使用',
     theme_in_use:'使用中', theme_no_coins:'这个主题还差 {n} 个金币。', cat_home:'首页', cat_most_liked:'最多点赞', cat_most_saved:'最多收藏', cat_most_commented:'最多评论', rank_title_liked:'点赞最多前十名',
     rank_title_saved:'收藏最多前十名', rank_title_commented:'评论最多前十名', rank_empty:'这里还什么都没有。给游戏点赞、收藏、评论，把这个榜单撑起来！', rank_loading:'正在生成排行榜...', role_picker_title:'群里每个人的身份', role_member:'成员',
     role_visitor:'访客', role_visitor_notice:'你在这里是访客，只能看消息。', conv_add_member_btn:'加人', messages_send_photo:'发照片', messages_record_audio:'录语音', messages_mic_denied:'打不开麦克风。',
@@ -11241,8 +11247,8 @@ const I18N = {
     feed_published:'<b>{name}</b>님이 <b>{game}</b>을(를) 올렸어요', feed_record:'<b>{name}</b>님이 <b>{game}</b>에서 기록을 깼어요: {n}', comment_reply:'답글', comment_replying_to:'{name}님에게 답글',
     rank_btn_title:'게임 랭킹', rank_game_title:'TOP 10 — {name}', rank_game_empty:'아직 아무도 점수를 못 냈어요. 먼저 플레이해서 1등을 차지해 봐요!', rank_your_place:'지금 #{n}위 — {v}', cat_season:'시즌',
     season_title:'이달의 시즌', season_head:'{mes} 시즌 — 게임마다 최고 기록을 다 더한 점수', season_last_champ:'{mes} 챔피언', season_games:'이번 달 {n}개 게임', season_empty:'시즌이 막 시작됐어요. 플레이하면 여기에 이름이 떠요!',
-    messages_send_challenge:'게임으로 도전하기', messages_input_ph:'메시지를 써 봐요...', challenge_need_score:'도전장을 보내려면 먼저 한 번 플레이해서 기록을 만들어야 해요.', challenge_preview:'🏆 {name} 도전: {n}',
-    challenge_card_title:'도전장', challenge_card_beat:'{n}점 넘기기', challenge_card_play:'받고 플레이하기', challenge_won_toast:'{n}점으로 도전 성공!', challenge_won_msg:'{name}에서 네 도전 넘었어: {n}점! 🏆',
+    messages_send_challenge:'게임으로 도전하기', messages_input_ph:'메시지를 써 봐요...', challenge_need_score:'도전장을 보내려면 먼저 한 번 플레이해서 기록을 만들어야 해요.', challenge_preview:'{name} 도전: {n}',
+    challenge_card_title:'도전장', challenge_card_beat:'{n}점 넘기기', challenge_card_play:'받고 플레이하기', challenge_won_toast:'{n}점으로 도전 성공!', challenge_won_msg:'{name}에서 네 도전 넘었어: {n}점!',
     sound_on:'소리 켜짐', sound_off:'소리 꺼짐', theme_title:'사이트 테마', theme_use:'사용', theme_in_use:'사용 중', theme_no_coins:'이 테마까지 {n}코인 더 필요해요.', cat_home:'홈', cat_most_liked:'좋아요 많은',
     cat_most_saved:'저장 많은', cat_most_commented:'댓글 많은', rank_title_liked:'좋아요 TOP 10', rank_title_saved:'저장 TOP 10', rank_title_commented:'댓글 TOP 10',
     rank_empty:'아직 여기 아무것도 없어요. 게임에 좋아요, 저장, 댓글을 남기면 이 랭킹이 채워져요!', rank_loading:'랭킹 만드는 중...', role_picker_title:'그룹에서 각자의 역할', role_member:'멤버', role_visitor:'방문자',
@@ -11830,10 +11836,10 @@ const I18N = {
     season_empty:'La temporada acaba de empezar. ¡Juega para aparecer aquí!',
     messages_send_challenge:'Desafiar en un juego', messages_input_ph:'Escribe un mensaje...',
     challenge_need_score:'Juega una vez antes para tener un récord con qué desafiar.',
-    challenge_preview:'🏆 desafío en {name}: {n}',
+    challenge_preview:'desafío en {name}: {n}',
     challenge_card_title:'DESAFÍO', challenge_card_beat:'superar {n} puntos', challenge_card_play:'Aceptar y jugar',
     challenge_won_toast:'¡Desafío superado con {n} puntos!',
-    challenge_won_msg:'¡Superé tu desafío en {name}: {n} puntos! 🏆',
+    challenge_won_msg:'¡Superé tu desafío en {name}: {n} puntos!',
     sound_on:'Sonido activado', sound_off:'Sonido desactivado',
     theme_title:'Tema del sitio', theme_use:'Usar', theme_in_use:'En uso',
     theme_no_coins:'Te faltan {n} monedas para este tema.',
@@ -12639,16 +12645,16 @@ var ONLINE_TXT = {
    Só se fala por número (nunca texto livre): o servidor da praça só repassa o número. Pra pôr mais,
    é só juntar no FIM da lista (nunca no meio, senão o número de uma fala vira outra). */
 var PRACA_FALAS_CATS = [
-  ["oi", "👋", "Oi|Hi|Hola"],
-  ["jogar", "🎮", "Jogar|Play|Jugar"],
-  ["elogio", "⭐", "Elogios|Compliments|Elogios"],
-  ["reacao", "😂", "Reações|Reactions|Reacciones"],
-  ["pergunta", "❓", "Perguntas|Questions|Preguntas"],
-  ["amigo", "💛", "Amizade|Friends|Amistad"],
-  ["engracado", "🤪", "Engraçado|Funny|Divertido"],
-  ["praca", "⛲", "Praça|Plaza|Plaza"],
-  ["criar", "🛠️", "Criar|Create|Crear"],
-  ["tchau", "🌙", "Tchau|Bye|Adiós"]
+  ["oi", "", "Oi|Hi|Hola"],
+  ["jogar", "", "Jogar|Play|Jugar"],
+  ["elogio", "", "Elogios|Compliments|Elogios"],
+  ["reacao", "", "Reações|Reactions|Reacciones"],
+  ["pergunta", "", "Perguntas|Questions|Preguntas"],
+  ["amigo", "", "Amizade|Friends|Amistad"],
+  ["engracado", "", "Engraçado|Funny|Divertido"],
+  ["praca", "", "Praça|Plaza|Plaza"],
+  ["criar", "", "Criar|Create|Crear"],
+  ["tchau", "", "Tchau|Bye|Adiós"]
 ];
 var PRACA_FALAS_EXTRA = [
   ["oi", "Olá, pessoal!|Hello, everyone!|¡Hola a todos!"],
@@ -13003,31 +13009,87 @@ var PRACA_FALAS_EXTRA = [
   ["tchau", "Tchauzinho!|Bye-bye!|¡Chaíto!"]
 ];
 
+/* ============================================================
+   PICTOGRAMAS (os desenhos que ficaram no lugar dos emojis)
+   O Koda não usa emoji nos próprios textos e botões: cada coisa tem um desenhinho em SVG (24 x 24), no mesmo estilo.
+   pictoSvg(nome) = o desenho pra pôr no HTML; pictoImg(nome, cor) = a imagem pra desenhar no canvas (a praça).
+   Emoji só existe no que as pessoas escrevem (mensagens), nas roupas que criam e dentro dos jogos.
+============================================================ */
+const PICTOS = {
+  aceno: '<path d="M7.2 21c-2.6 0-4-1.6-4-4.2v-3l-.9-2.4c-.4-1.1 1-1.9 1.8-1l1.4 1.5V6.4c0-1.3 1.9-1.3 1.9 0V3.9c0-1.3 1.9-1.3 1.9 0V5c0-1.3 1.9-1.3 1.9 0v1.3c0-1.2 1.8-1.2 1.8 0v6.6l1.5-1.7c1-1.1 2.5.2 1.7 1.3L15.7 17c-1 2.6-2.7 4-8.5 4z" fill="#FFC93C" stroke="#B97A00" stroke-width="1.1" stroke-linejoin="round"/><path d="M19 4.2c1.3.9 2.1 2.2 2.4 3.6M17.2 2.8c.5.2 1 .5 1.4.9" fill="none" stroke="#FF8A1F" stroke-width="1.6" stroke-linecap="round"/>',
+  coracao: '<path d="M12 21.2s-8.6-5.5-8.6-11.7A4.9 4.9 0 0 1 12 6.6a4.9 4.9 0 0 1 8.6 2.9c0 6.2-8.6 11.7-8.6 11.7z" fill="#FF4D6D" stroke="#B3173A" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.4 9.4a2.6 2.6 0 0 1 2.2-1.9" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/>',
+  risada: '<path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6l-4.5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#3D8BFF" stroke="#1D4FB3" stroke-width="1.1" stroke-linejoin="round"/><text x="12" y="14" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="8.4" fill="#fff">HA</text>',
+  susto: '<path d="M12 1.5l2.2 4.6 4.8-1.8-1.5 5 4.8 1.7-4.6 2.4 2 4.7-5-1.1-1.4 4.8-2.5-4.3-4.1 3 .2-5L2.4 14l4.4-2.5-2.6-4.3 5 .5z" fill="#FFD43B" stroke="#D98E00" stroke-width="1" stroke-linejoin="round"/><path d="M12 7.2v6" stroke="#E5282C" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.5" fill="#E5282C"/>',
+  chama: '<path d="M12 1.8c.6 3.6 5.8 5.6 5.8 11.2a5.8 5.8 0 0 1-11.6 0c0-2.6 1.4-3.9 2.5-5.9.8 1 1.6 1.2 1.9 2.4 1.1-2.1 1.4-4.6 1.4-7.7z" fill="#FF7A1A" stroke="#C2410C" stroke-width="1.1" stroke-linejoin="round"/><path d="M12 12.2c.4 1.6 2.4 2.4 2.4 4.5a2.4 2.4 0 0 1-4.8 0c0-1.5 1.7-2.4 2.4-4.5z" fill="#FFD43B"/>',
+  joia: '<path d="M2.8 10.5h3.9V21H2.8z" fill="#3D8BFF" stroke="#1D4FB3" stroke-width="1" stroke-linejoin="round"/><path d="M8 10.5l3.6-7.2c1.9 0 3 1.5 2.6 3.4l-.6 3.1h5.2c1.2 0 2.1 1 1.9 2.2l-1.3 6.8c-.2 1.1-1.2 1.9-2.3 1.9H8z" fill="#FFC93C" stroke="#B97A00" stroke-width="1.1" stroke-linejoin="round"/>',
+  confete: '<path d="M2.6 21.4l4.6-12.6 8 8z" fill="#FF8A1F" stroke="#B94E00" stroke-width="1.1" stroke-linejoin="round"/><path d="M5 15l4.4 4.4M3.8 18.2l2.6 2.6" stroke="#FFD43B" stroke-width="1.4" stroke-linecap="round"/><circle cx="14.2" cy="5.2" r="1.5" fill="#FF4D6D"/><circle cx="19.4" cy="9.4" r="1.4" fill="#3D8BFF"/><circle cx="10.4" cy="3.6" r="1.1" fill="#2FBF71"/><path d="M16.2 10.6l3.3-1M12.6 6.9l1-3.3M18.6 14.3l2.6.5" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round"/>',
+  oculos: '<path d="M1.8 8.6h20.4v2.6l-1.1 4.4a3 3 0 0 1-2.9 2.3h-1.2a3 3 0 0 1-2.9-2.3l-.5-2-.9-.9-.9.9-.5 2a3 3 0 0 1-2.9 2.3H6a3 3 0 0 1-2.9-2.3L2 11.2z" fill="#2B2B36" stroke="#111" stroke-width=".8" stroke-linejoin="round"/><path d="M4.6 11.4l2.4-1.4M14.6 11.4l2.4-1.4" stroke="#fff" stroke-opacity=".55" stroke-width="1.3" stroke-linecap="round"/>',
+  estrela: '<path d="M12 2.2l2.9 6.1 6.7.8-4.9 4.6 1.3 6.6L12 16.9l-6 3.4 1.3-6.6L2.4 9.1l6.7-.8z" fill="#FFC93C" stroke="#C78200" stroke-width="1.2" stroke-linejoin="round"/><path d="M8.4 8.6l1.6-.2" stroke="#fff" stroke-opacity=".7" stroke-width="1.4" stroke-linecap="round"/>',
+  pulinho: '<path d="M12 2.6l6.3 7.2h-4.1v6h-4.4v-6H5.7z" fill="#3D8BFF" stroke="#1D4FB3" stroke-width="1.1" stroke-linejoin="round"/><path d="M4 21c5-3.2 11-3.2 16 0" fill="none" stroke="#8892A6" stroke-width="1.8" stroke-linecap="round"/>',
+  danca: '<path d="M9 18.2V5.8l11-2.2v12.4" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="6.6" cy="18.4" rx="3.2" ry="2.4" fill="#8B5CF6"/><ellipse cx="17.6" cy="16.4" rx="3.2" ry="2.4" fill="#8B5CF6"/><path d="M9 9l11-2.2" stroke="#8B5CF6" stroke-width="2"/>',
+  palmas: '<g fill="#FFC93C" stroke="#B97A00" stroke-width="1.1" stroke-linejoin="round"><path d="M3.4 9.2c-.9-1.5 1-2.9 2.2-1.6l5.6 5.8c1 1.1 1 2.6-.1 3.6l-1 .9c-1.1 1-2.7.9-3.6-.2z" transform="rotate(8 8 13)"/><path d="M20.6 9.2c.9-1.5-1-2.9-2.2-1.6l-5.6 5.8c-1 1.1-1 2.6.1 3.6l1 .9c1.1 1 2.7.9 3.6-.2z" transform="rotate(-8 16 13)"/></g><path d="M12 2.4v3M7.2 3.6l1.2 2.4M16.8 3.6l-1.2 2.4" stroke="#FF8A1F" stroke-width="1.6" stroke-linecap="round"/>',
+  giro: '<path d="M12 12.2c0-1.1 1.6-1.4 2.3-.5.9 1.2.4 3-1.1 3.7-2 .9-4.4-.3-5-2.5-.7-2.6 1.1-5.2 3.8-5.7 3.3-.6 6.4 1.7 6.7 5 .4 3.8-2.5 7-6.2 7.3" fill="none" stroke="#3D8BFF" stroke-width="2.2" stroke-linecap="round"/>',
+  robo: '<rect x="4.2" y="8" width="15.6" height="11.6" rx="3" fill="#B7C0CF" stroke="#566176" stroke-width="1.2"/><path d="M12 8V4.6" stroke="#566176" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="3.7" r="1.7" fill="#E5282C"/><circle cx="8.8" cy="13" r="2" fill="#2DD4FF" stroke="#0A6C8A" stroke-width=".8"/><circle cx="15.2" cy="13" r="2" fill="#2DD4FF" stroke="#0A6C8A" stroke-width=".8"/><path d="M9 17h6" stroke="#566176" stroke-width="1.6" stroke-linecap="round"/><path d="M2.4 12.6v3M21.6 12.6v3" stroke="#566176" stroke-width="2" stroke-linecap="round"/>',
+  minhoca: '<path d="M3 17.2c2.6-6.4 4.6 3.4 8-1.8s5.2 2.6 9-3.4" fill="none" stroke="#2FBF71" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17.2c2.6-6.4 4.6 3.4 8-1.8s5.2 2.6 9-3.4" fill="none" stroke="#7BE0A2" stroke-width="1.2" stroke-linecap="round" transform="translate(0 -1)"/><circle cx="20.2" cy="11.6" r="1.2" fill="#1B3B2A"/>',
+  zumbi: '<path d="M5.4 21.4V10a6.6 6.6 0 0 1 13.2 0v11.4z" fill="#9AA5B1" stroke="#4A5563" stroke-width="1.2" stroke-linejoin="round"/><path d="M12 8v7.4M8.8 11.4h6.4" stroke="#3A4452" stroke-width="2" stroke-linecap="round"/><path d="M3 21.4h18" stroke="#4A5563" stroke-width="1.6" stroke-linecap="round"/>',
+  fantasma: '<path d="M4.8 21.6V11a7.2 7.2 0 0 1 14.4 0v10.6l-2.4-2-2.4 2-2.4-2-2.4 2-2.4-2z" fill="#fff" stroke="#8892A6" stroke-width="1.2" stroke-linejoin="round"/><ellipse cx="9.4" cy="11" rx="1.4" ry="1.9" fill="#2B2B36"/><ellipse cx="14.6" cy="11" rx="1.4" ry="1.9" fill="#2B2B36"/><ellipse cx="12" cy="15" rx="1.3" ry="1.6" fill="#2B2B36"/>',
+  foguete: '<path d="M12 1.8c3.2 2.8 4.4 7 3.8 11.6H8.2C7.6 8.8 8.8 4.6 12 1.8z" fill="#F4F6FA" stroke="#5B6678" stroke-width="1.1" stroke-linejoin="round"/><circle cx="12" cy="8.8" r="2" fill="#3D8BFF" stroke="#1D4FB3" stroke-width=".9"/><path d="M8.2 10.4L4.4 14.8l3.8-.8zM15.8 10.4l3.8 4.4-3.8-.8z" fill="#E5282C" stroke="#9E1318" stroke-width=".9" stroke-linejoin="round"/><path d="M9.6 13.4h4.8L12 21z" fill="#FF8A1F"/><path d="M10.9 13.4h2.2L12 18z" fill="#FFD43B"/>',
+  arcoiris: '<g fill="none" stroke-width="2.3" stroke-linecap="round"><path d="M2.6 19a9.4 9.4 0 0 1 18.8 0" stroke="#E5484D"/><path d="M5 19a7 7 0 0 1 14 0" stroke="#FF9F1A"/><path d="M7.4 19a4.6 4.6 0 0 1 9.2 0" stroke="#FFD43B"/><path d="M9.8 19a2.2 2.2 0 0 1 4.4 0" stroke="#3D8BFF"/></g>',
+  coroa: '<path d="M2.6 18.6L1.8 7.4l5.4 4.4L12 4l4.8 7.8 5.4-4.4-.8 11.2z" fill="#FFC93C" stroke="#B97A00" stroke-width="1.2" stroke-linejoin="round"/><path d="M3 18.8h18v2.2H3z" fill="#E8A800" stroke="#B97A00" stroke-width="1" stroke-linejoin="round"/><circle cx="12" cy="13" r="1.5" fill="#E5282C"/><circle cx="7.4" cy="14.4" r="1" fill="#3D8BFF"/><circle cx="16.6" cy="14.4" r="1" fill="#3D8BFF"/>',
+  nota: '<path d="M9 18V5l11-2.4V16" fill="none" stroke="{C}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="6.6" cy="18.4" rx="3.3" ry="2.5" fill="{C}"/><ellipse cx="17.6" cy="16.4" rx="3.3" ry="2.5" fill="{C}"/>',
+  coracaoCor: '<path d="M12 21.2s-8.6-5.5-8.6-11.7A4.9 4.9 0 0 1 12 6.6a4.9 4.9 0 0 1 8.6 2.9c0 6.2-8.6 11.7-8.6 11.7z" fill="{C}"/>',
+  estrelaCor: '<path d="M12 2.2l2.9 6.1 6.7.8-4.9 4.6 1.3 6.6L12 16.9l-6 3.4 1.3-6.6L2.4 9.1l6.7-.8z" fill="{C}"/>',
+  /* enfeites dos eventos */
+  abobora: '<path d="M12 6.2c-5.6-1.6-10 1.4-10 6.8 0 4.4 3.8 7.6 8 7.6 1.3 0 1.5-.2 2 0 4.2 0 8-3.2 8-7.6 0-5.4-4.4-8.4-10-6.8z" fill="#FF7A1A" stroke="#B94E00" stroke-width="1.1"/><path d="M12 6.4c-2.4 2.6-2.4 11.6 0 14.2M12 6.4c2.4 2.6 2.4 11.6 0 14.2" fill="none" stroke="#C2410C" stroke-width="1" opacity=".7"/><path d="M12 6.4c0-2 .6-3.2 2.2-4" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"/>',
+  morcego: '<path d="M12 7.4c.8-1.4 1.6-2.4 2.8-2.8l.4 2.4c1.6-.9 4-1.4 7-.9-1.1 1.1-1.6 2.4-1.5 3.8-1 .3-1.7.9-2 1.9-1-.7-2-.8-3.1-.3-.5.9-1.2 1.4-2 1.6-.8-.2-1.5-.7-2-1.6-1.1-.5-2.1-.4-3.1.3-.3-1-1-1.6-2-1.9.1-1.4-.4-2.7-1.5-3.8 3-.5 5.4 0 7 .9l.4-2.4c1.2.4 2 1.4 2.6 2.8z" fill="#3A2A55" stroke="#1A1030" stroke-width=".8" stroke-linejoin="round" transform="translate(0 2)"/><circle cx="10.6" cy="10.8" r=".8" fill="#FFD43B"/><circle cx="13.4" cy="10.8" r=".8" fill="#FFD43B"/>',
+  floco: '<g stroke="#CFEAFF" stroke-width="1.8" stroke-linecap="round" fill="none"><path d="M12 2.4v19.2M3.7 7.2l16.6 9.6M3.7 16.8l16.6-9.6"/><path d="M9.6 4.2L12 6.4l2.4-2.2M9.6 19.8L12 17.6l2.4 2.2M4 10.2l3-.3-.6-3.1M20 13.8l-3 .3.6 3.1M4 13.8l3 .3-.6 3.1M20 10.2l-3-.3.6-3.1"/></g>',
+  presente: '<rect x="3" y="9.4" width="18" height="11.6" rx="1.6" fill="#E5484D" stroke="#9E1318" stroke-width="1.1"/><rect x="2.2" y="6.6" width="19.6" height="4.2" rx="1.4" fill="#FF6B73" stroke="#9E1318" stroke-width="1.1"/><path d="M12 6.6V21" stroke="#FFD43B" stroke-width="2.6"/><path d="M12 6.4C9.4 6.4 7.6 5 8 3.6c.5-1.6 3 .2 4 2.8zM12 6.4c2.6 0 4.4-1.4 4-2.8-.5-1.6-3 .2-4 2.8z" fill="#FFD43B" stroke="#B97A00" stroke-width=".9" stroke-linejoin="round"/>',
+  sol: '<circle cx="12" cy="12" r="5" fill="#FFC93C" stroke="#E08A00" stroke-width="1.2"/><g stroke="#FFA81F" stroke-width="2" stroke-linecap="round"><path d="M12 2.2v2.6M12 19.2v2.6M2.2 12h2.6M19.2 12h2.6M5.1 5.1l1.8 1.8M17.1 17.1l1.8 1.8M5.1 18.9l1.8-1.8M17.1 6.9l1.8-1.8"/></g>',
+  concha: '<path d="M12 20.6c-5.6 0-9-3.6-9-8 2.8 0 5.8-1.8 9-9 3.2 7.2 6.2 9 9 9 0 4.4-3.4 8-9 8z" fill="#FFB3C7" stroke="#D1537A" stroke-width="1.1" stroke-linejoin="round"/><path d="M12 4v16.4M7.4 8.4l4.6 12M16.6 8.4L12 20.4M4.6 12.8L12 20.4M19.4 12.8L12 20.4" fill="none" stroke="#D1537A" stroke-width=".9" stroke-linecap="round" opacity=".8"/>',
+  onda: '<path d="M1.6 13c2-3 4-3 6 0s4 3 6 0 4-3 6 0 2.6 2 3.2 1.4" fill="none" stroke="#2D9CDB" stroke-width="2.6" stroke-linecap="round"/><path d="M1.6 18.4c2-3 4-3 6 0s4 3 6 0 4-3 6 0 2.6 2 3.2 1.4" fill="none" stroke="#7CC8F2" stroke-width="2.2" stroke-linecap="round"/>',
+  globo: '<circle cx="12" cy="12" r="9.4" fill="#3D8BFF" stroke="#1D4FB3" stroke-width="1.2"/><path d="M12 2.6c-3.6 3-3.6 15.8 0 18.8M12 2.6c3.6 3 3.6 15.8 0 18.8M2.8 9.4h18.4M2.8 14.6h18.4" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="1.2"/><path d="M5.2 6.6c2 .8 3.2 2 3.4 3.6-1.4.4-2.4 1.2-2.6 2.6-1.4-.4-2.6-1.8-2.8-3.4.2-1 1-2.2 2-2.8z" fill="#2FBF71" opacity=".9"/>'
+};
+const PICTO_CACHE = new Map();
+function pictoSvg(nome, cor, extra){
+  const corpo = String(PICTOS[nome] || '').replace(/\{C\}/g, cor || '#8B5CF6');
+  return `<svg class="picto picto-${nome}${extra ? ' ' + extra : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${corpo}</svg>`;
+}
+function pictoImg(nome, cor){
+  const k = nome + '|' + (cor || '');
+  let im = PICTO_CACHE.get(k);
+  if(im) return im;
+  im = new Image();
+  const corpo = String(PICTOS[nome] || '').replace(/\{C\}/g, cor || '#8B5CF6');
+  im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96">' + corpo + '</svg>');
+  PICTO_CACHE.set(k, im);
+  return im;
+}
+
 /* ---------- os emotes da praça ----------
    Animações do personagem (dançar, girar, foguete...). Os 2 primeiros são de graça; o resto se compra com
    moedas ou com Koda Diamonds (moeda:'d') e fica guardado na conta (cosméticos → emotes).
    Na rede vai só o número (t:'emote', k): pra pôr mais, junte no FIM da lista.
    anim: o jeito que o corpo mexe (ver pracaEmoteCorpo). fx: as coisinhas que saem em volta (ver pracaEmoteFx). */
 var PRACA_EMOTES = [
-  {id:'aceno',    ic:'👋', price:0,    anim:'aceno',   fx:'',        nome:'Acenar|Wave|Saludar'},
-  {id:'pulinho',  ic:'🦘', price:0,    anim:'pulinho', fx:'',        nome:'Pulinhos|Hops|Saltitos'},
-  {id:'danca',    ic:'💃', price:300,  anim:'danca',   fx:'notas',   nome:'Dancinha|Little dance|Bailecito'},
-  {id:'risada',   ic:'🤣', price:300,  anim:'treme',   fx:'risos',   nome:'Rolar de rir|LOL|Morir de risa'},
-  {id:'palmas',   ic:'👏', price:350,  anim:'palmas',  fx:'brilhos', nome:'Palmas|Clapping|Aplausos'},
-  {id:'giro',     ic:'🌀', price:450,  anim:'giro',    fx:'vento',   nome:'Pião|Spin|Trompo'},
-  {id:'coracao',  ic:'💖', price:500,  anim:'pulsa',   fx:'coracoes',nome:'Corações|Hearts|Corazones'},
-  {id:'robo',     ic:'🤖', price:600,  anim:'robo',    fx:'faiscas', nome:'Robô|Robot|Robot'},
-  {id:'minhoca',  ic:'🐛', price:650,  anim:'minhoca', fx:'',        nome:'Minhoca|Wiggle|Gusanito'},
-  {id:'confete',  ic:'🎉', price:750,  anim:'pulinho', fx:'confete', nome:'Festa|Party|Fiesta'},
-  {id:'estrela',  ic:'⭐', price:900,  anim:'salto',   fx:'estrelas',nome:'Estrelinha|Star jump|Estrellita'},
-  {id:'zumbi',    ic:'🧟', price:1000, anim:'zumbi',   fx:'',        nome:'Zumbi|Zombie|Zombi'},
-  {id:'fantasma', ic:'👻', moeda:'d', price:3,  anim:'fantasma', fx:'nevoa',   nome:'Fantasminha|Ghost|Fantasmita'},
-  {id:'foguete',  ic:'🚀', moeda:'d', price:5,  anim:'foguete',  fx:'fogo',    nome:'Foguete|Rocket|Cohete'},
-  {id:'arcoiris', ic:'🌈', moeda:'d', price:7,  anim:'flutua',   fx:'arcoiris',nome:'Arco-íris|Rainbow|Arcoíris'},
-  {id:'coroa',    ic:'👑', moeda:'d', price:10, anim:'coroa',    fx:'ouro',    nome:'Rei da praça|Plaza royalty|Realeza de la plaza'}
+  {id:'aceno',    price:0,    anim:'aceno',   fx:'',        nome:'Acenar|Wave|Saludar'},
+  {id:'pulinho',  price:0,    anim:'pulinho', fx:'',        nome:'Pulinhos|Hops|Saltitos'},
+  {id:'danca',    price:300,  anim:'danca',   fx:'notas',   nome:'Dancinha|Little dance|Bailecito'},
+  {id:'risada',   price:300,  anim:'treme',   fx:'risos',   nome:'Rolar de rir|LOL|Morir de risa'},
+  {id:'palmas',   price:350,  anim:'palmas',  fx:'brilhos', nome:'Palmas|Clapping|Aplausos'},
+  {id:'giro',     price:450,  anim:'giro',    fx:'vento',   nome:'Pião|Spin|Trompo'},
+  {id:'coracao',  price:500,  anim:'pulsa',   fx:'coracoes',nome:'Corações|Hearts|Corazones'},
+  {id:'robo',     price:600,  anim:'robo',    fx:'faiscas', nome:'Robô|Robot|Robot'},
+  {id:'minhoca',  price:650,  anim:'minhoca', fx:'',        nome:'Minhoca|Wiggle|Gusanito'},
+  {id:'confete',  price:750,  anim:'pulinho', fx:'confete', nome:'Festa|Party|Fiesta'},
+  {id:'estrela',  price:900,  anim:'salto',   fx:'estrelas',nome:'Estrelinha|Star jump|Estrellita'},
+  {id:'zumbi',    price:1000, anim:'zumbi',   fx:'',        nome:'Zumbi|Zombie|Zombi'},
+  {id:'fantasma', moeda:'d', price:3,  anim:'fantasma', fx:'nevoa',   nome:'Fantasminha|Ghost|Fantasmita'},
+  {id:'foguete',  moeda:'d', price:5,  anim:'foguete',  fx:'fogo',    nome:'Foguete|Rocket|Cohete'},
+  {id:'arcoiris', moeda:'d', price:7,  anim:'flutua',   fx:'arcoiris',nome:'Arco-íris|Rainbow|Arcoíris'},
+  {id:'coroa',    moeda:'d', price:10, anim:'coroa',    fx:'ouro',    nome:'Rei da praça|Plaza royalty|Realeza de la plaza'}
 ];
 var PRACA_EMOTE_MS = 3200;           // quanto tempo o emote dura
-/* as figurinhas rápidas (👋 ❤️ 😂 😮 🔥 👍 🎉 😎) também mexem o personagem, mais curtinho que um emote */
+/* as reações rápidas (aceno, coração, risada, susto, fogo, joinha, festa, óculos) também mexem o personagem, mais curtinho que um emote */
 var PRACA_EMOS_ANIM = [
   {anim: 'aceno',   fx: 'brilhos'},
   {anim: 'pulsa',   fx: 'coracoes'},
@@ -13093,7 +13155,7 @@ var DUPLA_TXT = {
  dupla_escolher:'Com quem você quer criar?|Who do you want to create with?|¿Con quién quieres crear?',
  dupla_criando:'Preparando o jogo da dupla…|Setting up the duo game…|Preparando el juego del dúo…',
  dupla_convite_ok:'Convite enviado pra {nome}!|Invite sent to {nome}!|¡Invitación enviada a {nome}!',
- dupla_convite_txt:'Vamos criar esse jogo juntos? 🎮 {nome}|Let’s make this game together? 🎮 {nome}|¿Creamos este juego juntos? 🎮 {nome}',
+ dupla_convite_txt:'Vamos criar esse jogo juntos? {nome}|Let’s make this game together? {nome}|¿Creamos este juego juntos? {nome}',
  dupla_cartao_tit:'Vamos criar esse jogo juntos?|Let’s make this game together?|¿Creamos este juego juntos?',
  dupla_entrar:'Entrar no Studio|Join in Studio|Entrar al Studio',
  dupla_lista:'Jogos em dupla|Duo games|Juegos en dúo',
@@ -14281,7 +14343,7 @@ async function sendChatMessage(conversationId, text, gameRef, agentChatRef, repl
     if(extras && Number(extras.audioSeg) > 0) doc.audioSeg = Number(extras.audioSeg);   // quanto tempo o áudio tem
     await fbDb().collection('messages').add(doc);
     const preview = challengeRef ? (t('challenge_preview',{name:challengeRef.name, n:challengeRef.score}))
-      : agentChatRef ? ('🕹️ '+agentChatRef.name) : gameRef ? ('🎮 '+gameRef.name) : imageData ? '📷 '+t('msg_photo_label') : (videoData || videoRef) ? '🎬 '+t('msg_video_label') : audioData ? '🎤 '+t('msg_audio_label') : (text||'').slice(0,60);
+      : agentChatRef ? agentChatRef.name : gameRef ? gameRef.name : imageData ? t('msg_photo_label') : (videoData || videoRef) ? t('msg_video_label') : audioData ? t('msg_audio_label') : (text||'').slice(0,60);
     await fbDb().collection('conversations').doc(conversationId).set({
       lastMessageAt: Date.now(), lastMessageText: preview, lastMessageBy: user.email
     }, {merge:true});
@@ -15278,7 +15340,7 @@ async function openConversationThread(conv){
   let replyingTo = null;
   function setReplyTo(msg){
     if(!replyPreview || !input) return;
-    replyingTo = msg ? {id:msg.id, senderName: nicknameOr(msg.senderName||msg.senderEmail, msg.senderEmail), text: (msg.text||(msg.gameRef?('🎮 '+msg.gameRef.name):msg.agentChatRef?('🕹️ '+msg.agentChatRef.name):'')).slice(0,80)} : null;
+    replyingTo = msg ? {id:msg.id, senderName: nicknameOr(msg.senderName||msg.senderEmail, msg.senderEmail), text: (msg.text||(msg.gameRef?msg.gameRef.name:msg.agentChatRef?msg.agentChatRef.name:'')).slice(0,80)} : null;
     if(replyingTo){
       replyPreview.classList.remove('hidden');
       modalBody.querySelector('#replyPreviewName').textContent = replyingTo.senderName;
@@ -16738,13 +16800,13 @@ const ICONE_CARTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const CAD_PASSOS = ['nome', 'senha', 'conf', 'seg', 'nasc', 'gen'];
 const CAD_NUM_DO = {nome: 1, senha: 2, conf: 3, seg: 4, cel: 4, cod: 4, nasc: 5, gen: 6};
 /* o código do país do celular (o primeiro da lista é o do idioma do site) */
-const PAISES_CEL = [['BR', '55', '🇧🇷'], ['PT', '351', '🇵🇹'], ['US', '1', '🇺🇸'], ['GB', '44', '🇬🇧'], ['ES', '34', '🇪🇸'], ['MX', '52', '🇲🇽'], ['AR', '54', '🇦🇷'],
-  ['CO', '57', '🇨🇴'], ['CL', '56', '🇨🇱'], ['PE', '51', '🇵🇪'], ['UY', '598', '🇺🇾'], ['PY', '595', '🇵🇾'], ['AO', '244', '🇦🇴'], ['MZ', '258', '🇲🇿'],
-  ['IT', '39', '🇮🇹'], ['FR', '33', '🇫🇷'], ['DE', '49', '🇩🇪'], ['NL', '31', '🇳🇱'], ['BE', '32', '🇧🇪'], ['CH', '41', '🇨🇭'], ['CA', '1', '🇨🇦'],
-  ['JP', '81', '🇯🇵'], ['CN', '86', '🇨🇳'], ['KR', '82', '🇰🇷']];
+const PAISES_CEL = [['BR', '55'], ['PT', '351'], ['US', '1'], ['GB', '44'], ['ES', '34'], ['MX', '52'], ['AR', '54'],
+  ['CO', '57'], ['CL', '56'], ['PE', '51'], ['UY', '598'], ['PY', '595'], ['AO', '244'], ['MZ', '258'],
+  ['IT', '39'], ['FR', '33'], ['DE', '49'], ['NL', '31'], ['BE', '32'], ['CH', '41'], ['CA', '1'],
+  ['JP', '81'], ['CN', '86'], ['KR', '82']];
 function seletorDePais(id){
   const pref = ({pt: 'BR', en: 'US', es: 'ES', it: 'IT', fr: 'FR', de: 'DE', nl: 'NL', ja: 'JP', zh: 'CN', ko: 'KR'})[currentLang] || 'BR';
-  return `<select class="auth-input auth-pais" id="${id}" aria-label="${chatListEscape(t('cad_pais'))}">` + PAISES_CEL.map(([c, n, f])=>`<option value="${n}"${c === pref ? ' selected' : ''}>${f} +${n}</option>`).join('') + '</select>';
+  return `<select class="auth-input auth-pais" id="${id}" aria-label="${chatListEscape(t('cad_pais'))}">` + PAISES_CEL.map(([c, n])=>`<option value="${n}"${c === pref ? ' selected' : ''}>${c} +${n}</option>`).join('') + '</select>';
 }
 /* país + número → "+5511912345678" (ou null se não parece um celular) */
 function celularCompleto(pais, num){
@@ -17578,7 +17640,6 @@ const ICONES_APARELHO = {
    um botão com o idioma atual pra trocar. A escolha feita no aparelho vale mais que a guardada na conta.
 ============================================================ */
 const IDIOMA_ESCOLHIDO_KEY = 'koda_idioma_escolhido';
-const IDIOMA_BANDEIRA = {pt:'🇧🇷', en:'🇺🇸', es:'🇪🇸', it:'🇮🇹', fr:'🇫🇷', de:'🇩🇪', nl:'🇳🇱', ja:'🇯🇵', zh:'🇨🇳', ko:'🇰🇷'};
 const IDIOMA_TITULO = {pt:'Escolha seu idioma', en:'Choose your language', es:'Elige tu idioma', it:'Scegli la tua lingua', fr:'Choisis ta langue',
   de:'Wähle deine Sprache', nl:'Kies je taal', ja:'言語をえらんでね', zh:'选择你的语言', ko:'언어를 골라 주세요'};
 const IDIOMA_BOTAO = {pt:'Continuar', en:'Continue', es:'Continuar', it:'Continua', fr:'Continuer', de:'Weiter', nl:'Verder', ja:'つぎへ', zh:'继续', ko:'계속'};
@@ -17591,7 +17652,7 @@ function idiomaDoAparelho(){
   }catch(e){}
   return currentLang;
 }
-function idiomaRotulo(id){ const l = LANGS.find(x=>x.id === id); return (IDIOMA_BANDEIRA[id] || '🌐') + ' ' + (l ? l.nome : id.toUpperCase()); }
+function idiomaRotulo(id){ const l = LANGS.find(x=>x.id === id); return id.toUpperCase() + ' · ' + (l ? l.nome : id.toUpperCase()); }
 function abrirEscolhaDeIdioma(depois, opts){
   opts = opts || {};
   if(document.getElementById('idiomaTela')) return;
@@ -17604,11 +17665,11 @@ function abrirEscolhaDeIdioma(depois, opts){
   tela.setAttribute('aria-modal', 'true');
   tela.innerHTML = `
     ${opts.troca ? `<button class="disp-fechar" data-fechar type="button" aria-label="✕">✕</button>` : ''}
-    <div class="idioma-globo" aria-hidden="true">🌍</div>
+    <div class="idioma-globo" aria-hidden="true">${pictoSvg('globo')}</div>
     <h2 class="disp-titulo" data-tit></h2>
     <p class="idioma-outras" aria-hidden="true" data-outras></p>
     <div class="idioma-grade" role="radiogroup">
-      ${LANGS.map(l=>`<button type="button" class="idioma-op" role="radio" data-l="${l.id}"><span class="idioma-band">${IDIOMA_BANDEIRA[l.id] || '🌐'}</span><span class="idioma-nome">${l.nome}</span></button>`).join('')}
+      ${LANGS.map(l=>`<button type="button" class="idioma-op" role="radio" data-l="${l.id}"><span class="idioma-band">${l.id.toUpperCase()}</span><span class="idioma-nome">${l.nome}</span></button>`).join('')}
     </div>
     <button type="button" class="idioma-ok" data-ok></button>`;
   document.body.appendChild(tela);
@@ -20060,7 +20121,7 @@ function kodaRedeDentroDoJogo(T){
     var el = document.createElement('div');
     el.id = '__jogodromoErrorOverlay';
     el.style.cssText = 'position:fixed;inset:0;background:rgba(10,10,20,.92);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:sans-serif;text-align:center;z-index:999999;';
-    var ic = document.createElement('div'); ic.style.cssText = 'font-size:2.2rem;margin-bottom:12px;'; ic.textContent = '🛠️';
+    var ic = document.createElement('div'); ic.style.cssText = 'width:44px;height:44px;margin-bottom:12px;'; ic.innerHTML = '<svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><path d="M14.7 6.3a4.5 4.5 0 0 0-5.6 5.6L3.6 17.4a1.9 1.9 0 0 0 2.7 2.7l5.5-5.5a4.5 4.5 0 0 0 5.6-5.6l-2.6 2.6-2.4-.6-.6-2.4z" fill="#C9D3DC" stroke="#8892A6" stroke-width="1.2" stroke-linejoin="round"/></svg>';
     var ti = document.createElement('div'); ti.style.cssText = 'font-weight:700;font-size:1.05rem;margin-bottom:10px;'; ti.textContent = T.titulo;
     var de = document.createElement('div'); de.style.cssText = 'font-size:.78rem;opacity:.75;max-width:320px;word-break:break-word;font-family:monospace;margin-bottom:16px;'; de.textContent = msg;
     var bt = document.createElement('button'); bt.type = 'button'; bt.textContent = T.fechar;
@@ -20404,6 +20465,7 @@ function kodaCompatDentroDoJogo(C){
   (T.extras || []).forEach(function(x){ acoes.push({id: x, rot: x === 'shift' ? '⇧' : x === 'escape' ? 'Esc' : String(x).toUpperCase()}); });
   var temDir = !!(T.setas || T.wasd);
   var setaSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6l7 9H5z" fill="currentColor"/></svg>';
+  var padSvg = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:22px;height:22px"><path d="M7.5 8h9a4.5 4.5 0 0 1 4.4 3.7l.9 5a2.6 2.6 0 0 1-4.4 2.2L15.6 17H8.4l-1.8 1.9a2.6 2.6 0 0 1-4.4-2.2l.9-5A4.5 4.5 0 0 1 7.5 8z" fill="currentColor"/><path d="M7.6 10.6v3.6M5.8 12.4h3.6" stroke="#000" stroke-opacity=".55" stroke-width="1.4" stroke-linecap="round"/><circle cx="15.4" cy="11.4" r="1" fill="#000" fill-opacity=".55"/><circle cx="17.6" cy="13.4" r="1" fill="#000" fill-opacity=".55"/></svg>';
   raiz.innerHTML = '<style>'
     + ':host{all:initial}'
     + '.k{position:fixed;left:0;right:0;bottom:0;pointer-events:none;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}'
@@ -20429,7 +20491,7 @@ function kodaCompatDentroDoJogo(C){
     + '<div class="k" part="k"><div class="fundo"></div>'
     + (temDir ? '<div class="dpad" role="group" aria-label="' + (TX.setas || 'D-pad') + '"><i></i><b class="up" data-d="up">' + setaSvg + '</b><b class="left" data-d="left">' + setaSvg + '</b><b class="right" data-d="right">' + setaSvg + '</b><b class="down" data-d="down">' + setaSvg + '</b></div>' : '')
     + '<div class="acoes">' + acoes.map(function(a){ return '<button type="button" class="' + (a.grande ? 'grande' : '') + '" data-k="' + a.id + '">' + String(a.rot).replace(/[<>&"]/g, '') + '</button>'; }).join('') + '</div>'
-    + '<button type="button" class="alterna" aria-label="' + (TX.esconder || 'Hide') + '">🎮</button>'
+    + '<button type="button" class="alterna" aria-label="' + (TX.esconder || 'Hide') + '">' + padSvg + '</button>'
     + '</div>';
   var K0 = raiz.querySelector('.k');
   /* nada dos controles chega no jogo como toque/clique (só as teclas) */
@@ -20481,7 +20543,7 @@ function kodaCompatDentroDoJogo(C){
     K0.classList.toggle('mostra', mostrar);
     K0.classList.toggle('deitado', deitado);
     alterna.setAttribute('aria-label', mostrar ? (TX.esconder || 'Hide') : (TX.mostrar || 'Show'));
-    alterna.textContent = mostrar ? '✕' : '🎮';
+    if(mostrar) alterna.textContent = '✕'; else alterna.innerHTML = padSvg;
     if(faixa !== E.faixa){
       E.faixa = faixa;
       dEsc = true;
@@ -20512,7 +20574,7 @@ function jogoTeclasDoCodigo(codigo){
   if(/['"]Shift(Left|Right)?['"]|shiftKey/.test(c) && /key/i.test(c)) extras.shift = 1;
   if(/['"]Escape['"]|(keyCode|which)\s*={2,3}\s*27\b/.test(c)) extras.escape = 1;
   r.extras = Object.keys(extras).slice(0, 4);
-  /* o jogo já tem toque/clique? (aí os botões começam escondidos, com um 🎮 pra mostrar) */
+  /* o jogo já tem toque/clique? (aí os botões começam escondidos, com um botãozinho de controle pra mostrar) */
   const toque = /touch(start|end|move)|pointer(down|up|move)|mouse(down|up|move)|mousePressed|touchStarted|mouseIsPressed|onMousePress|onMouseDown|activePointer|input\.on\(\s*['"]pointer|onTouchStart|onPointerDown/.test(c);
   return {teclas: (r.setas || r.wasd || r.espaco || r.enter || r.extras.length) ? r : null, toque};
 }
@@ -25054,7 +25116,7 @@ window.addEventListener('message', function(ev){
 const PRACA_JOGO = 'koda-praca';
 const PRACA_MAX = 20;
 const PRACA_ULTIMA = 999999999;   // a última praça: na prática não acabam (qualquer número de 9 dígitos)
-const PRACA_EMOS = ['👋', '❤️', '😂', '😮', '🔥', '👍', '🎉', '😎'];
+const PRACA_EMOS = ['aceno', 'coracao', 'risada', 'susto', 'chama', 'joia', 'confete', 'oculos'];   // o nome do desenho (pictoSvg)
 const PRACA_FRASES = 12 + PRACA_FALAS_EXTRA.length;   // frases prontas (praca_f0, praca_f1...): cada um vê na própria língua
 const PRACA_FALAS_ANTIGAS_CAT = ['oi', 'jogar', 'jogar', 'jogar', 'jogar', 'elogio', 'elogio', 'amigo', 'tchau', 'oi', 'praca', 'reacao'];
 const PRACA_RECENTES_KEY = 'koda_praca_recentes';
@@ -25086,7 +25148,7 @@ function pracaComprarEmote(i, depois){
   const moeda = e.moeda === 'd' ? 'd' : 'c', nome = t('praca_emote_' + e.id);
   compraFluxo({
     nome: t('praca_emote_tit', {nome}),
-    arte: `<span class="praca-emote-arte">${e.ic}</span>`,
+    arte: `<span class="praca-emote-arte">${pictoSvg(e.id)}</span>`,
     custo: {moeda, preco: e.price},
     presente: null,
     paraMim: ()=>{
@@ -25560,7 +25622,7 @@ function pracaReceber(P, m){
     if(p && ok && m.t === 'emo' && PRACA_EMOS_ANIM[n]) p.emote = {e: PRACA_EMOS_ANIM[n], ini: performance.now(), dur: PRACA_EMO_MS};
   } else if(m.t === 'emote'){
     const p = P.gente.get(String(m.id)), k = Number(m.k);
-    if(p && PRACA_EMOTES[k] && Math.floor(k) === k){ p.emote = {e: PRACA_EMOTES[k], ini: performance.now(), dur: PRACA_EMOTE_MS}; p.fala = {tipo: 'emo', n: -1, ic: PRACA_EMOTES[k].ic}; p.falaAte = performance.now() + 1400; }
+    if(p && PRACA_EMOTES[k] && Math.floor(k) === k){ p.emote = {e: PRACA_EMOTES[k], ini: performance.now(), dur: PRACA_EMOTE_MS}; p.fala = {tipo: 'emo', n: -1, pic: PRACA_EMOTES[k].id}; p.falaAte = performance.now() + 1400; }
   } else if(m.t === 'moeda'){
     const p = P.gente.get(String(m.id));
     if(p && m.id !== P.eu) pracaEfeitoMoeda(P, p, {x: Math.max(0, Math.min(PRACA_W, Number(m.x) || 0)), y: Math.max(0, Math.min(PRACA_H, Number(m.y) || 0))});
@@ -25632,7 +25694,7 @@ function pracaMontarTela(){
         <div data-painel="falas">
           <div class="praca-cats" data-cats></div>
           <div class="praca-frases" data-frases></div>
-          <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${e}">${e}</button>`).join('')}</div>
+          <div class="praca-emos">${PRACA_EMOS.map((e, i)=>`<button type="button" data-emo="${i}" aria-label="${chatListEscape(t('praca_emo_' + e))}">${pictoSvg(e)}</button>`).join('')}</div>
         </div>
         <div data-painel="emotes" class="hidden">
           <p class="praca-emote-dica">${chatListEscape(t('praca_emote_dica'))}</p>
@@ -25658,9 +25720,9 @@ function pracaMontarTela(){
   /* as falas ficam separadas por assunto (com as Recentes primeiro); os emotes têm a aba deles */
   let cat = pracaRecentes().length ? 'recentes' : 'oi', aba = 'falas';
   const pintarFalas = ()=>{
-    const cats = (pracaRecentes().length ? [['recentes', '🕘']] : []).concat(PRACA_FALAS_CATS.map(c=>[c[0], c[1]]));
+    const cats = (pracaRecentes().length ? [['recentes', '']] : []).concat(PRACA_FALAS_CATS.map(c=>[c[0], c[1]]));
     if(!cats.some(c=>c[0] === cat)) cat = cats[0][0];
-    el.querySelector('[data-cats]').innerHTML = cats.map(c=>`<button type="button" data-cat="${c[0]}" class="${c[0] === cat ? 'on' : ''}"><span aria-hidden="true">${c[1]}</span>${chatListEscape(t(c[0] === 'recentes' ? 'praca_recentes' : 'praca_cat_' + c[0]))}</button>`).join('');
+    el.querySelector('[data-cats]').innerHTML = cats.map(c=>`<button type="button" data-cat="${c[0]}" class="${c[0] === cat ? 'on' : ''}">${chatListEscape(t(c[0] === 'recentes' ? 'praca_recentes' : 'praca_cat_' + c[0]))}</button>`).join('');
     const fr = el.querySelector('[data-frases]');
     fr.innerHTML = pracaFalasDaCat(cat).map(i=>`<button type="button" data-fr="${i}">${chatListEscape(t('praca_f' + i))}</button>`).join('');
     fr.scrollTop = 0;
@@ -25669,7 +25731,7 @@ function pracaMontarTela(){
     el.querySelector('[data-emotes]').innerHTML = PRACA_EMOTES.map((e, i)=>{
       const tem = pracaEmoteTem(i);
       const preco = tem ? '' : `<i class="praca-emote-preco${e.moeda === 'd' ? ' dia' : ''}">${e.moeda === 'd' ? ICONS.diamond : ICONS.coin} ${kshopMilhar(e.price)}</i>`;
-      return `<button type="button" data-emote="${i}" class="${tem ? 'tem' : 'trancado'}"><span class="praca-emote-ic" aria-hidden="true">${e.ic}</span><b>${chatListEscape(t('praca_emote_' + e.id))}</b>${preco}${tem ? '' : '<span class="praca-emote-cadeado" aria-hidden="true">🔒</span>'}</button>`;
+      return `<button type="button" data-emote="${i}" class="${tem ? 'tem' : 'trancado'}"><span class="praca-emote-ic" aria-hidden="true">${pictoSvg(e.id)}</span><b>${chatListEscape(t('praca_emote_' + e.id))}</b>${preco}${tem ? '' : '<span class="praca-emote-cadeado" aria-hidden="true">' + ICONS.lock + '</span>'}</button>`;
     }).join('');
   };
   const trocarAba = nova=>{
@@ -26023,6 +26085,16 @@ function pracaBalao(x, sx, topo, texto, fonte, cor){
   linhas.forEach((l, i)=>x.fillText(l, sx, by + alt * .215 + lh * (i + .5) + 1));
   x.textBaseline = 'bottom';
 }
+/* o balão com um desenho dentro (as reações e os emotes) */
+function pracaBalaoPicto(x, sx, topo, nome, tam){
+  const im = pictoImg(nome), pad = tam * .22, bw = tam + pad * 2, bh = tam + pad * 2, bx = sx - bw / 2, by = topo - bh - 6;
+  x.fillStyle = '#ffffff'; x.strokeStyle = 'rgba(0,0,0,.28)'; x.lineWidth = 2;
+  x.beginPath();
+  if(x.roundRect) x.roundRect(bx, by, bw, bh, bh / 3); else x.rect(bx, by, bw, bh);
+  x.fill(); x.stroke();
+  x.beginPath(); x.moveTo(sx - 5, by + bh - 1); x.lineTo(sx, by + bh + 6); x.lineTo(sx + 5, by + bh - 1); x.closePath(); x.fill();
+  if(im.complete && im.naturalWidth) x.drawImage(im, bx + pad, by + pad, tam, tam);
+}
 /* ---------- emotes: como o corpo mexe (a origem é o pé do personagem; dy positivo = pra cima) ---------- */
 function pracaEmoteCorpo(e, f, ms, s){
   const r = {dx: 0, dy: 0, rot: 0, sx: 1, sy: 1, alfa: 1};
@@ -26062,6 +26134,7 @@ function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s, dur){
   x.save();
   x.textAlign = 'center'; x.textBaseline = 'middle';
   const glifo = (txt, gx, gy, tam, cor, a)=>{ x.globalAlpha = Math.max(0, Math.min(1, a)) * some; x.fillStyle = cor || '#fff'; x.font = '800 ' + Math.round(tam) + 'px sans-serif'; x.fillText(txt, gx, gy); };
+  const desenho = (nome, cor, gx, gy, tam, a)=>{ const im = pictoImg(nome, cor); if(!(im.complete && im.naturalWidth)) return; x.globalAlpha = Math.max(0, Math.min(1, a)) * some; x.drawImage(im, gx - tam / 2, gy - tam / 2, tam, tam); };
   const quad = (qx, qy, q, cor, a)=>{ x.globalAlpha = Math.max(0, Math.min(1, a)) * some; x.fillStyle = cor; x.fillRect(Math.round(qx - q / 2), Math.round(qy - q / 2), Math.round(q), Math.round(q)); };
   /* sobe: coisas que nascem perto do corpo e sobem sumindo */
   const sobe = (n, desenha)=>{
@@ -26073,9 +26146,9 @@ function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s, dur){
     }
   };
   switch(e.fx){
-    case 'notas': sobe(6, (gx, gy, g, k)=>glifo(k % 2 ? '♪' : '♫', gx, gy, 22 * s + 8, ['#ff5fa2', '#5fb8ff', '#ffd23f'][k % 3], 1 - g)); break;
-    case 'risos': sobe(4, (gx, gy, g)=>glifo('😂', gx, gy, 18 * s + 8, '#000', 1 - g)); break;
-    case 'coracoes': sobe(7, (gx, gy, g, k)=>glifo('❤', gx, gy, (18 + (k % 3) * 5) * s + 6, ['#ff3d6e', '#ff7fb0', '#e0245e'][k % 3], 1 - g)); break;
+    case 'notas': sobe(6, (gx, gy, g, k)=>desenho('nota', ['#ff5fa2', '#5fb8ff', '#ffd23f'][k % 3], gx, gy, 22 * s + 8, 1 - g)); break;
+    case 'risos': sobe(4, (gx, gy, g)=>desenho('risada', '', gx, gy, 20 * s + 8, 1 - g)); break;
+    case 'coracoes': sobe(7, (gx, gy, g, k)=>desenho('coracaoCor', ['#ff3d6e', '#ff7fb0', '#e0245e'][k % 3], gx, gy, (18 + (k % 3) * 5) * s + 6, 1 - g)); break;
     case 'brilhos':
       for(let k = 0; k < 8; k++){ const a = k / 8 * PI * 2 + ms / 600, d = larg * (.7 + .15 * sen(ms / 150 + k)); if(sen(ms / 90 + k * 1.7) > -.2) quad(sx + cos(a) * d, meio + sen(a) * d * .8, 5 * s + 2, '#fff3a0', .9); }
       break;
@@ -26095,7 +26168,7 @@ function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s, dur){
       }
       break;
     case 'estrelas':
-      for(let k = 0; k < 5; k++){ const a = k / 5 * PI * 2 + ms / 280; glifo('★', sx + cos(a) * larg * .85, meio + sen(a) * larg * .35, 20 * s + 6, '#ffd23f', .95); }
+      for(let k = 0; k < 5; k++){ const a = k / 5 * PI * 2 + ms / 280; desenho('estrelaCor', '#ffd23f', sx + cos(a) * larg * .85, meio + sen(a) * larg * .35, 20 * s + 6, .95); }
       break;
     case 'nevoa':
       for(let k = 0; k < 5; k++){ const g = ((ms / 900) + k / 5) % 1; x.globalAlpha = .35 * (1 - g) * some; x.fillStyle = '#e8f0ff'; x.beginPath(); x.ellipse(sx + sen(k * 2 + ms / 500) * larg * .6, sy - g * alt * .5, larg * (.35 + g * .3), larg * (.15 + g * .1), 0, 0, PI * 2); x.fill(); }
@@ -26121,7 +26194,7 @@ function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s, dur){
       }
       break;
     case 'ouro':
-      glifo('👑', sx, topo - 10 * s + sen(ms / 260) * 4 * s, 30 * s + 10, '#000', 1);
+      desenho('coroa', '', sx, topo - 10 * s + sen(ms / 260) * 4 * s, 30 * s + 10, 1);
       for(let k = 0; k < 8; k++){ if(sen(ms / 100 + k * 1.3) < 0) continue; const a = k / 8 * PI * 2 - ms / 700; quad(sx + cos(a) * larg * .8, meio + sen(a) * larg * .5, 5 * s + 2, '#ffd23f', 1); }
       break;
   }
@@ -26312,7 +26385,7 @@ function pracaQuadro(P, tm){
     x.fillStyle = p.id === P.eu ? '#ffe066' : '#fff';
     x.fillText(nm, sx, topo + 1);
     if(p.fala && tm < p.falaAte){
-      if(p.fala.tipo === 'emo') pracaBalao(x, sx, topo - fNome * 1.2 - (p.emoteDy || 0), p.fala.ic || PRACA_EMOS[p.fala.n], Math.round(fNome * 1.5) + 'px sans-serif', '#000');
+      if(p.fala.tipo === 'emo') pracaBalaoPicto(x, sx, topo - fNome * 1.2 - (p.emoteDy || 0), p.fala.pic || PRACA_EMOS[p.fala.n], Math.round(fNome * 1.55));
       else pracaBalao(x, sx, topo - fNome * 1.2, t('praca_f' + p.fala.n), '800 ' + Math.round(fNome * 1.05) + 'px "Baloo 2",sans-serif', '#08322B');
     }
   });
@@ -33324,7 +33397,7 @@ function mostrarBau(tipo, itens, aoFechar){
 /* ============================================================
    ROTINA DO JOGADOR — o que faz a pessoa voltar todo dia
    · NÍVEL do jogador: XP por jogar, prêmio a cada nível e títulos no perfil
-   · SEQUÊNCIA de dias 🔥: o prêmio cresce a cada dia seguido (com protetor)
+   · SEQUÊNCIA de dias: o prêmio cresce a cada dia seguido (com protetor)
    · BAÚ GRÁTIS a cada 4 horas (o 5º é raro)
    · ROLETA: 1 giro grátis por dia
    · OFERTA RELÂMPAGO: uma oferta diferente por dia na Koda shop
@@ -33973,7 +34046,7 @@ function rotDecimal(x){
 }
 
 /* ============================================================
-   SEQUÊNCIA DE DIAS 🔥
+   SEQUÊNCIA DE DIAS
    Pegou o prêmio hoje e volta amanhã: a sequência sobe. A semana tem 7 prêmios (o dia 4 é um baú e o
    dia 7 é um baú melhor + Koda Diamonds) e cada semana seguida paga mais (até 3x na 5ª semana).
    Esqueceu um dia? Se tiver PROTETOR, ele é gasto sozinho e a sequência continua. Sem protetor, começa de novo
@@ -34243,7 +34316,7 @@ var rotCarregouEm = Date.now();
    Nos 2 últimos dias aparece uma vez "Últimos dias!". Abre antes da sequência e nunca por cima de outra janela.
 ============================================================ */
 var EV_ANUNCIO_KEY = 'koda_ev_anunciado';
-var EV_ENFEITES = {hl: ['🎃', '🦇', '👻', '🍬', '🕸️'], xm: ['❄️', '🎁', '⭐', '🎄', '❄️'], fv: ['☀️', '🌴', '🐚', '🌊', '🍉']};
+var EV_ENFEITES = {hl: ['abobora', 'morcego', 'fantasma', 'abobora', 'morcego'], xm: ['floco', 'presente', 'estrela', 'floco', 'presente'], fv: ['sol', 'concha', 'onda', 'sol', 'concha']};
 function evAnuncioLer(){ try{ return JSON.parse(localStorage.getItem(EV_ANUNCIO_KEY)) || {}; }catch(e){ return {}; } }
 function evAnuncioPendente(){
   if(!hlLigado() || !HL_EVENTO || HL_EVENTO.previa) return null;
@@ -34254,12 +34327,13 @@ function evAnuncioPendente(){
 }
 function evEnfeitesHtml(tipo, n){
   const em = EV_ENFEITES[tipo] || EV_ENFEITES.hl;
-  return Array.from({length: n}, (_, i)=>`<i style="left:${(i * 41 + 7) % 94}%;animation-delay:${((i * .7) % 5).toFixed(2)}s;animation-duration:${(6 + (i * 1.3) % 5).toFixed(2)}s;font-size:${(1.2 + (i % 3) * .45).toFixed(2)}rem">${em[i % em.length]}</i>`).join('');
+  return Array.from({length: n}, (_, i)=>`<i style="left:${(i * 41 + 7) % 94}%;animation-delay:${((i * .7) % 5).toFixed(2)}s;animation-duration:${(6 + (i * 1.3) % 5).toFixed(2)}s;width:${(1.4 + (i % 3) * .5).toFixed(2)}rem;height:${(1.4 + (i % 3) * .5).toFixed(2)}rem">${pictoSvg(em[i % em.length])}</i>`).join('');
 }
 function evAnunciar(qual, depois){
   if(document.querySelector('.eva-bg')) return null;
   const tipo = evTipo(), ev = t('kshop_tab_hl'), esc = chatListEscape;
   const o = evAnuncioLer(); o[qual === 'fim' ? 'fim' : 'novo'] = HL_EVENTO.id; if(qual === 'fim') o.novo = HL_EVENTO.id;
+  if(qual === 'novo' && hlFaltaMs() < 48 * 3600000) o.fim = HL_EVENTO.id;      // já mostra quanto falta: não aparece "Últimos dias" logo em seguida
   try{ localStorage.setItem(EV_ANUNCIO_KEY, JSON.stringify(o)); }catch(e){}
   let nItens = 0, amostras = '';
   try{
@@ -35013,7 +35087,7 @@ function nivelAbrir(){
     api.redesenha = desenha;
   });
 }
-/* o "⚡" no cartão da Koda shop quando tem oferta relâmpago que a pessoa ainda não viu hoje */
+/* o raio no cartão da Koda shop quando tem oferta relâmpago que a pessoa ainda não viu hoje */
 function relSeloAtualizar(){
   document.querySelectorAll('.kshop-tile').forEach(el=>{
     let s = el.querySelector('.rel-selo');
@@ -36083,7 +36157,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
                 <button type="button" class="ugc-ferr" data-ades="maior" title="${esc(t('ugc_ades_maior'))}" aria-label="${esc(t('ugc_ades_maior'))}">+</button>
                 <button type="button" class="ugc-ferr" data-ades="tirar" title="${esc(t('menu_cancel'))}" aria-label="${esc(t('menu_cancel'))}">✕</button>
                 <button type="button" class="ugc-ades-fundo ugc-ades-pixel" data-ades="pixel">${ICO.pixel}${esc(t('ugc_ades_pixel'))}</button>
-                <button type="button" class="ugc-ades-ok" data-ades="ok">✔ ${esc(t('ugc_ades_ok'))}</button>
+                <button type="button" class="ugc-ades-ok" data-ades="ok">✓ ${esc(t('ugc_ades_ok'))}</button>
               </div>
             </div>
             <div class="ugc-ferrs">${UGC_FERRS.map(g=>'<span class="ugc-ferr-g">' + g.map(f=>`<button type="button" class="ugc-ferr${E.ferr === f || (f === 'espelho' && E.espelho) || (f === 'guia' && E.guia) ? ' on' : ''}${f === 'modelo' ? ' ugc-ferr-kit' : ''}" data-ferr="${f}" title="${esc(t('ugc_f_' + f))}" aria-label="${esc(t('ugc_f_' + f))}">${ICO[f]}${f === 'modelo' ? `<span>${esc(t('ugc_f_modelo_curto'))}</span>` : ''}</button>`).join('') + '</span>').join('')}</div>
