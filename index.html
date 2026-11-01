@@ -162,6 +162,23 @@
     animation:dispEntra .35s ease both;
   }
   .disp-tela.saindo{opacity:0;transition:opacity .25s ease;pointer-events:none;}
+  /* escolher o idioma */
+  .idioma-tela{z-index:9100;}
+  .idioma-globo{font-size:3.4rem;line-height:1;animation:idiomaGira 6s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(8,50,43,.2));}
+  @keyframes idiomaGira{0%,100%{transform:rotate(-10deg);}50%{transform:rotate(10deg) scale(1.06);}}
+  .idioma-outras{margin:0;font:600 .8rem 'Nunito Sans',sans-serif;color:#3f6a5d;opacity:.8;max-width:340px;}
+  .idioma-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(380px,100%);margin-top:4px;}
+  .idioma-op{display:flex;align-items:center;gap:10px;padding:11px 12px;border:2.5px solid transparent;border-radius:16px;background:#fff;cursor:pointer;box-shadow:0 3px 10px rgba(8,50,43,.1);
+    font:800 1rem 'Baloo 2',sans-serif;color:#08322B;text-align:left;transition:transform .15s,border-color .2s;}
+  .idioma-op:active{transform:scale(.96);}
+  .idioma-op.on{border-color:#17C79E;background:#e3fbf2;}
+  .idioma-band{font-size:1.5rem;line-height:1;}
+  .idioma-nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .idioma-ok{margin-top:8px;width:min(380px,100%);border:none;border-radius:18px;padding:14px;cursor:pointer;background:#17C79E;color:#fff;font:800 1.15rem 'Baloo 2',sans-serif;box-shadow:0 5px 0 #0E8F70;}
+  .idioma-ok:active{transform:translateY(3px);box-shadow:0 2px 0 #0E8F70;}
+  .auth-card{position:relative;}
+  .auth-idioma{position:absolute;top:10px;right:10px;border:none;border-radius:999px;padding:5px 11px;background:rgba(8,50,43,.07);color:#08322B;font:800 .8rem 'Baloo 2',sans-serif;cursor:pointer;}
+  @media (prefers-reduced-motion: reduce){ .idioma-globo{animation:none;} }
   @keyframes dispEntra{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
   .disp-ilus{width:min(340px,86vw);height:auto;flex-shrink:0;filter:drop-shadow(0 10px 16px rgba(8,50,43,.16));}
   .disp-titulo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.45rem;color:#08322B;margin:6px 0 0;line-height:1.2;}
@@ -5882,6 +5899,7 @@
 
 <div class="auth-gate hidden" id="authGate">
   <div class="auth-card">
+    <button class="auth-idioma" id="authIdioma" type="button" aria-label="Idioma / Language"></button>
     <div class="auth-brand"><svg class="koda-wordmark" viewBox="-14 -18 362 140" role="img" aria-label="Koda"><use href="#koda-word"/></svg></div>
     <p class="auth-motivo hidden" id="authMotivo" role="status"></p>
     <div id="authPaineis"></div>
@@ -6080,6 +6098,7 @@ const LANGS = [
 ];
 /* O idioma padrão é o INGLÊS (língua do mundo). Quem nunca entrou no Koda abre em inglês, e a escolha fica guardada.
    Quem já usava o Koda antes (tem dados guardados) e nunca escolheu idioma continua em português, como sempre viu. */
+var idiomaPessoaNova = false;   // primeira vez neste aparelho (a tela de idioma já vem no idioma do aparelho)
 function idiomaInicial(){
   let guardado = null;
   try{ guardado = localStorage.getItem(LANG_KEY); }catch(e){}
@@ -6091,6 +6110,7 @@ function idiomaInicial(){
       if(k !== 'koda_dispositivo' && (k.indexOf('jogodromo_') === 0 || k.indexOf('koda_') === 0)){ id = 'pt'; break; }
     }
   }catch(e){}
+  idiomaPessoaNova = id === 'en';
   try{ localStorage.setItem(LANG_KEY, id); }catch(e){}
   return id;
 }
@@ -13439,7 +13459,9 @@ function applyRemoteData(data){
   localStorage.setItem(SHOW_SAVED_PUBLIC_KEY, data.showSavedPublic ? '1' : '0');
   localStorage.setItem(SHOW_LIKED_PUBLIC_KEY, data.showLikedPublic ? '1' : '0');
   localStorage.setItem(SHOW_PUBLISHED_PUBLIC_KEY, data.showPublishedPublic===false ? '0' : '1');
-  if(data.lang && LANGS.some(l=>l.id===data.lang)) localStorage.setItem(LANG_KEY, data.lang);
+  /* o idioma da conta só entra se a pessoa não escolheu um neste aparelho (a escolha daqui vale mais) */
+  let escolheuAqui = false; try{ escolheuAqui = !!localStorage.getItem(IDIOMA_ESCOLHIDO_KEY); }catch(e){}
+  if(data.lang && LANGS.some(l=>l.id===data.lang) && !escolheuAqui) localStorage.setItem(LANG_KEY, data.lang);
   // moedas, tema e garagem seguem a conta de um aparelho pro outro
   if(typeof data.coins === 'number') localStorage.setItem('jogodromo_moedas', String(Math.max(0, Math.floor(data.coins))));
   if(typeof data.diamonds === 'number') localStorage.setItem('jogodromo_diamantes', String(Math.max(0, Math.floor(data.diamonds))));
@@ -17500,6 +17522,67 @@ const ICONES_APARELHO = {
   computador: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M8 20.5h8M12 16.5v4"/></svg>`,
   ipad:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="2.5" width="15" height="19" rx="2.4"/><path d="M11 18.6h2"/></svg>`
 };
+/* ============================================================
+   ESCOLHER O IDIOMA (logo na entrada e na tela de entrar)
+   Na primeira vez a pessoa escolhe o idioma numa tela própria, antes do resto (o do aparelho já vem
+   marcado). Tocar num idioma já troca o título e o botão, pra ela ver como fica. Na tela de entrar tem
+   um botão com o idioma atual pra trocar. A escolha feita no aparelho vale mais que a guardada na conta.
+============================================================ */
+const IDIOMA_ESCOLHIDO_KEY = 'koda_idioma_escolhido';
+const IDIOMA_BANDEIRA = {pt:'🇧🇷', en:'🇺🇸', es:'🇪🇸', it:'🇮🇹', fr:'🇫🇷', de:'🇩🇪', nl:'🇳🇱', ja:'🇯🇵', zh:'🇨🇳', ko:'🇰🇷'};
+const IDIOMA_TITULO = {pt:'Escolha seu idioma', en:'Choose your language', es:'Elige tu idioma', it:'Scegli la tua lingua', fr:'Choisis ta langue',
+  de:'Wähle deine Sprache', nl:'Kies je taal', ja:'言語をえらんでね', zh:'选择你的语言', ko:'언어를 골라 주세요'};
+const IDIOMA_BOTAO = {pt:'Continuar', en:'Continue', es:'Continuar', it:'Continua', fr:'Continuer', de:'Weiter', nl:'Verder', ja:'つぎへ', zh:'继续', ko:'계속'};
+let idiomaPendente = false;
+try{ idiomaPendente = !localStorage.getItem(IDIOMA_ESCOLHIDO_KEY); }catch(e){}
+function idiomaDoAparelho(){
+  try{
+    const ls = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']).map(x=>String(x).slice(0, 2).toLowerCase());
+    for(const l of ls) if(LANGS.some(x=>x.id === l)) return l;
+  }catch(e){}
+  return currentLang;
+}
+function idiomaRotulo(id){ const l = LANGS.find(x=>x.id === id); return (IDIOMA_BANDEIRA[id] || '🌐') + ' ' + (l ? l.nome : id.toUpperCase()); }
+function abrirEscolhaDeIdioma(depois, opts){
+  opts = opts || {};
+  if(document.getElementById('idiomaTela')) return;
+  /* quem já usava o Koda neste aparelho vem marcado no idioma de sempre; quem é novo, no idioma do aparelho */
+  let escolha = opts.troca || !idiomaPessoaNova ? currentLang : idiomaDoAparelho();
+  const tela = document.createElement('div');
+  tela.id = 'idiomaTela';
+  tela.className = 'disp-tela idioma-tela';
+  tela.setAttribute('role', 'dialog');
+  tela.setAttribute('aria-modal', 'true');
+  tela.innerHTML = `
+    ${opts.troca ? `<button class="disp-fechar" data-fechar type="button" aria-label="✕">✕</button>` : ''}
+    <div class="idioma-globo" aria-hidden="true">🌍</div>
+    <h2 class="disp-titulo" data-tit></h2>
+    <p class="idioma-outras" aria-hidden="true" data-outras></p>
+    <div class="idioma-grade" role="radiogroup">
+      ${LANGS.map(l=>`<button type="button" class="idioma-op" role="radio" data-l="${l.id}"><span class="idioma-band">${IDIOMA_BANDEIRA[l.id] || '🌐'}</span><span class="idioma-nome">${l.nome}</span></button>`).join('')}
+    </div>
+    <button type="button" class="idioma-ok" data-ok></button>`;
+  document.body.appendChild(tela);
+  const pintar = ()=>{
+    tela.querySelector('[data-tit]').textContent = IDIOMA_TITULO[escolha] || IDIOMA_TITULO.en;
+    tela.querySelector('[data-ok]').textContent = IDIOMA_BOTAO[escolha] || IDIOMA_BOTAO.en;
+    tela.querySelector('[data-outras]').textContent = LANGS.filter(l=>l.id !== escolha).slice(0, 4).map(l=>IDIOMA_TITULO[l.id]).join(' · ');
+    tela.querySelectorAll('.idioma-op').forEach(b=>{ const on = b.dataset.l === escolha; b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); });
+    tela.setAttribute('lang', escolha);
+  };
+  pintar();
+  tela.querySelectorAll('.idioma-op').forEach(b=>b.addEventListener('click', ()=>{ escolha = b.dataset.l; try{ playSound('click'); }catch(e){} pintar(); }));
+  const sair = ()=>{ tela.classList.add('saindo'); setTimeout(()=>{ if(tela.parentNode) tela.parentNode.removeChild(tela); }, 260); };
+  const fechar = tela.querySelector('[data-fechar]');
+  if(fechar) fechar.addEventListener('click', sair);
+  tela.querySelector('[data-ok]').addEventListener('click', ()=>{
+    try{ localStorage.setItem(IDIOMA_ESCOLHIDO_KEY, '1'); }catch(e){}
+    idiomaPendente = false;
+    if(escolha !== currentLang){ setLang(escolha); return; }      // troca e recarrega (o resto continua depois)
+    sair();
+    if(typeof depois === 'function') depois();
+  });
+}
 function abrirEscolhaDeAparelho(opts){
   opts = opts || {};
   if(document.getElementById('dispositivoTela')) return;
@@ -17691,7 +17774,10 @@ async function abrirJogoDoLink(){
   });
 }
 async function initAuth(){
-  if(aparelhoPendente) quandoAIntroSair(()=>abrirEscolhaDeAparelho(), true);
+  if(idiomaPendente) quandoAIntroSair(()=>abrirEscolhaDeIdioma(()=>{ if(aparelhoPendente) abrirEscolhaDeAparelho(); }), true);
+  else if(aparelhoPendente) quandoAIntroSair(()=>abrirEscolhaDeAparelho(), true);
+  /* na tela de entrar: o idioma de agora, pra trocar ali mesmo */
+  { const bi = document.getElementById('authIdioma'); if(bi){ bi.textContent = idiomaRotulo(currentLang); bi.addEventListener('click', ()=>{ try{ playSound('click'); }catch(e){} abrirEscolhaDeIdioma(null, {troca: true}); }); } }
   const gate = document.getElementById('authGate');
   const peopleBtn = document.getElementById('peopleSearchBtn');
   const bottomNav = document.getElementById('bottomNav');
