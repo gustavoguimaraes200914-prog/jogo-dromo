@@ -474,7 +474,7 @@ service cloud.firestore {
                     && request.resource.data.criadorNome is string && request.resource.data.criadorNome.size() <= 40
                     && request.resource.data.nome is string && request.resource.data.nome.size() >= 2 && request.resource.data.nome.size() <= 24
                     && request.resource.data.preco is int && request.resource.data.preco >= 0 && request.resource.data.preco <= 10000
-                    && request.resource.data.tipo in ['roupa','calca','pes','cabeca','costas','mao']
+                    && request.resource.data.tipo in ['roupa','calca','pes','cabeca','costas','mao','vestido','rosto','livre']
 
                     && request.resource.data.cores is list && request.resource.data.cores.size() >= 1 && request.resource.data.cores.size() <= 63
                     && request.resource.data.px is string && request.resource.data.px.matches('[.0-9a-zA-Z_]{638}')

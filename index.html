@@ -162,6 +162,23 @@
     animation:dispEntra .35s ease both;
   }
   .disp-tela.saindo{opacity:0;transition:opacity .25s ease;pointer-events:none;}
+  /* escolher o idioma */
+  .idioma-tela{z-index:9100;}
+  .idioma-globo{font-size:3.4rem;line-height:1;animation:idiomaGira 6s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(8,50,43,.2));}
+  @keyframes idiomaGira{0%,100%{transform:rotate(-10deg);}50%{transform:rotate(10deg) scale(1.06);}}
+  .idioma-outras{margin:0;font:600 .8rem 'Nunito Sans',sans-serif;color:#3f6a5d;opacity:.8;max-width:340px;}
+  .idioma-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(380px,100%);margin-top:4px;}
+  .idioma-op{display:flex;align-items:center;gap:10px;padding:11px 12px;border:2.5px solid transparent;border-radius:16px;background:#fff;cursor:pointer;box-shadow:0 3px 10px rgba(8,50,43,.1);
+    font:800 1rem 'Baloo 2',sans-serif;color:#08322B;text-align:left;transition:transform .15s,border-color .2s;}
+  .idioma-op:active{transform:scale(.96);}
+  .idioma-op.on{border-color:#17C79E;background:#e3fbf2;}
+  .idioma-band{font-size:1.5rem;line-height:1;}
+  .idioma-nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .idioma-ok{margin-top:8px;width:min(380px,100%);border:none;border-radius:18px;padding:14px;cursor:pointer;background:#17C79E;color:#fff;font:800 1.15rem 'Baloo 2',sans-serif;box-shadow:0 5px 0 #0E8F70;}
+  .idioma-ok:active{transform:translateY(3px);box-shadow:0 2px 0 #0E8F70;}
+  .auth-card{position:relative;}
+  .auth-idioma{position:absolute;top:10px;right:10px;border:none;border-radius:999px;padding:5px 11px;background:rgba(8,50,43,.07);color:#08322B;font:800 .8rem 'Baloo 2',sans-serif;cursor:pointer;}
+  @media (prefers-reduced-motion: reduce){ .idioma-globo{animation:none;} }
   @keyframes dispEntra{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
   .disp-ilus{width:min(340px,86vw);height:auto;flex-shrink:0;filter:drop-shadow(0 10px 16px rgba(8,50,43,.16));}
   .disp-titulo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.45rem;color:#08322B;margin:6px 0 0;line-height:1.2;}
@@ -1141,7 +1158,11 @@
   .create-stack > .card{min-height:0;}
   .kshop-tile{background:linear-gradient(150deg,#2F6FE0 0%,#7A4DF0 100%);}
   .kshop-tile .art{inset:0 0 30px 0;}
-  .kshop-tile .art svg{width:60% !important;height:60% !important;vertical-align:baseline !important;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4));}
+  .kshop-tile .art svg{width:78% !important;height:78% !important;vertical-align:baseline !important;filter:drop-shadow(0 6px 8px rgba(20,10,60,.35));animation:ksBalanca 3.2s ease-in-out infinite;transform-origin:50% 90%;}
+  .kshop-tile .ks-brilho{transform-box:fill-box;transform-origin:center;animation:ksBrilha 2.4s ease-in-out infinite;}
+  @keyframes ksBalanca{0%,100%{transform:rotate(-3deg) translateY(0);}50%{transform:rotate(3deg) translateY(-3%);}}
+  @keyframes ksBrilha{0%,60%,100%{transform:scale(.4);opacity:0;}75%{transform:scale(1.15);opacity:1;}88%{transform:scale(.8);opacity:.9;}}
+  @media (prefers-reduced-motion: reduce){ .kshop-tile .art svg, .kshop-tile .ks-brilho{animation:none;} }
   .kshop-tile:focus-visible{outline:3px solid #7FE3FF;outline-offset:2px;}
   .kshop-title{display:flex;align-items:center;justify-content:center;gap:8px;}
   .kshop-title svg{width:1.5em;height:1.5em;vertical-align:middle;}
@@ -1624,6 +1645,81 @@
     border:1.5px solid rgba(255,255,255,.18);
   }
   .passe-sheet .game-menu-cancel{margin-top:6px;}
+  /* Koda Pass sempre em tela cheia (mesmo com a tela cheia das lojas desligada), e a trilha usa a largura toda */
+  .game-menu-bg.passe-bg{padding:0;align-items:stretch;}
+  .game-menu-bg.passe-bg .game-menu-sheet.passe-sheet{max-width:none !important;width:100% !important;height:100% !important;max-height:none !important;border-radius:0 !important;border:none !important;
+    padding:calc(54px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left)) !important;}
+  .game-menu-bg.passe-bg .game-menu-sheet.passe-sheet > *:not(.tc-folha-btn):not(.x-fechar):not(.passe-compra-bg){width:100%;max-width:1400px;margin-left:auto;margin-right:auto;}
+  .game-menu-bg.passe-bg .game-menu-sheet.passe-sheet > button.x-fechar{top:calc(10px + env(safe-area-inset-top)) !important;right:max(12px,env(safe-area-inset-right)) !important;}
+  .passe-sheet .tc-folha-btn{display:none !important;}
+  .passe-sheet .passe-trilha{flex:1 1 auto;min-height:0;}
+  /* o cartaz "Desbloqueie o Premium" (no lugar do botãozinho) */
+  .pv-cartaz{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 8px;padding:10px 14px;border:2px solid #FFD86B;border-radius:18px;cursor:pointer;color:#fff;text-align:left;font:inherit;
+    background:linear-gradient(110deg,#7C3AED,#C026D3 55%,#F59E0B);box-shadow:0 4px 0 #6B21A8,0 10px 24px rgba(192,38,211,.35);animation:pvCartazPulsa 2.6s ease-in-out infinite;}
+  .pv-cartaz::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:pvVarre 3.2s ease-in-out infinite;}
+  .pv-cartaz-ticket svg{width:52px !important;height:52px !important;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));animation:pvFlutua 2.4s ease-in-out infinite;}
+  .pv-cartaz-txt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15;}
+  .pv-cartaz-txt b{font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:800;text-shadow:0 2px 0 rgba(0,0,0,.25);}
+  .pv-cartaz-txt small{font-weight:700;font-size:.8rem;opacity:.95;}
+  .pv-cartaz-btn{flex-shrink:0;padding:8px 16px;border-radius:999px;background:#FFD86B;color:#4a2a00;font:800 .95rem 'Baloo 2',sans-serif;box-shadow:0 3px 0 #B86A00;}
+  @keyframes pvCartazPulsa{0%,100%{transform:scale(1);}50%{transform:scale(1.012);}}
+  @keyframes pvVarre{0%,55%{left:-40%;}85%,100%{left:130%;}}
+  @keyframes pvFlutua{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-4px) rotate(4deg);}}
+  /* a vitrine de compra */
+  .passe-compra-bg.pv{position:absolute;inset:0;z-index:20;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
+    background:radial-gradient(ellipse at 50% 30%,#4C1D95 0%,#1E0B45 60%,#0B0420 100%);border-radius:0;}
+  .passe-compra-bg.pv.premium{background:radial-gradient(ellipse at 50% 30%,#7A3B00 0%,#3B1561 55%,#0B0420 100%);}
+  .pv-raios{position:absolute;left:50%;top:30%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;opacity:.32;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.55) 0 7deg,transparent 7deg 22deg);animation:pvGira 26s linear infinite;
+    -webkit-mask:radial-gradient(circle,#000 0,transparent 55%);mask:radial-gradient(circle,#000 0,transparent 55%);}
+  .pv.premium .pv-raios{background:repeating-conic-gradient(from 0deg,rgba(255,214,90,.75) 0 7deg,transparent 7deg 22deg);}
+  @keyframes pvGira{to{transform:rotate(360deg);}}
+  .pv-estrelas{position:absolute;inset:0;pointer-events:none;}
+  .pv-estrelas i{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px rgba(255,255,255,.8);opacity:0;animation:pvPisca 2.6s ease-in-out infinite;}
+  @keyframes pvPisca{0%,100%{opacity:0;transform:scale(.4);}50%{opacity:1;transform:scale(1);}}
+  .pv-caixa{position:relative;width:100%;max-width:480px;max-height:100%;overflow-y:auto;padding:14px 14px 12px;border-radius:24px;background:rgba(20,8,48,.55);border:2px solid rgba(255,216,107,.65);
+    box-shadow:0 0 0 4px rgba(255,216,107,.12),0 20px 50px rgba(0,0,0,.55);backdrop-filter:blur(4px);animation:pvEntra .45s cubic-bezier(.2,1.3,.4,1) both;}
+  @keyframes pvEntra{from{opacity:0;transform:scale(.8) translateY(20px);}to{opacity:1;transform:none;}}
+  .pv-planos .passe-plano{position:relative;}
+  .pv-fita{position:absolute;top:-10px;right:-6px;padding:2px 8px;border-radius:999px;background:linear-gradient(90deg,#FF3D6E,#FF8A00);color:#fff;font:800 .62rem 'Baloo 2',sans-serif;letter-spacing:.3px;text-transform:uppercase;font-style:normal;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pvFita 1.6s ease-in-out infinite;}
+  @keyframes pvFita{0%,100%{transform:rotate(6deg) scale(1);}50%{transform:rotate(6deg) scale(1.08);}}
+  .pv-heroi{position:relative;text-align:center;margin:8px 0 6px;}
+  .pv-brilho{position:absolute;left:50%;top:44px;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,rgba(255,216,107,.7),transparent 65%);animation:pvBrilho 2.2s ease-in-out infinite;pointer-events:none;}
+  .pv.super .pv-brilho{background:radial-gradient(circle,rgba(170,215,255,.7),transparent 65%);}
+  @keyframes pvBrilho{0%,100%{transform:scale(.85);opacity:.7;}50%{transform:scale(1.1);opacity:1;}}
+  .pv-ticket{position:relative;display:inline-block;animation:pvTicket 3s ease-in-out infinite;}
+  .pv-ticket svg{width:96px !important;height:96px !important;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5));}
+  @keyframes pvTicket{0%,100%{transform:translateY(0) rotate(-8deg) scale(1);}50%{transform:translateY(-8px) rotate(6deg) scale(1.06);}}
+  .pv-nome{position:relative;font:800 1.15rem 'Baloo 2',sans-serif;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35);}
+  .pv-nome b{display:block;font-size:2.1rem;line-height:1;letter-spacing:2px;background:linear-gradient(100deg,#FFE7A0 20%,#fff 35%,#FFB800 50%,#FFE7A0 70%);background-size:250% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:pvTexto 2.8s linear infinite;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4));}
+  .pv.super .pv-nome b{background:linear-gradient(100deg,#DDEBFF 20%,#fff 35%,#9CC8FF 50%,#DDEBFF 70%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;}
+  @keyframes pvTexto{from{background-position:120% 0;}to{background-position:-120% 0;}}
+  .pv-sub{position:relative;margin:6px 0 0;font-size:.82rem;font-weight:700;opacity:.9;}
+  .pv-carrossel{overflow:hidden;margin:8px -14px 10px;padding:6px 0;-webkit-mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
+  .pv-fila{display:flex;gap:8px;width:max-content;animation:pvFila 16s linear infinite;}
+  .pv-fila > *{flex:0 0 auto;}
+  .pv-fila .shop-swatch{width:56px;height:46px;}
+  .pv-fila .shop-swatch-round{width:46px;height:46px;}
+  @keyframes pvFila{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .pv-numeros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 8px;}
+  .pv-num{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.18);}
+  .pv-num-ico svg{width:24px !important;height:24px !important;vertical-align:0 !important;}
+  .pv-num-ico .passe-ben-bau svg{width:30px !important;height:24px !important;}
+  .pv-num b{font:800 1.2rem 'Baloo 2',sans-serif;color:#FFD86B;line-height:1.1;}
+  .pv-num small{font-size:.62rem;font-weight:800;opacity:.85;text-align:center;line-height:1.1;}
+  .pv-ben{margin:0 0 10px;}
+  .pv-btns{flex-direction:column;align-items:stretch;gap:6px;}
+  .pv-comprar{font-size:1.1rem !important;padding:14px !important;border-radius:16px !important;background:linear-gradient(180deg,#FFE27A,#FFB800) !important;color:#4a2a00 !important;box-shadow:0 5px 0 #B86A00,0 0 0 0 rgba(255,216,107,.6) !important;animation:pvCompra 1.6s ease-in-out infinite;}
+  @keyframes pvCompra{0%,100%{box-shadow:0 5px 0 #B86A00,0 0 0 0 rgba(255,216,107,.55);}50%{box-shadow:0 5px 0 #B86A00,0 0 0 12px rgba(255,216,107,0);transform:scale(1.02);}}
+  .pv-depois{border:none;background:none;color:#fff;opacity:.7;font:700 .85rem 'Baloo 2',sans-serif;padding:6px;cursor:pointer;}
+  /* o cartão do Koda Pass na tela inicial: um brilho passando e o selo PREMIUM */
+  .dest-passe.pv-promo{position:relative;overflow:hidden;}
+  .dest-passe.pv-promo::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);animation:pvVarre 4.2s ease-in-out infinite;pointer-events:none;}
+  .pv-chip{position:absolute;top:8px;right:10px;padding:2px 9px;border-radius:999px;background:linear-gradient(90deg,#FFE27A,#FFB800);color:#4a2a00;font:800 .62rem 'Baloo 2',sans-serif;letter-spacing:.5px;font-style:normal;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:pvFita 1.8s ease-in-out infinite;}
+  @media (prefers-reduced-motion: reduce){
+    .pv-raios,.pv-estrelas i,.pv-caixa,.pv-fita,.pv-brilho,.pv-ticket,.pv-nome b,.pv-fila,.pv-comprar,.pv-cartaz,.pv-cartaz::after,.pv-cartaz-ticket svg,.dest-passe.pv-promo::after,.pv-chip{animation:none !important;}
+  }
   .passe-topo{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;padding:6px 4px 2px 2px;}
   .passe-tit{display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.4rem;}
   .passe-tit svg{width:1.4em !important;height:1.4em !important;}
@@ -3630,6 +3726,65 @@
   .dupla-status.ruim{color:#ff8a80;opacity:1;}
   @keyframes duplaChegou{0%{box-shadow:0 0 0 3px #ffd23f;}100%{box-shadow:0 0 0 0 rgba(255,210,63,0);}}
   .dupla-chegou{animation:duplaChegou 1.4s ease-out;}
+  /* aviso de evento (tela cheia, com a cara do evento) */
+  .eva-bg{position:fixed;inset:0;z-index:1150;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden;opacity:0;transition:opacity .25s;
+    background:radial-gradient(ellipse at 50% 30%,#C2410C 0%,#4A1470 55%,#14031F 100%);}
+  .eva-bg.ev-xm{background:radial-gradient(ellipse at 50% 30%,#2E7D4F 0%,#8E0E24 55%,#170308 100%);}
+  .eva-bg.ev-fv{background:radial-gradient(ellipse at 50% 30%,#FFC14D 0%,#1597D8 55%,#063A5C 100%);}
+  .eva-bg.show{opacity:1;}
+  .eva-enfeites{position:absolute;inset:0;pointer-events:none;}
+  .eva-enfeites i,.ev-vivo-enfeites i{position:absolute;top:-10%;font-style:normal;animation:evaCai linear infinite;opacity:.9;}
+  .ev-hl .eva-enfeites i,.ev-fv .eva-enfeites i{top:auto;bottom:-10%;animation-name:evaSobe;}
+  @keyframes evaCai{from{transform:translateY(0) rotate(0);}to{transform:translateY(120vh) rotate(260deg);}}
+  @keyframes evaSobe{0%{transform:translateY(0) translateX(0);}50%{transform:translateY(-60vh) translateX(18px);}100%{transform:translateY(-120vh) translateX(-10px);}}
+  .eva{position:relative;width:100%;max-width:420px;text-align:center;color:#fff;animation:pvEntra .5s cubic-bezier(.2,1.3,.4,1) both;}
+  .eva-selo{display:inline-block;padding:5px 18px;border-radius:999px;background:linear-gradient(90deg,#FFE14D,#FFB800);color:#5a1a00;font:900 1.05rem 'Baloo 2',sans-serif;letter-spacing:2px;box-shadow:0 4px 14px rgba(0,0,0,.35);animation:resgAlerta 1.4s ease-in-out infinite;}
+  .eva-bg.fim .eva-selo{background:#FF3D3D;color:#fff;}
+  .eva-arte{width:min(300px,78vw);margin:10px auto 0;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));animation:pvFlutua 3.2s ease-in-out infinite;}
+  .eva-arte svg{width:100%;height:auto;display:block;}
+  .eva-tit{margin:10px 0 6px;font:800 1.65rem/1.1 'Baloo 2',sans-serif;text-shadow:0 3px 0 rgba(0,0,0,.35);}
+  .eva-sub{margin:0 0 12px;font-weight:700;font-size:.92rem;opacity:.95;line-height:1.3;}
+  .eva-itens{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 12px;}
+  .eva-item{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);overflow:hidden;animation:evaItem 2.4s ease-in-out infinite;}
+  .eva-item:nth-child(2){animation-delay:.3s;} .eva-item:nth-child(3){animation-delay:.6s;} .eva-item:nth-child(4){animation-delay:.9s;} .eva-item:nth-child(5){animation-delay:1.2s;}
+  .eva-item > *{max-width:100%;max-height:100%;}
+  @keyframes evaItem{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+  .eva-relogio{display:inline-block;margin:0 0 14px;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.3);font:800 .9rem 'Baloo 2',sans-serif;color:#FFE14D;}
+  .eva-ver{display:block;width:100%;border:none;border-radius:18px;padding:15px;cursor:pointer;background:linear-gradient(180deg,#FFE27A,#FFB800);color:#5a1a00;font:800 1.2rem 'Baloo 2',sans-serif;box-shadow:0 6px 0 #B86A00;animation:pvCompra 1.5s ease-in-out infinite;}
+  .eva-depois{margin-top:10px;border:none;background:none;color:#fff;opacity:.7;font:700 .85rem 'Baloo 2',sans-serif;cursor:pointer;padding:6px;}
+  /* o cartão do evento na tela inicial: enfeites passando, brilho e selo */
+  .dest-hl.ev-vivo{position:relative;overflow:hidden;}
+  .dest-hl.ev-vivo::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-18deg);animation:pvVarre 4.6s ease-in-out infinite;pointer-events:none;}
+  .ev-vivo-enfeites{position:absolute;inset:0;pointer-events:none;opacity:.55;}
+  .ev-vivo-enfeites i{top:-30%;animation-name:evaCaiCurto;}
+  @keyframes evaCaiCurto{from{transform:translateY(0) rotate(0);}to{transform:translateY(160px) rotate(200deg);}}
+  .ev-chip{position:absolute;top:8px;right:10px;z-index:1;padding:2px 9px;border-radius:999px;background:#FFE14D;color:#5a1a00;font:800 .62rem 'Baloo 2',sans-serif;letter-spacing:.5px;font-style:normal;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:pvFita 1.8s ease-in-out infinite;}
+  .ev-chip.fim{background:#FF3D3D;color:#fff;}
+  @media (prefers-reduced-motion: reduce){ .eva-enfeites i,.ev-vivo-enfeites i,.eva,.eva-selo,.eva-arte,.eva-item,.eva-ver,.dest-hl.ev-vivo::after,.ev-chip{animation:none !important;} }
+  /* resgate da sequência: aviso urgente em tela cheia */
+  .resg-bg{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,rgba(200,20,40,.92),rgba(40,4,10,.97) 70%);opacity:0;transition:opacity .2s;}
+  .resg-bg.show{opacity:1;}
+  .resg{width:100%;max-width:400px;text-align:center;color:#fff;animation:pvEntra .45s cubic-bezier(.2,1.3,.4,1) both;}
+  .resg-alerta{display:inline-block;padding:4px 18px;border-radius:999px;background:#FFE14D;color:#7a0010;font:900 1.1rem 'Baloo 2',sans-serif;letter-spacing:2px;box-shadow:0 0 0 0 rgba(255,225,77,.7);animation:resgAlerta 1s ease-in-out infinite;}
+  @keyframes resgAlerta{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,225,77,.7);}50%{transform:scale(1.08);box-shadow:0 0 0 14px rgba(255,225,77,0);}}
+  .resg-arte{position:relative;width:170px;height:170px;margin:14px auto 4px;}
+  .resg-chama{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;animation:resgTreme .35s ease-in-out infinite;filter:drop-shadow(0 0 22px rgba(255,140,0,.75));}
+  .resg-chama svg{width:150px !important;height:150px !important;}
+  .resg-escudo{position:absolute;right:-4px;bottom:0;width:72px;height:78px;animation:resgEscudo 1.6s ease-in-out infinite;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));}
+  .resg-escudo svg{width:100%;height:100%;}
+  @keyframes resgTreme{0%,100%{transform:rotate(-2deg) scale(1);}50%{transform:rotate(2deg) scale(1.04);}}
+  @keyframes resgEscudo{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-8px) rotate(6deg);}}
+  .resg-tit{margin:6px 0 4px;font:800 1.6rem/1.1 'Baloo 2',sans-serif;text-shadow:0 3px 0 rgba(0,0,0,.35);}
+  .resg-sub{margin:0 0 12px;font-weight:700;font-size:.95rem;opacity:.95;}
+  .resg-relogio{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 auto 14px;padding:8px 14px;border-radius:14px;background:rgba(0,0,0,.3);font-weight:700;font-size:.8rem;}
+  .resg-relogio b{font:800 1.5rem 'Baloo 2',sans-serif;color:#FFE14D;font-variant-numeric:tabular-nums;letter-spacing:1px;}
+  .resg-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:18px;padding:16px;cursor:pointer;background:linear-gradient(180deg,#FFE27A,#FFB800);color:#5a1a00;font:800 1.25rem 'Baloo 2',sans-serif;box-shadow:0 6px 0 #B86A00;animation:pvCompra 1.3s ease-in-out infinite;}
+  .resg-btn svg{width:1.1em !important;height:1.1em !important;}
+  .resg-nao{margin-top:10px;border:none;background:none;color:#fff;opacity:.65;font:700 .85rem 'Baloo 2',sans-serif;cursor:pointer;padding:6px;}
+  .resg-faixa{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+  .resg-faixa-btn{border:none;border-radius:999px;padding:7px 14px;background:#FFE14D;color:#7a0010;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:4px;animation:resgAlerta 1.2s ease-in-out infinite;}
+  .resg-faixa-btn svg{width:1em !important;height:1em !important;}
+  @media (prefers-reduced-motion: reduce){ .resg-alerta,.resg-chama,.resg-escudo,.resg-btn,.resg-faixa-btn,.resg{animation:none !important;} }
   .msg-relogio{display:inline-block;width:11px;height:11px;margin-left:6px;vertical-align:-1px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.55;animation:msgGira .8s linear infinite;}
   @keyframes msgGira{to{transform:rotate(360deg);}}
   .msg-enviando-midia{display:flex;align-items:center;gap:6px;position:relative;overflow:hidden;}
@@ -4296,7 +4451,12 @@
   @keyframes diarioBrilho{0%,55%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
   .diario.pronto .diario-arte{animation:diarioPula 2.2s ease-in-out infinite;}
   @keyframes diarioPula{0%,70%,100%{transform:none;}78%{transform:translateY(-5px) rotate(-4deg);}86%{transform:translateY(0) rotate(3deg);}93%{transform:translateY(-2px);}}
-  .diario.pronto.d-rol .roleta-mini-gira{animation:roletaMini 4s linear infinite;transform-origin:24px 24px;}
+  .diario.pronto.d-rol .roleta-mini-gira{animation:roletaMini 4s linear infinite;transform-origin:24px 26px;}
+  .roleta-mini .rm-luz{fill:#FFF8D0;}
+  .diario.pronto.d-rol .roleta-mini .rm-luz.a{animation:rolLuz 1s steps(1) infinite;}
+  .diario.pronto.d-rol .roleta-mini .rm-luz.b{animation:rolLuz 1s steps(1) -.5s infinite;}
+  .rol-svg .rol-halo{transform-box:fill-box;transform-origin:center;animation:rolHalo 2.2s ease-in-out infinite;}
+  @keyframes rolHalo{0%,100%{opacity:.6;transform:scale(.97);}50%{opacity:1;transform:scale(1.03);}}
   @keyframes roletaMini{to{transform:rotate(360deg);}}
   .diario-raro{display:flex;gap:3px;margin-top:2px;}
   .diario-raro i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);}
@@ -4497,7 +4657,7 @@
     .rol-svg.girando .rol-luz.a{animation-duration:.24s;}
     .rol-svg.girando .rol-luz.b{animation-duration:.24s;animation-delay:-.12s;}
   }
-  @keyframes rolLuz{0%{fill:#FFF3B0;filter:drop-shadow(0 0 4px #FFE066);}50%{fill:#7A5CFF;filter:none;}}
+  @keyframes rolLuz{0%{fill:#FFF8D0;filter:drop-shadow(0 0 4px #FFE066);}50%{fill:#B9770E;filter:none;}}
   .rol-seta{transform-box:fill-box;transform-origin:50% 0%;}
   .rol-seta.bate{animation:rolSeta .16s ease-out;}
   @keyframes rolSeta{0%{transform:rotate(0);}40%{transform:rotate(-16deg);}100%{transform:rotate(0);}}
@@ -5774,6 +5934,7 @@
 
 <div class="auth-gate hidden" id="authGate">
   <div class="auth-card">
+    <button class="auth-idioma" id="authIdioma" type="button" aria-label="Idioma / Language"></button>
     <div class="auth-brand"><svg class="koda-wordmark" viewBox="-14 -18 362 140" role="img" aria-label="Koda"><use href="#koda-word"/></svg></div>
     <p class="auth-motivo hidden" id="authMotivo" role="status"></p>
     <div id="authPaineis"></div>
@@ -5854,7 +6015,7 @@ const ICONS = {
   presenteGrande: `<svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="110" rx="40" ry="6" fill="rgba(0,0,0,.25)"/><g class="gift-base"><rect x="20" y="52" width="80" height="54" rx="7" fill="#E8546F"/><rect x="20" y="52" width="80" height="54" rx="7" fill="none" stroke="#A82844" stroke-width="3"/><rect x="53" y="52" width="14" height="54" fill="#FFD25E"/><path d="M26 60h68" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/></g><g class="gift-tampa"><rect x="14" y="38" width="92" height="18" rx="5" fill="#FF6F8A"/><rect x="14" y="38" width="92" height="18" rx="5" fill="none" stroke="#A82844" stroke-width="3"/><rect x="52" y="38" width="16" height="18" fill="#FFD25E"/><path d="M60 38C52 22 34 20 36 31c1.5 7 14 7 24 7zM60 38c8-16 26-18 24-7-1.5 7-14 7-24 7z" fill="#FFD25E" stroke="#C98A0B" stroke-width="2.5" stroke-linejoin="round"/></g></svg>`,
   kshopBau: `<svg viewBox="0 0 24 24" style="width:1.15em;height:1.15em;vertical-align:-3px;"><rect x="3" y="11" width="18" height="10" rx="1.6" fill="#A9631F"/><path d="M3 11V9a6 6 0 0 1 6-6h6a6 6 0 0 1 6 6v2z" fill="#C98235"/><rect x="3" y="10" width="18" height="2.4" fill="#FFC93C"/><rect x="10" y="9" width="4" height="5.2" rx="1" fill="#FFE082" stroke="#8a5a00" stroke-width=".8"/></svg>`,
   kshopTroca: `<svg viewBox="0 0 24 24" style="width:1.15em;height:1.15em;vertical-align:-3px;"><path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  kodaShop: `<svg viewBox="0 0 24 24" style="width:1.1em;height:1.1em;vertical-align:-3px;"><path d="M8.6 8.6V7a3.4 3.4 0 0 1 6.8 0v1.6" fill="none" stroke="#7A4E22" stroke-width="1.8" stroke-linecap="round"/><path d="M5 8h14l1 13.2H4z" fill="#E2B072" stroke="#7A4E22" stroke-width="1.3" stroke-linejoin="round"/><path d="M9.7 12.6v6.2M9.7 15.9l4.3-3.3M11.5 15l3.1 3.8" fill="none" stroke="#3A230E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  kodaShop: `<svg class="ks-sacola" viewBox="0 0 48 48" style="width:1.1em;height:1.1em;vertical-align:-3px;"><ellipse cx="24" cy="45" rx="13" ry="2.2" fill="rgba(0,0,0,.18)"/><path d="M16.5 18v-4.5a7.5 7.5 0 0 1 15 0V18" fill="none" stroke="#8A3B00" stroke-width="3.6" stroke-linecap="round"/><path d="M16.5 18v-4.5a7.5 7.5 0 0 1 15 0V18" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M8.6 16.5h30.8l-2.3 24.2a3.6 3.6 0 0 1-3.6 3.3H14.5a3.6 3.6 0 0 1-3.6-3.3z" fill="#FFB321"/><path d="M8.6 16.5h30.8l-.5 5.2H9.1z" fill="#FF8A00"/><path d="M30.5 21.7h8.4l-1.8 19a3.6 3.6 0 0 1-3.6 3.3h-3z" fill="#F59E0B" opacity=".55"/><path d="M13.4 25l.9 14" stroke="#fff" stroke-opacity=".6" stroke-width="2.4" stroke-linecap="round"/><circle cx="16.5" cy="19" r="1.5" fill="#8A3B00"/><circle cx="31.5" cy="19" r="1.5" fill="#8A3B00"/><circle cx="24" cy="32" r="7.4" fill="#FFE27A" stroke="#C47A12" stroke-width="1.7"/><path d="M21.6 28.2v7.6M21.6 32.2l3.9-4M22.9 31.1l3.4 4.7" fill="none" stroke="#8A4B0A" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path class="ks-brilho" d="M39.5 3.5l1.3 3.4 3.4 1.3-3.4 1.3-1.3 3.4-1.3-3.4-3.4-1.3 3.4-1.3z" fill="#fff"/></svg>`,
   diamond: `<svg viewBox="0 0 24 24" style="width:1.05em;height:1.05em;vertical-align:-3px;"><path d="M7 3.2h10l4.8 5.6L12 21 2.2 8.8z" fill="#2FB6F0"/><path d="M2.2 8.8h19.6L12 21z" fill="#1B8FD6"/><path d="M7 3.2 9.2 8.8H2.2zM17 3.2l-2.2 5.6h7z" fill="#7FE3FF"/><path d="M7 3.2h10l-2.2 5.6H9.2z" fill="#CFF7FF"/><path d="M9.2 8.8 12 21l2.8-12.2z" fill="#46C6F5"/><path d="M7 3.2h10l4.8 5.6L12 21 2.2 8.8z" fill="none" stroke="#0E6FB0" stroke-width=".9" stroke-linejoin="round"/><path d="M5.4 8.4 8.2 4.8" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity=".9"/></svg>`,
   carFront: `<svg viewBox="0 0 24 24" style="width:1.1em;height:1.1em;vertical-align:-3px;"><path d="M4.5 15.2h15v3.3a1 1 0 0 1-1 1h-1.6a1 1 0 0 1-1-1v-.6H7.1v.6a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1z" fill="currentColor" opacity=".85"/><path d="M5.2 15.2l1.5-5a2.4 2.4 0 0 1 2.3-1.7h6a2.4 2.4 0 0 1 2.3 1.7l1.5 5z" fill="currentColor"/><circle cx="7.2" cy="13.1" r="1.1" fill="#FFF6C8"/><circle cx="16.8" cy="13.1" r="1.1" fill="#FFF6C8"/></svg>`,
   wheel: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:1em;height:1em;vertical-align:-2px;"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v5M4.6 16.2l4.3-2.5M19.4 16.2l-4.3-2.5" stroke-linecap="round"/></svg>`,
@@ -5972,6 +6133,7 @@ const LANGS = [
 ];
 /* O idioma padrão é o INGLÊS (língua do mundo). Quem nunca entrou no Koda abre em inglês, e a escolha fica guardada.
    Quem já usava o Koda antes (tem dados guardados) e nunca escolheu idioma continua em português, como sempre viu. */
+var idiomaPessoaNova = false;   // primeira vez neste aparelho (a tela de idioma já vem no idioma do aparelho)
 function idiomaInicial(){
   let guardado = null;
   try{ guardado = localStorage.getItem(LANG_KEY); }catch(e){}
@@ -5983,6 +6145,7 @@ function idiomaInicial(){
       if(k !== 'koda_dispositivo' && (k.indexOf('jogodromo_') === 0 || k.indexOf('koda_') === 0)){ id = 'pt'; break; }
     }
   }catch(e){}
+  idiomaPessoaNova = id === 'en';
   try{ localStorage.setItem(LANG_KEY, id); }catch(e){}
   return id;
 }
@@ -12864,6 +13027,18 @@ var PRACA_EMOTES = [
   {id:'coroa',    ic:'👑', moeda:'d', price:10, anim:'coroa',    fx:'ouro',    nome:'Rei da praça|Plaza royalty|Realeza de la plaza'}
 ];
 var PRACA_EMOTE_MS = 3200;           // quanto tempo o emote dura
+/* as figurinhas rápidas (👋 ❤️ 😂 😮 🔥 👍 🎉 😎) também mexem o personagem, mais curtinho que um emote */
+var PRACA_EMOS_ANIM = [
+  {anim: 'aceno',   fx: 'brilhos'},
+  {anim: 'pulsa',   fx: 'coracoes'},
+  {anim: 'treme',   fx: 'risos'},
+  {anim: 'susto',   fx: 'susto'},
+  {anim: 'danca',   fx: 'chamas'},
+  {anim: 'pulinho', fx: 'brilhos'},
+  {anim: 'pulinho', fx: 'confete'},
+  {anim: 'gingado', fx: 'estrelas'}
+];
+var PRACA_EMO_MS = 2300;
 var PRACA2_TXT = {
  praca_aba_falas:'Falas|Phrases|Frases',
  praca_aba_emotes:'Emotes|Emotes|Emotes',
@@ -12872,6 +13047,44 @@ var PRACA2_TXT = {
  praca_emote_gratis:'Grátis|Free|Gratis',
  praca_emote_comprou:'Emote novo! Use na praça: {nome}|New emote! Use it in the plaza: {nome}|¡Emote nuevo! Úsalo en la plaza: {nome}',
  praca_emote_tit:'Emote: {nome}|Emote: {nome}|Emote: {nome}'
+};
+/* textos dos avisos de evento */
+var EVA_TXT = {
+ eva_novo:'NOVO EVENTO!|NEW EVENT!|¡NUEVO EVENTO!',
+ eva_tit:'Venha conhecer o novo evento de {ev}!|Come check out the new {ev} event!|¡Ven a conocer el nuevo evento de {ev}!',
+ eva_sub:'Missões, baús exclusivos com {n} itens que só existem agora e {moeda} pra juntar.|Missions, exclusive chests with {n} items that only exist now and {moeda} to collect.|Misiones, cofres exclusivos con {n} objetos que solo existen ahora y {moeda} para juntar.',
+ eva_acaba:'Acaba em {t}|Ends in {t}|Termina en {t}',
+ eva_ver:'Ver o evento|See the event|Ver el evento',
+ eva_depois:'Depois|Later|Después',
+ eva_fim_tit:'Últimos dias do evento de {ev}!|Last days of the {ev} event!|¡Últimos días del evento de {ev}!',
+ eva_fim_sub:'Quando acabar, os itens exclusivos não voltam. Corre!|Once it ends, the exclusive items don’t come back. Hurry!|Cuando termine, los objetos exclusivos no vuelven. ¡Corre!',
+ eva_fim_selo:'ÚLTIMOS DIAS|LAST DAYS|ÚLTIMOS DÍAS',
+ eva_chip:'EVENTO|EVENT|EVENTO'
+};
+/* textos do resgate da sequência */
+var RESG_TXT = {
+ resg_agora:'AGORA!|NOW!|¡AHORA!',
+ resg_tit:'Sua sequência de {n} dias está acabando!|Your {n}-day streak is ending!|¡Tu racha de {n} días se está acabando!',
+ resg_sub_1:'Você faltou 1 dia. Resgate com o escudo de foguinho e ela continua!|You missed 1 day. Rescue it with the flame shield and it keeps going!|Faltaste 1 día. ¡Rescátala con el escudo de fueguito y sigue!',
+ resg_sub:'Você faltou {n} dias. Resgate com os escudos de foguinho e ela continua!|You missed {n} days. Rescue it with flame shields and it keeps going!|Faltaste {n} días. ¡Rescátala con los escudos de fueguito y sigue!',
+ resg_relogio:'Amanhã fica mais caro. Acaba em|Tomorrow it costs more. Ends in|Mañana cuesta más. Termina en',
+ resg_btn:'Resgatar agora|Rescue now|Rescatar ahora',
+ resg_nao:'Deixar a sequência acabar|Let the streak end|Dejar que la racha termine',
+ resg_compra_nome:'Resgate da sequência ({n} escudos)|Streak rescue ({n} shields)|Rescate de la racha ({n} escudos)',
+ resg_ok:'Sequência de {n} dias salva! Pegue o prêmio de hoje.|{n}-day streak saved! Grab today’s reward.|¡Racha de {n} días salvada! Toma el premio de hoy.'
+};
+/* textos da vitrine do Koda Pass */
+var PV_TXT = {
+ pv_melhor:'Melhor oferta|Best deal|Mejor oferta',
+ pv_cartaz_prem:'Desbloqueie o Premium!|Unlock Premium!|¡Desbloquea el Premium!',
+ pv_cartaz_super:'Desbloqueie o Koda Pass!|Unlock the Koda Pass!|¡Desbloquea el Koda Pass!',
+ pv_cartaz_sub:'{n} itens exclusivos, baús e diamantes|{n} exclusive items, chests and diamonds|{n} objetos exclusivos, cofres y diamantes',
+ pv_ver:'Ver|See|Ver',
+ pv_n_itens:'itens exclusivos|exclusive items|objetos exclusivos',
+ pv_n_baus:'baús|chests|cofres',
+ pv_n_dia:'diamantes|diamonds|diamantes',
+ pv_n_moedas:'moedas|coins|monedas',
+ pv_chip:'PREMIUM|PREMIUM|PREMIUM'
 };
 /* textos do "Criar em dupla" */
 var DUPLA_TXT = {
@@ -12920,6 +13133,9 @@ var MSG2_TXT = {
   Object.keys(PRACA2_TXT).forEach(k=>por(k, PRACA2_TXT[k]));
   Object.keys(MSG2_TXT).forEach(k=>por(k, MSG2_TXT[k]));
   Object.keys(DUPLA_TXT).forEach(k=>por(k, DUPLA_TXT[k]));
+  Object.keys(PV_TXT).forEach(k=>por(k, PV_TXT[k]));
+  Object.keys(RESG_TXT).forEach(k=>por(k, RESG_TXT[k]));
+  Object.keys(EVA_TXT).forEach(k=>por(k, EVA_TXT[k]));
   PRACA_FALAS_CATS.forEach(c=>por('praca_cat_' + c[0], c[2]));
   PRACA_FALAS_EXTRA.forEach((f, i)=>por('praca_f' + (12 + i), f[1]));
   PRACA_EMOTES.forEach(e=>por('praca_emote_' + e.id, e.nome));
@@ -13292,7 +13508,9 @@ function applyRemoteData(data){
   localStorage.setItem(SHOW_SAVED_PUBLIC_KEY, data.showSavedPublic ? '1' : '0');
   localStorage.setItem(SHOW_LIKED_PUBLIC_KEY, data.showLikedPublic ? '1' : '0');
   localStorage.setItem(SHOW_PUBLISHED_PUBLIC_KEY, data.showPublishedPublic===false ? '0' : '1');
-  if(data.lang && LANGS.some(l=>l.id===data.lang)) localStorage.setItem(LANG_KEY, data.lang);
+  /* o idioma da conta só entra se a pessoa não escolheu um neste aparelho (a escolha daqui vale mais) */
+  let escolheuAqui = false; try{ escolheuAqui = !!localStorage.getItem(IDIOMA_ESCOLHIDO_KEY); }catch(e){}
+  if(data.lang && LANGS.some(l=>l.id===data.lang) && !escolheuAqui) localStorage.setItem(LANG_KEY, data.lang);
   // moedas, tema e garagem seguem a conta de um aparelho pro outro
   if(typeof data.coins === 'number') localStorage.setItem('jogodromo_moedas', String(Math.max(0, Math.floor(data.coins))));
   if(typeof data.diamonds === 'number') localStorage.setItem('jogodromo_diamantes', String(Math.max(0, Math.floor(data.diamonds))));
@@ -17353,6 +17571,67 @@ const ICONES_APARELHO = {
   computador: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M8 20.5h8M12 16.5v4"/></svg>`,
   ipad:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="2.5" width="15" height="19" rx="2.4"/><path d="M11 18.6h2"/></svg>`
 };
+/* ============================================================
+   ESCOLHER O IDIOMA (logo na entrada e na tela de entrar)
+   Na primeira vez a pessoa escolhe o idioma numa tela própria, antes do resto (o do aparelho já vem
+   marcado). Tocar num idioma já troca o título e o botão, pra ela ver como fica. Na tela de entrar tem
+   um botão com o idioma atual pra trocar. A escolha feita no aparelho vale mais que a guardada na conta.
+============================================================ */
+const IDIOMA_ESCOLHIDO_KEY = 'koda_idioma_escolhido';
+const IDIOMA_BANDEIRA = {pt:'🇧🇷', en:'🇺🇸', es:'🇪🇸', it:'🇮🇹', fr:'🇫🇷', de:'🇩🇪', nl:'🇳🇱', ja:'🇯🇵', zh:'🇨🇳', ko:'🇰🇷'};
+const IDIOMA_TITULO = {pt:'Escolha seu idioma', en:'Choose your language', es:'Elige tu idioma', it:'Scegli la tua lingua', fr:'Choisis ta langue',
+  de:'Wähle deine Sprache', nl:'Kies je taal', ja:'言語をえらんでね', zh:'选择你的语言', ko:'언어를 골라 주세요'};
+const IDIOMA_BOTAO = {pt:'Continuar', en:'Continue', es:'Continuar', it:'Continua', fr:'Continuer', de:'Weiter', nl:'Verder', ja:'つぎへ', zh:'继续', ko:'계속'};
+let idiomaPendente = false;
+try{ idiomaPendente = !localStorage.getItem(IDIOMA_ESCOLHIDO_KEY); }catch(e){}
+function idiomaDoAparelho(){
+  try{
+    const ls = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']).map(x=>String(x).slice(0, 2).toLowerCase());
+    for(const l of ls) if(LANGS.some(x=>x.id === l)) return l;
+  }catch(e){}
+  return currentLang;
+}
+function idiomaRotulo(id){ const l = LANGS.find(x=>x.id === id); return (IDIOMA_BANDEIRA[id] || '🌐') + ' ' + (l ? l.nome : id.toUpperCase()); }
+function abrirEscolhaDeIdioma(depois, opts){
+  opts = opts || {};
+  if(document.getElementById('idiomaTela')) return;
+  /* quem já usava o Koda neste aparelho vem marcado no idioma de sempre; quem é novo, no idioma do aparelho */
+  let escolha = opts.troca || !idiomaPessoaNova ? currentLang : idiomaDoAparelho();
+  const tela = document.createElement('div');
+  tela.id = 'idiomaTela';
+  tela.className = 'disp-tela idioma-tela';
+  tela.setAttribute('role', 'dialog');
+  tela.setAttribute('aria-modal', 'true');
+  tela.innerHTML = `
+    ${opts.troca ? `<button class="disp-fechar" data-fechar type="button" aria-label="✕">✕</button>` : ''}
+    <div class="idioma-globo" aria-hidden="true">🌍</div>
+    <h2 class="disp-titulo" data-tit></h2>
+    <p class="idioma-outras" aria-hidden="true" data-outras></p>
+    <div class="idioma-grade" role="radiogroup">
+      ${LANGS.map(l=>`<button type="button" class="idioma-op" role="radio" data-l="${l.id}"><span class="idioma-band">${IDIOMA_BANDEIRA[l.id] || '🌐'}</span><span class="idioma-nome">${l.nome}</span></button>`).join('')}
+    </div>
+    <button type="button" class="idioma-ok" data-ok></button>`;
+  document.body.appendChild(tela);
+  const pintar = ()=>{
+    tela.querySelector('[data-tit]').textContent = IDIOMA_TITULO[escolha] || IDIOMA_TITULO.en;
+    tela.querySelector('[data-ok]').textContent = IDIOMA_BOTAO[escolha] || IDIOMA_BOTAO.en;
+    tela.querySelector('[data-outras]').textContent = LANGS.filter(l=>l.id !== escolha).slice(0, 4).map(l=>IDIOMA_TITULO[l.id]).join(' · ');
+    tela.querySelectorAll('.idioma-op').forEach(b=>{ const on = b.dataset.l === escolha; b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); });
+    tela.setAttribute('lang', escolha);
+  };
+  pintar();
+  tela.querySelectorAll('.idioma-op').forEach(b=>b.addEventListener('click', ()=>{ escolha = b.dataset.l; try{ playSound('click'); }catch(e){} pintar(); }));
+  const sair = ()=>{ tela.classList.add('saindo'); setTimeout(()=>{ if(tela.parentNode) tela.parentNode.removeChild(tela); }, 260); };
+  const fechar = tela.querySelector('[data-fechar]');
+  if(fechar) fechar.addEventListener('click', sair);
+  tela.querySelector('[data-ok]').addEventListener('click', ()=>{
+    try{ localStorage.setItem(IDIOMA_ESCOLHIDO_KEY, '1'); }catch(e){}
+    idiomaPendente = false;
+    if(escolha !== currentLang){ setLang(escolha); return; }      // troca e recarrega (o resto continua depois)
+    sair();
+    if(typeof depois === 'function') depois();
+  });
+}
 function abrirEscolhaDeAparelho(opts){
   opts = opts || {};
   if(document.getElementById('dispositivoTela')) return;
@@ -17544,7 +17823,10 @@ async function abrirJogoDoLink(){
   });
 }
 async function initAuth(){
-  if(aparelhoPendente) quandoAIntroSair(()=>abrirEscolhaDeAparelho(), true);
+  if(idiomaPendente) quandoAIntroSair(()=>abrirEscolhaDeIdioma(()=>{ if(aparelhoPendente) abrirEscolhaDeAparelho(); }), true);
+  else if(aparelhoPendente) quandoAIntroSair(()=>abrirEscolhaDeAparelho(), true);
+  /* na tela de entrar: o idioma de agora, pra trocar ali mesmo */
+  { const bi = document.getElementById('authIdioma'); if(bi){ bi.textContent = idiomaRotulo(currentLang); bi.addEventListener('click', ()=>{ try{ playSound('click'); }catch(e){} abrirEscolhaDeIdioma(null, {troca: true}); }); } }
   const gate = document.getElementById('authGate');
   const peopleBtn = document.getElementById('peopleSearchBtn');
   const bottomNav = document.getElementById('bottomNav');
@@ -25275,9 +25557,10 @@ function pracaReceber(P, m){
     const n = Number(m.t === 'emo' ? m.e : m.f);
     const ok = m.t === 'emo' ? !!PRACA_EMOS[n] : (n >= 0 && n < PRACA_FRASES && Math.floor(n) === n);
     if(p && ok){ p.fala = {tipo: m.t, n}; p.falaAte = performance.now() + (m.t === 'emo' ? 2600 : 3800); }
+    if(p && ok && m.t === 'emo' && PRACA_EMOS_ANIM[n]) p.emote = {e: PRACA_EMOS_ANIM[n], ini: performance.now(), dur: PRACA_EMO_MS};
   } else if(m.t === 'emote'){
     const p = P.gente.get(String(m.id)), k = Number(m.k);
-    if(p && PRACA_EMOTES[k] && Math.floor(k) === k){ p.emote = {k, ini: performance.now()}; p.fala = {tipo: 'emo', n: -1, ic: PRACA_EMOTES[k].ic}; p.falaAte = performance.now() + 1400; }
+    if(p && PRACA_EMOTES[k] && Math.floor(k) === k){ p.emote = {e: PRACA_EMOTES[k], ini: performance.now(), dur: PRACA_EMOTE_MS}; p.fala = {tipo: 'emo', n: -1, ic: PRACA_EMOTES[k].ic}; p.falaAte = performance.now() + 1400; }
   } else if(m.t === 'moeda'){
     const p = P.gente.get(String(m.id));
     if(p && m.id !== P.eu) pracaEfeitoMoeda(P, p, {x: Math.max(0, Math.min(PRACA_W, Number(m.x) || 0)), y: Math.max(0, Math.min(PRACA_H, Number(m.y) || 0))});
@@ -25746,7 +26029,9 @@ function pracaEmoteCorpo(e, f, ms, s){
   const sen = Math.sin, abs = Math.abs, PI = Math.PI;
   const fim = Math.min(1, (1 - f) * 8);                 // tudo volta pro normal no finalzinho
   switch(e && e.anim){
-    case 'aceno': r.rot = sen(ms / 120) * .12; break;
+    case 'aceno': r.rot = sen(ms / 120) * .12; r.dy = abs(sen(ms / 240)) * 4 * s; break;
+    case 'susto': { const g = Math.min(1, ms / 380); r.dy = sen(g * PI) * 34 * s; r.sx = 1 - sen(g * PI) * .08; r.sy = 1 + sen(g * PI) * .12; r.dx = ms > 380 ? sen(ms / 30) * 2 * s * Math.max(0, 1 - (ms - 380) / 600) : 0; break; }
+    case 'gingado': r.dx = sen(ms / 260) * 7 * s; r.rot = sen(ms / 260 + .6) * .1; r.sy = 1 - abs(sen(ms / 130)) * .04; break;
     case 'pulinho': r.dy = abs(sen(ms / 170)) * 22 * s; r.sy = 1 + abs(sen(ms / 170)) * .05; break;
     case 'danca': r.dx = sen(ms / 210) * 9 * s; r.rot = sen(ms / 210) * .16; r.dy = abs(sen(ms / 105)) * 7 * s; break;
     case 'treme': r.dx = sen(ms / 22) * 3 * s; r.rot = sen(ms / 70) * .07; r.sy = 1 + sen(ms / 90) * .04; break;
@@ -25770,10 +26055,10 @@ function pracaEmoteCorpo(e, f, ms, s){
   return r;
 }
 /* ---------- emotes: as coisinhas que saem em volta (dá pra calcular tudo pelo tempo, sem guardar nada) ---------- */
-function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s){
+function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s, dur){
   if(!e || !e.fx) return;
   const sen = Math.sin, cos = Math.cos, PI = Math.PI, meio = sy - alt * .55, topo = sy - alt;
-  const some = Math.max(0, Math.min(1, (PRACA_EMOTE_MS - ms) / 500));
+  const some = Math.max(0, Math.min(1, ((dur || PRACA_EMOTE_MS) - ms) / 500));
   x.save();
   x.textAlign = 'center'; x.textBaseline = 'middle';
   const glifo = (txt, gx, gy, tam, cor, a)=>{ x.globalAlpha = Math.max(0, Math.min(1, a)) * some; x.fillStyle = cor || '#fff'; x.font = '800 ' + Math.round(tam) + 'px sans-serif'; x.fillText(txt, gx, gy); };
@@ -25824,6 +26109,17 @@ function pracaEmoteFx(x, e, ms, sx, sy, alt, larg, s){
       cores.forEach((c, k)=>{ x.globalAlpha = .85 * some; x.strokeStyle = c; x.beginPath(); x.arc(sx, topo + alt * .25, larg * (1.05 - k * .09), PI + PI * (1 - g) / 2, PI * 2 - PI * (1 - g) / 2); x.stroke(); });
       break;
     }
+    case 'susto':
+      for(let k = 0; k < 3; k++){ const g = Math.min(1, ms / 450); glifo('!', sx + (k - 1) * larg * .45, topo - 6 * s - g * 18 * s - (k === 1 ? 8 * s : 0), (26 + (k === 1 ? 6 : 0)) * s + 6, '#ff3d3d', Math.min(1, ms / 150)); }
+      break;
+    case 'chamas':
+      for(let k = 0; k < 9; k++){
+        const g = ((ms / 520) + k / 9) % 1, a = k / 9 * PI * 2 + ms / 900, d = larg * (.62 + sen(k * 3.1) * .08);
+        const fx2 = sx + cos(a) * d, fy = sy - alt * .45 + sen(a) * alt * .35 - g * 26 * s, tam = (11 - g * 7) * s + 2;
+        x.globalAlpha = (1 - g) * some; x.fillStyle = g < .3 ? '#fff3a0' : g < .65 ? '#ffa31a' : '#ff4a1a';
+        x.beginPath(); x.moveTo(fx2, fy - tam * 1.5); x.quadraticCurveTo(fx2 + tam, fy, fx2, fy + tam * .6); x.quadraticCurveTo(fx2 - tam, fy, fx2, fy - tam * 1.5); x.fill();
+      }
+      break;
     case 'ouro':
       glifo('👑', sx, topo - 10 * s + sen(ms / 260) * 4 * s, 30 * s + 10, '#000', 1);
       for(let k = 0; k < 8; k++){ if(sen(ms / 100 + k * 1.3) < 0) continue; const a = k / 8 * PI * 2 - ms / 700; quad(sx + cos(a) * larg * .8, meio + sen(a) * larg * .5, 5 * s + 2, '#ffd23f', 1); }
@@ -25948,9 +26244,9 @@ function pracaQuadro(P, tm){
     /* emote: andar corta a animação */
     let em = null;
     if(p.emote){
-      const et = tm - p.emote.ini;
-      if(p.anda || et > PRACA_EMOTE_MS || et < 0){ p.emote = null; p.emoteDy = 0; }
-      else em = pracaEmoteCorpo(PRACA_EMOTES[p.emote.k], et / PRACA_EMOTE_MS, et, v.s);
+      const et = Math.max(0, tm - p.emote.ini);      // o quadro pode ter começado um tiquinho antes da mensagem chegar
+      if(p.anda || et > p.emote.dur){ p.emote = null; p.emoteDy = 0; }
+      else em = pracaEmoteCorpo(p.emote.e, et / p.emote.dur, et, v.s);
     }
     p.emoteDy = em ? Math.max(0, em.dy) : 0;
     if(imOk.complete && imOk.naturalWidth){
@@ -25966,7 +26262,7 @@ function pracaQuadro(P, tm){
       x.drawImage(imOk, Math.round(sx - larg / 2), Math.round(sy - alt - pulo), Math.round(larg), Math.round(alt));
       x.restore();
     }
-    if(em) pracaEmoteFx(x, PRACA_EMOTES[p.emote.k], tm - p.emote.ini, sx, sy - em.dy, alt, larg, v.s);
+    if(em) pracaEmoteFx(x, p.emote.e, Math.max(0, tm - p.emote.ini), sx, sy - em.dy, alt, larg, v.s, p.emote.dur);
   }}));
   itens.sort((a, b)=>a.y - b.y).forEach(it=>it.f());
   /* borboletas e pétalas voando */
@@ -29001,8 +29297,8 @@ function openThemeShop(aba){
     const poe = cfg=>{
       const antes = Object.assign({}, cfg); cfg[campo] = valor; if(antes[campo] !== valor) pzNovaPeca(cfg, campo, antes);
       /* uma peça normal da categoria tira a criada do mesmo tipo (a criada fica por cima e a troca nem apareceria) */
-      const tp = PZ_UGC_DO[campo];
-      if(tp && cfg.ugc && cfg.ugc !== 'nenhum' && ((ugcEstado().cache.get(cfg.ugc) || {}).tipo === tp)) cfg.ugc = 'nenhum';
+      const tps = pzUgcTipos(campo).filter(x=>x !== 'livre');      // a peça 'livre' fica por cima de tudo e não sai sozinha
+      if(tps.length && cfg.ugc && cfg.ugc !== 'nenhum' && tps.indexOf((ugcEstado().cache.get(cfg.ugc) || {}).tipo) >= 0) cfg.ugc = 'nenhum';
     };
     if(abaAtual === 'agente'){
       const a = pzAgDeTexto(rascunho.agente) || meuAgente();
@@ -32309,12 +32605,15 @@ function renderDestaques(){
     : t('pass_level', {n: niv.nivel}) + ' · ' + t('pass_ends', {t: turboTexto(tp.s.fim - Date.now())});
   const hl = hlLigado();
   const html = `
-    <button class="dest dest-passe" type="button" id="destPasse">
+    <button class="dest dest-passe${e.nv < 2 && tp.estado !== 'acabou' ? ' pv-promo' : ''}" type="button" id="destPasse">
+      ${e.nv < 2 && tp.estado !== 'acabou' ? `<i class="pv-chip">${t('pv_chip')}</i>` : ''}
       <span class="dest-ico">${ICONS.passe}</span>
       <span class="dest-txt"><b>${t('pass_tile')}</b><small>${sub}</small><span class="dest-barra"><i style="width:${pct}%"></i></span></span>
       ${prontos > 0 ? `<span class="dest-badge">${prontos > 99 ? '99+' : prontos}</span>` : ''}
     </button>
-    ${hl ? `<button class="dest dest-hl" type="button" id="destHl">
+    ${hl ? `<button class="dest dest-hl ev-vivo" type="button" id="destHl">
+      <span class="ev-vivo-enfeites" aria-hidden="true">${evEnfeitesHtml(evTipo(), 5)}</span>
+      <i class="ev-chip${hlFaltaMs() < 48 * 3600000 ? ' fim' : ''}">${t(hlFaltaMs() < 48 * 3600000 ? 'eva_fim_selo' : 'eva_chip')}</i>
       <span class="dest-ico">${ICONS.abobora}</span>
       <span class="dest-txt"><b>${t('dest_hl_title')}</b><small>${t('dest_hl_sub', {t: turboTexto(hlFaltaMs())})}</small></span>
       ${msPendentes('evento') > 0 ? `<span class="dest-badge">${msPendentes('evento')}</span>` : ''}
@@ -32337,7 +32636,7 @@ function openPasse(){
   tutorialPrimeiraVez('passe');
   try{ injetarCssCosmeticos(); }catch(e){}
   const bg = document.createElement('div');
-  bg.className = 'game-menu-bg';
+  bg.className = 'game-menu-bg passe-bg';         // o Koda Pass é sempre em tela cheia
   let sel = null;                // {tr, n}: o prêmio que a pessoa tocou, pra mostrar o que é
   let compra = false, compraMsg = '', plano = 'premium';
   let primeira = true;
@@ -32389,28 +32688,36 @@ function openPasse(){
         <small>${t(pl === 'premium' ? 'pass_plan_prem_desc' : 'pass_plan_super_desc')}</small>
         <span class="passe-plano-preco">${dono ? t('pass_plan_tem') : `${ICONS.diamond} ${preco}`}</span>
         ${pl === 'premium' && e.nv === 1 ? `<em>${t('pass_plan_upgrade', {n: PASSE_PRECO_PREMIUM})}</em>` : ''}
+        ${pl === 'premium' && !dono ? `<i class="pv-fita">${t('pv_melhor')}</i>` : ''}
       </button>`;
     };
-    return `<div class="passe-compra-bg"><div class="passe-compra" role="dialog" aria-modal="true">
-      <div class="passe-compra-tit">${passeTicketSvg(plano === 'premium' ? 2 : 1)} ${t('pass_buy_title')}</div>
-      <p class="passe-compra-sub">${t('pass_buy_sub')}</p>
-      <div class="passe-planos">${cartao('super')}${cartao('premium')}</div>
-      <div class="passe-previa">${previa}</div>
-      <div class="passe-compra-q">${t('pass_buy_what')}</div>
-      <ul class="passe-ben">
-        <li>${ICONS.starFilled}<span>${t(rs.itens === 1 ? 'pass_ben_itens_1' : 'pass_ben_itens', {n: rs.itens})}</span></li>
-        <li><span class="passe-ben-bau">${bauSvg('epico', true)}</span><span>${t(rs.nbaus === 1 ? 'pass_ben_baus_1' : 'pass_ben_baus', {n: rs.nbaus})}</span></li>
-        <li>${ICONS.diamond}<span>${t('pass_ben_dia', {n: rs.d})}</span></li>
-        <li>${ICONS.coin}<span>${t('pass_ben_moedas', {n: kshopMilhar(rs.c)})}</span></li>
+    /* a vitrine (estilo jogo de celular): raios girando atrás do bilhete, itens passando, números subindo e o botão pulsando */
+    const estrelas = Array.from({length: 14}, (_, i)=>`<i style="left:${(i * 37 + 11) % 96}%;top:${(i * 53 + 7) % 90}%;animation-delay:${(i * .37) % 2.6}s"></i>`).join('');
+    const numero = (n, rot, ico)=>`<div class="pv-num"><span class="pv-num-ico">${ico}</span><b data-pv-n="${n}">0</b><small>${t(rot)}</small></div>`;
+    return `<div class="passe-compra-bg pv ${plano}"><div class="pv-raios" aria-hidden="true"></div><div class="pv-estrelas" aria-hidden="true">${estrelas}</div>
+      <div class="passe-compra pv-caixa" role="dialog" aria-modal="true">
+      <div class="passe-planos pv-planos">${cartao('super')}${cartao('premium')}</div>
+      <div class="pv-heroi">
+        <div class="pv-brilho" aria-hidden="true"></div>
+        <div class="pv-ticket">${passeTicketSvg(plano === 'premium' ? 2 : 1)}</div>
+        <div class="pv-nome">KODA PASS <b>${t(plano === 'premium' ? 'pass_premium' : 'pass_super').toUpperCase()}</b></div>
+        <p class="pv-sub">${t('pass_buy_sub')}</p>
+      </div>
+      ${previa ? `<div class="pv-carrossel" aria-hidden="true"><div class="pv-fila">${previa}${previa}</div></div>` : ''}
+      <div class="pv-numeros">
+        ${numero(rs.itens, 'pv_n_itens', ICONS.starFilled)}${numero(rs.nbaus, 'pv_n_baus', `<span class="passe-ben-bau">${bauSvg('epico', true)}</span>`)}
+        ${numero(rs.d, 'pv_n_dia', ICONS.diamond)}${numero(rs.c, 'pv_n_moedas', ICONS.coin)}
+      </div>
+      <ul class="passe-ben pv-ben">
         <li>${ICONS.abobora}<span>${t('pass_ben_ab', {n: rs.a})}</span></li>
         <li><i class="ok" aria-hidden="true">✓</i><span>${t('pass_ben_retro')}</span></li>
       </ul>
       ${faltou ? `<p class="passe-erro">${t('theme_no_dia', {n: Math.max(0, custo - loadDiamonds())})}</p>` : ''}
       ${compraMsg === 'temporada' ? `<p class="passe-erro">${t('pass_season_closed')}</p>` : ''}
-      <div class="passe-compra-btns">
-        <button type="button" class="g-btn secondary" id="passeNao">${t('pass_buy_later')}</button>
-        ${faltou ? `<button type="button" class="g-btn" id="passeDiam">${ICONS.diamond} ${t('pass_get_dia')}</button>`
-                 : `<button type="button" class="g-btn" id="passeSim">${t('pass_buy_btn')} ${ICONS.diamond} ${custo}</button>`}
+      <div class="passe-compra-btns pv-btns">
+        ${faltou ? `<button type="button" class="g-btn pv-comprar" id="passeDiam">${ICONS.diamond} ${t('pass_get_dia')}</button>`
+                 : `<button type="button" class="g-btn pv-comprar" id="passeSim">${t('pass_buy_btn')} ${ICONS.diamond} ${custo}</button>`}
+        <button type="button" class="pv-depois" id="passeNao">${t('pass_buy_later')}</button>
       </div>
     </div></div>`;
   }
@@ -32453,10 +32760,14 @@ function openPasse(){
           </div>
           <div class="passe-acoes">
             ${prontos.length ? `<button type="button" class="passe-tudo" id="passeTudo">${t('pass_claim_all', {n: prontos.length})}</button>` : ''}
-            ${e.nv < 2 && !acabou ? `<button type="button" class="passe-comprar" id="passeComprar">${passeTicketSvg(2)} ${t(e.nv >= 1 ? 'pass_upgrade' : 'pass_buy')}</button>` : ''}
             ${!acabou && !niv.fim ? `<button type="button" class="passe-nivel-btn" id="passeNivel">${t('pass_buy_lvl')} · ${ICONS.coin} ${kshopMilhar(PASSE_NIVEL_MOEDAS)}</button>` : ''}
           </div>
         </div>
+        ${e.nv < 2 && !acabou ? `<button type="button" class="pv-cartaz" id="passeComprar">
+          <span class="pv-cartaz-ticket" aria-hidden="true">${passeTicketSvg(2)}</span>
+          <span class="pv-cartaz-txt"><b>${t(e.nv >= 1 ? 'pv_cartaz_prem' : 'pv_cartaz_super')}</b><small>${t('pv_cartaz_sub', {n: passeResumoDe('x').itens + (e.nv >= 1 ? 0 : passeResumoDe('p').itens)})}</small></span>
+          <span class="pv-cartaz-btn">${t('pv_ver')}</span>
+        </button>` : ''}
         ${isAdmin() ? `<button class="admin-dia-btn" id="passeTeste" type="button">${ICONS.passe} ${t('pass_test_xp')}</button>` : ''}
         <div class="passe-trilha" id="passeTrilha">
           <div class="passe-lab" aria-hidden="true"><span class="x">${t('pass_premium')}</span><span class="p">${t('pass_super')}</span><i class="passe-lab-no"></i><span class="g">${t('pass_free')}</span></div>
@@ -32466,6 +32777,17 @@ function openPasse(){
         ${xFecharBtn()}
         ${compra ? compraHtml(e) : ''}
       </div>`;
+    /* vitrine aberta: os números sobem de 0 até o valor */
+    const nums = bg.querySelectorAll('[data-pv-n]');
+    if(nums.length){
+      const t0 = performance.now();
+      const sobe = tm=>{
+        const f = Math.min(1, (tm - t0) / 900), q = 1 - Math.pow(1 - f, 3);
+        nums.forEach(el=>{ el.textContent = kshopMilhar(Math.round(Number(el.dataset.pvN) * q)); });
+        if(f < 1 && bg.isConnected) requestAnimationFrame(sobe);
+      };
+      requestAnimationFrame(sobe);
+    }
     const trilha = bg.querySelector('#passeTrilha');
     if(primeira){
       primeira = false;
@@ -32541,6 +32863,14 @@ function openPasse(){
   }
   passeJanela = {redesenha: ()=>{ if(bg.parentNode) desenha(); }, fechar};
   bg.addEventListener('click', ev=>{ if(ev.target === bg) fechar(); });
+  /* a vitrine abre sozinha no máximo 1 vez por dia, pra quem ainda não tem o Premium (sem encher o saco) */
+  try{
+    const e0 = passeCarregar(), hoje = new Date().toDateString();
+    if(e0.nv < 2 && passeTemporada().estado !== 'acabou' && localStorage.getItem('koda_pv_dia') !== hoje){
+      localStorage.setItem('koda_pv_dia', hoje);
+      compra = true; plano = 'premium';
+    }
+  }catch(x){}
   document.body.appendChild(bg);
   desenha();
   requestAnimationFrame(()=>bg.classList.add('show'));
@@ -33419,7 +33749,7 @@ function premioTela(o){
 function rotTelaLivre(){
   const ov = document.getElementById('overlay');
   if(ov && !ov.classList.contains('hidden')) return false;
-  if(document.querySelector('.bau-tela, .game-menu-bg, .kbs-dlg-bg, .rot-bg, .gift-bg, .tut-bg, .tour-bg, #onbBg, #kodaSplash')) return false;
+  if(document.querySelector('.bau-tela, .game-menu-bg, .kbs-dlg-bg, .rot-bg, .gift-bg, .tut-bg, .tour-bg, #onbBg, #kodaSplash, .disp-tela, .eva-bg, .resg-bg')) return false;
   const gate = document.getElementById('authGate');
   if(gate && !gate.classList.contains('hidden')) return false;
   if(document.visibilityState && document.visibilityState !== 'visible') return false;
@@ -33538,20 +33868,29 @@ function nivelChipHtml(n, extra){
 })();
 /* a chama da sequência (com o número dentro). apagada = cinza, quando a sequência é zero */
 function chamaSvg(n, grande){
+  /* chama em 3 camadas (fora vermelha, meio laranja, miolo clarinho onde fica o número), com brilho e contorno */
   const u = 'ch' + (++rotSvgN), apagada = !(n > 0);
-  const c = apagada ? ['#C9D3DC', '#8C9AA8', '#5E6B78', '#3A444E'] : ['#FFF3A8', '#FFB020', '#FF5A1F', '#8A1A00'];
+  const c = apagada
+    ? {fora: ['#7E8C99', '#B4C0CB'], meio: ['#C3CDD6', '#E2E8EE'], miolo: '#F3F6F8', borda: '#3E4A55', num: '#3E4A55'}
+    : {fora: ['#E5290C', '#FF8A1F'], meio: ['#FF9E1B', '#FFD43B'], miolo: '#FFF6C9', borda: '#7A1500', num: '#7A1500'};
   const txt = n > 999 ? '999+' : String(Math.max(0, n || 0));
-  const fs = txt.length >= 4 ? 22 : txt.length === 3 ? 28 : 36;
+  const fs = txt.length >= 4 ? 21 : txt.length === 3 ? 27 : 34;
   return `<svg class="chama${apagada ? ' apagada' : ''}${grande ? ' grande' : ''}" viewBox="0 0 100 120" aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id="${u}a" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c[2]}"/><stop offset=".6" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[1]}"/></linearGradient>
-      <linearGradient id="${u}b" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[0]}"/></linearGradient>
-      <radialGradient id="${u}g" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="${c[1]}" stop-opacity=".55"/><stop offset="1" stop-color="${c[1]}" stop-opacity="0"/></radialGradient>
+      <linearGradient id="${u}a" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.fora[0]}"/><stop offset="1" stop-color="${c.fora[1]}"/></linearGradient>
+      <linearGradient id="${u}b" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.meio[0]}"/><stop offset="1" stop-color="${c.meio[1]}"/></linearGradient>
+      <radialGradient id="${u}g" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#FF9A1F" stop-opacity=".6"/><stop offset="1" stop-color="#FF9A1F" stop-opacity="0"/></radialGradient>
     </defs>
-    ${apagada ? '' : `<ellipse class="chama-luz" cx="50" cy="78" rx="50" ry="42" fill="url(#${u}g)"/>`}
-    <g class="chama-a"><path d="M52 4C60 22 80 34 84 60C88 88 70 112 50 114C28 112 12 92 15 66C17 50 26 40 32 30C33 42 37 49 43 52C39 34 42 18 52 4Z" fill="url(#${u}a)" stroke="${c[3]}" stroke-width="3.2" stroke-linejoin="round"/></g>
-    <g class="chama-b"><path d="M51 34C57 48 70 56 72 74C74 94 63 106 50 107C36 106 27 95 28 80C29 69 35 62 40 56C41 64 44 69 48 71C46 58 46 46 51 34Z" fill="url(#${u}b)"/></g>
-    <text x="50" y="${txt.length >= 3 ? 94 : 97}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="${fs}" fill="#fff" stroke="${c[3]}" stroke-width="5.5" stroke-linejoin="round" paint-order="stroke">${txt}</text>
+    ${apagada ? '' : `<ellipse class="chama-luz" cx="50" cy="78" rx="50" ry="44" fill="url(#${u}g)"/>`}
+    <g class="chama-a">
+      <path d="M50 4C58 20 66 26 72 36C76 30 77 24 76 15C88 30 94 48 92 67C90 95 72 115 50 115C28 115 10 95 8 69C7 52 13 38 22 27C22 36 25 42 30 46C30 30 38 16 50 4Z" fill="url(#${u}a)" stroke="${c.borda}" stroke-width="3.4" stroke-linejoin="round"/>
+      <path d="M24 56C21 67 23 78 30 87" fill="none" stroke="#fff" stroke-opacity="${apagada ? .45 : .5}" stroke-width="4.5" stroke-linecap="round"/>
+    </g>
+    <g class="chama-b">
+      <path d="M50 30C57 43 66 50 70 62C74 77 70 95 50 101C30 95 26 78 30 63C32 55 37 50 41 46C41 54 44 58 47 60C45 50 45 40 50 30Z" fill="url(#${u}b)"/>
+      <ellipse cx="50" cy="84" rx="19" ry="17" fill="${c.miolo}"/>
+    </g>
+    <text x="50" y="${txt.length >= 3 ? 93 : 96}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="${fs}" fill="${c.num}">${txt}</text>
   </svg>`;
 }
 /* o escudo do protetor de sequência (cheio = tem; vazio = espaço livre) */
@@ -33573,17 +33912,18 @@ function xpIconeSvg(){
 }
 /* roleta pequenininha (cartão da tela de início) */
 function roletaMiniSvg(){
+  /* a roletinha do cartão: aro dourado com luzes, fatias com divisória, centro brilhante e a setinha de pedra */
   const cores = ['#FFC93C', '#26D0A0', '#FF8A3D', '#4F8BFF', '#B14BFF', '#2FB6F0', '#FF4F8B', '#18B8A0'];
-  const fatias = cores.map((c, i)=>{
-    const a0 = (i * 45 - 90) * Math.PI / 180, a1 = ((i + 1) * 45 - 90) * Math.PI / 180;
-    return `<path d="M24 24L${(24 + 19 * Math.cos(a0)).toFixed(2)} ${(24 + 19 * Math.sin(a0)).toFixed(2)}A19 19 0 0 1 ${(24 + 19 * Math.cos(a1)).toFixed(2)} ${(24 + 19 * Math.sin(a1)).toFixed(2)}Z" fill="${c}"/>`;
-  }).join('');
+  const pt = (i, r)=>{ const a = (i * 45 - 90) * Math.PI / 180; return [(24 + r * Math.cos(a)).toFixed(2), (26 + r * Math.sin(a)).toFixed(2)]; };
+  const fatias = cores.map((c, i)=>{ const [x0, y0] = pt(i, 17), [x1, y1] = pt(i + 1, 17); return `<path d="M24 26L${x0} ${y0}A17 17 0 0 1 ${x1} ${y1}Z" fill="${c}"/>`; }).join('');
+  const linhas = cores.map((c, i)=>{ const [x, y] = pt(i, 17); return `<path d="M24 26L${x} ${y}" stroke="#fff" stroke-opacity=".85" stroke-width="1.1"/>`; }).join('');
+  const luzes = Array.from({length: 12}, (_, i)=>{ const a = (i * 30 - 75) * Math.PI / 180; return `<circle class="rm-luz ${i % 2 ? 'b' : 'a'}" cx="${(24 + 20.5 * Math.cos(a)).toFixed(2)}" cy="${(26 + 20.5 * Math.sin(a)).toFixed(2)}" r="1.25"/>`; }).join('');
   return `<svg class="roleta-mini" viewBox="0 0 48 52" aria-hidden="true" focusable="false">
-    <circle cx="24" cy="24" r="22" fill="#2A1460"/><g class="roleta-mini-gira">${fatias}</g>
-    <circle cx="24" cy="24" r="19" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>
-    ${[0,1,2,3,4,5,6,7].map(i=>{ const a = (i * 45 - 90) * Math.PI / 180; return `<circle cx="${(24 + 21 * Math.cos(a)).toFixed(2)}" cy="${(24 + 21 * Math.sin(a)).toFixed(2)}" r="1.3" fill="#FFF3B0"/>`; }).join('')}
-    <circle cx="24" cy="24" r="5.5" fill="#FFD54A" stroke="#2A1460" stroke-width="2"/>
-    <path d="M24 5l-4.5-6h9z" transform="translate(0 2)" fill="#FF3B5C" stroke="#2A1460" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="24" cy="26" r="23" fill="#B9770E"/><circle cx="24" cy="26" r="22" fill="#FFC93C"/><circle cx="24" cy="26" r="18.6" fill="#7A4A00"/>
+    ${luzes}
+    <g class="roleta-mini-gira">${fatias}${linhas}<path d="M10 20A15 15 0 0 1 38 20L24 26Z" fill="#fff" opacity=".18"/></g>
+    <circle cx="24" cy="26" r="5.4" fill="#FFE27A" stroke="#7A4A00" stroke-width="1.6"/><path d="M24 23.2l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#B9770E"/>
+    <path d="M24 9.5l-4.6-7.6h9.2z" fill="#FF3B5C" stroke="#7A0016" stroke-width="1.3" stroke-linejoin="round"/><path d="M22.2 3.6l1.4 2.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".8"/>
   </svg>`;
 }
 /* raio da oferta relâmpago */
@@ -33695,6 +34035,78 @@ function seqComprarProtetor(){
   playSound('protetor');
   return {ok:true};
 }
+/* ---------- RESGATAR A SEQUÊNCIA ----------
+   Voltou depois de faltar mais dias do que tem de protetor: antes de pegar o prêmio (que zeraria a sequência)
+   dá pra comprar na hora os protetores que faltam e a sequência continua. Vale pra quem faltou até 7 dias.
+   Cada dia que passa custa mais um protetor (por isso o "amanhã fica mais caro" é verdade). */
+var SEQ_RESGATE_MAX_FALTAS = 7, SEQ_RESGATE_VISTO_KEY = 'koda_seq_resgate_visto';
+function seqResgateInfo(o){
+  o = o || rotLer();
+  const s = o.seq;
+  if(!s.u || !(s.n >= 2)) return null;
+  const gap = rotDiasEntre(s.u, rotHoje()), faltou = gap - 1, prot = seqProtetores(o);
+  if(faltou <= prot || faltou > SEQ_RESGATE_MAX_FALTAS) return null;
+  const faltam = faltou - prot;
+  return {n: s.n, faltou, faltam, preco: faltam * SEQ_PROT_PRECO};
+}
+function seqResgatar(){
+  if(souVisitante()) return {ok:false, motivo:'login'};
+  const info = seqResgateInfo();
+  if(!info) return {ok:false, motivo:'nada'};
+  if(!modoTesteDeMoedas() && loadDiamonds() < info.preco) return {ok:false, motivo:'diamantes', faltam: info.preco - loadDiamonds()};
+  if(!spendDiamonds(info.preco)) return {ok:false, motivo:'diamantes', faltam: info.preco};
+  const o = rotLer();
+  o.seq.pb += info.faltam;          // os protetores entram e já são gastos quando a pessoa pegar o prêmio de hoje
+  rotGuardar(o);
+  rotSync(true);
+  playSound('protetor');
+  return {ok:true, n: info.n};
+}
+/* o aviso urgente (tela cheia, vermelho, com o relógio até a meia-noite) */
+function seqResgateAbrir(aoFechar){
+  const info = seqResgateInfo();
+  if(!info || document.querySelector('.resg-bg')) return null;      // nunca dois avisos ao mesmo tempo
+  try{ localStorage.setItem(SEQ_RESGATE_VISTO_KEY, rotHoje()); }catch(e){}
+  const esc = chatListEscape;
+  const bg = document.createElement('div');
+  bg.className = 'resg-bg';
+  bg.innerHTML = `<div class="resg" role="alertdialog" aria-modal="true" aria-labelledby="resgTit">
+      <div class="resg-alerta">${esc(t('resg_agora'))}</div>
+      <div class="resg-arte" aria-hidden="true"><span class="resg-chama">${chamaSvg(info.n, true)}</span><span class="resg-escudo">${protetorSvg(true)}</span></div>
+      <h2 class="resg-tit" id="resgTit">${esc(t('resg_tit', {n: info.n}))}</h2>
+      <p class="resg-sub">${esc(t(info.faltam === 1 ? 'resg_sub_1' : 'resg_sub', {n: info.faltam}))}</p>
+      <div class="resg-relogio"><span>${esc(t('resg_relogio'))}</span><b data-resg-rel>--:--:--</b></div>
+      <button type="button" class="resg-btn" data-resg-sim>${esc(t('resg_btn'))} ${ICONS.diamond} ${info.preco}</button>
+      <button type="button" class="resg-nao" data-resg-nao>${esc(t('resg_nao'))}</button>
+    </div>`;
+  document.body.appendChild(bg);
+  requestAnimationFrame(()=>bg.classList.add('show'));
+  const rel = bg.querySelector('[data-resg-rel]');
+  const tic = ()=>{ rel.textContent = rotRelogio(rotFaltaDia()); };
+  tic();
+  const timer = setInterval(tic, 1000);
+  let fechou = false;
+  const fechar = depois=>{
+    if(fechou) return;
+    fechou = true;
+    clearInterval(timer);
+    bg.classList.remove('show');
+    setTimeout(()=>{ bg.remove(); if(typeof aoFechar === 'function'){ try{ aoFechar(depois); }catch(e){} } }, 220);
+  };
+  bg.querySelector('[data-resg-nao]').addEventListener('click', ()=>{ playSound('click'); fechar('nao'); });
+  bg.querySelector('[data-resg-sim]').addEventListener('click', ()=>{
+    playSound('click');
+    compraFluxo({
+      nome: t('resg_compra_nome', {n: info.faltam}),
+      arte: protetorSvg(true),
+      custo: {moeda: 'd', preco: info.preco},
+      presente: null,
+      paraMim: ()=>seqResgatar(),
+      ok: r=>{ toast(t('resg_ok', {n: r.n})); fechar('salvou'); }
+    });
+  });
+  return bg;
+}
 /* desenho do prêmio de um dia (cartão da semana) */
 function seqArteDia(p){
   if(p.b && p.d) return `<span class="seq-arte-bau">${bauSvg(p.b, true)}<i class="seq-arte-dia">${ICONS.diamond}${p.d}</i></span>`;
@@ -33719,7 +34131,9 @@ function seqAbrir(opts){
       const semIdx = Math.floor((Math.max(1, diaRef) - 1) / 7), sem = Math.min(4, semIdx), ini = semIdx * 7 + 1;
       const titulo = mostra > 0 ? t(mostra === 1 ? 'seq_tit_1' : 'seq_tit', {n: mostra}) : t('seq_tit_0');
       let aviso = '';
-      if(e.perdeu > 0) aviso = `<div class="seq-aviso perdeu">${chatListEscape(t('seq_perdeu', {n: e.perdeu}))}</div>`;
+      const resg = e.perdeu > 0 ? seqResgateInfo(o) : null;
+      if(resg) aviso = `<div class="seq-aviso perdeu resg-faixa"><span>${chatListEscape(t('resg_tit', {n: resg.n}))}</span><button type="button" class="resg-faixa-btn" id="seqResgBtn">${chatListEscape(t('resg_btn'))} ${ICONS.diamond} ${resg.preco}</button></div>`;
+      else if(e.perdeu > 0) aviso = `<div class="seq-aviso perdeu">${chatListEscape(t('seq_perdeu', {n: e.perdeu}))}</div>`;
       else if(e.gastar > 0) aviso = `<div class="seq-aviso salvou">${protetorSvg(true)}<span>${chatListEscape(t(e.gastar === 1 ? 'seq_salva_1' : 'seq_salva', {n: e.gastar}))}</span></div>`;
       const dias = [];
       for(let d = ini; d < ini + 7; d++){
@@ -33776,6 +34190,21 @@ function seqAbrir(opts){
           desenha();
         }, 650);
       });
+      const rb = api.miolo.querySelector('#seqResgBtn');
+      if(rb) rb.addEventListener('click', ()=>{
+        playSound('click');
+        const info = seqResgateInfo();
+        if(!info) return;
+        compraFluxo({
+          nome: t('resg_compra_nome', {n: info.faltam}),
+          arte: protetorSvg(true),
+          custo: {moeda: 'd', preco: info.preco},
+          presente: null,
+          paraMim: ()=>seqResgatar(),
+          ok: r=>toast(t('resg_ok', {n: r.n})),
+          depois: ()=>{ if(api.aberta()) desenha(); }
+        });
+      });
       const pb = api.miolo.querySelector('#seqProtBtn');
       if(pb) pb.addEventListener('click', ()=>{
         playSound('click');
@@ -33807,10 +34236,73 @@ function seqAbrir(opts){
 /* abre a sequência sozinha, uma vez por dia, quando a pessoa entra e o prêmio está esperando */
 var SEQ_AUTO_KEY = 'koda_seq_auto';
 var rotCarregouEm = Date.now();
+/* ============================================================
+   AVISO DE EVENTO
+   Começou um evento: aparece uma vez a tela "NOVO EVENTO! Venha conhecer o novo evento de ...", com a cara
+   do evento (abóboras e morcegos, neve, sol e ondas), os itens exclusivos e quanto falta pra acabar.
+   Nos 2 últimos dias aparece uma vez "Últimos dias!". Abre antes da sequência e nunca por cima de outra janela.
+============================================================ */
+var EV_ANUNCIO_KEY = 'koda_ev_anunciado';
+var EV_ENFEITES = {hl: ['🎃', '🦇', '👻', '🍬', '🕸️'], xm: ['❄️', '🎁', '⭐', '🎄', '❄️'], fv: ['☀️', '🌴', '🐚', '🌊', '🍉']};
+function evAnuncioLer(){ try{ return JSON.parse(localStorage.getItem(EV_ANUNCIO_KEY)) || {}; }catch(e){ return {}; } }
+function evAnuncioPendente(){
+  if(!hlLigado() || !HL_EVENTO || HL_EVENTO.previa) return null;
+  const o = evAnuncioLer();
+  if(o.novo !== HL_EVENTO.id) return 'novo';
+  if(hlFaltaMs() < 48 * 3600000 && o.fim !== HL_EVENTO.id) return 'fim';
+  return null;
+}
+function evEnfeitesHtml(tipo, n){
+  const em = EV_ENFEITES[tipo] || EV_ENFEITES.hl;
+  return Array.from({length: n}, (_, i)=>`<i style="left:${(i * 41 + 7) % 94}%;animation-delay:${((i * .7) % 5).toFixed(2)}s;animation-duration:${(6 + (i * 1.3) % 5).toFixed(2)}s;font-size:${(1.2 + (i % 3) * .45).toFixed(2)}rem">${em[i % em.length]}</i>`).join('');
+}
+function evAnunciar(qual, depois){
+  if(document.querySelector('.eva-bg')) return null;
+  const tipo = evTipo(), ev = t('kshop_tab_hl'), esc = chatListEscape;
+  const o = evAnuncioLer(); o[qual === 'fim' ? 'fim' : 'novo'] = HL_EVENTO.id; if(qual === 'fim') o.novo = HL_EVENTO.id;
+  try{ localStorage.setItem(EV_ANUNCIO_KEY, JSON.stringify(o)); }catch(e){}
+  let nItens = 0, amostras = '';
+  try{
+    HL_BAU_ORDEM.forEach(b=>{ const it = (HL_BAUS[b] || {}).itens || []; nItens += it.length; });
+    amostras = HL_BAU_ORDEM.map(b=>{ const it = ((HL_BAUS[b] || {}).itens || [])[0]; return it ? `<span class="eva-item">${hlAmostra(it[0], it[1])}</span>` : ''; }).join('');
+  }catch(e){}
+  const bg = document.createElement('div');
+  bg.className = 'eva-bg ev-' + tipo + (qual === 'fim' ? ' fim' : '');
+  bg.innerHTML = `<div class="eva-enfeites" aria-hidden="true">${evEnfeitesHtml(tipo, 14)}</div>
+    <div class="eva" role="dialog" aria-modal="true" aria-labelledby="evaTit">
+      <div class="eva-selo">${esc(t(qual === 'fim' ? 'eva_fim_selo' : 'eva_novo'))}</div>
+      <div class="eva-arte">${evArteTopo(tipo)}</div>
+      <h2 class="eva-tit" id="evaTit">${esc(t(qual === 'fim' ? 'eva_fim_tit' : 'eva_tit', {ev}))}</h2>
+      <p class="eva-sub">${esc(qual === 'fim' ? t('eva_fim_sub') : t('eva_sub', {n: nItens, moeda: t('hl_aboboras').toLowerCase()}))}</p>
+      ${amostras ? `<div class="eva-itens">${amostras}</div>` : ''}
+      <div class="eva-relogio">${esc(t('eva_acaba', {t: turboTexto(hlFaltaMs())}))}</div>
+      <button type="button" class="eva-ver" data-ver>${esc(t('eva_ver'))}</button>
+      <button type="button" class="eva-depois" data-depois>${esc(t('eva_depois'))}</button>
+    </div>`;
+  document.body.appendChild(bg);
+  requestAnimationFrame(()=>bg.classList.add('show'));
+  try{ playSound('win'); }catch(e){}
+  let fechou = false;
+  const fechar = ver=>{
+    if(fechou) return;
+    fechou = true;
+    bg.classList.remove('show');
+    setTimeout(()=>{
+      bg.remove();
+      if(ver){ try{ openKodaShop('hl'); }catch(e){ try{ openMissoes('evento'); }catch(x){} } }
+      else if(typeof depois === 'function'){ try{ depois(); }catch(e){} }
+    }, 220);
+  };
+  bg.querySelector('[data-ver]').addEventListener('click', ()=>{ playSound('click'); fechar(true); });
+  bg.querySelector('[data-depois]').addEventListener('click', ()=>{ playSound('click'); fechar(false); });
+  return bg;
+}
 function rotAutoAbrir(){
   if(souVisitante()) return;
   if(FIREBASE_ENABLED && !(fbAuth() && fbAuth().currentUser)) return;
   if(Date.now() - rotCarregouEm < 3500) return;
+  /* evento novo (ou nos últimos dias): o aviso vem primeiro; depois, se for o caso, a sequência */
+  { const qual = evAnuncioPendente(); if(qual && rotTelaLivre() && !tourPendente()){ evAnunciar(qual, ()=>{ setTimeout(()=>{ try{ rotAutoAbrir(); }catch(e){} }, 400); }); return; } }
   const hoje = rotHoje();
   let ja = '';
   try{ ja = localStorage.getItem(SEQ_AUTO_KEY) || ''; }catch(e){}
@@ -33818,6 +34310,8 @@ function rotAutoAbrir(){
   if(!seqEstado().pode) return;
   if(!rotTelaLivre() || tourPendente()) return;   // na primeira vez, a apresentação do agente vem antes
   try{ localStorage.setItem(SEQ_AUTO_KEY, hoje); }catch(e){}
+  /* a sequência ia acabar: primeiro o aviso urgente de resgate (depois, a janela da sequência como sempre) */
+  if(seqResgateInfo()){ seqResgateAbrir(()=>seqAbrir({auto:true})); return; }
   seqAbrir({auto:true});
 }
 
@@ -33940,26 +34434,35 @@ function roletaSvg(fatias){
       </g>
     </g>`;
   }).join('');
-  const pinos = fatias.map((f, i)=>{ const [x, y] = pt(i * ang, R - 1); return `<circle cx="${x}" cy="${y}" r="3" fill="#FFF3B0" stroke="#1B1464" stroke-width="1.4"/>`; }).join('');
-  const luzes = Array.from({length: 24}, (_, i)=>{ const [x, y] = pt(i * 15 + 7.5, R + 9); return `<circle class="rol-luz ${i % 2 ? 'b' : 'a'}" cx="${x}" cy="${y}" r="3.4"/>`; }).join('');
+  const pinos = fatias.map((f, i)=>{ const [x, y] = pt(i * ang, R - 1); return `<circle cx="${x}" cy="${y}" r="3.2" fill="#FFF3B0" stroke="#7A4A00" stroke-width="1.4"/>`; }).join('');
+  const divisorias = fatias.map((f, i)=>{ const [x, y] = pt(i * ang, R); return `<path d="M0 0L${x} ${y}" stroke="#fff" stroke-opacity=".85" stroke-width="2.4"/>`; }).join('');
+  const luzes = Array.from({length: 24}, (_, i)=>{ const [x, y] = pt(i * 15 + 7.5, R + 10); return `<circle class="rol-luz ${i % 2 ? 'b' : 'a'}" cx="${x}" cy="${y}" r="3.6"/>`; }).join('');
   return `<svg class="rol-svg" viewBox="-124 -132 248 258" role="img" aria-label="${chatListEscape(t('rol_tit'))}">
     <defs>
       <radialGradient id="rolBrilho" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset=".72" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient>
       <radialGradient id="rolCubo" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFF6B8"/><stop offset=".6" stop-color="#FFC52E"/><stop offset="1" stop-color="#C77F00"/></radialGradient>
+      <linearGradient id="rolAro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0A8"/><stop offset=".35" stop-color="#FFC52E"/><stop offset=".7" stop-color="#E79A0C"/><stop offset="1" stop-color="#FFD966"/></linearGradient>
+      <linearGradient id="rolVidro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <radialGradient id="rolHalo" cx=".5" cy=".5" r=".5"><stop offset=".78" stop-color="#FFD54A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD54A" stop-opacity="0"/></radialGradient>
+      <linearGradient id="rolSeta" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7A93"/><stop offset="1" stop-color="#D1123A"/></linearGradient>
     </defs>
-    <circle r="${R + 16}" fill="#1B1464"/>
-    <circle r="${R + 16}" fill="none" stroke="#3B2A9E" stroke-width="3"/>
+    <circle class="rol-halo" r="${R + 26}" fill="url(#rolHalo)"/>
+    <circle r="${R + 18}" fill="#8A5200"/>
+    <circle r="${R + 16}" fill="url(#rolAro)"/>
+    <circle r="${R + 4}" fill="#5A3400"/>
     ${luzes}
     <g class="rol-roda-gira">
       ${fat}
+      ${divisorias}
       <circle r="${R}" fill="url(#rolBrilho)" pointer-events="none"/>
       ${pinos}
     </g>
-    <circle r="${R}" fill="none" stroke="#1B1464" stroke-width="4"/>
-    <circle r="23" fill="#1B1464"/>
-    <circle r="19" fill="url(#rolCubo)" stroke="#7A4A00" stroke-width="2"/>
-    <text x="0" y="7.5" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="21" fill="#6E4200">K</text>
-    <g class="rol-seta"><path d="M0 -${R - 14}L-13 -${R + 20}Q0 -${R + 30} 13 -${R + 20}Z" fill="#FF3B5C" stroke="#1B1464" stroke-width="3.4" stroke-linejoin="round"/><circle cx="0" cy="-${R + 18}" r="4.4" fill="#fff" opacity=".85"/></g>
+    <path d="M-${R - 4} -6A${R - 4} ${R - 4} 0 0 1 ${R - 4} -6Q0 -24 -${R - 4} -6Z" fill="url(#rolVidro)" pointer-events="none"/>
+    <circle r="${R}" fill="none" stroke="#5A3400" stroke-width="4"/>
+    <circle r="25" fill="#5A3400"/>
+    <circle r="21" fill="url(#rolCubo)" stroke="#FFF3B0" stroke-width="2"/>
+    <path d="M0 -11l3.3 6.7 7.4 1.1-5.4 5.2 1.3 7.3L0 5.8l-6.6 3.5 1.3-7.3-5.4-5.2 7.4-1.1z" fill="#C77F00" stroke="#7A4A00" stroke-width="1.4" stroke-linejoin="round"/>
+    <g class="rol-seta"><path d="M0 -${R - 12}L-15 -${R + 18}Q0 -${R + 32} 15 -${R + 18}Z" fill="url(#rolSeta)" stroke="#5A0016" stroke-width="3" stroke-linejoin="round"/><path d="M-6 -${R + 20}L-2 -${R + 10}" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/><circle cx="0" cy="-${R + 19}" r="5" fill="#FFF3B0" stroke="#5A0016" stroke-width="1.6"/></g>
   </svg>`;
 }
 var roletaAngulo = 0;
@@ -34661,7 +35164,9 @@ var PZ_W = 22, PZ_H = 29;
      (pecasVendas/{id}_{comprador}, uma por pessoa), confere ao entrar no site e o valor cai na conta dele.
    - Desenho ofensivo: o admin apaga (botão na própria peça).
 ============================================================ */
-var UGC_TIPOS = ['roupa', 'calca', 'pes', 'cabeca', 'costas', 'mao'];   // 'roupa' = a camisa (tronco e braços); 'pes' = tênis, bota...
+var UGC_TIPOS = ['roupa', 'vestido', 'calca', 'pes', 'cabeca', 'rosto', 'costas', 'mao', 'livre'];
+/* 'roupa' = a camisa (tronco e braços); 'pes' = tênis, bota...; 'vestido' = corpo inteiro (vestido, macacão, fantasia);
+   'rosto' = óculos, máscara, pintura no rosto; 'livre' = pinta em qualquer lugar e fica por cima de tudo */
 /* onde cada tipo pode ser pintado (colunas x0..x1 e linhas y0..y1 da grade 22 x 29; a mão tem os dois lados)
    e a caixa onde a foto entra (a foto é recortada já do formato dela) */
 var UGC_AREA = {
@@ -34670,7 +35175,10 @@ var UGC_AREA = {
   pes:    {partes: [[5, 16, 22, 27]], foto: [6, 15, 23, 27]},
   cabeca: {partes: [[0, 21, 0, 15]], foto: [3, 18, 0, 15]},
   costas: {partes: [[0, 21, 0, 28]], foto: [0, 21, 0, 28]},
-  mao:    {partes: [[0, 6, 6, 28], [15, 21, 6, 28]], foto: [15, 21, 8, 28]}
+  mao:    {partes: [[0, 6, 6, 28], [15, 21, 6, 28]], foto: [15, 21, 8, 28]},
+  vestido:{partes: [[2, 19, 15, 27]], foto: [4, 17, 15, 26]},
+  rosto:  {partes: [[3, 18, 4, 15]], foto: [5, 16, 8, 14]},
+  livre:  {partes: [[0, 21, 0, 28]], foto: [0, 21, 0, 28]}
 };
 function ugcMascara(tipo){
   const m = new Uint8Array(PZ_W * PZ_H), a = UGC_AREA[tipo] || UGC_AREA.costas;
@@ -34951,7 +35459,7 @@ async function ugcPerguntarIA(frente, costas, tipo, nome, palavra, fotos){
   const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timer = ctrl ? setTimeout(()=>ctrl.abort(), 25000) : null;
   try{
-    const texto = 'Item type: ' + ({roupa: 'shirt', calca: 'pants', pes: 'shoes', cabeca: 'head item (hat, mask, hair)', costas: 'back item (wings, cape, backpack)', mao: 'item held in the hand'}[tipo] || tipo)
+    const texto = 'Item type: ' + ({roupa: 'shirt', calca: 'pants', pes: 'shoes', cabeca: 'head item (hat, mask, hair)', costas: 'back item (wings, cape, backpack)', mao: 'item held in the hand', vestido: 'full-body outfit (dress, overalls, costume)', rosto: 'face item (glasses, mask, face paint)', livre: 'free drawing over the whole character'}[tipo] || tipo)
       + '\nItem name: "' + String(nome).slice(0, 40) + '"'
       + (palavra ? '\nA simple word list flagged the word "' + palavra + '" in the name (this list often gives false alarms; decide yourself).' : '');
     const res = await fetch(SERVER_URL + '/agent', {
@@ -35297,6 +35805,16 @@ function ugcTextoLimpo(s){ return String(s || '').normalize('NFD').replace(/[̀-
 var UGC_KIT_CORES = {w:'#FFFFFF', k:'#2B2B33', g:'#F2C84B', x:'#D5DBE3', y:'#FFD23F', o:'#FF8A2A', p:'#FF9EC4'};
 /* os modelos prontos de cada tipo, no mesmo jeito das peças da loja: [linha onde começa, 'linhas'...]; f = frente, c = costas (sem c = igual à frente) */
 var UGC_MODELOS = {
+  rosto: [
+    {id:'oculos', f:[[9,'.....111111111111.....','....11...1..1...11....','.....11111..11111.....']], c:[]},
+    {id:'oculos_sol', f:[[9,'.....kkkkkkkkkkkk.....','....kkxxxk..kxxxkk....','.....kkkkk..kkkkk.....']], c:[]},
+    {id:'mascara', f:[[11,'....2.1111111111.2....','.....211111111112.....','......3333333333......','.......11111111.......']], c:[]},
+    {id:'heroi', f:[[8,'.....111111111111.....','.....11ww1111ww11.....','.....11ww1111ww11.....','......1111111111......']], c:[]}
+  ],
+  vestido: [
+    {id:'macacao', f:[[16,'........1....1........','........1....1........','........11gg11........','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........22..22........']], c:[[16,'........1....1........','.........1..1.........','..........11..........','.......11111111.......','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........22..22........']]},
+    {id:'fantasia', f:[[16,'....11111111111111....','....11.11111111.11....','....11133333333111....','....22211111111222....','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........11..11........','.......222..222.......']], c:[[16,'....11111111111111....','....11.11111111.11....','....11133333333111....','....22211111111222....','.......11111111.......','.......11111111.......','.......22222222.......','........11..11........','........11..11........','........11..11........','.......222..222.......']]}
+  ],
   roupa: [
     {id:'camiseta', f:[[16,'....11111....11111....','....22.11111111.22....','.......11111111.......','.......11111111.......','.......22222222.......']],
       c:[[16,'....11111111111111....','....22.11111111.22....','.......11111111.......','.......11111111.......','.......22222222.......']]},
@@ -36619,6 +37137,18 @@ var PZ_TXT = {
  ugc_f_guia:'Mostrar o boneco|Show the character|Mostrar el personaje|Mostra il personaggio|Afficher le personnage|Figur zeigen|Figuur tonen|キャラを表示|显示角色|캐릭터 보기',
  ugc_f_desfazer:'Desfazer|Undo|Deshacer|Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|실행 취소',
  ugc_f_refazer:'Refazer|Redo|Rehacer|Ripeti|Rétablir|Wiederholen|Opnieuw|やり直す|重做|다시 실행',
+ ugc_t_vestido:'Corpo inteiro|Full body|Cuerpo entero',
+ ugc_t_rosto:'Rosto|Face|Cara',
+ ugc_t_livre:'Livre|Free|Libre',
+ ugc_dica_vestido:'Corpo inteiro: do pescoço até os pés (vestido, macacão, fantasia). Pinte a frente e as costas.|Full body: from the neck down to the feet (dress, overalls, costume). Paint the front and the back.|Cuerpo entero: del cuello a los pies (vestido, overol, disfraz). Pinta el frente y la espalda.',
+ ugc_dica_rosto:'Rosto: óculos, máscara, pintura no rosto. Aparece de frente.|Face: glasses, mask, face paint. Shows from the front.|Cara: gafas, máscara, pintura en la cara. Se ve de frente.',
+ ugc_dica_livre:'Livre: pinte em qualquer lugar do personagem. Fica por cima de tudo.|Free: paint anywhere on the character. It goes over everything.|Libre: pinta en cualquier parte del personaje. Va encima de todo.',
+ ugc_m_oculos:'Óculos|Glasses|Gafas',
+ ugc_m_oculos_sol:'Óculos escuros|Sunglasses|Gafas de sol',
+ ugc_m_mascara:'Máscara|Mask|Mascarilla',
+ ugc_m_heroi:'Máscara de herói|Hero mask|Antifaz de héroe',
+ ugc_m_macacao:'Macacão|Overalls|Overol',
+ ugc_m_fantasia:'Fantasia|Costume|Disfraz',
  ugc_t_pes:'Pés|Feet|Pies|Piedi|Pieds|Füße|Voeten|あし|鞋子|신발',
  ugc_dica_pes:'Pés: só nos pés e no fim das pernas (tênis, bota, chinelo, meia).|Feet: only on the feet and lower legs (sneakers, boots, flip-flops, socks).|Pies: solo en los pies y el final de las piernas (tenis, botas, chanclas, calcetines).|Piedi: solo sui piedi e in fondo alle gambe (scarpe, stivali, ciabatte, calzini).|Pieds : seulement sur les pieds et le bas des jambes (baskets, bottes, tongs, chaussettes).|Füße: nur an den Füßen und unten an den Beinen (Turnschuhe, Stiefel, Flip-Flops, Socken).|Voeten: alleen op de voeten en onderaan de benen (sneakers, laarzen, slippers, sokken).|あし：足と足首のところだけ（スニーカー、ブーツ、サンダル、くつした）。|鞋子：只能画在脚和小腿下面（运动鞋、靴子、拖鞋、袜子）。|신발: 발과 다리 아랫부분에만 칠해요(운동화, 부츠, 슬리퍼, 양말).',
  ugc_f_linha:'Linha|Line|Línea|Linea|Ligne|Linie|Lijn|せん|直线|선',
@@ -38036,6 +38566,7 @@ function pzGrade(c, variante){
   pintaU('pes');
   pintaU('calca');
   pintaU('roupa');
+  pintaU('vestido');
   if(!deCostas) pzPint(g, tags, Cos.px, Cos.cores, 'costas', null, Cos.fn);
   pzPint(g, tags, Mao.px, Mao.cores, 'mao', null, Mao.fn);
   pintaU('mao');
@@ -38051,6 +38582,7 @@ function pzGrade(c, variante){
     if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
     pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
     pintaU('cabeca');
+    pintaU('livre');
     g.tags = tags;            // pra foto da peça saber em cima de quê ela pode aparecer
     return g;
   }
@@ -38060,11 +38592,13 @@ function pzGrade(c, variante){
   if(c.genero === 'menina') pzPint(g, tags, PZ_MENINA, Object.assign({}, base, {p:'#FFA3BE'}), 'olhos');
   pzPint(g, tags, P.boca.px, c.genero === 'menina' ? Object.assign({}, base, {m:'#D9506E'}) : base, 'boca');
   pzPint(g, tags, Ace.px, Ace.cores, 'aces', null, Ace.fn);
+  pintaU('rosto');
   pzPint(g, tags, Cab.px, Cab.cores, 'cab', null, Cab.fn);
   /* chapéu que cobre a cabeça esconde o cabelo de cima (senão o topete atravessa o boné) */
   if(P.chapeu.corta) for(let k = 0; k < P.chapeu.corta * PZ_W; k++) if(tags[k] === 'cab'){ g[k] = null; tags[k] = null; }
   pzPint(g, tags, Cha.px, Cha.cores, 'chapeu', null, Cha.fn);
   pintaU('cabeca');
+  pintaU('livre');
   g.tags = tags;
   return g;
 }
@@ -38258,7 +38792,8 @@ function pzMigrarMolduras(){
 
 /* ---------- as abas "Personagem" e "Seu agente" da Loja do Koda ---------- */
 /* cada categoria de peça do personagem → o tipo de peça criada que cabe nela */
-const PZ_UGC_DO = {camisa: 'roupa', calca: 'calca', sapato: 'pes', chapeu: 'cabeca', cab: 'cabeca', costas: 'costas', mao: 'mao'};
+const PZ_UGC_DO = {camisa: ['roupa', 'vestido'], calca: 'calca', sapato: 'pes', chapeu: 'cabeca', cab: 'cabeca', aces: ['rosto', 'livre'], costas: 'costas', mao: 'mao'};
+function pzUgcTipos(sub){ return [].concat(PZ_UGC_DO[sub] || []); }
 const PZ_SUBS = ['genero', 'pele', 'cab', 'olhos', 'boca', 'camisa', 'estampa', 'calca', 'sapato', 'chapeu', 'aces', 'costas', 'mao'];
 const PZ_COR_DO = {cab:'corCab', olhos:'corOlhos', camisa:'corCamisa', estampa:'corEstampa', calca:'corCalca', sapato:'corSapato',
   chapeu:'corChapeu', aces:'corAces', costas:'corCostas', mao:'corMao'};
@@ -38313,12 +38848,12 @@ function pzPainelHtml(ctx){
   h += '<div class="pz-chips" role="tablist">' + subs.map(s=>'<button type="button" class="pz-chip' + (s === sub ? ' on' : '') + '" data-pz-sub="' + s + '" role="tab" aria-selected="' + (s === sub) + '">' + esc(t('pz_s_' + s)) + '</button>').join('') + '</div>';
   if(sub !== 'balao'){
     /* as peças criadas pela comunidade moram junto das outras da mesma categoria; o primeiro cartão é o "Criar" daquela categoria */
-    const tipoUgc = PZ_UGC_DO[sub] || '';
+    const tiposUgc = pzUgcTipos(sub), tipoUgc = tiposUgc[0] || '';
     const ugcAtivo = alvo.ugc && alvo.ugc !== 'nenhum' ? (ugcEstado().cache.get(alvo.ugc) || {}).tipo : '';
     const itens = pzVisiveis(sub, ctx.testando).map((x, i)=>{
       const c2 = Object.assign({}, alvo); c2[sub] = x.id;
       if(alvo[sub] !== x.id) pzNovaPeca(c2, sub, alvo);   // do jeito que vem ao tocar
-      const id = sub + '_' + x.id, escolhido = alvo[sub] === x.id && !(tipoUgc && ugcAtivo === tipoUgc), car = escolhido && noCarrinho(id);
+      const id = sub + '_' + x.id, escolhido = alvo[sub] === x.id && !(ugcAtivo && tiposUgc.filter(x=>x !== 'livre').indexOf(ugcAtivo) >= 0), car = escolhido && noCarrinho(id);
       const rosto = !!PZ_ROSTO[sub];
       return {grupo: pzLivre(x) ? 0 : x.ev ? 3 : x.d ? 2 : 1, preco: x.d || x.p || 0, i,
         html: '<button type="button" class="pz-op' + (escolhido ? ' on' : '') + (car ? ' carrinho' : '') + '" data-pz-op="' + sub + '|' + x.id + '" title="' + esc(t('cosm_pers_' + id)) + '">'
@@ -38328,7 +38863,7 @@ function pzPainelHtml(ctx){
     });
     let criadas = [];
     if(tipoUgc){
-      criadas = ugcDaCategoria(tipoUgc).map((u, i)=>({grupo: u.preco ? 1 : 0, preco: u.dia ? u.preco * KSHOP_PRECO : u.preco, i: -1000 + i, minha: u.minha, html: ugcCartaoHtml(u.id, alvo)}));
+      criadas = [].concat.apply([], tiposUgc.map(tp=>ugcDaCategoria(tp))).map((u, i)=>({grupo: u.preco ? 1 : 0, preco: u.dia ? u.preco * KSHOP_PRECO : u.preco, i: -1000 + i, minha: u.minha, html: ugcCartaoHtml(u.id, alvo)}));
     }
     const todos = itens.concat(criadas).sort((a, b)=>(a.grupo - b.grupo) || (a.preco - b.preco) || (a.i - b.i));
     const tileCriar = tipoUgc ? '<button type="button" class="pz-op pz-criar" data-ugc-criar="' + tipoUgc + '"><span class="pz-criar-mais" aria-hidden="true">＋</span><span class="pz-n">' + esc(t('ugc_criar_curto')) + '</span><span class="pz-ok">' + esc(t('ugc_criar_dica')) + '</span></button>' : '';
@@ -38975,7 +39510,7 @@ function tourVisivel(el){
 function tourTelaLivre(){
   const h = document.documentElement.classList;
   if(h.contains('ov-aberto') || h.contains('folha-cheia') || h.contains('entrada') || h.contains('ov-cheio')) return false;
-  if(document.querySelector('#kodaSplash, .disp-tela, .onb-bg, .tut-bg, .rot-bg, .gift-bg, .gift-tela, .bau-tela, .game-menu-bg, .kbs-dlg-bg, .confirm-bg, .cj-bg, .coins-rule-bg, .ask-tela, .tour-bg')) return false;
+  if(document.querySelector('#kodaSplash, .disp-tela, .eva-bg, .resg-bg, .onb-bg, .tut-bg, .rot-bg, .gift-bg, .gift-tela, .bau-tela, .game-menu-bg, .kbs-dlg-bg, .confirm-bg, .cj-bg, .coins-rule-bg, .ask-tela, .tour-bg')) return false;
   if(tourModal()) return false;
   const gate = document.getElementById('authGate');
   if(gate && !gate.classList.contains('hidden')) return false;
