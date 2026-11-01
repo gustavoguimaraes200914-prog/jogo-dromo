@@ -1628,6 +1628,81 @@
     border:1.5px solid rgba(255,255,255,.18);
   }
   .passe-sheet .game-menu-cancel{margin-top:6px;}
+  /* Koda Pass sempre em tela cheia (mesmo com a tela cheia das lojas desligada), e a trilha usa a largura toda */
+  .game-menu-bg.passe-bg{padding:0;align-items:stretch;}
+  .game-menu-bg.passe-bg .game-menu-sheet.passe-sheet{max-width:none !important;width:100% !important;height:100% !important;max-height:none !important;border-radius:0 !important;border:none !important;
+    padding:calc(54px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left)) !important;}
+  .game-menu-bg.passe-bg .game-menu-sheet.passe-sheet > *:not(.tc-folha-btn):not(.x-fechar):not(.passe-compra-bg){width:100%;max-width:1400px;margin-left:auto;margin-right:auto;}
+  .game-menu-bg.passe-bg .game-menu-sheet.passe-sheet > button.x-fechar{top:calc(10px + env(safe-area-inset-top)) !important;right:max(12px,env(safe-area-inset-right)) !important;}
+  .passe-sheet .tc-folha-btn{display:none !important;}
+  .passe-sheet .passe-trilha{flex:1 1 auto;min-height:0;}
+  /* o cartaz "Desbloqueie o Premium" (no lugar do botãozinho) */
+  .pv-cartaz{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 8px;padding:10px 14px;border:2px solid #FFD86B;border-radius:18px;cursor:pointer;color:#fff;text-align:left;font:inherit;
+    background:linear-gradient(110deg,#7C3AED,#C026D3 55%,#F59E0B);box-shadow:0 4px 0 #6B21A8,0 10px 24px rgba(192,38,211,.35);animation:pvCartazPulsa 2.6s ease-in-out infinite;}
+  .pv-cartaz::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:pvVarre 3.2s ease-in-out infinite;}
+  .pv-cartaz-ticket svg{width:52px !important;height:52px !important;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));animation:pvFlutua 2.4s ease-in-out infinite;}
+  .pv-cartaz-txt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15;}
+  .pv-cartaz-txt b{font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:800;text-shadow:0 2px 0 rgba(0,0,0,.25);}
+  .pv-cartaz-txt small{font-weight:700;font-size:.8rem;opacity:.95;}
+  .pv-cartaz-btn{flex-shrink:0;padding:8px 16px;border-radius:999px;background:#FFD86B;color:#4a2a00;font:800 .95rem 'Baloo 2',sans-serif;box-shadow:0 3px 0 #B86A00;}
+  @keyframes pvCartazPulsa{0%,100%{transform:scale(1);}50%{transform:scale(1.012);}}
+  @keyframes pvVarre{0%,55%{left:-40%;}85%,100%{left:130%;}}
+  @keyframes pvFlutua{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-4px) rotate(4deg);}}
+  /* a vitrine de compra */
+  .passe-compra-bg.pv{position:absolute;inset:0;z-index:20;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
+    background:radial-gradient(ellipse at 50% 30%,#4C1D95 0%,#1E0B45 60%,#0B0420 100%);border-radius:0;}
+  .passe-compra-bg.pv.premium{background:radial-gradient(ellipse at 50% 30%,#7A3B00 0%,#3B1561 55%,#0B0420 100%);}
+  .pv-raios{position:absolute;left:50%;top:30%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;opacity:.32;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.55) 0 7deg,transparent 7deg 22deg);animation:pvGira 26s linear infinite;
+    -webkit-mask:radial-gradient(circle,#000 0,transparent 55%);mask:radial-gradient(circle,#000 0,transparent 55%);}
+  .pv.premium .pv-raios{background:repeating-conic-gradient(from 0deg,rgba(255,214,90,.75) 0 7deg,transparent 7deg 22deg);}
+  @keyframes pvGira{to{transform:rotate(360deg);}}
+  .pv-estrelas{position:absolute;inset:0;pointer-events:none;}
+  .pv-estrelas i{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px rgba(255,255,255,.8);opacity:0;animation:pvPisca 2.6s ease-in-out infinite;}
+  @keyframes pvPisca{0%,100%{opacity:0;transform:scale(.4);}50%{opacity:1;transform:scale(1);}}
+  .pv-caixa{position:relative;width:100%;max-width:480px;max-height:100%;overflow-y:auto;padding:14px 14px 12px;border-radius:24px;background:rgba(20,8,48,.55);border:2px solid rgba(255,216,107,.65);
+    box-shadow:0 0 0 4px rgba(255,216,107,.12),0 20px 50px rgba(0,0,0,.55);backdrop-filter:blur(4px);animation:pvEntra .45s cubic-bezier(.2,1.3,.4,1) both;}
+  @keyframes pvEntra{from{opacity:0;transform:scale(.8) translateY(20px);}to{opacity:1;transform:none;}}
+  .pv-planos .passe-plano{position:relative;}
+  .pv-fita{position:absolute;top:-10px;right:-6px;padding:2px 8px;border-radius:999px;background:linear-gradient(90deg,#FF3D6E,#FF8A00);color:#fff;font:800 .62rem 'Baloo 2',sans-serif;letter-spacing:.3px;text-transform:uppercase;font-style:normal;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pvFita 1.6s ease-in-out infinite;}
+  @keyframes pvFita{0%,100%{transform:rotate(6deg) scale(1);}50%{transform:rotate(6deg) scale(1.08);}}
+  .pv-heroi{position:relative;text-align:center;margin:8px 0 6px;}
+  .pv-brilho{position:absolute;left:50%;top:44px;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;background:radial-gradient(circle,rgba(255,216,107,.7),transparent 65%);animation:pvBrilho 2.2s ease-in-out infinite;pointer-events:none;}
+  .pv.super .pv-brilho{background:radial-gradient(circle,rgba(170,215,255,.7),transparent 65%);}
+  @keyframes pvBrilho{0%,100%{transform:scale(.85);opacity:.7;}50%{transform:scale(1.1);opacity:1;}}
+  .pv-ticket{position:relative;display:inline-block;animation:pvTicket 3s ease-in-out infinite;}
+  .pv-ticket svg{width:96px !important;height:96px !important;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5));}
+  @keyframes pvTicket{0%,100%{transform:translateY(0) rotate(-8deg) scale(1);}50%{transform:translateY(-8px) rotate(6deg) scale(1.06);}}
+  .pv-nome{position:relative;font:800 1.15rem 'Baloo 2',sans-serif;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35);}
+  .pv-nome b{display:block;font-size:2.1rem;line-height:1;letter-spacing:2px;background:linear-gradient(100deg,#FFE7A0 20%,#fff 35%,#FFB800 50%,#FFE7A0 70%);background-size:250% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:pvTexto 2.8s linear infinite;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4));}
+  .pv.super .pv-nome b{background:linear-gradient(100deg,#DDEBFF 20%,#fff 35%,#9CC8FF 50%,#DDEBFF 70%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;}
+  @keyframes pvTexto{from{background-position:120% 0;}to{background-position:-120% 0;}}
+  .pv-sub{position:relative;margin:6px 0 0;font-size:.82rem;font-weight:700;opacity:.9;}
+  .pv-carrossel{overflow:hidden;margin:8px -14px 10px;padding:6px 0;-webkit-mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
+  .pv-fila{display:flex;gap:8px;width:max-content;animation:pvFila 16s linear infinite;}
+  .pv-fila > *{flex:0 0 auto;}
+  .pv-fila .shop-swatch{width:56px;height:46px;}
+  .pv-fila .shop-swatch-round{width:46px;height:46px;}
+  @keyframes pvFila{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .pv-numeros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 8px;}
+  .pv-num{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.18);}
+  .pv-num-ico svg{width:24px !important;height:24px !important;vertical-align:0 !important;}
+  .pv-num-ico .passe-ben-bau svg{width:30px !important;height:24px !important;}
+  .pv-num b{font:800 1.2rem 'Baloo 2',sans-serif;color:#FFD86B;line-height:1.1;}
+  .pv-num small{font-size:.62rem;font-weight:800;opacity:.85;text-align:center;line-height:1.1;}
+  .pv-ben{margin:0 0 10px;}
+  .pv-btns{flex-direction:column;align-items:stretch;gap:6px;}
+  .pv-comprar{font-size:1.1rem !important;padding:14px !important;border-radius:16px !important;background:linear-gradient(180deg,#FFE27A,#FFB800) !important;color:#4a2a00 !important;box-shadow:0 5px 0 #B86A00,0 0 0 0 rgba(255,216,107,.6) !important;animation:pvCompra 1.6s ease-in-out infinite;}
+  @keyframes pvCompra{0%,100%{box-shadow:0 5px 0 #B86A00,0 0 0 0 rgba(255,216,107,.55);}50%{box-shadow:0 5px 0 #B86A00,0 0 0 12px rgba(255,216,107,0);transform:scale(1.02);}}
+  .pv-depois{border:none;background:none;color:#fff;opacity:.7;font:700 .85rem 'Baloo 2',sans-serif;padding:6px;cursor:pointer;}
+  /* o cartão do Koda Pass na tela inicial: um brilho passando e o selo PREMIUM */
+  .dest-passe.pv-promo{position:relative;overflow:hidden;}
+  .dest-passe.pv-promo::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg);animation:pvVarre 4.2s ease-in-out infinite;pointer-events:none;}
+  .pv-chip{position:absolute;top:8px;right:10px;padding:2px 9px;border-radius:999px;background:linear-gradient(90deg,#FFE27A,#FFB800);color:#4a2a00;font:800 .62rem 'Baloo 2',sans-serif;letter-spacing:.5px;font-style:normal;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:pvFita 1.8s ease-in-out infinite;}
+  @media (prefers-reduced-motion: reduce){
+    .pv-raios,.pv-estrelas i,.pv-caixa,.pv-fita,.pv-brilho,.pv-ticket,.pv-nome b,.pv-fila,.pv-comprar,.pv-cartaz,.pv-cartaz::after,.pv-cartaz-ticket svg,.dest-passe.pv-promo::after,.pv-chip{animation:none !important;}
+  }
   .passe-topo{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;padding:6px 4px 2px 2px;}
   .passe-tit{display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.4rem;}
   .passe-tit svg{width:1.4em !important;height:1.4em !important;}
@@ -12889,6 +12964,19 @@ var PRACA2_TXT = {
  praca_emote_comprou:'Emote novo! Use na praça: {nome}|New emote! Use it in the plaza: {nome}|¡Emote nuevo! Úsalo en la plaza: {nome}',
  praca_emote_tit:'Emote: {nome}|Emote: {nome}|Emote: {nome}'
 };
+/* textos da vitrine do Koda Pass */
+var PV_TXT = {
+ pv_melhor:'Melhor oferta|Best deal|Mejor oferta',
+ pv_cartaz_prem:'Desbloqueie o Premium!|Unlock Premium!|¡Desbloquea el Premium!',
+ pv_cartaz_super:'Desbloqueie o Koda Pass!|Unlock the Koda Pass!|¡Desbloquea el Koda Pass!',
+ pv_cartaz_sub:'{n} itens exclusivos, baús e diamantes|{n} exclusive items, chests and diamonds|{n} objetos exclusivos, cofres y diamantes',
+ pv_ver:'Ver|See|Ver',
+ pv_n_itens:'itens exclusivos|exclusive items|objetos exclusivos',
+ pv_n_baus:'baús|chests|cofres',
+ pv_n_dia:'diamantes|diamonds|diamantes',
+ pv_n_moedas:'moedas|coins|monedas',
+ pv_chip:'PREMIUM|PREMIUM|PREMIUM'
+};
 /* textos do "Criar em dupla" */
 var DUPLA_TXT = {
  dupla_btn:'Criar em dupla|Create with a friend|Crear en dúo',
@@ -12936,6 +13024,7 @@ var MSG2_TXT = {
   Object.keys(PRACA2_TXT).forEach(k=>por(k, PRACA2_TXT[k]));
   Object.keys(MSG2_TXT).forEach(k=>por(k, MSG2_TXT[k]));
   Object.keys(DUPLA_TXT).forEach(k=>por(k, DUPLA_TXT[k]));
+  Object.keys(PV_TXT).forEach(k=>por(k, PV_TXT[k]));
   PRACA_FALAS_CATS.forEach(c=>por('praca_cat_' + c[0], c[2]));
   PRACA_FALAS_EXTRA.forEach((f, i)=>por('praca_f' + (12 + i), f[1]));
   PRACA_EMOTES.forEach(e=>por('praca_emote_' + e.id, e.nome));
@@ -32339,7 +32428,8 @@ function renderDestaques(){
     : t('pass_level', {n: niv.nivel}) + ' · ' + t('pass_ends', {t: turboTexto(tp.s.fim - Date.now())});
   const hl = hlLigado();
   const html = `
-    <button class="dest dest-passe" type="button" id="destPasse">
+    <button class="dest dest-passe${e.nv < 2 && tp.estado !== 'acabou' ? ' pv-promo' : ''}" type="button" id="destPasse">
+      ${e.nv < 2 && tp.estado !== 'acabou' ? `<i class="pv-chip">${t('pv_chip')}</i>` : ''}
       <span class="dest-ico">${ICONS.passe}</span>
       <span class="dest-txt"><b>${t('pass_tile')}</b><small>${sub}</small><span class="dest-barra"><i style="width:${pct}%"></i></span></span>
       ${prontos > 0 ? `<span class="dest-badge">${prontos > 99 ? '99+' : prontos}</span>` : ''}
@@ -32367,7 +32457,7 @@ function openPasse(){
   tutorialPrimeiraVez('passe');
   try{ injetarCssCosmeticos(); }catch(e){}
   const bg = document.createElement('div');
-  bg.className = 'game-menu-bg';
+  bg.className = 'game-menu-bg passe-bg';         // o Koda Pass é sempre em tela cheia
   let sel = null;                // {tr, n}: o prêmio que a pessoa tocou, pra mostrar o que é
   let compra = false, compraMsg = '', plano = 'premium';
   let primeira = true;
@@ -32419,28 +32509,36 @@ function openPasse(){
         <small>${t(pl === 'premium' ? 'pass_plan_prem_desc' : 'pass_plan_super_desc')}</small>
         <span class="passe-plano-preco">${dono ? t('pass_plan_tem') : `${ICONS.diamond} ${preco}`}</span>
         ${pl === 'premium' && e.nv === 1 ? `<em>${t('pass_plan_upgrade', {n: PASSE_PRECO_PREMIUM})}</em>` : ''}
+        ${pl === 'premium' && !dono ? `<i class="pv-fita">${t('pv_melhor')}</i>` : ''}
       </button>`;
     };
-    return `<div class="passe-compra-bg"><div class="passe-compra" role="dialog" aria-modal="true">
-      <div class="passe-compra-tit">${passeTicketSvg(plano === 'premium' ? 2 : 1)} ${t('pass_buy_title')}</div>
-      <p class="passe-compra-sub">${t('pass_buy_sub')}</p>
-      <div class="passe-planos">${cartao('super')}${cartao('premium')}</div>
-      <div class="passe-previa">${previa}</div>
-      <div class="passe-compra-q">${t('pass_buy_what')}</div>
-      <ul class="passe-ben">
-        <li>${ICONS.starFilled}<span>${t(rs.itens === 1 ? 'pass_ben_itens_1' : 'pass_ben_itens', {n: rs.itens})}</span></li>
-        <li><span class="passe-ben-bau">${bauSvg('epico', true)}</span><span>${t(rs.nbaus === 1 ? 'pass_ben_baus_1' : 'pass_ben_baus', {n: rs.nbaus})}</span></li>
-        <li>${ICONS.diamond}<span>${t('pass_ben_dia', {n: rs.d})}</span></li>
-        <li>${ICONS.coin}<span>${t('pass_ben_moedas', {n: kshopMilhar(rs.c)})}</span></li>
+    /* a vitrine (estilo jogo de celular): raios girando atrás do bilhete, itens passando, números subindo e o botão pulsando */
+    const estrelas = Array.from({length: 14}, (_, i)=>`<i style="left:${(i * 37 + 11) % 96}%;top:${(i * 53 + 7) % 90}%;animation-delay:${(i * .37) % 2.6}s"></i>`).join('');
+    const numero = (n, rot, ico)=>`<div class="pv-num"><span class="pv-num-ico">${ico}</span><b data-pv-n="${n}">0</b><small>${t(rot)}</small></div>`;
+    return `<div class="passe-compra-bg pv ${plano}"><div class="pv-raios" aria-hidden="true"></div><div class="pv-estrelas" aria-hidden="true">${estrelas}</div>
+      <div class="passe-compra pv-caixa" role="dialog" aria-modal="true">
+      <div class="passe-planos pv-planos">${cartao('super')}${cartao('premium')}</div>
+      <div class="pv-heroi">
+        <div class="pv-brilho" aria-hidden="true"></div>
+        <div class="pv-ticket">${passeTicketSvg(plano === 'premium' ? 2 : 1)}</div>
+        <div class="pv-nome">KODA PASS <b>${t(plano === 'premium' ? 'pass_premium' : 'pass_super').toUpperCase()}</b></div>
+        <p class="pv-sub">${t('pass_buy_sub')}</p>
+      </div>
+      ${previa ? `<div class="pv-carrossel" aria-hidden="true"><div class="pv-fila">${previa}${previa}</div></div>` : ''}
+      <div class="pv-numeros">
+        ${numero(rs.itens, 'pv_n_itens', ICONS.starFilled)}${numero(rs.nbaus, 'pv_n_baus', `<span class="passe-ben-bau">${bauSvg('epico', true)}</span>`)}
+        ${numero(rs.d, 'pv_n_dia', ICONS.diamond)}${numero(rs.c, 'pv_n_moedas', ICONS.coin)}
+      </div>
+      <ul class="passe-ben pv-ben">
         <li>${ICONS.abobora}<span>${t('pass_ben_ab', {n: rs.a})}</span></li>
         <li><i class="ok" aria-hidden="true">✓</i><span>${t('pass_ben_retro')}</span></li>
       </ul>
       ${faltou ? `<p class="passe-erro">${t('theme_no_dia', {n: Math.max(0, custo - loadDiamonds())})}</p>` : ''}
       ${compraMsg === 'temporada' ? `<p class="passe-erro">${t('pass_season_closed')}</p>` : ''}
-      <div class="passe-compra-btns">
-        <button type="button" class="g-btn secondary" id="passeNao">${t('pass_buy_later')}</button>
-        ${faltou ? `<button type="button" class="g-btn" id="passeDiam">${ICONS.diamond} ${t('pass_get_dia')}</button>`
-                 : `<button type="button" class="g-btn" id="passeSim">${t('pass_buy_btn')} ${ICONS.diamond} ${custo}</button>`}
+      <div class="passe-compra-btns pv-btns">
+        ${faltou ? `<button type="button" class="g-btn pv-comprar" id="passeDiam">${ICONS.diamond} ${t('pass_get_dia')}</button>`
+                 : `<button type="button" class="g-btn pv-comprar" id="passeSim">${t('pass_buy_btn')} ${ICONS.diamond} ${custo}</button>`}
+        <button type="button" class="pv-depois" id="passeNao">${t('pass_buy_later')}</button>
       </div>
     </div></div>`;
   }
@@ -32483,10 +32581,14 @@ function openPasse(){
           </div>
           <div class="passe-acoes">
             ${prontos.length ? `<button type="button" class="passe-tudo" id="passeTudo">${t('pass_claim_all', {n: prontos.length})}</button>` : ''}
-            ${e.nv < 2 && !acabou ? `<button type="button" class="passe-comprar" id="passeComprar">${passeTicketSvg(2)} ${t(e.nv >= 1 ? 'pass_upgrade' : 'pass_buy')}</button>` : ''}
             ${!acabou && !niv.fim ? `<button type="button" class="passe-nivel-btn" id="passeNivel">${t('pass_buy_lvl')} · ${ICONS.coin} ${kshopMilhar(PASSE_NIVEL_MOEDAS)}</button>` : ''}
           </div>
         </div>
+        ${e.nv < 2 && !acabou ? `<button type="button" class="pv-cartaz" id="passeComprar">
+          <span class="pv-cartaz-ticket" aria-hidden="true">${passeTicketSvg(2)}</span>
+          <span class="pv-cartaz-txt"><b>${t(e.nv >= 1 ? 'pv_cartaz_prem' : 'pv_cartaz_super')}</b><small>${t('pv_cartaz_sub', {n: passeResumoDe('x').itens + (e.nv >= 1 ? 0 : passeResumoDe('p').itens)})}</small></span>
+          <span class="pv-cartaz-btn">${t('pv_ver')}</span>
+        </button>` : ''}
         ${isAdmin() ? `<button class="admin-dia-btn" id="passeTeste" type="button">${ICONS.passe} ${t('pass_test_xp')}</button>` : ''}
         <div class="passe-trilha" id="passeTrilha">
           <div class="passe-lab" aria-hidden="true"><span class="x">${t('pass_premium')}</span><span class="p">${t('pass_super')}</span><i class="passe-lab-no"></i><span class="g">${t('pass_free')}</span></div>
@@ -32496,6 +32598,17 @@ function openPasse(){
         ${xFecharBtn()}
         ${compra ? compraHtml(e) : ''}
       </div>`;
+    /* vitrine aberta: os números sobem de 0 até o valor */
+    const nums = bg.querySelectorAll('[data-pv-n]');
+    if(nums.length){
+      const t0 = performance.now();
+      const sobe = tm=>{
+        const f = Math.min(1, (tm - t0) / 900), q = 1 - Math.pow(1 - f, 3);
+        nums.forEach(el=>{ el.textContent = kshopMilhar(Math.round(Number(el.dataset.pvN) * q)); });
+        if(f < 1 && bg.isConnected) requestAnimationFrame(sobe);
+      };
+      requestAnimationFrame(sobe);
+    }
     const trilha = bg.querySelector('#passeTrilha');
     if(primeira){
       primeira = false;
@@ -32571,6 +32684,14 @@ function openPasse(){
   }
   passeJanela = {redesenha: ()=>{ if(bg.parentNode) desenha(); }, fechar};
   bg.addEventListener('click', ev=>{ if(ev.target === bg) fechar(); });
+  /* a vitrine abre sozinha no máximo 1 vez por dia, pra quem ainda não tem o Premium (sem encher o saco) */
+  try{
+    const e0 = passeCarregar(), hoje = new Date().toDateString();
+    if(e0.nv < 2 && passeTemporada().estado !== 'acabou' && localStorage.getItem('koda_pv_dia') !== hoje){
+      localStorage.setItem('koda_pv_dia', hoje);
+      compra = true; plano = 'premium';
+    }
+  }catch(x){}
   document.body.appendChild(bg);
   desenha();
   requestAnimationFrame(()=>bg.classList.add('show'));
