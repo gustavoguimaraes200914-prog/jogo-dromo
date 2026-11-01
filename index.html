@@ -3630,6 +3630,13 @@
   .dupla-status.ruim{color:#ff8a80;opacity:1;}
   @keyframes duplaChegou{0%{box-shadow:0 0 0 3px #ffd23f;}100%{box-shadow:0 0 0 0 rgba(255,210,63,0);}}
   .dupla-chegou{animation:duplaChegou 1.4s ease-out;}
+  /* mudança de endereço */
+  .kp-faixa{position:fixed;left:12px;right:12px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:900;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;color:#fff;background:linear-gradient(135deg,#7c3aed,#3DA9FC);box-shadow:0 8px 22px rgba(60,40,160,.35);font-weight:700;font-size:.88rem;line-height:1.25;animation:msgIn .4s cubic-bezier(.22,1,.36,1) both;}
+  .kp-faixa span{flex:1;min-width:0;}
+  .kp-faixa button{flex-shrink:0;border:none;border-radius:999px;padding:8px 14px;background:#fff;color:#4c1d95;font:800 .85rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .kp-faixa button:disabled{opacity:.6;}
+  .auth-gate[data-logado="1"] .auth-antigo{display:none;}
+  .auth-antigo{display:block;width:100%;margin-top:12px;padding:6px;border:none;background:none;color:inherit;opacity:.8;font:700 .82rem 'Baloo 2',sans-serif;text-decoration:underline;cursor:pointer;text-align:center;}
   .msg-relogio{display:inline-block;width:11px;height:11px;margin-left:6px;vertical-align:-1px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.55;animation:msgGira .8s linear infinite;}
   @keyframes msgGira{to{transform:rotate(360deg);}}
   .msg-enviando-midia{display:flex;align-items:center;gap:6px;position:relative;overflow:hidden;}
@@ -5777,6 +5784,7 @@
     <div class="auth-brand"><svg class="koda-wordmark" viewBox="-14 -18 484 152" role="img" aria-label="Koplay"><use href="#koda-word"/></svg></div>
     <p class="auth-motivo hidden" id="authMotivo" role="status"></p>
     <div id="authPaineis"></div>
+    <button class="auth-antigo hidden" id="kpAntigo" type="button" data-i18n="kp_antigo_btn">Já tinha conta no endereço antigo? Toque aqui</button>
     <div id="authExtra">
       <div class="auth-or"><span data-i18n="auth_or">ou</span></div>
       <button class="auth-google" id="authGoogle" type="button">
@@ -12873,6 +12881,13 @@ var PRACA2_TXT = {
  praca_emote_comprou:'Emote novo! Use na praça: {nome}|New emote! Use it in the plaza: {nome}|¡Emote nuevo! Úsalo en la plaza: {nome}',
  praca_emote_tit:'Emote: {nome}|Emote: {nome}|Emote: {nome}'
 };
+/* textos da mudança de endereço */
+var KP_TXT = {
+ kp_antigo_btn:'Já tinha conta no endereço antigo? Toque aqui|Already had an account at the old address? Tap here|¿Ya tenías cuenta en la dirección anterior? Toca aquí',
+ kp_faixa:'O Koda agora é Koplay e mudou de endereço. Toque pra continuar já com a sua conta.|Koda is now Koplay and has a new address. Tap to continue already signed in.|Koda ahora es Koplay y cambió de dirección. Toca para continuar con tu cuenta.',
+ kp_faixa_btn:'Ir pro Koplay|Go to Koplay|Ir a Koplay',
+ kp_erro:'Não deu pra levar a sua conta agora. Tente de novo.|Couldn’t move your account right now. Try again.|No se pudo llevar tu cuenta ahora. Inténtalo de nuevo.'
+};
 /* textos do "Criar em dupla" */
 var DUPLA_TXT = {
  dupla_btn:'Criar em dupla|Create with a friend|Crear en dúo',
@@ -12920,6 +12935,7 @@ var MSG2_TXT = {
   Object.keys(PRACA2_TXT).forEach(k=>por(k, PRACA2_TXT[k]));
   Object.keys(MSG2_TXT).forEach(k=>por(k, MSG2_TXT[k]));
   Object.keys(DUPLA_TXT).forEach(k=>por(k, DUPLA_TXT[k]));
+  Object.keys(KP_TXT).forEach(k=>por(k, KP_TXT[k]));
   PRACA_FALAS_CATS.forEach(c=>por('praca_cat_' + c[0], c[2]));
   PRACA_FALAS_EXTRA.forEach((f, i)=>por('praca_f' + (12 + i), f[1]));
   PRACA_EMOTES.forEach(e=>por('praca_emote_' + e.id, e.nome));
@@ -17543,6 +17559,55 @@ async function abrirJogoDoLink(){
     openGame(g.id, g.name);
   });
 }
+/* ============================================================
+   MUDANÇA DE ENDEREÇO: de koda.gamersite.workers.dev para koplay.gamersite.workers.dev
+   O navegador guarda "quem está logado" separado por endereço, então quem entra no endereço novo cairia na tela de
+   entrar. A conta, as moedas e os jogos NÃO se perdem (ficam no Firebase); só o login precisa vir junto:
+   1) no endereço ANTIGO, a pessoa logada toca em "Ir pro Koplay": o servidor (/login-token) confere o login dela e
+      devolve um token de 5 minutos só da conta dela;
+   2) o site abre o endereço NOVO com esse token no "#" do link (o "#" não vai pra internet);
+   3) o endereço novo tira o token do link na hora e entra com ele (signInWithCustomToken).
+   Na tela de entrar do endereço novo tem o caminho de volta: "Já tinha conta no endereço antigo?".
+   Se qualquer passo falhar, nada quebra: a pessoa só entra do jeito normal.
+============================================================ */
+const KP_HOST_ANTIGO = 'koda.gamersite.workers.dev', KP_HOST_NOVO = 'koplay.gamersite.workers.dev';
+var kpTransferindo = false;        // true enquanto o endereço novo entra com o token que veio no link
+function kpNoAntigo(){ return location.hostname === KP_HOST_ANTIGO; }
+function kpNoNovo(){ return location.hostname === KP_HOST_NOVO; }
+/* devolve o token do link (e já apaga ele do endereço), ou null */
+function kpLerTokenDoLink(){
+  const m = /(?:^#|&)kp_login=([^&]+)/.exec(location.hash);
+  if(!m) return null;
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  try{ return decodeURIComponent(m[1]); }catch(e){ return null; }
+}
+/* no endereço antigo: abre o novo (levando o login, se a pessoa estiver logada). Devolve false se não deu. */
+async function kpIrParaONovo(){
+  let hash = '';
+  const u = FIREBASE_ENABLED ? fbAuth().currentUser : null;
+  if(u){
+    try{
+      const res = await fetch(SERVER_URL + '/login-token', {method: 'POST', headers: await cabecalhoDoAgente(), body: '{}'});
+      const j = await res.json().catch(()=>({}));
+      if(!res.ok || !j.token) throw new Error('sem token');
+      hash = '#kp_login=' + encodeURIComponent(j.token);
+    }catch(e){ toast(t('kp_erro')); return false; }
+  }
+  const q = new URLSearchParams(location.search); q.delete('para');
+  const qs = q.toString();
+  location.href = 'https://' + KP_HOST_NOVO + (location.pathname || '/') + (qs ? '?' + qs : '') + hash;
+  return true;
+}
+/* a faixa que aparece no endereço antigo pra quem está logado */
+function kpFaixaNovoEndereco(){
+  if(!kpNoAntigo() || document.getElementById('kpFaixa')) return;
+  const el = document.createElement('div');
+  el.id = 'kpFaixa'; el.className = 'kp-faixa'; el.setAttribute('role', 'status');
+  el.innerHTML = `<span>${chatListEscape(t('kp_faixa'))}</span><button type="button">${chatListEscape(t('kp_faixa_btn'))}</button>`;
+  const btn = el.querySelector('button');
+  btn.addEventListener('click', async ()=>{ playSound('click'); btn.disabled = true; const ok = await kpIrParaONovo(); if(!ok) btn.disabled = false; });
+  document.body.appendChild(el);
+}
 async function initAuth(){
   if(aparelhoPendente) quandoAIntroSair(()=>abrirEscolhaDeAparelho(), true);
   const gate = document.getElementById('authGate');
@@ -17562,8 +17627,27 @@ async function initAuth(){
     document.getElementById(pre + 'Messages').addEventListener('click', ()=>{ if(pedirConta('mensagens')) return; setActiveNavTab('messages'); openConversationList(); });
     document.getElementById(pre + 'Profile').addEventListener('click', ()=>{ if(pedirConta('perfil')) return; setActiveNavTab('profile'); openProfilePage(); });
   });
+  /* mudança de endereço (ver KP_HOST_*): token vindo do endereço antigo, caminho de ida e de volta */
+  const kpToken = kpNoNovo() ? kpLerTokenDoLink() : null;
+  if(kpToken) kpTransferindo = true;
+  if(kpNoNovo()){
+    const volta = document.getElementById('kpAntigo');
+    if(volta){ volta.classList.remove('hidden'); volta.addEventListener('click', ()=>{ playSound('click'); location.href = 'https://' + KP_HOST_ANTIGO + '/?para=koplay'; }); }
+  }
+  if(kpNoAntigo() && new URLSearchParams(location.search).get('para') === 'koplay'){
+    const parar = fbAuth().onAuthStateChanged(()=>{ parar(); kpIrParaONovo(); });   // veio do endereço novo pedindo o login
+  }
+  if(kpToken){
+    fbAuth().signInWithCustomToken(kpToken).catch(()=>{
+      kpTransferindo = false;                                   // o token não valeu (venceu ou foi usado errado): entra do jeito normal
+      toast(t('kp_erro'));
+      gate.classList.remove('hidden'); peopleBtn.classList.add('hidden'); barrasDeNavegacao.add(); introReady();
+    });
+  }
   fbAuth().onAuthStateChanged(async user=>{
+    if(user) kpTransferindo = false;
     if(!user){
+      if(kpTransferindo) return;   // está entrando com o token do endereço antigo: não mostra a tela de entrar ainda
       if(souVisitante()){
         /* visitante: a tela de entrar nem aparece; só joga e olha a loja */
         gate.classList.add('hidden');
@@ -17593,6 +17677,7 @@ async function initAuth(){
     { const pend = cadastroPendente(user); if(pend && pend.etapa) await cadastroRetomar(user, pend.etapa === 'cod' ? 'seg' : (pend.etapa === 'seg' && contaProtegida(user) ? 'nasc' : pend.etapa)); }   // fechou no meio do cadastro: continua de onde parou
     { const atual = fbAuth().currentUser; if(!atual || atual.uid !== user.uid) return; }
     if(souVisitante()){ visitanteLigar(false); const fx = document.getElementById('visitanteFaixa'); if(fx) fx.remove(); }   // entrou com conta: acabou o modo visitante
+    try{ kpFaixaNovoEndereco(); }catch(e){}   // no endereço antigo, convida a ir pro novo já logado
     try{ aplicarFundo(); }catch(e){}
     // troca de conta no mesmo aparelho: limpa tudo que era da conta anterior e recarrega do zero
     let lastUid = null;
