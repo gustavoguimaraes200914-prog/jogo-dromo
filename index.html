@@ -3716,9 +3716,15 @@
   .dupla-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:9px 12px;border-radius:12px;border:none;background:rgba(255,255,255,.08);color:inherit;cursor:pointer;font-family:inherit;text-align:left;}
   .dupla-item small{opacity:.7;font-size:.75rem;}
   .dupla-topo{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.07);}
-  .dupla-avs{display:flex;flex-shrink:0;}
+  .dupla-topo{flex-wrap:wrap;gap:8px 10px;}
+  .dupla-avs{display:flex;flex-shrink:0;order:1;}
+  .dupla-add{order:2;}
+  .dupla-quem{order:3;flex:1 1 100%;min-width:0;}
   .dupla-avs .dupla-av{width:36px;height:36px;border-radius:50%;overflow:hidden;display:block;box-shadow:0 0 0 2px #1d0b3a;}
-  .dupla-avs [data-av-outro]{margin-left:-10px;}
+  .dupla-avs .dupla-av + .dupla-av{margin-left:-10px;}
+  .dupla-mais{margin-left:-10px;min-width:36px;height:36px;padding:0 6px;box-sizing:border-box;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#3D8BFF;color:#fff;font:800 .78rem 'Baloo 2',sans-serif;box-shadow:0 0 0 2px #1d0b3a;}
+  .dupla-add{flex-shrink:0;margin-left:auto;display:flex;align-items:center;gap:4px;border:none;border-radius:999px;padding:7px 12px;background:#7CFFC4;color:#04362a;font:800 .8rem 'Baloo 2',sans-serif;cursor:pointer;}
+  .dupla-add span{white-space:nowrap;}
   .dupla-quem{display:flex;flex-direction:column;min-width:0;}
   .dupla-quem small{opacity:.7;font-size:.76rem;font-weight:600;}
   .dupla-quem small.on{opacity:1;color:#7CFFC4;}
@@ -13151,32 +13157,42 @@ var PV_TXT = {
 };
 /* textos do "Criar em dupla" */
 var DUPLA_TXT = {
- dupla_btn:'Criar em dupla|Create with a friend|Crear en dúo',
- dupla_btn_sub:'Chame um amigo pra fazer esse jogo junto com você|Invite a friend to make this game with you|Invita a un amigo a hacer este juego contigo',
- dupla_escolher:'Com quem você quer criar?|Who do you want to create with?|¿Con quién quieres crear?',
- dupla_criando:'Preparando o jogo da dupla…|Setting up the duo game…|Preparando el juego del dúo…',
- dupla_convite_ok:'Convite enviado pra {nome}!|Invite sent to {nome}!|¡Invitación enviada a {nome}!',
+ dupla_btn:'Criar com mais pessoas|Create with more people|Crear con más personas',
+ dupla_btn_sub:'Escolha quantos amigos quiser: todos mexem no mesmo jogo|Pick as many friends as you like: everyone edits the same game|Elige cuantos amigos quieras: todos editan el mismo juego',
+ dupla_escolher:'Quem vai criar com você?|Who will create with you?|¿Quién va a crear contigo?',
+ dupla_criar_com:'Criar juntos|Create together|Crear juntos',
+ dupla_criando:'Preparando o jogo de vocês…|Setting up your game…|Preparando el juego…',
+ dupla_convite_ok_1:'Convite enviado pra {nome}!|Invite sent to {nome}!|¡Invitación enviada a {nome}!',
+ dupla_convite_ok:'Convite enviado pra {n} pessoas!|Invite sent to {n} people!|¡Invitación enviada a {n} personas!',
  dupla_convite_txt:'Vamos criar esse jogo juntos? {nome}|Let’s make this game together? {nome}|¿Creamos este juego juntos? {nome}',
  dupla_cartao_tit:'Vamos criar esse jogo juntos?|Let’s make this game together?|¿Creamos este juego juntos?',
  dupla_entrar:'Entrar no Studio|Join in Studio|Entrar al Studio',
- dupla_lista:'Jogos em dupla|Duo games|Juegos en dúo',
+ dupla_lista:'Jogos com amigos|Games with friends|Juegos con amigos',
  dupla_com:'com {nome}|with {nome}|con {nome}',
- dupla_tit:'Criando em dupla|Creating as a duo|Creando en dúo',
+ dupla_e:'e|and|y',
+ dupla_alguem:'Alguém|Someone|Alguien',
+ dupla_max:'No máximo {n} pessoas por jogo.|At most {n} people per game.|Máximo {n} personas por juego.',
+ dupla_tit:'Criando juntos|Creating together|Creando juntos',
  dupla_voce_e:'Você e {nome}|You and {nome}|Tú y {nome}',
  dupla_aqui:'{nome} está aqui agora|{nome} is here now|{nome} está aquí ahora',
- dupla_fora:'{nome} não está aqui agora (o que você fizer fica salvo pra ele ver)|{nome} isn’t here right now (your changes are saved for them)|{nome} no está ahora (lo que hagas queda guardado para verlo)',
- dupla_salvo:'Salvo ✓ — os dois veem a mesma versão|Saved ✓ — you both see the same version|Guardado ✓ — los dos ven la misma versión',
+ dupla_aqui_n:'{nome} estão aqui agora|{nome} are here now|{nome} están aquí ahora',
+ dupla_fora:'Ninguém mais está aqui agora (o que você fizer fica salvo pra todo mundo ver)|No one else is here right now (your changes are saved for everyone)|Nadie más está ahora (lo que hagas queda guardado para todos)',
+ dupla_add_btn:'Adicionar pessoas|Add people|Añadir personas',
+ dupla_add_tit:'Quem mais vai criar com vocês?|Who else will create with you?|¿Quién más va a crear con ustedes?',
+ dupla_add_ok_btn:'Adicionar|Add|Añadir',
+ dupla_add_ok_1:'1 pessoa adicionada!|1 person added!|¡1 persona añadida!',
+ dupla_add_ok:'{n} pessoas adicionadas!|{n} people added!|¡{n} personas añadidas!',
+ dupla_salvo:'Salvo ✓ — todo mundo vê a mesma versão|Saved ✓ — everyone sees the same version|Guardado ✓ — todos ven la misma versión',
  dupla_salvando:'Salvando…|Saving…|Guardando…',
  dupla_nao_salvou:'Não deu pra salvar agora. Vou tentar de novo quando você mexer.|Couldn’t save right now. I’ll try again when you edit.|No se pudo guardar ahora. Lo intentaré de nuevo cuando edites.',
  dupla_mudou:'{nome} acabou de mudar o código|{nome} just changed the code|{nome} acaba de cambiar el código',
- dupla_junto:'Vocês dois mexeram ao mesmo tempo: ficou a sua versão. Combinem quem mexe em quê!|You both edited at the same time: your version was kept. Agree on who edits what!|Los dos editaron al mismo tiempo: quedó tu versión. ¡Pónganse de acuerdo en quién edita qué!',
- dupla_publicar:'Publicar o jogo da dupla|Publish the duo game|Publicar el juego del dúo',
- dupla_publicar_dica:'O jogo sai com o nome dos dois, e os dois podem editar depois.|The game shows both names, and both of you can edit it later.|El juego sale con el nombre de los dos, y los dos pueden editarlo después.',
- dupla_sumiu:'Esse jogo em dupla não existe mais (ou não é seu).|This duo game no longer exists (or isn’t yours).|Este juego en dúo ya no existe (o no es tuyo).',
- dupla_erro:'Não deu pra criar o jogo em dupla. Tente de novo.|Couldn’t create the duo game. Try again.|No se pudo crear el juego en dúo. Inténtalo de nuevo.',
- dupla_grande:'O código ficou grande demais pra dupla (máximo 900 mil letras).|The code is too big for a duo game (max 900k characters).|El código es demasiado grande para el dúo (máximo 900 mil caracteres).',
- dupla_sem_nome:'Jogo da dupla|Duo game|Juego del dúo',
- dupla_por:'{a} & {b}|{a} & {b}|{a} & {b}'
+ dupla_junto:'{nome} mexeu junto com você: ficou a sua versão. Combinem quem mexe em quê!|{nome} edited at the same time: your version was kept. Agree on who edits what!|{nome} editó al mismo tiempo: quedó tu versión. ¡Pónganse de acuerdo en quién edita qué!',
+ dupla_publicar:'Publicar o jogo de vocês|Publish your game|Publicar su juego',
+ dupla_publicar_dica:'O jogo sai com o nome de todos, e todos podem editar depois.|The game shows everyone’s names, and all of you can edit it later.|El juego sale con el nombre de todos, y todos pueden editarlo después.',
+ dupla_sumiu:'Esse jogo em grupo não existe mais (ou você não está nele).|This group game no longer exists (or you’re not in it).|Este juego en grupo ya no existe (o no estás en él).',
+ dupla_erro:'Não deu pra criar o jogo. Tente de novo.|Couldn’t create the game. Try again.|No se pudo crear el juego. Inténtalo de nuevo.',
+ dupla_grande:'O código ficou grande demais (máximo 900 mil letras).|The code is too big (max 900k characters).|El código es demasiado grande (máximo 900 mil caracteres).',
+ dupla_sem_nome:'Jogo em grupo|Group game|Juego en grupo'
 };
 /* textos novos das mensagens (áudio, vídeo e a bolha "mandando") */
 var MSG2_TXT = {
@@ -22286,42 +22302,84 @@ function ligarCapa(root, o){
       os dois veem o jogo nos "Meus jogos" e os dois podem editar e publicar de novo.
    O servidor da análise só aceita o envio de quem está em 'membros' do projeto (ver membroDaDupla no worker).
 ============================================================ */
-const DUPLA_COD_MAX = 900000;
+const DUPLA_COD_MAX = 900000, DUPLA_MAX = 20;      // até 20 pessoas no mesmo jogo
 function duplaIdOk(id){ return /^[a-z0-9]{8,30}$/.test(String(id || '')); }
 function duplaDoJogo(gameId){ const m = /^dupla_([a-z0-9]{8,30})$/.exec(String(gameId || '')); return m ? m[1] : null; }
 function duplaEu(){ try{ return FIREBASE_ENABLED && fbAuth().currentUser ? fbAuth().currentUser.email : ''; }catch(e){ return ''; } }
-/* cria o projeto da dupla e manda o convite no chat do amigo */
-async function duplaCriar(amigo, nome, codigo, capa, formato){
+/* os nomes das pessoas do projeto, na mesma ordem de 'membros' (os projetos de dupla antigos só tinham 'nomes' {a, b}) */
+function duplaNomes(p){
+  const m = (p && p.membros) || [], lista = p && Array.isArray(p.nomesLista) ? p.nomesLista : null;
+  return m.map((e, i)=>String((lista && lista[i]) || (p && p.nomes && (i === 0 ? p.nomes.a : i === 1 ? p.nomes.b : '')) || String(e).split('@')[0]).slice(0, 60));
+}
+/* quando a pessoa i avisou que estava no Studio (os projetos antigos usavam visto0 e visto1) */
+function duplaVisto(p, i){ return Number((p && p.vistos && p.vistos[i]) || (p && p['visto' + i]) || 0) || 0; }
+/* "Bia", "Bia e Carla", "Bia, Carla e Dani" */
+function duplaListaNomes(nomes){
+  if(nomes.length <= 1) return nomes[0] || '';
+  return nomes.slice(0, -1).join(', ') + ' ' + t('dupla_e') + ' ' + nomes[nomes.length - 1];
+}
+/* manda o convite no chat de cada pessoa (um chat de cada, como uma mensagem normal) */
+async function duplaMandarConvites(pessoas, id, nome){
+  await Promise.all(pessoas.map(async x=>{
+    try{
+      const conv = await findOrCreateDirectConversation(x.email);
+      if(conv) await sendChatMessage(conv, t('dupla_convite_txt', {nome}), null, null, null, null, null, null, null, {duplaRef: {id, nome}});
+    }catch(e){}
+  }));
+}
+/* cria o projeto e convida as pessoas */
+async function duplaCriar(pessoas, nome, codigo, capa, formato){
   const eu = duplaEu(), user = fbAuth().currentUser;
-  if(!eu || !amigo || !amigo.email || amigo.email === eu) return null;
+  const unicas = [];
+  (pessoas || []).forEach(x=>{ if(x && x.email && x.email !== eu && !unicas.some(u=>u.email === x.email)) unicas.push(x); });
+  if(!eu || !unicas.length) return null;
+  if(unicas.length + 1 > DUPLA_MAX){ toast(t('dupla_max', {n: DUPLA_MAX})); return null; }
   if(String(codigo || '').length > DUPLA_COD_MAX){ toast(t('dupla_grande')); return null; }
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  const nomes = {}; nomes.a = String(getDisplayName(user) || '').slice(0, 60); nomes.b = String(amigo.name || amigo.email).slice(0, 60);
-  const doc = {criador: eu, membros: [eu, amigo.email], nomes, nome: String(nome || t('dupla_sem_nome')).slice(0, 80), codigo: String(codigo || ''),
-    capa: capa && capa.length < 120000 ? capa : null, formato: formato || 'square', versao: 1, atualizadoEm: Date.now(), atualizadoPor: eu, criadoEm: Date.now(), visto0: Date.now(), visto1: 0};
+  const doc = {criador: eu, membros: [eu].concat(unicas.map(x=>x.email)),
+    nomesLista: [String(getDisplayName(user) || '').slice(0, 60)].concat(unicas.map(x=>String(x.name || x.email).slice(0, 60))),
+    nome: String(nome || t('dupla_sem_nome')).slice(0, 80), codigo: String(codigo || ''),
+    capa: capa && capa.length < 120000 ? capa : null, formato: formato || 'square', versao: 1, atualizadoEm: Date.now(), atualizadoPor: eu, criadoEm: Date.now(), vistos: {0: Date.now()}};
   try{ await fbDb().collection('projetosDupla').doc(id).set(doc); }
   catch(e){ toast(t('dupla_erro')); return null; }
-  try{
-    const conv = await findOrCreateDirectConversation(amigo.email);
-    if(conv) await sendChatMessage(conv, t('dupla_convite_txt', {nome: doc.nome}), null, null, null, null, null, null, null, {duplaRef: {id, nome: doc.nome}});
-  }catch(e){}
+  await duplaMandarConvites(unicas, id, doc.nome);
   return id;
 }
-/* "Criar em dupla": escolhe o amigo (busca de pessoas) e abre o Studio da dupla */
+/* "Criar com mais pessoas": escolhe quantas quiser (busca de pessoas) e abre o Studio do grupo */
 function duplaConvidar(nome, codigo, capa, formato){
   if(pedirConta('criar')) return;
   openPeopleSearch({
     title: t('dupla_escolher'),
+    multiSelect: true,
+    confirmLabel: t('dupla_criar_com'),
     excludeEmails: [duplaEu()],
-    onSelect: async person=>{
-      if(!person || !person.email) return;
+    onConfirm: async pessoas=>{
+      if(!pessoas || !pessoas.length) return;
+      if(pessoas.length + 1 > DUPLA_MAX){ toast(t('dupla_max', {n: DUPLA_MAX})); return; }
       toast(t('dupla_criando'));
-      const id = await duplaCriar(person, nome, codigo, capa, formato);
-      if(id){ toast(t('dupla_convite_ok', {nome: person.name || person.email})); abrirStudioDupla(id); }
+      const id = await duplaCriar(pessoas, nome, codigo, capa, formato);
+      if(id){ toast(t(pessoas.length === 1 ? 'dupla_convite_ok_1' : 'dupla_convite_ok', {nome: pessoas[0].name || pessoas[0].email, n: pessoas.length})); abrirStudioDupla(id); }
     }
   });
 }
-/* a lista "Jogos em dupla" (no começo do Koda Studio) */
+/* só o criador chama mais gente depois */
+async function duplaAdicionarPessoas(id, pessoas){
+  const eu = duplaEu(), ref = fbDb().collection('projetosDupla').doc(id);
+  let adicionadas = [], nomeProj = '';
+  await fbDb().runTransaction(async tx=>{
+    const d = await tx.get(ref);
+    if(!d.exists) throw new Error('sumiu');
+    const r = d.data();
+    if(r.criador !== eu) throw new Error('so_criador');
+    const novas = pessoas.filter(x=>x && x.email && r.membros.indexOf(x.email) < 0);
+    if(r.membros.length + novas.length > DUPLA_MAX) throw new Error('max');
+    adicionadas = novas; nomeProj = r.nome || '';
+    tx.update(ref, {membros: r.membros.concat(novas.map(x=>x.email)), nomesLista: duplaNomes(r).concat(novas.map(x=>String(x.name || x.email).slice(0, 60))), atualizadoEm: Date.now()});
+  });
+  await duplaMandarConvites(adicionadas, id, nomeProj);
+  return adicionadas.length;
+}
+/* a lista "Jogos com amigos" (no começo do Koda Studio) */
 async function duplaMeusProjetos(){
   const eu = duplaEu();
   if(!eu) return [];
@@ -22335,17 +22393,18 @@ function duplaListaHtml(lista){
   const eu = duplaEu();
   return `<div class="dupla-lista"><div class="dupla-lista-tit">${ICONS.people} ${chatListEscape(t('dupla_lista'))}</div>
     ${lista.map(p=>{
-      const amigo = p.membros && p.membros[0] === eu ? (p.nomes && p.nomes.b) : (p.nomes && p.nomes.a);
-      return `<button type="button" class="dupla-item" data-dupla="${chatListEscape(p.id)}"><b>${chatListEscape(p.nome || '')}</b><small>${chatListEscape(t('dupla_com', {nome: amigo || '?'}))} · ${chatListEscape(relativeTimeAgo(p.atualizadoEm))}</small></button>`;
+      const nomes = duplaNomes(p).filter((_, i)=>p.membros[i] !== eu);
+      const com = nomes.length > 2 ? nomes.slice(0, 2).join(', ') + ' +' + (nomes.length - 2) : duplaListaNomes(nomes);
+      return `<button type="button" class="dupla-item" data-dupla="${chatListEscape(p.id)}"><b>${chatListEscape(p.nome || '')}</b><small>${chatListEscape(t('dupla_com', {nome: com || '?'}))} · ${chatListEscape(relativeTimeAgo(p.atualizadoEm))}</small></button>`;
     }).join('')}</div>`;
 }
-/* põe a lista e o botão da dupla numa tela do Studio */
+/* põe o botão "Criar com mais pessoas" (lá no fundo) e a lista numa tela do Studio */
 async function duplaPorNoStudio(root, pegarJogo){
   if(!FIREBASE_ENABLED || !duplaEu()) return;
   const caixa = document.createElement('div');
   caixa.className = 'dupla-studio';
   caixa.innerHTML = `<button type="button" class="dupla-btn" data-dupla-novo>${ICONS.people}<span><b>${chatListEscape(t('dupla_btn'))}</b><small>${chatListEscape(t('dupla_btn_sub'))}</small></span></button><div data-dupla-lista></div>`;
-  const pub = root.querySelector('#publishBtn, #directPublishBtn');
+  const pub = root.querySelector('#publishBtn, #directGo');
   if(pub && pub.parentNode) pub.parentNode.insertBefore(caixa, pub.nextSibling); else root.appendChild(caixa);
   caixa.querySelector('[data-dupla-novo]').addEventListener('click', ()=>{
     playSound('click');
@@ -22357,7 +22416,7 @@ async function duplaPorNoStudio(root, pegarJogo){
   caixa.querySelector('[data-dupla-lista]').innerHTML = duplaListaHtml(lista);
   caixa.querySelectorAll('[data-dupla]').forEach(b=>b.addEventListener('click', ()=>{ playSound('click'); abrirStudioDupla(b.dataset.dupla); }));
 }
-/* ---------- o Studio da dupla ---------- */
+/* ---------- o Studio do grupo ---------- */
 let duplaParar = null;      // desliga o projeto aberto (ouvinte do banco, presença e salvar)
 async function abrirStudioDupla(id){
   if(!duplaIdOk(id) || pedirConta('criar')) return;
@@ -22372,29 +22431,30 @@ async function abrirStudioDupla(id){
   card.classList.add('app-embed', 'arcade-theme');
   setupModalFullscreenToggle();
   const ref = fbDb().collection('projetosDupla').doc(id);
-  let p;
-  try{ const d = await ref.get(); if(!d.exists) throw new Error('sumiu'); p = d.data(); }
+  let P;
+  try{ const d = await ref.get(); if(!d.exists) throw new Error('sumiu'); P = d.data(); }
   catch(e){ modalBody.innerHTML = `<p class="g-msg" style="text-align:center;padding:30px 0;">${chatListEscape(t('dupla_sumiu'))}</p>`; return; }
-  const meuIdx = p.membros.indexOf(eu), outroIdx = meuIdx === 0 ? 1 : 0;
-  if(meuIdx < 0){ modalBody.innerHTML = `<p class="g-msg" style="text-align:center;padding:30px 0;">${chatListEscape(t('dupla_sumiu'))}</p>`; return; }
-  const nomeOutro = (p.nomes && (outroIdx === 0 ? p.nomes.a : p.nomes.b)) || p.membros[outroIdx];
+  if(!Array.isArray(P.membros) || P.membros.indexOf(eu) < 0){ modalBody.innerHTML = `<p class="g-msg" style="text-align:center;padding:30px 0;">${chatListEscape(t('dupla_sumiu'))}</p>`; return; }
+  const meuIdx = ()=>P.membros.indexOf(eu), souCriador = P.criador === eu;
+  const nomeDe = email=>{ const i = P.membros.indexOf(email); return i >= 0 ? duplaNomes(P)[i] : ''; };
   const esc = chatListEscape;
   modalBody.innerHTML = `
     <div class="arcade-marquee">${ICONS.people} ${esc(t('dupla_tit')).toUpperCase()}</div>
-    <div class="dupla-topo"><span class="dupla-avs">${pzAv(meuCodigo(), eu, 'dupla-av')}<span data-av-outro>${pzAv(null, p.membros[outroIdx], 'dupla-av')}</span></span>
-      <span class="dupla-quem"><b>${esc(t('dupla_voce_e', {nome: nomeOutro}))}</b><small data-presenca>${esc(t('dupla_fora', {nome: nomeOutro}))}</small></span></div>
-    <div class="form-field"><label>${t('pub_name_label')}</label><input type="text" id="fName" maxlength="80" value="${esc(p.nome || '')}"></div>
+    <div class="dupla-topo"><span class="dupla-avs" data-avs></span>
+      <span class="dupla-quem"><b data-quem></b><small data-presenca></small></span>
+      ${souCriador ? `<button type="button" class="dupla-add" data-add>+ <span>${esc(t('dupla_add_btn'))}</span></button>` : ''}</div>
+    <div class="form-field"><label>${t('pub_name_label')}</label><input type="text" id="fName" maxlength="80" value="${esc(P.nome || '')}"></div>
     <div class="form-field">
       <label>${t('pub_cover_label')}</label>
       <div class="cover-row">
-        <div class="cover-preview" id="coverPreview">${p.capa ? `<img src="${esc(p.capa)}">` : ICONS.image}</div>
+        <div class="cover-preview" id="coverPreview">${P.capa ? `<img src="${esc(P.capa)}">` : ICONS.image}</div>
         <button class="file-btn" id="pickCoverBtn" type="button">${t('pub_choose_photo')}</button>
         <input type="file" id="fCover" accept="image/*" style="display:none;">
       </div>
-      ${capaSeletorHtml(p.formato || 'square')}
+      ${capaSeletorHtml(P.formato || 'square')}
     </div>
     <div class="form-field"><label>${t('code_form_code_label')}</label>
-      <textarea id="fCode" placeholder="${t('code_form_code_ph')}">${String(p.codigo || '').replace(/</g, '&lt;')}</textarea>
+      <textarea id="fCode" placeholder="${t('code_form_code_ph')}">${String(P.codigo || '').replace(/</g, '&lt;')}</textarea>
       <p class="dupla-status" data-status aria-live="polite">${esc(t('dupla_salvo'))}</p></div>
     <button class="direct-test-btn" id="duplaTest" type="button">${ICONS.gamepad} ${t('btn_test')}</button>
     ${assistenteHtml()}
@@ -22404,16 +22464,31 @@ async function abrirStudioDupla(id){
       <button class="back-link" id="duplaPreviewBack">${t('back_arrow')}</button>
       <iframe id="duplaPreviewFrame"></iframe>
     </div>`;
-  const nome = modalBody.querySelector('#fName'), code = modalBody.querySelector('#fCode'), status = modalBody.querySelector('[data-status]'), pres = modalBody.querySelector('[data-presenca]');
-  /* o personagem do amigo (vem do perfil público dele) */
-  fbDb().collection('publicProfiles').doc(p.membros[outroIdx]).get().then(d=>{
-    const av = d && d.exists && d.data().avatar;
-    const el = modalBody.querySelector('[data-av-outro]');
-    if(av && el) el.innerHTML = pzAv(av, p.membros[outroIdx], 'dupla-av');
-  }).catch(()=>{});
+  const nome = modalBody.querySelector('#fName'), code = modalBody.querySelector('#fCode'), status = modalBody.querySelector('[data-status]');
+  const quem = modalBody.querySelector('[data-quem]'), pres = modalBody.querySelector('[data-presenca]'), avs = modalBody.querySelector('[data-avs]');
+  /* quem está no projeto: os personagens (vêm do perfil público de cada um), os nomes e quem está aqui agora */
+  const avatares = {}; avatares[eu] = meuCodigo();
+  const buscando = new Set();
+  function pintarGente(){
+    const nomes = duplaNomes(P), idx = meuIdx();
+    const outros = nomes.filter((_, i)=>i !== idx);
+    quem.textContent = t('dupla_voce_e', {nome: duplaListaNomes(outros)});
+    const agora = Date.now();
+    const aqui = nomes.filter((_, i)=>i !== idx && agora - duplaVisto(P, i) < 45000);
+    pres.textContent = aqui.length ? t(aqui.length === 1 ? 'dupla_aqui' : 'dupla_aqui_n', {nome: duplaListaNomes(aqui)}) : t('dupla_fora');
+    pres.classList.toggle('on', aqui.length > 0);
+    const mostra = P.membros.slice(0, 5);
+    avs.innerHTML = mostra.map(e=>pzAv(avatares[e] || null, e, 'dupla-av')).join('') + (P.membros.length > 5 ? `<span class="dupla-mais">+${P.membros.length - 5}</span>` : '');
+    mostra.forEach(e=>{
+      if(avatares[e] !== undefined || buscando.has(e)) return;
+      buscando.add(e);
+      fbDb().collection('publicProfiles').doc(e).get().then(d=>{ avatares[e] = (d && d.exists && d.data().avatar) || ''; if(avs.isConnected) pintarGente(); }).catch(()=>{ avatares[e] = ''; });
+    });
+  }
+  pintarGente();
   modalBody.querySelector('#pickCoverBtn').addEventListener('click', ()=>modalBody.querySelector('#fCover').click());
   let capaNova = null;
-  const capa = ligarCapa(modalBody, {shape: p.formato || 'square', inputSel: '#fCover', previewSel: '#coverPreview',
+  const capa = ligarCapa(modalBody, {shape: P.formato || 'square', inputSel: '#fCover', previewSel: '#coverPreview',
     mostrarFoto: uri=>{ modalBody.querySelector('#coverPreview').innerHTML = `<img src="${uri}">`; capaNova = uri; agendar(); }});
   ligarAssistente(modalBody, '#fCode', null);
   /* Testar: igual ao do Koda Studio */
@@ -22430,9 +22505,9 @@ async function abrirStudioDupla(id){
     previewBg.classList.add('show');
   });
   modalBody.querySelector('#duplaPreviewBack').addEventListener('click', ()=>{ previewBg.classList.remove('show'); previewFrame.srcdoc = ''; kodaLojaDesligar(); });
-  /* salvar sozinho: 1,2 s depois que para de digitar. A versão só sobe; se o amigo salvou no meio, a minha
-     fica por cima e a dele vai pro "desfazer" (aparece um aviso). */
-  let versao = p.versao || 1, sujo = false, timer = 0, salvando = false, ultimoRemoto = String(p.codigo || '');
+  /* salvar sozinho: 1,2 s depois que para de digitar. A versão só sobe; se outra pessoa salvou no meio, a minha
+     fica por cima (e aparece um aviso dizendo quem mexeu junto). */
+  let versao = P.versao || 1, sujo = false, timer = 0, salvando = false;
   const pintar = (txt, cls)=>{ status.textContent = txt; status.className = 'dupla-status' + (cls ? ' ' + cls : ''); };
   function agendar(){ sujo = true; pintar(t('dupla_salvando')); clearTimeout(timer); timer = setTimeout(salvar, 1200); }
   async function salvar(){
@@ -22441,60 +22516,77 @@ async function abrirStudioDupla(id){
     salvando = true; sujo = false;
     const dados = {nome: nome.value.trim().slice(0, 80), codigo: code.value, formato: capa.shape, atualizadoEm: Date.now(), atualizadoPor: eu};
     if(capaNova && capaNova.length < 120000) dados.capa = capaNova;
-    let atropelou = null;
+    let atropelou = null, quemMexeu = '';
     try{
       await fbDb().runTransaction(async tx=>{
         const d = await tx.get(ref);
         const v = (d.exists && d.data().versao) || 0;
-        if(v > versao && d.data().atualizadoPor !== eu) atropelou = d.data().codigo;
+        if(v > versao && d.data().atualizadoPor !== eu){ atropelou = d.data().codigo; quemMexeu = d.data().atualizadoPor; }
         dados.versao = v + 1;
         tx.update(ref, dados);
       });
-      versao = dados.versao; ultimoRemoto = dados.codigo;
+      versao = dados.versao;
       pintar(t('dupla_salvo'), 'ok');
       if(atropelou !== null && atropelou !== dados.codigo){
-        toast(t('dupla_junto', {nome: nomeOutro}));
-        try{ const api = iaApis.get(code); if(api) api.mostrar(t('dupla_junto', {nome: nomeOutro})); }catch(e){}
+        const aviso = t('dupla_junto', {nome: nomeDe(quemMexeu) || t('dupla_alguem')});
+        toast(aviso);
+        try{ const api = iaApis.get(code); if(api) api.mostrar(aviso); }catch(e){}
       }
     }catch(e){ sujo = true; pintar(t('dupla_nao_salvou'), 'ruim'); }
     salvando = false;
   }
   nome.addEventListener('input', agendar);
   code.addEventListener('input', agendar);
-  /* o que o amigo muda chega sozinho; se eu não estiver no meio de uma mudança, entra na caixa na hora */
+  /* o que as outras pessoas mudam chega sozinho; se eu não estiver no meio de uma mudança, entra na caixa na hora */
   const parar = ref.onSnapshot(d=>{
     if(!d.exists) return;
     const r = d.data();
-    const visto = Number(r['visto' + outroIdx]) || 0;
-    const aqui = Date.now() - visto < 45000;
-    pres.textContent = t(aqui ? 'dupla_aqui' : 'dupla_fora', {nome: nomeOutro});
-    pres.classList.toggle('on', aqui);
+    P = Object.assign(P, r);
+    pintarGente();
     if((r.versao || 0) <= versao || r.atualizadoPor === eu) return;
     versao = r.versao;
     if(sujo || salvando) return;               // estou mexendo: a minha vai por cima (e avisa)
     if(typeof r.codigo === 'string' && r.codigo !== code.value){
       const pos = code.selectionStart;
-      code.value = r.codigo; ultimoRemoto = r.codigo;
+      code.value = r.codigo;
       try{ code.selectionStart = code.selectionEnd = Math.min(pos, r.codigo.length); }catch(e){}
       code.classList.remove('dupla-chegou'); void code.offsetWidth; code.classList.add('dupla-chegou');
-      pintar(t('dupla_mudou', {nome: nomeOutro}), 'novo');
+      pintar(t('dupla_mudou', {nome: nomeDe(r.atualizadoPor) || t('dupla_alguem')}), 'novo');
     }
     if(typeof r.nome === 'string' && r.nome !== nome.value && document.activeElement !== nome) nome.value = r.nome;
     if(r.capa && r.capa !== capaNova){ modalBody.querySelector('#coverPreview').innerHTML = `<img src="${esc(r.capa)}">`; }
   }, ()=>{});
-  /* "estou aqui": a cada 20 s */
-  const marcar = ()=>{ const o = {}; o['visto' + meuIdx] = Date.now(); ref.update(o).catch(()=>{}); };
+  /* "estou aqui": a cada 20 s (cada pessoa marca só o campo dela) */
+  const marcar = (valor)=>{ const i = meuIdx(); if(i < 0) return; const o = {}; o['vistos.' + i] = valor === undefined ? Date.now() : valor; ref.update(o).catch(()=>{}); };
   marcar();
-  const pulso = setInterval(marcar, 20000);
-  duplaParar = ()=>{ try{ parar(); }catch(e){} clearInterval(pulso); clearTimeout(timer); if(sujo) salvar(); const o = {}; o['visto' + meuIdx] = 0; ref.update(o).catch(()=>{}); };
+  const pulso = setInterval(()=>{ marcar(); pintarGente(); }, 20000);
+  duplaParar = ()=>{ try{ parar(); }catch(e){} clearInterval(pulso); clearTimeout(timer); if(sujo) salvar(); marcar(0); };
   activeCleanup = ()=>{ if(duplaParar){ duplaParar(); duplaParar = null; } };
+  /* o criador chama mais gente: salva, fecha este Studio, escolhe as pessoas e volta */
+  const bAdd = modalBody.querySelector('[data-add]');
+  if(bAdd) bAdd.addEventListener('click', async ()=>{
+    playSound('click');
+    clearTimeout(timer); if(sujo) await salvar();
+    if(duplaParar){ try{ duplaParar(); }catch(e){} duplaParar = null; }
+    openPeopleSearch({
+      title: t('dupla_add_tit'), multiSelect: true, confirmLabel: t('dupla_add_ok_btn'), excludeEmails: P.membros.slice(),
+      onConfirm: async pessoas=>{
+        const novas = (pessoas || []).filter(x=>x && P.membros.indexOf(x.email) < 0);
+        if(!novas.length){ abrirStudioDupla(id); return; }
+        if(P.membros.length + novas.length > DUPLA_MAX){ toast(t('dupla_max', {n: DUPLA_MAX})); return; }
+        try{ const n = await duplaAdicionarPessoas(id, novas); toast(t(n === 1 ? 'dupla_add_ok_1' : 'dupla_add_ok', {n})); }
+        catch(e){ toast(t('dupla_erro')); }
+        abrirStudioDupla(id);
+      }
+    });
+  });
   modalBody.querySelector('#publishBtn').addEventListener('click', async ()=>{
     clearTimeout(timer);
     if(sujo) await salvar();
-    publicarDupla(id, {criador: p.criador, membros: p.membros, nomes: p.nomes}, nome.value.trim(), code.value, capaNova || p.capa || null, capa.shape);
+    publicarDupla(id, {criador: P.criador, membros: P.membros, nomes: duplaNomes(P)}, nome.value.trim(), code.value, capaNova || P.capa || null, capa.shape);
   });
 }
-/* publica o jogo da dupla (id fixo 'dupla_<projeto>', com os dois de coautores) */
+/* publica o jogo do grupo (id fixo 'dupla_<projeto>', com todo mundo de coautor) */
 function publicarDupla(projId, proj, name, codigo, cover, shape){
   if(!name){ toast(t('code_form_name_needed')); return false; }
   const bruto = codigo;
@@ -22506,12 +22598,11 @@ function publicarDupla(projId, proj, name, codigo, cover, shape){
   const gid = 'dupla_' + projId, list = loadCustomGames(), idx = list.findIndex(r=>r.id === gid);
   const antes = idx >= 0 ? list[idx] : null;
   const codeB64 = utf8ToB64(code), mudou = !antes || antes.codeB64 !== codeB64;
-  const nomes = [proj.nomes && proj.nomes.a, proj.nomes && proj.nomes.b].filter(Boolean);
   const rec = Object.assign({}, antes || {bg: 'linear-gradient(135deg,#26D0A0,#3DA9FC)', createdAt: Date.now()}, {
     id: gid, name, cover: cover || (antes && antes.cover) || null, shape: shape || 'square', codeB64,
     loja: codigoTemLoja(code), multiplayerCounts: (antes && antes.multiplayerCounts) || [], hasDifficulty: !!(antes && antes.hasDifficulty),
     trad: mudou || !(antes && antes.trad) ? {status: 'pendente', linguas: {}} : antes.trad,
-    dupla: projId, coautores: proj.membros.slice(0, 2), criadorDupla: proj.criador, nomeDupla: nomes.join(' & ').slice(0, 80)
+    dupla: projId, coautores: proj.membros.slice(0, DUPLA_MAX), criadorDupla: proj.criador, nomeDupla: duplaListaNomes(proj.nomes || []).slice(0, 80)
   });
   if(idx >= 0) list[idx] = rec; else list.push(rec);
   if(!saveCustomGames(list)){ toast(t('code_form_too_big')); return false; }
