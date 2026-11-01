@@ -5,7 +5,7 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta, modoDaModeracao, tokenPersonalizado, verificarCracha';
+const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta, modoDaModeracao';
 const temp = path.join(os.tmpdir(), 'koda-worker-teste-' + process.pid + '.mjs');
 fs.writeFileSync(temp, fs.readFileSync(path.join(aqui, 'jogodromo-agent-worker.js'), 'utf8') + '\nexport { ' + exportados + ' };\n');
 const W = await import(pathToFileURL(temp).href);
@@ -305,7 +305,7 @@ console.log('== 18. contas com nome de usuário: nome livre, e-mail de seguranç
   t('freio: 1 por minuto e 6 por dia', f1.envios && f1.envios.length === 1 && f2.erro === 'espere' && f2.segundos > 0 && f3.erro === 'muitos_codigos', [f1, f2, f3]);
   const em = W.emailDoCodigo('ja', 'rec', 'pedro', '012345');
   t('e-mail do código no idioma, com o código', /012345/.test(em.assunto) && /pedro/.test(em.texto) && /012345/.test(em.html) && /15/.test(em.texto), em.assunto);
-  t('e-mail em idioma desconhecido cai no inglês', /Koplay code/.test(W.emailDoCodigo('xx', 'conf', 'a', '1').assunto) || /Koplay code/.test(W.emailDoCodigo('en', 'conf', 'a', '1').assunto));
+  t('e-mail em idioma desconhecido cai no inglês', /Koda code/.test(W.emailDoCodigo('xx', 'conf', 'a', '1').assunto) || /Koda code/.test(W.emailDoCodigo('en', 'conf', 'a', '1').assunto));
 
   const contas = { pedro: 'uid-pedro', ana: 'uid-ana' }, senhas = {}, emails = [];
   const fx = { db: bancoFalso(), async uidDe(n){ return contas[n] || null; }, async trocarSenha(uid, s){ senhas[uid] = s; }, async email(para, msg){ emails.push({ para, msg }); } };
@@ -332,7 +332,7 @@ console.log('== 18. contas com nome de usuário: nome livre, e-mail de seguranç
   t('recuperar: conta que não existe', (await W.contaCodigo(fx, { usuario: 'ninguem' })).erro === 'sem_conta');
   t('recuperar: conta sem e-mail de segurança', (await W.contaCodigo(fx, { usuario: 'ana' })).erro === 'sem_email');
   const r1 = await W.contaCodigo(fx, { usuario: 'Pedro', lang: 'en' });
-  t('recuperar: código vai pro e-mail de segurança', r1.ok && emails[emails.length - 1].para === 'pai.do.pedro@gmail.com' && /Koplay code/.test(emails[emails.length - 1].msg.assunto), r1);
+  t('recuperar: código vai pro e-mail de segurança', r1.ok && emails[emails.length - 1].para === 'pai.do.pedro@gmail.com' && /Koda code/.test(emails[emails.length - 1].msg.assunto), r1);
   t('recuperar: senha curta não', (await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: codigoDe(), senha: '123' })).erro === 'senha_fraca');
   const cod = codigoDe(), errado = cod === '999999' ? '888888' : '999999';
   for(let i = 0; i < 5; i++) await W.contaNovaSenha(fx, { usuario: 'pedro', codigo: errado, senha: 'novaSenha1' });
@@ -413,29 +413,5 @@ console.log('== 19. modos da análise: desligada, basica e completa');
 }
 
 try{ fs.unlinkSync(temp); }catch(e){}
-
-/* ---------- 20. transferir o login pro endereço novo ---------- */
-console.log('== 20. token pra transferir o login');
-{
-  const { generateKeyPairSync, createVerify } = await import('crypto');
-  const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
-  const sa = { client_email: 'firebase-adminsdk-x@jogodromo.iam.gserviceaccount.com', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }), private_key_id: 'abc123' };
-  const tk = await W.tokenPersonalizado(sa, 'uid-da-ana');
-  const [h, c, sig] = tk.split('.');
-  const dec = x => JSON.parse(Buffer.from(x, 'base64url').toString('utf8'));
-  const cab = dec(h), dados = dec(c);
-  t('token: cabeçalho RS256 com a chave certa', cab.alg === 'RS256' && cab.typ === 'JWT' && cab.kid === 'abc123', cab);
-  t('token: é da conta de serviço e vale pro Identity Toolkit', dados.iss === sa.client_email && dados.sub === sa.client_email && /IdentityToolkit$/.test(dados.aud), dados);
-  t('token: leva o uid da pessoa', dados.uid === 'uid-da-ana', dados);
-  t('token: vale só uns 5 minutos', dados.exp - dados.iat === 300, dados);
-  const v = createVerify('RSA-SHA256'); v.update(h + '.' + c);
-  t('token: a assinatura confere com a chave pública', v.verify(publicKey, Buffer.from(sig, 'base64url')));
-  /* a rota: sem crachá não sai token; com crachá de mentira também não */
-  const semCracha = await worker.fetch(new Request('https://x/login-token', { method: 'POST', body: '{}' }), { FIREBASE_SERVICE_ACCOUNT: JSON.stringify(Object.assign({ project_id: 'jogodromo' }, sa)) });
-  t('rota /login-token: sem crachá = 401', semCracha.status === 401, semCracha.status);
-  const semConta = await worker.fetch(new Request('https://x/login-token', { method: 'POST', body: '{}' }), {});
-  t('rota /login-token: sem conta de serviço = 503', semConta.status === 503, semConta.status);
-}
-
 console.log('\n' + ok + ' ok, ' + falhas + ' falhas');
 process.exit(falhas ? 1 : 0);
