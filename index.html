@@ -4399,7 +4399,12 @@
   @keyframes diarioBrilho{0%,55%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
   .diario.pronto .diario-arte{animation:diarioPula 2.2s ease-in-out infinite;}
   @keyframes diarioPula{0%,70%,100%{transform:none;}78%{transform:translateY(-5px) rotate(-4deg);}86%{transform:translateY(0) rotate(3deg);}93%{transform:translateY(-2px);}}
-  .diario.pronto.d-rol .roleta-mini-gira{animation:roletaMini 4s linear infinite;transform-origin:24px 24px;}
+  .diario.pronto.d-rol .roleta-mini-gira{animation:roletaMini 4s linear infinite;transform-origin:24px 26px;}
+  .roleta-mini .rm-luz{fill:#FFF8D0;}
+  .diario.pronto.d-rol .roleta-mini .rm-luz.a{animation:rolLuz 1s steps(1) infinite;}
+  .diario.pronto.d-rol .roleta-mini .rm-luz.b{animation:rolLuz 1s steps(1) -.5s infinite;}
+  .rol-svg .rol-halo{transform-box:fill-box;transform-origin:center;animation:rolHalo 2.2s ease-in-out infinite;}
+  @keyframes rolHalo{0%,100%{opacity:.6;transform:scale(.97);}50%{opacity:1;transform:scale(1.03);}}
   @keyframes roletaMini{to{transform:rotate(360deg);}}
   .diario-raro{display:flex;gap:3px;margin-top:2px;}
   .diario-raro i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);}
@@ -4600,7 +4605,7 @@
     .rol-svg.girando .rol-luz.a{animation-duration:.24s;}
     .rol-svg.girando .rol-luz.b{animation-duration:.24s;animation-delay:-.12s;}
   }
-  @keyframes rolLuz{0%{fill:#FFF3B0;filter:drop-shadow(0 0 4px #FFE066);}50%{fill:#7A5CFF;filter:none;}}
+  @keyframes rolLuz{0%{fill:#FFF8D0;filter:drop-shadow(0 0 4px #FFE066);}50%{fill:#B9770E;filter:none;}}
   .rol-seta{transform-box:fill-box;transform-origin:50% 0%;}
   .rol-seta.bate{animation:rolSeta .16s ease-out;}
   @keyframes rolSeta{0%{transform:rotate(0);}40%{transform:rotate(-16deg);}100%{transform:rotate(0);}}
@@ -33726,20 +33731,29 @@ function nivelChipHtml(n, extra){
 })();
 /* a chama da sequência (com o número dentro). apagada = cinza, quando a sequência é zero */
 function chamaSvg(n, grande){
+  /* chama em 3 camadas (fora vermelha, meio laranja, miolo clarinho onde fica o número), com brilho e contorno */
   const u = 'ch' + (++rotSvgN), apagada = !(n > 0);
-  const c = apagada ? ['#C9D3DC', '#8C9AA8', '#5E6B78', '#3A444E'] : ['#FFF3A8', '#FFB020', '#FF5A1F', '#8A1A00'];
+  const c = apagada
+    ? {fora: ['#7E8C99', '#B4C0CB'], meio: ['#C3CDD6', '#E2E8EE'], miolo: '#F3F6F8', borda: '#3E4A55', num: '#3E4A55'}
+    : {fora: ['#E5290C', '#FF8A1F'], meio: ['#FF9E1B', '#FFD43B'], miolo: '#FFF6C9', borda: '#7A1500', num: '#7A1500'};
   const txt = n > 999 ? '999+' : String(Math.max(0, n || 0));
-  const fs = txt.length >= 4 ? 22 : txt.length === 3 ? 28 : 36;
+  const fs = txt.length >= 4 ? 21 : txt.length === 3 ? 27 : 34;
   return `<svg class="chama${apagada ? ' apagada' : ''}${grande ? ' grande' : ''}" viewBox="0 0 100 120" aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id="${u}a" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c[2]}"/><stop offset=".6" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[1]}"/></linearGradient>
-      <linearGradient id="${u}b" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[0]}"/></linearGradient>
-      <radialGradient id="${u}g" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="${c[1]}" stop-opacity=".55"/><stop offset="1" stop-color="${c[1]}" stop-opacity="0"/></radialGradient>
+      <linearGradient id="${u}a" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.fora[0]}"/><stop offset="1" stop-color="${c.fora[1]}"/></linearGradient>
+      <linearGradient id="${u}b" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.meio[0]}"/><stop offset="1" stop-color="${c.meio[1]}"/></linearGradient>
+      <radialGradient id="${u}g" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#FF9A1F" stop-opacity=".6"/><stop offset="1" stop-color="#FF9A1F" stop-opacity="0"/></radialGradient>
     </defs>
-    ${apagada ? '' : `<ellipse class="chama-luz" cx="50" cy="78" rx="50" ry="42" fill="url(#${u}g)"/>`}
-    <g class="chama-a"><path d="M52 4C60 22 80 34 84 60C88 88 70 112 50 114C28 112 12 92 15 66C17 50 26 40 32 30C33 42 37 49 43 52C39 34 42 18 52 4Z" fill="url(#${u}a)" stroke="${c[3]}" stroke-width="3.2" stroke-linejoin="round"/></g>
-    <g class="chama-b"><path d="M51 34C57 48 70 56 72 74C74 94 63 106 50 107C36 106 27 95 28 80C29 69 35 62 40 56C41 64 44 69 48 71C46 58 46 46 51 34Z" fill="url(#${u}b)"/></g>
-    <text x="50" y="${txt.length >= 3 ? 94 : 97}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="${fs}" fill="#fff" stroke="${c[3]}" stroke-width="5.5" stroke-linejoin="round" paint-order="stroke">${txt}</text>
+    ${apagada ? '' : `<ellipse class="chama-luz" cx="50" cy="78" rx="50" ry="44" fill="url(#${u}g)"/>`}
+    <g class="chama-a">
+      <path d="M50 4C58 20 66 26 72 36C76 30 77 24 76 15C88 30 94 48 92 67C90 95 72 115 50 115C28 115 10 95 8 69C7 52 13 38 22 27C22 36 25 42 30 46C30 30 38 16 50 4Z" fill="url(#${u}a)" stroke="${c.borda}" stroke-width="3.4" stroke-linejoin="round"/>
+      <path d="M24 56C21 67 23 78 30 87" fill="none" stroke="#fff" stroke-opacity="${apagada ? .45 : .5}" stroke-width="4.5" stroke-linecap="round"/>
+    </g>
+    <g class="chama-b">
+      <path d="M50 30C57 43 66 50 70 62C74 77 70 95 50 101C30 95 26 78 30 63C32 55 37 50 41 46C41 54 44 58 47 60C45 50 45 40 50 30Z" fill="url(#${u}b)"/>
+      <ellipse cx="50" cy="84" rx="19" ry="17" fill="${c.miolo}"/>
+    </g>
+    <text x="50" y="${txt.length >= 3 ? 93 : 96}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="${fs}" fill="${c.num}">${txt}</text>
   </svg>`;
 }
 /* o escudo do protetor de sequência (cheio = tem; vazio = espaço livre) */
@@ -33761,17 +33775,18 @@ function xpIconeSvg(){
 }
 /* roleta pequenininha (cartão da tela de início) */
 function roletaMiniSvg(){
+  /* a roletinha do cartão: aro dourado com luzes, fatias com divisória, centro brilhante e a setinha de pedra */
   const cores = ['#FFC93C', '#26D0A0', '#FF8A3D', '#4F8BFF', '#B14BFF', '#2FB6F0', '#FF4F8B', '#18B8A0'];
-  const fatias = cores.map((c, i)=>{
-    const a0 = (i * 45 - 90) * Math.PI / 180, a1 = ((i + 1) * 45 - 90) * Math.PI / 180;
-    return `<path d="M24 24L${(24 + 19 * Math.cos(a0)).toFixed(2)} ${(24 + 19 * Math.sin(a0)).toFixed(2)}A19 19 0 0 1 ${(24 + 19 * Math.cos(a1)).toFixed(2)} ${(24 + 19 * Math.sin(a1)).toFixed(2)}Z" fill="${c}"/>`;
-  }).join('');
+  const pt = (i, r)=>{ const a = (i * 45 - 90) * Math.PI / 180; return [(24 + r * Math.cos(a)).toFixed(2), (26 + r * Math.sin(a)).toFixed(2)]; };
+  const fatias = cores.map((c, i)=>{ const [x0, y0] = pt(i, 17), [x1, y1] = pt(i + 1, 17); return `<path d="M24 26L${x0} ${y0}A17 17 0 0 1 ${x1} ${y1}Z" fill="${c}"/>`; }).join('');
+  const linhas = cores.map((c, i)=>{ const [x, y] = pt(i, 17); return `<path d="M24 26L${x} ${y}" stroke="#fff" stroke-opacity=".85" stroke-width="1.1"/>`; }).join('');
+  const luzes = Array.from({length: 12}, (_, i)=>{ const a = (i * 30 - 75) * Math.PI / 180; return `<circle class="rm-luz ${i % 2 ? 'b' : 'a'}" cx="${(24 + 20.5 * Math.cos(a)).toFixed(2)}" cy="${(26 + 20.5 * Math.sin(a)).toFixed(2)}" r="1.25"/>`; }).join('');
   return `<svg class="roleta-mini" viewBox="0 0 48 52" aria-hidden="true" focusable="false">
-    <circle cx="24" cy="24" r="22" fill="#2A1460"/><g class="roleta-mini-gira">${fatias}</g>
-    <circle cx="24" cy="24" r="19" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>
-    ${[0,1,2,3,4,5,6,7].map(i=>{ const a = (i * 45 - 90) * Math.PI / 180; return `<circle cx="${(24 + 21 * Math.cos(a)).toFixed(2)}" cy="${(24 + 21 * Math.sin(a)).toFixed(2)}" r="1.3" fill="#FFF3B0"/>`; }).join('')}
-    <circle cx="24" cy="24" r="5.5" fill="#FFD54A" stroke="#2A1460" stroke-width="2"/>
-    <path d="M24 5l-4.5-6h9z" transform="translate(0 2)" fill="#FF3B5C" stroke="#2A1460" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="24" cy="26" r="23" fill="#B9770E"/><circle cx="24" cy="26" r="22" fill="#FFC93C"/><circle cx="24" cy="26" r="18.6" fill="#7A4A00"/>
+    ${luzes}
+    <g class="roleta-mini-gira">${fatias}${linhas}<path d="M10 20A15 15 0 0 1 38 20L24 26Z" fill="#fff" opacity=".18"/></g>
+    <circle cx="24" cy="26" r="5.4" fill="#FFE27A" stroke="#7A4A00" stroke-width="1.6"/><path d="M24 23.2l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#B9770E"/>
+    <path d="M24 9.5l-4.6-7.6h9.2z" fill="#FF3B5C" stroke="#7A0016" stroke-width="1.3" stroke-linejoin="round"/><path d="M22.2 3.6l1.4 2.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".8"/>
   </svg>`;
 }
 /* raio da oferta relâmpago */
@@ -34219,26 +34234,35 @@ function roletaSvg(fatias){
       </g>
     </g>`;
   }).join('');
-  const pinos = fatias.map((f, i)=>{ const [x, y] = pt(i * ang, R - 1); return `<circle cx="${x}" cy="${y}" r="3" fill="#FFF3B0" stroke="#1B1464" stroke-width="1.4"/>`; }).join('');
-  const luzes = Array.from({length: 24}, (_, i)=>{ const [x, y] = pt(i * 15 + 7.5, R + 9); return `<circle class="rol-luz ${i % 2 ? 'b' : 'a'}" cx="${x}" cy="${y}" r="3.4"/>`; }).join('');
+  const pinos = fatias.map((f, i)=>{ const [x, y] = pt(i * ang, R - 1); return `<circle cx="${x}" cy="${y}" r="3.2" fill="#FFF3B0" stroke="#7A4A00" stroke-width="1.4"/>`; }).join('');
+  const divisorias = fatias.map((f, i)=>{ const [x, y] = pt(i * ang, R); return `<path d="M0 0L${x} ${y}" stroke="#fff" stroke-opacity=".85" stroke-width="2.4"/>`; }).join('');
+  const luzes = Array.from({length: 24}, (_, i)=>{ const [x, y] = pt(i * 15 + 7.5, R + 10); return `<circle class="rol-luz ${i % 2 ? 'b' : 'a'}" cx="${x}" cy="${y}" r="3.6"/>`; }).join('');
   return `<svg class="rol-svg" viewBox="-124 -132 248 258" role="img" aria-label="${chatListEscape(t('rol_tit'))}">
     <defs>
       <radialGradient id="rolBrilho" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset=".72" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient>
       <radialGradient id="rolCubo" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFF6B8"/><stop offset=".6" stop-color="#FFC52E"/><stop offset="1" stop-color="#C77F00"/></radialGradient>
+      <linearGradient id="rolAro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0A8"/><stop offset=".35" stop-color="#FFC52E"/><stop offset=".7" stop-color="#E79A0C"/><stop offset="1" stop-color="#FFD966"/></linearGradient>
+      <linearGradient id="rolVidro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <radialGradient id="rolHalo" cx=".5" cy=".5" r=".5"><stop offset=".78" stop-color="#FFD54A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD54A" stop-opacity="0"/></radialGradient>
+      <linearGradient id="rolSeta" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7A93"/><stop offset="1" stop-color="#D1123A"/></linearGradient>
     </defs>
-    <circle r="${R + 16}" fill="#1B1464"/>
-    <circle r="${R + 16}" fill="none" stroke="#3B2A9E" stroke-width="3"/>
+    <circle class="rol-halo" r="${R + 26}" fill="url(#rolHalo)"/>
+    <circle r="${R + 18}" fill="#8A5200"/>
+    <circle r="${R + 16}" fill="url(#rolAro)"/>
+    <circle r="${R + 4}" fill="#5A3400"/>
     ${luzes}
     <g class="rol-roda-gira">
       ${fat}
+      ${divisorias}
       <circle r="${R}" fill="url(#rolBrilho)" pointer-events="none"/>
       ${pinos}
     </g>
-    <circle r="${R}" fill="none" stroke="#1B1464" stroke-width="4"/>
-    <circle r="23" fill="#1B1464"/>
-    <circle r="19" fill="url(#rolCubo)" stroke="#7A4A00" stroke-width="2"/>
-    <text x="0" y="7.5" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="21" fill="#6E4200">K</text>
-    <g class="rol-seta"><path d="M0 -${R - 14}L-13 -${R + 20}Q0 -${R + 30} 13 -${R + 20}Z" fill="#FF3B5C" stroke="#1B1464" stroke-width="3.4" stroke-linejoin="round"/><circle cx="0" cy="-${R + 18}" r="4.4" fill="#fff" opacity=".85"/></g>
+    <path d="M-${R - 4} -6A${R - 4} ${R - 4} 0 0 1 ${R - 4} -6Q0 -24 -${R - 4} -6Z" fill="url(#rolVidro)" pointer-events="none"/>
+    <circle r="${R}" fill="none" stroke="#5A3400" stroke-width="4"/>
+    <circle r="25" fill="#5A3400"/>
+    <circle r="21" fill="url(#rolCubo)" stroke="#FFF3B0" stroke-width="2"/>
+    <path d="M0 -11l3.3 6.7 7.4 1.1-5.4 5.2 1.3 7.3L0 5.8l-6.6 3.5 1.3-7.3-5.4-5.2 7.4-1.1z" fill="#C77F00" stroke="#7A4A00" stroke-width="1.4" stroke-linejoin="round"/>
+    <g class="rol-seta"><path d="M0 -${R - 12}L-15 -${R + 18}Q0 -${R + 32} 15 -${R + 18}Z" fill="url(#rolSeta)" stroke="#5A0016" stroke-width="3" stroke-linejoin="round"/><path d="M-6 -${R + 20}L-2 -${R + 10}" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/><circle cx="0" cy="-${R + 19}" r="5" fill="#FFF3B0" stroke="#5A0016" stroke-width="1.6"/></g>
   </svg>`;
 }
 var roletaAngulo = 0;
