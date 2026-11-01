@@ -3726,6 +3726,41 @@
   .dupla-status.ruim{color:#ff8a80;opacity:1;}
   @keyframes duplaChegou{0%{box-shadow:0 0 0 3px #ffd23f;}100%{box-shadow:0 0 0 0 rgba(255,210,63,0);}}
   .dupla-chegou{animation:duplaChegou 1.4s ease-out;}
+  /* aviso de evento (tela cheia, com a cara do evento) */
+  .eva-bg{position:fixed;inset:0;z-index:1150;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden;opacity:0;transition:opacity .25s;
+    background:radial-gradient(ellipse at 50% 30%,#C2410C 0%,#4A1470 55%,#14031F 100%);}
+  .eva-bg.ev-xm{background:radial-gradient(ellipse at 50% 30%,#2E7D4F 0%,#8E0E24 55%,#170308 100%);}
+  .eva-bg.ev-fv{background:radial-gradient(ellipse at 50% 30%,#FFC14D 0%,#1597D8 55%,#063A5C 100%);}
+  .eva-bg.show{opacity:1;}
+  .eva-enfeites{position:absolute;inset:0;pointer-events:none;}
+  .eva-enfeites i,.ev-vivo-enfeites i{position:absolute;top:-10%;font-style:normal;animation:evaCai linear infinite;opacity:.9;}
+  .ev-hl .eva-enfeites i,.ev-fv .eva-enfeites i{top:auto;bottom:-10%;animation-name:evaSobe;}
+  @keyframes evaCai{from{transform:translateY(0) rotate(0);}to{transform:translateY(120vh) rotate(260deg);}}
+  @keyframes evaSobe{0%{transform:translateY(0) translateX(0);}50%{transform:translateY(-60vh) translateX(18px);}100%{transform:translateY(-120vh) translateX(-10px);}}
+  .eva{position:relative;width:100%;max-width:420px;text-align:center;color:#fff;animation:pvEntra .5s cubic-bezier(.2,1.3,.4,1) both;}
+  .eva-selo{display:inline-block;padding:5px 18px;border-radius:999px;background:linear-gradient(90deg,#FFE14D,#FFB800);color:#5a1a00;font:900 1.05rem 'Baloo 2',sans-serif;letter-spacing:2px;box-shadow:0 4px 14px rgba(0,0,0,.35);animation:resgAlerta 1.4s ease-in-out infinite;}
+  .eva-bg.fim .eva-selo{background:#FF3D3D;color:#fff;}
+  .eva-arte{width:min(300px,78vw);margin:10px auto 0;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));animation:pvFlutua 3.2s ease-in-out infinite;}
+  .eva-arte svg{width:100%;height:auto;display:block;}
+  .eva-tit{margin:10px 0 6px;font:800 1.65rem/1.1 'Baloo 2',sans-serif;text-shadow:0 3px 0 rgba(0,0,0,.35);}
+  .eva-sub{margin:0 0 12px;font-weight:700;font-size:.92rem;opacity:.95;line-height:1.3;}
+  .eva-itens{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 12px;}
+  .eva-item{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);overflow:hidden;animation:evaItem 2.4s ease-in-out infinite;}
+  .eva-item:nth-child(2){animation-delay:.3s;} .eva-item:nth-child(3){animation-delay:.6s;} .eva-item:nth-child(4){animation-delay:.9s;} .eva-item:nth-child(5){animation-delay:1.2s;}
+  .eva-item > *{max-width:100%;max-height:100%;}
+  @keyframes evaItem{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+  .eva-relogio{display:inline-block;margin:0 0 14px;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.3);font:800 .9rem 'Baloo 2',sans-serif;color:#FFE14D;}
+  .eva-ver{display:block;width:100%;border:none;border-radius:18px;padding:15px;cursor:pointer;background:linear-gradient(180deg,#FFE27A,#FFB800);color:#5a1a00;font:800 1.2rem 'Baloo 2',sans-serif;box-shadow:0 6px 0 #B86A00;animation:pvCompra 1.5s ease-in-out infinite;}
+  .eva-depois{margin-top:10px;border:none;background:none;color:#fff;opacity:.7;font:700 .85rem 'Baloo 2',sans-serif;cursor:pointer;padding:6px;}
+  /* o cartão do evento na tela inicial: enfeites passando, brilho e selo */
+  .dest-hl.ev-vivo{position:relative;overflow:hidden;}
+  .dest-hl.ev-vivo::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-18deg);animation:pvVarre 4.6s ease-in-out infinite;pointer-events:none;}
+  .ev-vivo-enfeites{position:absolute;inset:0;pointer-events:none;opacity:.55;}
+  .ev-vivo-enfeites i{top:-30%;animation-name:evaCaiCurto;}
+  @keyframes evaCaiCurto{from{transform:translateY(0) rotate(0);}to{transform:translateY(160px) rotate(200deg);}}
+  .ev-chip{position:absolute;top:8px;right:10px;z-index:1;padding:2px 9px;border-radius:999px;background:#FFE14D;color:#5a1a00;font:800 .62rem 'Baloo 2',sans-serif;letter-spacing:.5px;font-style:normal;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:pvFita 1.8s ease-in-out infinite;}
+  .ev-chip.fim{background:#FF3D3D;color:#fff;}
+  @media (prefers-reduced-motion: reduce){ .eva-enfeites i,.ev-vivo-enfeites i,.eva,.eva-selo,.eva-arte,.eva-item,.eva-ver,.dest-hl.ev-vivo::after,.ev-chip{animation:none !important;} }
   /* resgate da sequência: aviso urgente em tela cheia */
   .resg-bg{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,rgba(200,20,40,.92),rgba(40,4,10,.97) 70%);opacity:0;transition:opacity .2s;}
   .resg-bg.show{opacity:1;}
@@ -13013,6 +13048,19 @@ var PRACA2_TXT = {
  praca_emote_comprou:'Emote novo! Use na praça: {nome}|New emote! Use it in the plaza: {nome}|¡Emote nuevo! Úsalo en la plaza: {nome}',
  praca_emote_tit:'Emote: {nome}|Emote: {nome}|Emote: {nome}'
 };
+/* textos dos avisos de evento */
+var EVA_TXT = {
+ eva_novo:'NOVO EVENTO!|NEW EVENT!|¡NUEVO EVENTO!',
+ eva_tit:'Venha conhecer o novo evento de {ev}!|Come check out the new {ev} event!|¡Ven a conocer el nuevo evento de {ev}!',
+ eva_sub:'Missões, baús exclusivos com {n} itens que só existem agora e {moeda} pra juntar.|Missions, exclusive chests with {n} items that only exist now and {moeda} to collect.|Misiones, cofres exclusivos con {n} objetos que solo existen ahora y {moeda} para juntar.',
+ eva_acaba:'Acaba em {t}|Ends in {t}|Termina en {t}',
+ eva_ver:'Ver o evento|See the event|Ver el evento',
+ eva_depois:'Depois|Later|Después',
+ eva_fim_tit:'Últimos dias do evento de {ev}!|Last days of the {ev} event!|¡Últimos días del evento de {ev}!',
+ eva_fim_sub:'Quando acabar, os itens exclusivos não voltam. Corre!|Once it ends, the exclusive items don’t come back. Hurry!|Cuando termine, los objetos exclusivos no vuelven. ¡Corre!',
+ eva_fim_selo:'ÚLTIMOS DIAS|LAST DAYS|ÚLTIMOS DÍAS',
+ eva_chip:'EVENTO|EVENT|EVENTO'
+};
 /* textos do resgate da sequência */
 var RESG_TXT = {
  resg_agora:'AGORA!|NOW!|¡AHORA!',
@@ -13087,6 +13135,7 @@ var MSG2_TXT = {
   Object.keys(DUPLA_TXT).forEach(k=>por(k, DUPLA_TXT[k]));
   Object.keys(PV_TXT).forEach(k=>por(k, PV_TXT[k]));
   Object.keys(RESG_TXT).forEach(k=>por(k, RESG_TXT[k]));
+  Object.keys(EVA_TXT).forEach(k=>por(k, EVA_TXT[k]));
   PRACA_FALAS_CATS.forEach(c=>por('praca_cat_' + c[0], c[2]));
   PRACA_FALAS_EXTRA.forEach((f, i)=>por('praca_f' + (12 + i), f[1]));
   PRACA_EMOTES.forEach(e=>por('praca_emote_' + e.id, e.nome));
@@ -32562,7 +32611,9 @@ function renderDestaques(){
       <span class="dest-txt"><b>${t('pass_tile')}</b><small>${sub}</small><span class="dest-barra"><i style="width:${pct}%"></i></span></span>
       ${prontos > 0 ? `<span class="dest-badge">${prontos > 99 ? '99+' : prontos}</span>` : ''}
     </button>
-    ${hl ? `<button class="dest dest-hl" type="button" id="destHl">
+    ${hl ? `<button class="dest dest-hl ev-vivo" type="button" id="destHl">
+      <span class="ev-vivo-enfeites" aria-hidden="true">${evEnfeitesHtml(evTipo(), 5)}</span>
+      <i class="ev-chip${hlFaltaMs() < 48 * 3600000 ? ' fim' : ''}">${t(hlFaltaMs() < 48 * 3600000 ? 'eva_fim_selo' : 'eva_chip')}</i>
       <span class="dest-ico">${ICONS.abobora}</span>
       <span class="dest-txt"><b>${t('dest_hl_title')}</b><small>${t('dest_hl_sub', {t: turboTexto(hlFaltaMs())})}</small></span>
       ${msPendentes('evento') > 0 ? `<span class="dest-badge">${msPendentes('evento')}</span>` : ''}
@@ -33698,7 +33749,7 @@ function premioTela(o){
 function rotTelaLivre(){
   const ov = document.getElementById('overlay');
   if(ov && !ov.classList.contains('hidden')) return false;
-  if(document.querySelector('.bau-tela, .game-menu-bg, .kbs-dlg-bg, .rot-bg, .gift-bg, .tut-bg, .tour-bg, #onbBg, #kodaSplash')) return false;
+  if(document.querySelector('.bau-tela, .game-menu-bg, .kbs-dlg-bg, .rot-bg, .gift-bg, .tut-bg, .tour-bg, #onbBg, #kodaSplash, .disp-tela, .eva-bg, .resg-bg')) return false;
   const gate = document.getElementById('authGate');
   if(gate && !gate.classList.contains('hidden')) return false;
   if(document.visibilityState && document.visibilityState !== 'visible') return false;
@@ -34185,10 +34236,73 @@ function seqAbrir(opts){
 /* abre a sequência sozinha, uma vez por dia, quando a pessoa entra e o prêmio está esperando */
 var SEQ_AUTO_KEY = 'koda_seq_auto';
 var rotCarregouEm = Date.now();
+/* ============================================================
+   AVISO DE EVENTO
+   Começou um evento: aparece uma vez a tela "NOVO EVENTO! Venha conhecer o novo evento de ...", com a cara
+   do evento (abóboras e morcegos, neve, sol e ondas), os itens exclusivos e quanto falta pra acabar.
+   Nos 2 últimos dias aparece uma vez "Últimos dias!". Abre antes da sequência e nunca por cima de outra janela.
+============================================================ */
+var EV_ANUNCIO_KEY = 'koda_ev_anunciado';
+var EV_ENFEITES = {hl: ['🎃', '🦇', '👻', '🍬', '🕸️'], xm: ['❄️', '🎁', '⭐', '🎄', '❄️'], fv: ['☀️', '🌴', '🐚', '🌊', '🍉']};
+function evAnuncioLer(){ try{ return JSON.parse(localStorage.getItem(EV_ANUNCIO_KEY)) || {}; }catch(e){ return {}; } }
+function evAnuncioPendente(){
+  if(!hlLigado() || !HL_EVENTO || HL_EVENTO.previa) return null;
+  const o = evAnuncioLer();
+  if(o.novo !== HL_EVENTO.id) return 'novo';
+  if(hlFaltaMs() < 48 * 3600000 && o.fim !== HL_EVENTO.id) return 'fim';
+  return null;
+}
+function evEnfeitesHtml(tipo, n){
+  const em = EV_ENFEITES[tipo] || EV_ENFEITES.hl;
+  return Array.from({length: n}, (_, i)=>`<i style="left:${(i * 41 + 7) % 94}%;animation-delay:${((i * .7) % 5).toFixed(2)}s;animation-duration:${(6 + (i * 1.3) % 5).toFixed(2)}s;font-size:${(1.2 + (i % 3) * .45).toFixed(2)}rem">${em[i % em.length]}</i>`).join('');
+}
+function evAnunciar(qual, depois){
+  if(document.querySelector('.eva-bg')) return null;
+  const tipo = evTipo(), ev = t('kshop_tab_hl'), esc = chatListEscape;
+  const o = evAnuncioLer(); o[qual === 'fim' ? 'fim' : 'novo'] = HL_EVENTO.id; if(qual === 'fim') o.novo = HL_EVENTO.id;
+  try{ localStorage.setItem(EV_ANUNCIO_KEY, JSON.stringify(o)); }catch(e){}
+  let nItens = 0, amostras = '';
+  try{
+    HL_BAU_ORDEM.forEach(b=>{ const it = (HL_BAUS[b] || {}).itens || []; nItens += it.length; });
+    amostras = HL_BAU_ORDEM.map(b=>{ const it = ((HL_BAUS[b] || {}).itens || [])[0]; return it ? `<span class="eva-item">${hlAmostra(it[0], it[1])}</span>` : ''; }).join('');
+  }catch(e){}
+  const bg = document.createElement('div');
+  bg.className = 'eva-bg ev-' + tipo + (qual === 'fim' ? ' fim' : '');
+  bg.innerHTML = `<div class="eva-enfeites" aria-hidden="true">${evEnfeitesHtml(tipo, 14)}</div>
+    <div class="eva" role="dialog" aria-modal="true" aria-labelledby="evaTit">
+      <div class="eva-selo">${esc(t(qual === 'fim' ? 'eva_fim_selo' : 'eva_novo'))}</div>
+      <div class="eva-arte">${evArteTopo(tipo)}</div>
+      <h2 class="eva-tit" id="evaTit">${esc(t(qual === 'fim' ? 'eva_fim_tit' : 'eva_tit', {ev}))}</h2>
+      <p class="eva-sub">${esc(qual === 'fim' ? t('eva_fim_sub') : t('eva_sub', {n: nItens, moeda: t('hl_aboboras').toLowerCase()}))}</p>
+      ${amostras ? `<div class="eva-itens">${amostras}</div>` : ''}
+      <div class="eva-relogio">${esc(t('eva_acaba', {t: turboTexto(hlFaltaMs())}))}</div>
+      <button type="button" class="eva-ver" data-ver>${esc(t('eva_ver'))}</button>
+      <button type="button" class="eva-depois" data-depois>${esc(t('eva_depois'))}</button>
+    </div>`;
+  document.body.appendChild(bg);
+  requestAnimationFrame(()=>bg.classList.add('show'));
+  try{ playSound('win'); }catch(e){}
+  let fechou = false;
+  const fechar = ver=>{
+    if(fechou) return;
+    fechou = true;
+    bg.classList.remove('show');
+    setTimeout(()=>{
+      bg.remove();
+      if(ver){ try{ openKodaShop('hl'); }catch(e){ try{ openMissoes('evento'); }catch(x){} } }
+      else if(typeof depois === 'function'){ try{ depois(); }catch(e){} }
+    }, 220);
+  };
+  bg.querySelector('[data-ver]').addEventListener('click', ()=>{ playSound('click'); fechar(true); });
+  bg.querySelector('[data-depois]').addEventListener('click', ()=>{ playSound('click'); fechar(false); });
+  return bg;
+}
 function rotAutoAbrir(){
   if(souVisitante()) return;
   if(FIREBASE_ENABLED && !(fbAuth() && fbAuth().currentUser)) return;
   if(Date.now() - rotCarregouEm < 3500) return;
+  /* evento novo (ou nos últimos dias): o aviso vem primeiro; depois, se for o caso, a sequência */
+  { const qual = evAnuncioPendente(); if(qual && rotTelaLivre() && !tourPendente()){ evAnunciar(qual, ()=>{ setTimeout(()=>{ try{ rotAutoAbrir(); }catch(e){} }, 400); }); return; } }
   const hoje = rotHoje();
   let ja = '';
   try{ ja = localStorage.getItem(SEQ_AUTO_KEY) || ''; }catch(e){}
@@ -39396,7 +39510,7 @@ function tourVisivel(el){
 function tourTelaLivre(){
   const h = document.documentElement.classList;
   if(h.contains('ov-aberto') || h.contains('folha-cheia') || h.contains('entrada') || h.contains('ov-cheio')) return false;
-  if(document.querySelector('#kodaSplash, .disp-tela, .onb-bg, .tut-bg, .rot-bg, .gift-bg, .gift-tela, .bau-tela, .game-menu-bg, .kbs-dlg-bg, .confirm-bg, .cj-bg, .coins-rule-bg, .ask-tela, .tour-bg')) return false;
+  if(document.querySelector('#kodaSplash, .disp-tela, .eva-bg, .resg-bg, .onb-bg, .tut-bg, .rot-bg, .gift-bg, .gift-tela, .bau-tela, .game-menu-bg, .kbs-dlg-bg, .confirm-bg, .cj-bg, .coins-rule-bg, .ask-tela, .tour-bg')) return false;
   if(tourModal()) return false;
   const gate = document.getElementById('authGate');
   if(gate && !gate.classList.contains('hidden')) return false;
