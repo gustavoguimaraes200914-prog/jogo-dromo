@@ -87,14 +87,14 @@ const MAX_IMAGEM_B64    = 1400000;   // ~1MB por imagem
 const CDNS_PERMITIDOS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'code.jquery.com'];
 /* campos do jogo que vão para o catálogo */
 const CAMPOS_JOGO = ['id','name','category','bg','cover','shape','codeB64','hasDifficulty','multiplayerCounts','trad','creatorEmail','creatorUid','creatorName','updatedAt','coautores'];
-/* jogo feito em dupla no Koda Studio: o id é 'dupla_<projeto>' e quem pode mandar é quem está em
-   projetosDupla/<projeto>.membros (os dois). Devolve o projeto (criador e membros) ou null. */
+/* jogo feito em grupo no Koda Studio (de 2 a 20 pessoas): o id é 'dupla_<projeto>' e quem pode mandar é quem está em
+   projetosDupla/<projeto>.membros. Devolve o projeto (criador e membros) ou null. */
 async function projetoDaDupla(db, id){
   const m = /^dupla_([a-z0-9]{8,30})$/.exec(String(id || ''));
   if(!m) return null;
   const p = await db.ler('projetosDupla/' + m[1]).catch(() => null);
   const d = p && p.dados;
-  if(!d || !Array.isArray(d.membros) || d.membros.length !== 2 || typeof d.criador !== 'string') return null;
+  if(!d || !Array.isArray(d.membros) || d.membros.length < 2 || d.membros.length > 20 || typeof d.criador !== 'string') return null;
   return { criador: d.criador.toLowerCase(), membros: d.membros.map(e => String(e).toLowerCase()) };
 }
 /* campos que, se mudarem, exigem análise completa (trad sozinha tem análise rápida) */

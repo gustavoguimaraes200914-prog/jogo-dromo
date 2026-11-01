@@ -117,8 +117,8 @@ service cloud.firestore {
     // os dois (membros) leem e mexem no mesmo jogo; ninguém troca quem está na dupla
     match /projetosDupla/{projId} {
       function camposDaDupla() {
-        return ['criador', 'membros', 'nomes', 'nome', 'codigo', 'capa', 'formato', 'versao', 'atualizadoEm', 'atualizadoPor',
-                'visto0', 'visto1', 'criadoEm', 'publicadoEm'];
+        return ['criador', 'membros', 'nomes', 'nomesLista', 'nome', 'codigo', 'capa', 'formato', 'versao', 'atualizadoEm', 'atualizadoPor',
+                'visto0', 'visto1', 'vistos', 'criadoEm', 'publicadoEm'];
       }
       function tamanhosDaDupla() {
         return request.resource.data.codigo is string && request.resource.data.codigo.size() <= 900000
@@ -126,19 +126,37 @@ service cloud.firestore {
             && (!('capa' in request.resource.data) || request.resource.data.capa == null
                 || (request.resource.data.capa is string && request.resource.data.capa.size() <= 120000));
       }
+      // quem está no jogo: até 20 pessoas. Só o criador chama gente nova (a lista só cresce e o criador continua o primeiro).
+      function mudouAGente() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasAny(['membros', 'nomesLista']);
+      }
+      function gentePodeMudar() {
+        return !mudouAGente()
+            || (resource.data.criador == meuEmail()
+                && request.resource.data.membros is list
+                && request.resource.data.membros.size() <= 20
+                && request.resource.data.membros.size() >= resource.data.membros.size()
+                && request.resource.data.membros.hasAll(resource.data.membros)
+                && request.resource.data.membros[0] == resource.data.membros[0]
+                && request.resource.data.nomesLista is list
+                && request.resource.data.nomesLista.size() == request.resource.data.membros.size());
+      }
       allow read: if logado() && (resource == null || meuEmail() in resource.data.membros);
       allow create: if logado() && naoEstouBanido()
                     && projId.matches('[a-z0-9]{8,30}')
                     && request.resource.data.keys().hasOnly(camposDaDupla())
                     && request.resource.data.criador == meuEmail()
-                    && request.resource.data.membros is list && request.resource.data.membros.size() == 2
+                    && request.resource.data.membros is list && request.resource.data.membros.size() >= 2 && request.resource.data.membros.size() <= 20
                     && request.resource.data.membros[0] == meuEmail()
                     && request.resource.data.membros[1] is string && request.resource.data.membros[1] != meuEmail()
+                    && (!('nomesLista' in request.resource.data) || (request.resource.data.nomesLista is list
+                         && request.resource.data.nomesLista.size() == request.resource.data.membros.size()))
                     && tamanhosDaDupla();
       allow update: if logado() && naoEstouBanido()
                     && meuEmail() in resource.data.membros
                     && request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['nome', 'codigo', 'capa', 'formato', 'versao', 'atualizadoEm', 'atualizadoPor', 'visto0', 'visto1', 'publicadoEm'])
+                         .hasOnly(['membros', 'nomesLista', 'nome', 'codigo', 'capa', 'formato', 'versao', 'atualizadoEm', 'atualizadoPor', 'visto0', 'visto1', 'vistos', 'publicadoEm'])
+                    && gentePodeMudar()
                     && tamanhosDaDupla();
       allow delete: if souAdmin() || (logado() && resource.data.criador == meuEmail());
     }

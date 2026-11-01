@@ -5,7 +5,7 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta, modoDaModeracao';
+const exportados = 'analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta, modoDaModeracao, projetoDaDupla';
 const temp = path.join(os.tmpdir(), 'koda-worker-teste-' + process.pid + '.mjs');
 fs.writeFileSync(temp, fs.readFileSync(path.join(aqui, 'jogodromo-agent-worker.js'), 'utf8') + '\nexport { ' + exportados + ' };\n');
 const W = await import(pathToFileURL(temp).href);
@@ -413,5 +413,19 @@ console.log('== 19. modos da análise: desligada, basica e completa');
 }
 
 try{ fs.unlinkSync(temp); }catch(e){}
+/* ---------- 21. jogo em grupo (2 a 20 pessoas) ---------- */
+console.log('== 21. projeto em grupo');
+{
+  const com = async (membros, criador) => { const db = bancoFalso(); await db.gravar('projetosDupla/abc12345', { criador: criador || membros[0], membros }); return W.projetoDaDupla(db, 'dupla_abc12345'); };
+  const quatro = await com(['a@x.com', 'B@x.com', 'c@x.com', 'd@x.com']);
+  t('grupo: 4 pessoas valem e viram minúsculas', quatro && quatro.membros.length === 4 && quatro.membros[1] === 'b@x.com', quatro);
+  const dupla = await com(['a@x.com', 'b@x.com']);
+  t('grupo: a dupla antiga continua valendo', dupla && dupla.membros.length === 2, dupla);
+  const vinte = await com(Array.from({ length: 20 }, (_, i) => 'p' + i + '@x.com'));
+  t('grupo: 20 pessoas valem', vinte && vinte.membros.length === 20);
+  t('grupo: 21 pessoas não valem', (await com(Array.from({ length: 21 }, (_, i) => 'p' + i + '@x.com'))) === null);
+  t('grupo: uma pessoa sozinha não vale', (await com(['a@x.com'])) === null);
+  t('grupo: id que não é de grupo não vale', (await W.projetoDaDupla(bancoFalso(), 'custom_1')) === null);
+}
 console.log('\n' + ok + ' ok, ' + falhas + ' falhas');
 process.exit(falhas ? 1 : 0);
