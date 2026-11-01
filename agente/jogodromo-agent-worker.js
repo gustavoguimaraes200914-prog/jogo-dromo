@@ -310,26 +310,6 @@ async function tokenDeServico(sa, escopo){
 }
 
 /* ---------------------------------------------------------------------------
-   TRANSFERIR O LOGIN pro endereço novo (koplay.gamersite.workers.dev)
-   O navegador guarda quem está logado separado por endereço, então quem abre o Koplay no endereço novo
-   cairia na tela de entrar. O site (já logado no endereço antigo) pede aqui um "token personalizado" de 5 minutos
-   e leva pro endereço novo, que entra com ele (signInWithCustomToken). Só sai token da PRÓPRIA conta de quem pediu:
-   o servidor primeiro confere o crachá do Firebase (quemEsta) e usa o uid que vem dele, nunca um uid do pedido.
---------------------------------------------------------------------------- */
-const AUD_TOKEN_PERSONALIZADO = 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit';
-async function tokenPersonalizado(sa, uid){
-  const seg = Math.floor(agora() / 1000);
-  const cab = { alg: 'RS256', typ: 'JWT' };
-  if(sa.private_key_id) cab.kid = sa.private_key_id;
-  const dados = { iss: sa.client_email, sub: sa.client_email, aud: AUD_TOKEN_PERSONALIZADO, iat: seg, exp: seg + 300, uid: String(uid) };
-  const assinado = b64urlDeTexto(JSON.stringify(cab)) + '.' + b64urlDeTexto(JSON.stringify(dados));
-  const chave = await crypto.subtle.importKey('pkcs8', pemParaBytes(sa.private_key),
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
-  const assinatura = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', chave, new TextEncoder().encode(assinado));
-  return assinado + '.' + b64urlDeBytes(new Uint8Array(assinatura));
-}
-
-/* ---------------------------------------------------------------------------
    FIRESTORE pela API REST (com a conta de serviço: as regras não se aplicam)
 --------------------------------------------------------------------------- */
 function paraValor(v){
@@ -2150,15 +2130,6 @@ export default {
     if(request.method !== 'POST') return respJSON({ error: 'Metodo nao permitido' }, 405);
 
     if(rota.indexOf('/conta/') === 0) return rotaDeConta(request, cfg, rota);
-
-    if(rota === '/login-token'){
-      if(!cfg.sa) return respJSON({ erro: 'nao_configurado', detalhe: cfg.saErro || 'falta FIREBASE_SERVICE_ACCOUNT' }, 503);
-      let quem;
-      try{ quem = await quemEsta(request, cfg); }
-      catch(e){ return respJSON({ erro: 'nao_autorizado', detalhe: e.message }, 401); }
-      try{ return respJSON({ token: await tokenPersonalizado(cfg.sa, quem.uid) }); }
-      catch(e){ return respJSON({ erro: 'falha', detalhe: String(e && e.message || e).slice(0, 200) }, 502); }
-    }
 
     if(rota === '/moderar' || rota === '/decidir' || rota === '/moderar-antigos'){
       /* não existe mais decisão "na mão": o resultado é sempre o da análise */
