@@ -35,4 +35,14 @@ Quatro jogos prontos, cada um mostra uma coisa que o Koda faz. Cada arquivo é *
 
 ## Quer mexer neles?
 
-Fale com o seu agente: "deixa tudo em diamantes" na Padaria, "o forno custa 50 moedas", "coloca um som quando pegar a estrela", "dá uma nota pro meu jogo"...
+Fale com o seu agente do jeito que você fala, pode usar gíria e abreviação ("vc", "pfv", "blz", "on-line"). Alguns exemplos:
+
+- **Loja** (jogo 2): "deixa tudo em diamantes", "o forno custa 50 moedas", "coloca uma espada por 5 diamantes".
+- **Visual**: "deixa em preto e branco", "deixa tudo roxo", "modo noite", "muda o fundo pra verde".
+- **Botões e telas**: "coloca um botão de pausa", "botão de som", "tela inicial", "um cronômetro", "põe os botões no canto de baixo".
+- **Música**: "coloca música calma" (ou alegre, de aventura, de suspense, espacial, retrô).
+- **Números do jogo**: "mais vidas", "começa com 5 vidas", "deixa mais rápido", "pulo mais alto", "deixa mais difícil".
+- **Textos**: "traduz pra inglês", "troque \"Game Over\" por \"Acabou!\"", "mostra os pontos na tela".
+- **Tudo junto**: "deixa em preto e branco, coloca música e um botão de pausa".
+- **Online**: "deixa online" (mostra quem está jogando junto e os pontos de cada um).
+- E ainda: "dá uma nota pro meu jogo", "verifica meu código", "joga com minha skin", "faz o jogo salvar".
