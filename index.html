@@ -3554,6 +3554,8 @@
   .ia-assist-abrir{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1.5px solid rgba(179,136,255,.7);background:rgba(124,77,255,.18);color:inherit;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;}
   .ia-assist-abrir:disabled{opacity:.7;cursor:default;}
   .ia-ico{height:28px;width:auto;flex:none;display:block;image-rendering:auto;}
+  .ia-ico.ia-ag{display:inline-flex;aspect-ratio:22/29;align-items:flex-end;justify-content:center;}
+  .ia-ico.ia-ag svg{width:100%;height:100%;display:block;image-rendering:pixelated;}
   .ia-assist-abrir{padding:4px 14px 4px 8px;}
   .ia-menu-tit{display:flex;align-items:center;justify-content:center;gap:8px;opacity:1;font-size:.95rem;}
   .ia-menu-tit .ia-ico{height:40px;}
@@ -3729,6 +3731,31 @@
   .ka-barra i{display:block;height:100%;width:100%;background:#7C4DFF;transform-origin:left;animation:kaEnche 4.3s linear forwards;}
   @keyframes kaEnche{from{transform:scaleX(0);}to{transform:scaleX(1);}}
   @media (prefers-reduced-motion: reduce){ .ka-msg,.ka-card{animation:none;} .ka-pontos i{animation-duration:2.4s;} .ka-barra-l b{animation:none;} }
+  /* ---- Agente Koda: a oferta antes de publicar, a dica e o agente como cara da IA ---- */
+  .ia-assist-abrir .ia-ico.ia-ag{height:34px;margin:-3px 0;}
+  .ka-tit .ia-ico.ia-ag{height:38px;margin:-4px 0;}
+  .ia-menu-tit .ia-ico.ia-ag{height:46px;}
+  .ia-ico.ia-ag.mexe{animation:kaBalanca 2.4s ease-in-out infinite;transform-origin:50% 100%;}
+  @keyframes kaBalanca{0%,100%{transform:rotate(-4deg);}50%{transform:rotate(4deg) translateY(-2px);}}
+  .game-menu-agente .ia-ico.ia-ag{height:30px;margin:-4px 0;}
+  .ka-oferta{max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:16px;}
+  .ka-of-topo{display:flex;align-items:flex-end;gap:12px;padding:0 4px;}
+  .ka-of-topo .ia-ico.ia-ag{height:64px;flex:none;}
+  .ka-of-topo b{display:block;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.95rem;color:#5b2fd6;line-height:1.1;}
+  .ka-of-topo p{margin:2px 0 0;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.12rem;line-height:1.2;color:#08322B;background:#fff;border-radius:16px 16px 16px 4px;padding:9px 12px;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+  .ka-of-sub{margin:10px 6px 4px;font-family:'Nunito',sans-serif;font-size:.9rem;color:#08322B;opacity:.7;}
+  .ka-of-lista{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+  .ka-of-op{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border:2px solid rgba(8,50,43,.12);border-radius:14px;background:#fff;cursor:pointer;color:#08322B;}
+  .ka-of-op svg{flex:none;width:26px;height:26px;color:#7C4DFF;}
+  .ka-of-op span{display:flex;flex-direction:column;min-width:0;}
+  .ka-of-op b{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1rem;line-height:1.15;}
+  .ka-of-op small{font-family:'Nunito',sans-serif;font-size:.82rem;opacity:.7;line-height:1.2;}
+  .ka-of-op:active{transform:scale(.985);border-color:#7C4DFF;background:rgba(124,77,255,.08);}
+  .ka-of-op:focus-visible,.ka-of-sair:focus-visible,.ka-dica:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ka-of-sair{display:block;width:100%;margin-top:12px;padding:14px;border:none;border-radius:14px;background:#17C79E;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.02rem;cursor:pointer;}
+  .ka-dica{flex-basis:100%;display:flex;align-items:center;gap:10px;margin:2px 0 0;padding:6px 14px 6px 8px;border:1.5px solid rgba(179,136,255,.8);border-radius:16px 16px 16px 4px;background:rgba(124,77,255,.2);color:inherit;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.9rem;text-align:left;cursor:pointer;animation:kaEntra .3s ease-out;}
+  .ka-dica .ia-ico.ia-ag{height:34px;}
+  @media (prefers-reduced-motion: reduce){ .ia-ico.ia-ag.mexe{animation:none;} .ka-dica{animation:none;} }
   /* ==== AGENTE KODA: CSS FIM ==== */
   .direct-test-btn{
     width:100%;padding:12px;border-radius:12px;border:1.5px solid #00e5ff;background:none;
@@ -13294,6 +13321,7 @@ var MSG2_TXT = {
  msg_audio_mandar:'Mandar áudio|Send audio|Enviar audio',
  msg_audio_curto:'Segure um pouquinho mais: o áudio ficou curto demais.|Hold a bit longer: the audio was too short.|Mantén un poco más: el audio quedó muy corto.',
  msg_enviando:'Mandando…|Sending…|Enviando…',
+ menu_agente:'Falar com {nome} sobre o jogo|Talk to {nome} about the game|Hablar con {nome} sobre el juego',
  msg_enviando_video:'Mandando vídeo…|Sending video…|Enviando video…',
  msg_enviando_audio:'Mandando áudio…|Sending audio…|Enviando audio…',
  video_falhou_ver:'Não deu pra abrir o vídeo. Tente de novo.|Couldn’t open the video. Try again.|No se pudo abrir el video. Inténtalo de nuevo.'
@@ -18441,6 +18469,7 @@ function openGameMenu(g){
     items.push(`<button class="game-menu-item" data-act="copycode">${ICONS.save} ${t('btn_copy_code')}</button>`);
     items.push(`<button class="game-menu-item" data-act="download">${ICONS.rocket} ${t('menu_download')}</button>`);
     items.push(`<button class="game-menu-item" data-act="edit">${ICONS.pencil} ${t('menu_edit')}</button>`);
+    if(g.mine !== false) items.push(`<button class="game-menu-item game-menu-agente" data-act="agente">${iconeAgenteKoda()} ${chatListEscape(t('menu_agente', {nome: agenteNomeIA()}))}</button>`);
   }
   if(g.custom && isAdmin() && g.creatorEmail && g.creatorEmail!==ADMIN_EMAIL){
     const nowVerified = !!g.creatorVerified;
@@ -18480,6 +18509,12 @@ function openGameMenu(g){
   });
   const editBtn = bg.querySelector('[data-act="edit"]');
   if(editBtn) editBtn.addEventListener('click', ()=>{ close(); openEditGame(g); });
+  /* falar com o agente sobre o jogo que já foi publicado: abre a edição e já abre a conversa */
+  const agenteBtn = bg.querySelector('[data-act="agente"]');
+  if(agenteBtn) agenteBtn.addEventListener('click', ()=>{
+    close(); openEditGame(g);
+    setTimeout(()=>{ try{ const b = modalBody.querySelector('.ia-assist-abrir'); if(b) b.click(); }catch(e){} }, 350);
+  });
   const verAnalise = bg.querySelector('[data-act="analise"]');
   if(verAnalise) verAnalise.addEventListener('click', ()=>{ close(); abrirResultadoDoJogo(GAMES.find(x=>x.id===g.id) || g); });
   bg.querySelector('[data-act="share"]').addEventListener('click', ()=>{
@@ -22815,13 +22850,17 @@ Regras: não existe servidor que decide nada — cada jogador roda o jogo no pr�
 /* ---- o que fica do assistente antigo ---- */
 /* o jogo usa a loja do Koda? (KODA.loja em qualquer forma: direto, numa variável, KODA['loja']...) */
 function codigoTemLoja(code){ return /KODA\s*\.\s*loja\b|KODA\s*\[\s*['"]loja['"]\s*\]/.test(String(code || '')); }
-/* o símbolo do Agente Koda: a cruz de controle (azul, com as setinhas roxas) */
-const ICONE_AGENTE_KODA = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAYAAACLz2ctAABQ00lEQVR42u29abCt51Ue+Kz1fns4wz131NVoSTaSLQth4wFP0LGNgyshDMHkuiE0EAgJdCXddCcQ6KaDrC4IXV2V6upOVTqhQkLSBIKEbaBNGJrBA7ZwPCHJki1L1jzdeTrD3vt737X6xzut99vH9M8+PjnbdX2Pzj3D3vtb33rXetazngc4eBw8Dh4Hj/9cH7TfXtCpe+919733veGHfvI3frHn6//2uXNXQFAGAFWFqkAFADM0vQNM7dugChBo8O6o+Ucyb1/8PBEDmv9LoarlK6T5eZr+UPp3AlTiT1KCAmDm9GtUNjbWaG107kMf++B7Tn3f92l/zz1QgPQgAPdi8J26191333vDe3/sl+8ZHfuGnz19bh7Gjh2BEIKgmzAm0xHGYwdmAihecCICmaBSVRDFIMn/lgNqKVDLv2mJR9UUXE2cDD8mxB+Zo5bgvWB7c475LMCxA5HCBwnHjq45ufpnv3TvP//+H8mv8SAA99jj7rvv5nvuuUfe+0O/8Nru+Df++dkr64F0zqCOmBXX3bCBk9dugDuFY4ovPQUgUiCBOAUElUBpEl4JPDFvnqYg5BKMOaiRv44ALV8XA5VQgzr+HX+aD4pzZzbx4rOX4XuCA+CV/bUntNs++8ff+cF//RO/vZ+CsNsvAfjI176PgHugK7f8g1k4DvVXFJ2j4Be4+eUn8LJbjmIxX2C+8DFIJEeW5ggpGW+3bJcDJQaWlju3BijFoIKW+GUiQCQGev4dpPHXSQpEIohoyrQAM3DTTYcxHo3wxJfOxm+XQNuzdeXJDf8QwG/feeepgyN4D74Ofcupt6xcf+J/fHwhN9/gMZPZLPDhoxPcfse1AAJ8r0ilmnnpZH5IzIwiAoWCKR+TKRsiZjQGN0dqDtqYRWMQ1pCsWQ+0e0DbvwEFKTCdTvHU4+dx+sWrGDmn3E1ows/vnH383932iT/8Dy9AlQZn/Fflg/fJ8UsAsN6/+dagK9d6DVBlVigObUygqvB9TFUx8XEbdEpQAURs85CCL2c7jYEBUYQQ0tfGDChSj1IVAUTBIIgKBJLeZQXSzy+BRsNjONegBN8vsHF0mgIfFMJcuVtfOXbNq28BgFPvvW9fXLt9cQQ/8sgj8RB0Kxtg5yCqwXsSUUymE9Q0puXIK/2qSmkmAMTsp7VpIBMcmo7p+P0ST2+mkgXzMQrEIAWnI1kUrATiGJQ54+XaMj4nKc8hntwCHsUUoaJgx8rckZfp6n5qHLv99GKIJwpwrK8kdbKp0VDUwp+odqA5zBRtZspZLQZDznYx5YkAzhG4c4AySAXeB7Bz6VRMhWGIHzMTBAoIljqaknGbbFi/TKEIQcAdA+QQfHAHAbhXH/0ILgVTTIlaARCq4aaqNeOkY1RNBhKtR3GQ2BWHEL8HADrncP7SHFfOXkXnFEeObWDj2BTe93A8Sk0IgWP6hKTfHLFAQepjvmIQanoFqrkMqLUqO5KDANyrj1EfL3UKMOTGM5e6KqURyMEWg1FLJxtrtNi85ugN3kM1YonsgOefu4r1/ir+7rtvR8fAb330aTy/tYIbbjyERd+DHIGbOlMbzDE2JNTUgfkYts8NJiMDCgKhw75KgPssAE1vmhMH56CSirVBawNBRGDOgegBMCSYIEY8gkXiBOXsxR5y8RJ++r95M46tjSF9wG03Hcc//hefwpnRCEePTxH6AHJAn45fVgY0fqyiiKlRYvNDBotGhCJV8/NnA1YTFAJh2VfDA95f4TcyRxhKXdf8SfUcLORS/r12wiICEUUIir4X9AuPnYXg9OPP4e98611YA+PsS5s4f26BbhHwo9/+tTj79FlsbwWoj123CkGEEMzPUhBEULtuW1+WJkjMZCZPVgiiirDPEsb+CsC+N0EmKbMohriyhUJysKkoJORsFxuNIArvBRoERB2eefQFfPdbXo47bzqGMy/OEGYOYUG4eGGBW4+v4G9+06146tHnAe4gQRB6QfAB4muQVchm+CeP/lwJNm3GdwQI4ODCQQDu6TM4gsEEW0e1Nd8Qw1ZNF1wE0nt4L/BBIEHgvUBAePH5C7jrug1861tuw9nTV6ELwnxTMN8MCAvCuTPbeOdrb8Rbbz2OZ588B4Bq8IkieClkCJGacQspITcgEl8DmVIBJFAEQAHWTg4CcE/XgCmj2cyhuxzFJhiaP0rpuAR8L4AEbF4NGF3Zwn/1rjuxeWEb/YKxmCH9IfQ7isWccfHMFr7n7a/EYR9w9vw2VIEQBL6XmFF9/Ln5eN/tOeXXoAJA0s2RsiaIEFj0IAD36MOjTxAc17MtZUUNaAgpsd6jcuElaMqCCvEBEgKCFyw8cPGZl/B97/w6TBXYuurR7wDznRSA2wHzbUE/E1zdFISdBb7v7a/GpecuYrYICOJL3SeiMagCoKF22/lvIi7AeOqd0+uo5AgJng8CcA+HYJm/ig5wtHzc1vFZbAIIwafsFxAbBaWY/YjwwtPn8a5X3YQ7rjuCC2dm6GeM+XZAvyNY7Aj6mWIxUyy2AT8DLp7t8bJDU/y119yC5548C0KH+byPtaQQJEiaDZOpQ9GA3xjWf3YcGPZXBtxnMEwHiUVUqgPTxUwJRFKhXzpfqVlQRKGpCQlBwAScPnMJt446vOPrbsWZF7egPaNPtRxABbwmiqA3OYJzhDNntvD2V9+IJ164hC+/cBnX3XAI4gMCCOgIlG4A4ooBhiCRo9jUpikMmWMHrLLvrti+g2EKiQBpzpv/l4BmKXhgbDxEQqqz8qgtft/23IMuzPCet96F7YszzLaB+VzQLwSLuWKxUPQ9sFgoFvP4b4uZYD6L/33l3Ba++02vxOq24MoVD6JYmwYRhJx9cweug24XiV2tHHFJABKp21DlAxzwqwGILhe2gTm0YZ+U+k9CDI6g6PtYs5176hy+6/Wvwjo7XL0UsJgLZnPFfA70PcWAW8Tjdz4T9HNgsUA8jueEzc0AFwL+xhtvx9UXLsF7goQACKXgW2bCWHhIVFLGjq+qOaIPAnDPAoElyBxzZTwjd55SRl4iCSe0c98QQI7w4rMX8aYbTuKOG4/j/NkZvAcWc6CfU8p4gn6h6BeKRS/offqziEHZzwV+Qbhw3uPmw6t4+6034oVnL4CIsfARq4zZN1HBDBBeb4rIuCFOY0KJdWCvB5OQvV3QKpULmanwmUIfmw9pOuF8HHsvUFKcPbeJozvAu+56Bc6+uA3xjMU8Hrf9QuEXisVC4t9zwPeEfoF4LM/VfAz0veLsmR287bYbcLOb4sUzV+AoHveZg2gnIPZ5ZVpXLBGkNCJEBzDMnn5kqp/k5aDBEWyzYc1+DEI8VreeuYTveN0dmF1YYLadjtcFsJgLFgtJgZhqP1MP+p6bQFzMYz04nyuuXtzBt7/2FXDn59jc7lPkU2HF1C5Yyiiu2ZpDpHNFYjW7gwDcw01ImQQP2M+VTJpp9Q6kBEcOwfdwjnD6qQt49ytvw7HJCi5f6REWFI/ZRcxs+dj1KQhDH7Oc72OA+j6O7nJz4tOfra2AVe3wbV/7Nbj43MUY8CECk5rmwZXQmvZSJNesBAkKzYtPgQ9gmD0cf8hrbiqS2MRiumJLnVeIAuI9XMd46dnLuGvjCN5w6/U499ImgjD8AgiCSiwoTU2d5zKbpSJOeyAMOJcIB0ExnjhcvDTHHSeP4BuvXodPP38RN91yHBoI4FB2guu4EO3qb2JIRyoDHWTAvf2gSmfSEo/gRA4kZRDiUrqkzbTNzQVGVwLe/ZrbcPXSDoK6mO36mPmCB3yQ2Ix4Re9R/sx7hQ8U/7sH+qDwHvA+fX+fju7AOH9hB99028046gnnL25BNZQSoa4IlL4XUC6kCpRy4qAJ2ePxRyAwMjM+Bl3a0bCTkZxtmHD+pav4umtOghaC2TzCMeWPzx8Dvc9/x/1dHxTex79DiJ/rvaL3cf4bPCA+NjjBK+Y94Dc9XnfNSVw+faUA0TY7o1R+cWoS61kt23Z+n/Gx9tUR7HtglPmARhpDoUXuInITNE0x4scMQYcO8A7eUqSkjugks6RTWhXkaQanwYuCOf18ZogKSBDZ0YnQKoHhA8GhQ+ey/EauUeNRzmlxyfJOmbhsdDrH4SAA9zQMk/RfNNZioolZjHa+6jgSRSHAkROH8OkvPYOj4xWsYwzfC3rPMduFCAhLgMHpAJWkpBDigeko1ovESREhzf80EIgZvCAsBDgtc9z/1DM4essamDSpMZCB0cn0v4lWFhQICoqvjQ4CcI8/1OxRcMkwZg9XzXFNwNqhMbavn+DXH/xzrHqGZOaMIOFwKUORpvBIdHojYERp2YiI0995VZPBjhPcKFhwwMYrNnDjkVV4lThDhithVxbcUZejsqaR7sNrtf8CULVVJOBSCMZgSpWvhhQkDOhCcfTkKlY2Jrh8eRscAAkhfn/iSzGV1aaydRdLSU4tQyW+cmyHUyAR2MUg5I5wZH2K1ekYi6BwIyoBW1UT0mSEylJBkvZIH3fhIAD3eA9SLiIYCCJlQyQej1qaEE2B5ToH6YHJWHHNiQ0ELwghsmoij0/yYZi27VJlqW3GyhtvRKluoyi1xkxgR3COAY7HNDlKMA6nbjgFrlb1tcKSzoweUrDgYC1z7wMxCWJhNAu4eSE9H9G5C2UAHRxEHUII4M6hU4YESfPatFMsGhkqWVRIG9418nQj06qICcycsiJKIBLHr3OOmwBO5O2iupVB86xXGL+uO8iAe7YLBjDOR2MOPnKlHpOyb0EAC0jjUayIQeGAsqKpCii72MTIspaLzbiqNcCtZBsGsh0xGGNxyexi1+vQbMDFn1cDOMNGIhkEXxw0IXv5xdgmg6h2lnHVkcuRVpIOxzjJe8ORJkW5VW6266y8VSYMqOajHeVIp6QZkzdTakbMO+nOZL7dhC9bulZ+FfHzfBCAezkDdhkDzHp/pTFB3bel4YEdg6QGJjXBqNAkyUbL3TQxmAgCSUJFUTVNNeoD5qxYZryQkg2LMKVW1k78N2pVgKEgAXQftsH7rwbkGmBSuliAkrJAhWgIWT+yyBNQFZmkUjNyk0U5HYul8ZD4+zgFXJyaUTn243GMgm5X1Y16oxBxCszULomCyZV5oiYuoO5DQuq+hGEK1T3hcswEL5nipG0dZ/eG0xGqWYxSUAPIHIaUtF1IESMv4X152ch+fQ1CSRkwrYnCSMKpVJBc49RGRBqhy8LuPpDm2OMPqeKSTimNzOKexW5NRMTZJKlWxcCjGBVgViNsb3E+AqVsFgcZUrrfrEmUDnFQUlqNbzWXbtbqDkb2DDfBRgA6jgA1ZQYOMdQfTEL28GNkNs1SNMIQTyvGUY5BKw5prywzmwy2G97YSvsq0labIoHIqe7Tr0w4aO6bzIim5d8pBlx3fLCUtIcf2xGry5haJnZSnCwIFKRc5rT5Qudgq7ibPabj9xPXAB0GSG5sshY0F9glFYdJmLxihFE8k/J0Iz3hWPdlqn5eI03rm4j61sx0kAH38ouRBHMQGAGSuH9SsTmtWSaEYABqLYGY/y40fjXYXoFxzN4uLKtFiylNluPN+U4NFT+LnseT1YGUzdZbputL+R2ShGLUHcAwexqGIShEQ2YPl/0KVWnA5NzJNvrMWo/DZrw2OD4z/meDd0ntXk0DYrC8tgygatnQ/CyUOnA47nMHOOAefvQeJApLiS4ivYpGiSAHmYogs+2UDOg7sGEAVRxRit9HCmwajNTQnN6FAFEB7BTcyk1g50UpZo4lQwpWBUGUouQ0hdFBAO7V+AMwAZf9DVFZqvmzgCVlP4+8AikoOtKWBNAex3nSErva8rMKTjjosCXE2s/8W1bVz7rUuzU2mm6W8hxRV03R60EG3Ls9cJdwuIrFSSKn5gVwtoYw1h+OpJWDLFMMagBjpIqSBpFdj16FLkV9ewPU4/crdciJjqgCynqHvNTEHwTgHozAkrGquyWljEVmo624CsZuE9m/bRfFeqlNhkoFrE37URgJlArE1nQmZVXTWZcZsHKdvFjDxKaKsIFKEP3PiY5199186pGv/Sq46R52p07di4v+Ya6NQBQAH65kVq+QfBzToEsdZKOGL6CNQ6Y1t8kTDAzA7ppFrbFNTYl5f2XJrCadxapiVP4BZSenTt3rALhTp+7d81fmzjsf1nvuuacRyfv/CkB6+91/4j78vncEIpL7vjpupAAA7/zuf3QVPiSpM4YgNRhGrLKge0q1OxYkSoxRKzAdbwmOvHQkGb+j0uy01gppZ5g0deXGnlWo6YBhgr6Z1CiDlcHsoMIgJRIVLPrtC/d94L0hv+avjgfh7rv/uLvnnneEodcxtQkvWp7m/z71/T91s9t4+UkJ0hEpj9npQgJNu5FE2CPyTzjOuqCSuCRjpyMACwkEDzjHtFgIefUOALpRF4hFVZhEAqEPrhtNgvfxJ3IQZcckvFAi1qh+Hyj4nkXT7/Zz54RJHZNK3/VhvtieudfK9I3/+2zeKcFTIOCVr7wW6xtTeB9qXVh0/ajggZWdUjNm/lw+MpVyp8JNF90yolu/j/wGyyDAyOoXDo5uSl2ReMaXvnAGvle4biSrE+H+wsf+yTXH8SE3We/GzBo8OKT3csSiwqysJExOAy2YqItOdQshYlZlIddBKDgFgBCU0QEq8d+dMLmOJATRwKwqQk4DURBlniiRKrOodiSjUcxf3isDI/Q6c1gEhw5wgIyomy0uP3v+V37l558sMTWwmqXhP9wJjN/2k7/2t3p34vs3t/n1fehWoVG5nbgW8Ya1VD6wc8xM7xXNNlgEawZdnFLLxXEm47RuRoQEfaCuS5JhDwsAHzx8IGztxFXK4D3GE8ar7rgW3aRDCNLWd4kxTdY42jYBqrtPOhBJrtHzpiWqUmbD7CKMPqTua6H2Y2lGnUuEzo3w2BfOYHuzx3g8goKwNhWMxyhMa1M/INPPNE9vUGvWtmGKH0u2M0vduX0bNLl2VuIjivtUVOyK3+9cfR6tC2lkIjmaz1fH/tGOr/zazgv/9l/+6q/+zkUbhGSD73t++Bde5zZe/0tzvuF1Fy8HbG7uQCVoFvPOmUA00oVicEiRw417DsktkiO6Jkn3GNGuL80142/mZGelCoRk6pIvtgQBZ3MXoyavVOM+GwEqR6wsmqALiwCz7R3ccMNh3Po1xzHrexDxkj0Xu9qU6F9AtmsCTNJIL2UwZi4TFSaGUs2wu/nAEdBsve0OdMfnOJl0eOn5LTzz5EWsrIxTt84CjStKIum25lyLlikM1dm3asecygbL+VfKctScxY+SkQ5Xda4a2qRUpzxUJj4Z8E9MHyXjHB8/rTRdXcHxYxOs0plnZP7of/ur//zv/1aOOcofvOeH/o+/jNU7f/P85pG1y5e3vQOYWCgEJessmX86JRo7UxbXRtK80zJgplSoEAYk0HRXxU2z9OahlVSjtIXWZNvymwFoJICqaCyrCHAu+nMs+gXWN8Z4xddci8kY8DLMbvk5tRrNXzH7oZ1G5CzHTWCZxXfTqGZqFQbfQ+bzS1ggUWHSOJ7iqSfO4cL5HTju4BKYXjDO3F2nRSjVZlyTuIptDyCJHZ4TAlOsl4OmmlnsNdNyamkzaqRBo4VijxYtqvLuCykpqyrJ6tqkO3msB+088CP3/au/90unTt3rSFXp23/gx1/GK+9+6Nz2tRs7m5d9x+Mu+AAeOaxvTDCeOEMfpwI35CeZjzH7ptisUU4BHXSezcXFLl5pqTbKOxmJ+ZkB5KgsFdfE8sbbaARsbExx6PAqiAS+92ZSYQOJlnC5ejzVLlUGfMHm4g5qRRkcvTZwyQRuDkxtoBk2NH8kVrWicw6jUYdLF2e4emWBvs/zbS3HcJzQ5CIoBhNRLQnIyNNRIYppYe5k93ZgUJ+WLeiKC3Fyf6d8GlnwXOsaKRC9UTavzuF7D0cMFQ1uOsF1h7eYZ5/5pvf/8k9/ggDgr/7gv/mtHfea77h8/rJ3jjsfeqxvrOKWl1+DjcPjmKkcG3OV9olmAUgxkIdkWMIeo1mJVEsfaCjyBkeTROzUhjuVjppKfY+K82JsDhTOxYu5szNH70Oky5tMw8QDByI7+60m5Fpq2JithobnZVYLsyFXo8cwqtXMdbUA5Q3bBjzsBxP8EoNo1DHW1iYgx+gXWqYwAOCcQ1xy4jIqzBmRzOqpJg8UDJ2jCjk214LxQI4/j6pPHkzJZLwfOQuol5FmoqVRRBU2r8zx7LPncf7MJsZdByUOa+uH3GH3+OcXL/7MG+mvfe/db+qn33j/hUtrUCy49wFHj63g1ttOYjQmiBeIejM0p0EA1o+zXgoABAlmwK/JuwNmvFT6lFj7mcKhQeds91ggkEx5qhcig8RZfzknuRhcxiM4B7VRL1LNARNnsLagDyrlRtotu9nJhZqbTq3pr82xBlRujvU2fisaTTUXMVOzElCDS5IZds160HpTqQiYKKrs2xvGqC6ADXFC6whQ7PhFNZYABsoq18Us75dGyDl0zkGV8cyTF3H6pasYjzoALlxzFG6885++r6PxK76/18MsOg8iwGjicOPNx+A4YLbVg13C0zih9rl7W7KdrwpOeZE7Z8KymKMU+XokZZssyqRRRYc00oyL3aDGCpFsDUgEHxLN3QZD0mzJC0b5aKmE1Ar+Eiw1KuvHpLuaXDzaVcGuQi26S9OguxzJ2JWulYt3G7z5Bhp6CNdak00tFzv5eOxKiMepz1xDJcMhRJ1xp/cwK8bmUic3lVLmflICKGgoZQGQ92mSeXexsq1uA3bXJeR6F4CKx3zRY9x1uOGmw9janGN7awF2ip1+VeGO/s1u0U/fNo8XmUQFx46sYTxxWPSLEiDxguRi2y2pulMKGAkZG6vZrS6CSxQOzzZUeVqBKgbAXFknS11o+pmiVv0gd7UE+y1NcW8UsXKtWmvBdPxp1IAhx81ko7BdsLuWs53/LjUq2h70Vg7Y1ps2IJtyVKmsb2rRh+aoso9q6ZWPXhFfPYhzQ6S54ajNhJZtQRps2eVSpfoa198dn0v2YCknDKShpxWaWz4x0hKXDwGjjnDsxDq2ty9ARXg2U3Kj1bs6H3DcawBUiaBYXx/DsUIM3qdiXzKVrrS8yRpqPZguXqaRQ2K3qZLqBJePRlQgEHUtUsvdu3zURbUNrrw9zQRUe6EL9FunGoIiz6ZK5UJVLAwgHsxpQUuEAutonheMSoZODUAkPVSge4lkYPaTSSuEl+vM5E0Iq5IFcCIlmNEdp4wkCWeIRX7Jsqp2TD2ctkiFnvKutCgYFAWTkE+R2NWyY3jv40YL04BY295E9nWAXGqAAkQDJlMHR/GUCuLhPW90koJG8tyRKi+tdEr5TmCOCH0N/jYTIjr+NBcK1FDgYzFcGXe5ERHR5dHrLsCwoqU3gdqslCuEIsOhpv7L1YlUEkEuBQicYKQYTAViKdK5Wl9bAsbZVVJDJisoJGUAgmhYfg3E8Ui3OKASVGq2TbIOTRZXSGlghh10LPksvX9wXahm1wIJpZtGQ92ZCSB0XQTZgw+lkelDKEew+tgVMxGUU4kA4zggCU9MJA+Xr4PEQEylEiWsd7VToPGnKII8QevsM7/B5phoVOdN/ZUV3SXEFzoZM3ZmgrPnNqGiOHb8EA6tjxBCKMs70AJnQkmXGMeFRJBviLJaSYM6v9Y4lRUTR20t+xkGfM5TFgOHlBVOarh4lRuYLmZI2TNzA+14yAY8UHZEWuivZqH4u2NH23SzgGmganlCNhuRDrr5Mrwws+V0HKNOPDQpbTLFJmS2ULzw/EUEDTh2fB3rKyP0vS+TkiBpw4/SrktIYUx2uZ+iESO0vg1A8WCO5QIicZid63I5rmKH66nDkaj6qZIpQ63VfT5+ouea2WGQCJSOxyOcOT0DzbbxrledxOrKGB994CVcXKxi48gYlBTgI4mEqzg3VaDW1mnD7q6qF9iMJ0sE0lxM2wtUMkuqK7OkRnzfuPThlpgagpkLZ9MbSsxmqpT/koWRoSTNkoJmpFUqqALRUDSRa+uvVCszuyYwS81tAG2mWlKUsWVq7Dj9LVIblYJJQrEz85ifv4p33n4c7IDPfvkyXrpMuObEGvo+pFKnqjaIsBFXsjd0HbWqENRpcxMgDQHiAqG6jvOcT/KSjBrQMh/H+XxXZIHO3IJn18mcIXsfgBBA3QRPP3YOt50Y4e/90Gtxw/F1jBzhja+6Fu/715/EZPVkvMxpkiLiwWkPVjXamYpYyQyj2VJKNG3GXpYeZWelFuDezbA616xsSKI2++RxWy74d6vrMu6TcdKKe2pT1MPggQXsFoFzudHj9LptoyeGDraMYZZsUwDsiCww51NDEDTjtPV35lKL1OH0U2fwU+99Hd7+Dddje2eO91wV/OJvPoT7H7+A6246BkYfj2jnImbAsYwgrieMPSHKTZCc55ljFiz/UwIxEyOh6kL1OA3iy7hH0gxREKGPPG4LwRchb1VFkIDgA8ZMEHT40uefxxtvWsfP/K234uhkjPOnr+Kl05u47sgE16+v4OrlnVIpi9SjMv+x05EY6GimE7vNWfP37YbT5RZKoC1nL0tfJBelEMLAtajKpA2NBRvtPh18TmO1nA1mREydRFxupnJzBUmWElpq2UzgKNgeai1b15xTKpV4RMJo2BR/4qzmWl5PpYeJKK5s7uAwGLfddAQvnL6Is+c3MWaPf/C9r8d3vu4knnn0ecx6YOwADb7csEGyjqIBrA1ppCQnkCHh5sCM9rXdsKarykxSuqo8YivWBqnYtG5DIoJp57B5VfHi02fxQ+98Bd7zjlfh0uUr8IHA1IGCokccds/nPUKYpCNHE8hq3zwYnDEd9bq8pTb8e5gRm0BDJKkGCaABUXUIGluS6NJdbcZvMPIaUMvIjm6XZXY67BapMqGLWU3ZFxFTs6ajWW0mrUdegT601lpLrx31tFBTXklKILOdOTaog18I4AD1I2xeDcDVLfzgX7kTt1x/BP/itx9GOHkERw+PsVj0McPmpshFMc4QFI4rMtGOORNxRFH6g0RItXVFwnlCMtLLd0wmFgRJ9gGh+u2qIoQek9EYL52ZgS5v42d/4Ovxdbcdw9mXLkElMkR8UBALHClY45zQB4HjaL1SA0jTkZwzoJFSG9ZG9qqaPY4yCkwqpbWDNuuShe7F5sYzc1q065J2hGVpUMPj3daZInYEp2kM2GKEWbGfzVRn+LN0MBHaLfuraQjjsTpgbJddvxh8IQgkRB8T1aTw5aMnSpjXI/XFM1fwjXddi1tuOIR/+msP4PRpjxMnVuD7BQRRelgRFV6dYwSEcpNQwwXOsJUAqPgmi93OSgLvIE7i3FreoHy89b1P1gWKvg/wfQDpCE8+dhHXiMc/+bG34pU3buCl5zejkd9c4HcEfqaY7UT/tL6X5Nuh5U5UzUi/JGyrpcFbe9VynGqysEJN9+V4SnCPl3gMgusoLtoutGOwtPwdM2TxGUbj6WuzbDyqB67mcZMoHqdBDOSs9een35E7+QomawmeJsDyYhW1q6LD5yXpdUrC7gQKLyEB0fmIjE1fPi7jvD6+vz7Ea+NnQD9PfnizgNADp09v4vjU4X/+O2/Cq0+M8MQT56E6TskH5ef54EsJk8sOCQb6kXYOrVB0ZJk1KVq99+0bngtZr9XYOaVRHxgvPH4a77jzWvzId70WMp/h3OkQXX6SsUuGaJQYMwjmM4FOU53DSUdcpIDFleHBaVwVDFBdiQqW2azDDDHIDtmeVZJUhzMaMqIKCpGgWqAK1QQsLy+HZD8PuwFHoF2PvnzUDhfMc4GeS7jcLecRpBj/ODUuSgTdlWtoj/qmhk3BkSdMMfvVAJYgEBWEHphvBzArgo/NDIFAXuFGwIVLHisrgv/+u16Hf/9HX8IH7n8K199yDSaT+L2R3VYd6XMn7NLxLIVTikLZYxC6dnwSCvpeA5AQJKQWPgLNKgEdO+xsCy49dxY/8K7b8e1veTkunL+KvgckMMTHIzqEvH0WMT4Rhe8DMOUIwRS4PhEKuGWKtJp8QN7wzscbod3JyB1Zuwtpj8v4uyKmxUVIMgdejqgq02aymNqgqB20agJfU/at1hBigOQ6gKmLeVqfm6lFC7EUVhS9YnfZYqyts9pM02gdOkpHbuubJxKvkQZB33v0i4COFX1fmwZmQegj2XizD9je3MT3vOt23HxyHf/qd7+I+bF1HD8+QT8XaABCAvHT8B+S1hiKwV2ZWcfX2tl03o60qr9u7mh8iJZB41GHixdmmGxt4R99z+twx8uO4qUXL0OFEXpAvMS7TCIomdkV6mq36T3K7FhMjccWpCVJEwkzN23mp6hmcKQJf6Myr6wYHhX8KTNz1ADapUvLWTVSdGqtaGrHTE2qawExKL2XwuoRlWWop8zAzXL7LsFDpf6U2pRJnSoRU5xbU52YlGwJKmQAiCZfk0r1sw2bJHgEqR4MPrq+gxXBG7IJR91scgqwgEcOZ17YwltfdS1ednID/+z9n8Nzz85x4/VH4L2PiYfjc4/TEuMoYJhTmTnOzS2anmQIId4ZyV4+eqYJ1AsYHZ5/8jJu6AJ+9offjNuvO4wzL24ieIfFTNHvAH4OhDng5wqf6omwAKQnBJ8mJrlNV7Hyew28QGB4n7snKdiVhFAAY1vPZKxQAgzxgGvtZwf+qDVUDpg8hkM6+nNHCdt1wgZ/nZVXyMhkPeN+nhWvClSkdnyYGODsmp2aDPDbaUyln1H5U1YDgyQ11dS9S65LUdgzma6W6+RSVgVGPyf4Hgh9tpol+DmhnxP6HSDMGH5HEBaE0y9t4Zq1Me7522/Fa69dwbNPn0HI8SPp2salJwP9aBn55pOjUxHkJoky3QSEoMYhKMSvEd/hhWfP4J13nMQPfNtd8JsznL8wA0J0lwyeoH2q+xIuVYBrIlDKLpKsDiTeVPHNcdTCQZQWt8lVAFYrKV8tcI5IUigULSKI+FJLZnCYEsEy04QtIBykwjxMWueWqMvjdfmHS6YrPMIiZg5D+5IU3FUck3ZTSkgTiojg1NIn60lnP2Hb9QfN4peGpZOk5ySkgEc06inXMSMMqM2lpPNQNBohOiUsFlW7GklGjh3BBQL5eKrxmHHh3Awra4z/7rvfiPd/7Ev4wMefxrEbj2JlCoQQsxwXHmgkuoIsIz7tBVuYQTTWaFFbJU4kAGBry2PzxQv4gb/0SnzLm27BxTObycqUEHqF9ATx6U+Z+1WaVOQUJrqpahq+I+3wRi1mW3jb0kfEaPilr2/xtFifqqEi2fY/rR+mHQuXspQ0wK6V8wgi2WGhEGDj0HQ40UDJKtbkQ0mL2xGlgXrpmLVCOFFuQ1KjValTS5MbNZt7bJwAsoCRWYWQ0sxVg8by/BJZxALEcUYYn6/vBUyKvjelDeKNwSFyDx0Tglc4T+ARYUcV89llfOebb8f1G4fwy3/4MPyRDRw+Nob4EM2CAKj6VPO3gH5nYQhNbXUQLeI5rutw4dwWuivb+KlTb8ArbzyCMy9eQQiM0BPCIjIkgleIzybN8Q7Nd3bMHgxyAviINxE5iGSzFmoIwLkgZwqNh1qBS+ycN1Pa8+d4N25eKTIRjMNlESMv+xEoC0aZTqaFOU0lAZYASbhW2bag9H2aMT9DIjDripSd0H0qCmlAb8tWrQQ45ra2zYFMXNw7mZwhKaTGylGBPZhdOvprKSEhHpUIVN5/v4h1re+lvG9FaBNxMV84bhOKKCjE5NB1DmdfvIQ33HYMN558I/7l7zyE82c8rjm5Ch8SmkEERah2GClJce3qcheX0nSI6fPyhR1cIx53/+DbcNt1Gzh3fhMSHPwC6GeKfh5Nnf0iPvHFQrDoJVrdzwWLPho3z+fRyt6nIO373oxwFN6HulkX17IGe7UlVGJwR7nR8pxzVqh3F5lFn/xxomAVarxdYRXT9acjS1vgN4QKp1gsMlPtpUxUapcsigZ0zkdbGVtZAkiZqzswR7XUOOriAvznP1SIo3kTjmt3CZSaEyB475vmQ1Ntm0+4/DP9XLFYCHwPeB/rwXwdfa/wvZprq1jMFPNZ/Dj4DufO7+D46gT/w/e+CS8/NMKZ87MIdyUILJ8mUVws3SjNG6oBqgLv45PrFwK9vIm/+x2vwaEpcOHSNuAJ/QzoZ7HZ6OfAYo74hBZannS/SM7hvcIvYobs07+Xo82sK8ag11JEQ+MFj1/C1UAmOZ6HkBgmOhw5cbFe0DwHLedxsnJNzQzM1KQlN7R06qG5zXCPOCR+H2yTYOwVYGn6ZTmIC7G00vMz9BIa6lXWuQZTqom57HS0XbQagkiu+yxF3sBAlpKVmpro9E7R+X1B6PtkyO3jsex7wPeERWosfZ+TELCYAdo7XLm8APUeP/ptd2HFLzBbmM6/vEe1getqQcixKJG4tqYasDNf4MT6GjYma7h4cRMaHPoU8b4HwiI5insUcDMCnVSK3saDQzQxbjntOkT4YjzuClxS3nPSwi1kjvvDRZMqj9M4/kyBFbzSutyuAZaUptkelbjS3ZGNaJD2YRMxl7mZy7b0Llc6ZLYuSag7MWWRqSn9tIpismXPmNmzSlp7VDB1UGhsOOzujeFLZ8imdtP5kK/8zUpgRZmY5PmxT5k7aHR7V46BFW/EtD9cMMGs6J8WogRI5Jjyu0dwuHqlx/GTq7jx6Cqe2J7jyPoklTU+TZu03GxdHelIQ0jwXjDqHM5e3MLTz1/FLdes4sLmFoJ3CD4FYLKk73uBCqfjVSuZIBfP+dhjpC5Yi4ZKmXBonjBUXiAlF6LMOJFGzoJLJivoOjM0pKqw8NCSgmmpq7nZJymv2YzVKhiuu3ALqcmG+f1joz89pICJJNan0Zq2Y8OIJwYALnUmBrcbliJ1KSI1ZaF0yXUBpt3XCUErQG0ZOw1sFEslhaJfcHyfSAstzGKC4iJdjB2gXUoMpHCBAC9YXV3B82d6vHD2ElaPHUkcAhTDIFZXoP2uqByUTosr+yUEhOkYv/z7n8V/+bavx63XHsLl2Sa8J4RA6D0QFmlEF7K1KSdII7eiqQsVBXfRmjlShELD7qhrgskXI6p51DeM8tphCrRU0HKiv4N0QAWCIa2m7hdiFs+tViASZDDYLGvYJzYI25kms0ubaqFoEeaumgY0LeecgX+0wDZWBzBbetmBSbkx825ImQSlWrg4uVu7sfoa481r8d6qP5h/rF/EEyf0+cY1zgBMYAYCxZLDuXR5iGOsJuxvrZvguZe28G8//DlsTR2OESGUPR2OGdXciB0KCbkClV2hcBPGU8IFD/yzD30E3/G6r8Nb7rgZPe/EoXMghKBpqqFp8Az4UFUSWF1i1ERQ1JGkArlSreLuQNXWa44NVGBVVctkJU9GKp2eShYvK6SFHEqFCxLJn7xEsy/s6rJBF0sFCe2S95AMWgIj44RUTwFSKxZEcKkbZeaBVEa86USl3nSF+5izY+1wI+YncC41OXYyNDBkDEEqvxCRRp+BdWlQ9Vj7OYlNGGX2T9L/Ic62E1HlRzT68pETQAgjJUzcFJ/+wvP4wKcfRH94DcdWVzD3cduwU1dXWAszSanLXZtojniO6k8qBSpZWV3B9jWEX//UA3j6pYv4K6//WkzHDlfm8zgtCVTqQAmxyA6Siuy86peG1YFbFke+q+MeAUGSZkxWOiggcKOzQrtkp3bQn5nCnEBiNZIizaB/SbXU4M0DsafdbFUq/xBlkoGyOZfCJt1ceU5dfqfykppW3avmwsukogcTACmaK6kObbtspkxMNTrU2b5JDfsnkS00ucirokypikl3Fh4gowPk4g3TAQgMcBCMViYAOXzw45/HR5/4MtauO4aNQ6vwohg5NCugNOBgdqKKAIVXhStLPaFKcpEDBcJoPMLGjSfwidPP4Zk/OIe//g1vxDWrh3Bptg1RwCeCTJBYl0Qsy3jfEgES4B1SyW92PUKU1xUIHCp0UlgnDUmUjbJAK6tm94mX5NDsVh3FDrmwbhilTCBbcwmSr6+ki65LqgZLa445gEWhCSaitNFNcAlDyZt5rWJWrp2p8Aaljt0KNlrJtdb7jg0trdSdGcsU1OX6JMqU/2dhozhyrUmSjLYPJK5kdGA4CITjZGsynuDKlseHPvspfGnzIo7fFOXwhIGOqUURCuqUpi+i6NTMO8UsGmd8qqw68wgCxZGTR/D8xU384p98DN9652vxyuuux2wxL2yW7DIegw91OpA6xuDtfDR2fEjqCJmwWaYBrLt7cCwte6MM7m2tZoOkEh5r4OYjNPIRJe68GP+Qhmldxm6ta2WhWpl10HzjysDoOuutRPWFryTLprvsnGijkqC7rKtKAwGl995Mk8q4EGS4kHaMR/C9AiEmkWqboin7KRwiEJ3037A2XsFjz5/Df3z4QWyvOxy/8QRcNoiklLwKSM7lBsvze6iiS6OFIuWgpVjUtHBSRztu3MHPgcOHD2G+0uODD30Wbzp3C95y26uBIFioL0P0NBqtI6jUqXbJsTy29GTmrbE4zdyxOJOty9bDo7Ms1AwWkYZ+bPaYpnIMVmPBVq2qHnewy0VmJFdrvnzkNcu7SwqoOliwz0v+OsjUBY1o1CDE7lfCrFg3gRknG1WgqH4hFXKvnYJA1Oj8UBoXhkRK0FobZmWzoLFB10jdGneMUTfG/Y9+GR977kuYntzA0bVpnMqMRrHRstIdBjKiNLVKBZF0ea81Kx81RxtVEZ+408pwow4hAF0nWL/xGO4/+yxOX93GO2+7C9PRGNu+L9ha1SRJ9RBrogvR0puvQSq7OTUlhSTBMEs1FXAeyiRXLqAZ64k2uxXtEbvc7WrQRrm+3AzsGoelLEqpRh/FbsDlYLIL6IpdSKmDjC523yTXpEmOqkxdsLwAxZmgobtoIRZrsjrtyVMX1iwSKql+h3EGSNeCK1Vt0jl4BX7ngc/hC1unceym45h2IyjFkVxKfWVfpBUGQO0cY3akMglRsxdhjyBOuwFEcWuemeFcB9dNwEw4cu0xPI0reP+Df4bnr17G2nQKqETZjOFy+S4L53VNMT65kKhWw0Ujuw6Z/7tSzWVJr2a4zVaXdayER7u6SbZDG2jTWJHJNtC1FSoywpRLM2mp6gZSMExqnnOh55t1WElUNAzWApoTYGiwaEqE4eeKCGZUlE1i6kbBwI4iQQgAvAomkwkuLbbxgQfux2P+PE7cdByuY6gjcOdAjpf89mxJYE8ilQBAiSVJU5GRK7OdksLWRJSIhoyOGV03BgM4dHgN8yMOv/f4p/HAi09hshL1ZWJCTT68aQzlmOP2VxGJllpw0/K+q5Qdinrx6/OjQtuv64itDEcNTjui0uIdJ7JsYF0CeHCxMRh/7bYCaoOfMrNatGHmiFZZkiwTYufTZd0yUavyLklQRRA10EsaTxJDy/pCYgflOfVAv6XoY2td+2TnElMp1fHlOSb4DISVlRU8fuEl/N9f/Ay2NghHTx4BE8E5B9c5OOfSDLurK59hUKtrxR1zqHVEGRbUospUl20UQ0+gvIYXneoVTCPIosd0ZYKwMsKfnv4SXrp6EW+++Q6MAMzSML0KUmahaxODTE0Q7rbvYP17aSA62WYabe407KozU3l3EdrRMpEpcnImE+Ujpd4YRiTciE4u6UkP9lMsyEwNUybzHy1PENU9HfEGzjdHCKFKG6ski+2Kx+QSQlTy1rfZMzY+7FQxytxhaQbZU7M17hhu6vCpp7+ABy4/i7Vrj+DQxEUs1XEy2l5+7UM6WeQqDuTqNHssp8WYDL9Wm3mq6Zrj7DWbsbBjuM6BncNoMoIbjTDiDkeuO4Iv63n87pc+iYthG5PxOKpmGlWsfJwXKQ+735pWMi1YvdSRDhbHl3eE0dQdw6+x+6p279cGuj3i2Kxx2iDmgSr+kmybWVjCoFnJ+sxVL5Pyal6DleW6j1QbuCaURSNUuIUqXa2MGhsZtoH9bMIGiQnkXJyCaEgwUcB41GFGPX7/0U/ioZ1ncOymo1iZcKR6ca7zEl+QycSNXZGlppSwag+qGnKlUiEKqnKtJVOgdqKUtpyggKN4BzjXoes6uK4DoDh8fB1XDwf8/lOfxlOXX8R0MgJDMRo5eBVsygydi6B3VtOHFcEmas0FG50UMV3q7sdfzYLUHj2DDrmKLVnscTdtQmn1ntOAvlCthsvyUrl5eW2gzmuNyLhdtVSjG5OBZEIRYoc0Sa4oouoAdsqNYy1phrNre8PEdU92jDn3COSxMunARJiuTHBm5yz+45c+josrcxy/7hicY/DIgToH13Vgl5IRV71AouVjt92lrpJ8AtUuu/jwwKdsNy+brAccNeC0apqQIqgHmNFNxoAINg6tYzYVfOLiYzizcxm3H70R7Bmff/EpzNYDjo66ogE9DLh4PFfA18qRlc+jgqu76/BpI3hAhfzAS0W/XS7aVQmVspp8a+vVkil2F6ksg/wBiaHt3pN4Z553ZxV9M1qUEIa9RGlUdiNI1Nlx65Gcg0BVymDHKYE2OnziuYdx14mvgSOHZ86exheuPIvpDYewvjKJr6HrQI7Kwj+UyprobqB/Pi0l7+aiGkCmBS7tFBIHAYVNIqVOKEAkZXq9GHWnKkYTRQwdQGm/xEXa7BgBo2vHePLKRTx/9gK8Cmh9jKMnD8fytjzpgYJ9pqGTDgInlBcBXdaI2XUnV/LGnCz5seXpSYZYcnkw/DlVlGjZ0ajukbARCqLBvUuGxJAyqNGVXlJvYGpr1LSYTnU4DDijt2IzT+6sw7KYkYWlcoAyxZpy9fAKLutV/PHZBzDpOoQJYeNlxyJMkxtHx2Xzj4oAfTvXzmVAlP/VIi5fPF2SxFuSsVl04vutHJEhCBaLHpPVMawZZDE5ybiWnQSYFDtUpOJxvHBHj27EN9DFjgtZDaBghQFOXRMwpSi2oy+ubOLGncmoeu2GsdEQZtFqcRAH9uEvVNIq9WBamdzNQySoxKfNLUhes4NlU1PTbH2l510JGUZRq9G6sY2aFEnCKLbEZoXVduGNklKS1HCQELB+5BBWj6xFOTepKhnZgCevqpJhgdtpim0UG0pvymZZVYOJohiI9ptMOn+g61iJnQCC7a1Zs+Oa1efJaA1ne6ZCOTJFp3MZK4x/d47BnQMzwZVpB5mRF4pKwTAbZGCKsrWqZB3DyicqVPVGJLwurGNohbqbVNousEoNRG478l0aoFLbmaVylxk5aHdI7A7KEIaxW3OFMZ5eK5esb7tkA/Go3X22wqIwC1c5UE22TadPTAwOLB2cEAgOlCAWcNwxySJSsdaHWX2gZBeBAvEUE8ckeqBK2NrcQfACYlLnVDVsPckyf+43GTtERDRyhK2tHVw8fwV971N3rmU6QCRLCgGc6jU2QWhBSCRIg9ilvUNa0lPJ9TKjDRRORxtKJ5hIBMa3DFR3akugpcB16flbCY+hghbQMkSWJhNJU8VS/y0oDQPkF9/hQZNE2fOk4Hv5AlFj8kMYXLj8dakJoQL/xKyU85krLgSplMo3zS4QlF3Sj9eF641BkW5FzoHTcausoEQ6zWhAsSZLzwWN8ZBE7cAEbnNqwq5e2cLW1e0k2UsKWpCfn/1Nd/2xj30J42/6Tkyuv1ZlIQTw5uYmvJcELpLRF9bK2CXUBWg7azTih1n1nkwgwniLtMRRK/4tlTRZGgYxx4mUAr3umSV9PWhS409bbwlhHRbHjcPlV/Qhzx1viyvSLlJurZvS0IBn4HcyKF+yVDGZpsvK2zrnIBoKvCJlqUjKdllRstA6Ag1F/xmVuqWZMqdl+b7eBCjGkFqmJWRIAlzeqvZU0WaF00qEeB9w9co2Ll/YBLPCOSfcjcmFZy/K9kd/pPvMZ9C/4Zuf/gk3vu4P5jzWzpFOxhPavLyDnc0ZVtdW0Y3dkl28YGiubFQyqEqh1QDMsrftHmt7MavXSFOEQsEkBbnPot1R2b6KL0IVneswWR1jujJBF90I26WY3R7FmQmNKpWFMmrwcFPPZfzLOkZlyhEJGpuuoe6gff8szT7XwZmM2/ceW1szzGYL+BBKF85EA+F2aU+eBkqrbqZZN4Z0YMCdziGwlOtd6G+MFteEnexUMyCAq/WXKuazORYzj47HGHcEJedXp2Ectp69+8H7P3immBW+4Zt/7mew+vqf2551AToHALfoF/B9qFv2YuaLpmvlvBSNjNBT3dEgamCWymnLF6qSE0CNc0P9tFr7KirCQaIhBTs3NwbgcfjoYRy75gSmK9OqpTLg8cH4qLHRCWxqPCaD32EXqCU7PVX8SsjwOAYZcleccdDJi2RLVEa/6HHh7GVcOHc12qN2VBqBHFh5XMagoT1KlcEoq5CppkREPDLZImc+AqehhabfUZk4BewuwdlVkfqsmG+ob6RA1zFcx3BwAudkdXXc8fZn/92n/vAnf/DUqXtdY9f6DX/553/ad3f8Qk8ngLANhfiS6vNIpWx1mdFKovQLmb2OdMzlrbZ2glDv0qykZD2MMuM310NiFmxKeWncOat3XCAJvZtvb2Hh5zhxw3U4ed3JKLRuhYoKCz0blpBt6JqboRry0dI6Zj0W8hZbnm7U3ZalI3rIAjJ1p3POND9A13U4e+YCXnr2LDrnMJlM4EbjQAQl0yFTAqwZtDSGDLk7TisC2Qot6jKGJH5pTIByY5S4jGnxoyQfTusMUaisjjDrOJLbSREFELFjmtLEbaLrH/3FT/7BT/zo3Xcr33OPcQOsQfiT7/KjV/9M0NW3szvGSqNqx2kLa9Q6qyT4slpY6ejFHw0VGC51VXFRQiN/VRfMqunMEkcO2sha5JnsfLYF8XPMd7bBK1O87NYbMBq5JWC6buCZbBYMD4mGwZOH/e1zYYP7kdngK5ouWAa5I8OaW3r6gHnTdQ4gwtNPnMHWlW2sr63E0ed4CseT8p5YHI6MdFt+H3MXH9L2HCf1htKMmYV/pUzrCkXmpMzGyUAvQ/9jrjVuIUGkDUhWgYRL4HDxU9Q/+b9+5o9/7jeq63NDb2zt1N/4Lf/wLkfXvrWnyauZV6bMSpr6yvjseaD5CZCyEEVeRpLkMeFT64iSG5IwpUCgJJw926CkTAxikIqoSiAi4fh5F6RMrymiIiIUdKGLub+BJ7d+B9w6FvMZPCluvuUkpquT1LlZrt0yaA1DniVDbq0YFw9mvNY2whx9aUzGukyWIFr2LdlNYpiZ0fcezzx9DrIApitT7ainsPPFP5yMJo+zm1KhRcbmi4SU6rTGCczhIoX/KOW4YmaoJI4zd1KP8GCuG5v/T1cqoukKOM1XOm8+dUmaHaoQP/Ojjh5zcvpTn/ij/+V+AMDdyriHZHnOVoLwlLvvvnulVjBfPY+bb/+mVxy+9ce+LO5a+MUMvXrcdPM1WFmdRKspbmfDywvn+ZpWKTY7q6UoZj0QGTf2rAYwH6qWYjjDzZK+u2RIVYXrHPo+4JknzoLUYTyZysht8dbpD77lsc/8m0/iq+5BOHXq10uC+4oBWB53381v/zAYeMeef2nPrzzobtx5Tbjgf/uNbuNt9/dyWL1fUK9z3Piyk1hdnRr7sfZF70b5so1QgJFU0ypAGfdX6jyViXYlSCzNqdns9e7a1JgAXAQ899S5EoCd22F/+aPvPt791T9ZWdlxOzsrYe8H3odx8uQjet999+36XLuv+H333CMfAQS4Z++/xlOn9PHf+/Hw2v/i7wslbZhq+NxaqGKXbFNqKeusaVUTik8eSoYTCcZWwYzFZLnhaBoPaRe+d6VvGZWF3EAEEXQMEDn5yEfe6U+duld/7/e+NeCr/MHYB49T5W4aRaCcMkeOSzda/s5K9rpM5UfaTSE7PivTi+RzTKk6YSPxqygKrnYrL6uhDrmBJFgyttn91CIzLcp7zuqwjx4d9tsjiU/GbpR3NbTR1PEuuU7usouyW7WylNWS+qqV3Bg2FEuBNtygazr89mdI3r6LUyk+CMA99rgv/e1jnwomV4DlqpiaFrLzkWx2dpcwpl3gERQpYDKSFVSgDesqYMm8ttv+isvyViG/MJmTUllecw0J+HL7K190++3FaBbibqhjdUEJXPl9MNqApC1GuJRYm6DhhrgrhcXT1nTL5tdDIoQlpYbEqcwTCTXPHYZZzLqfrtm+qgFbokBdPcxEhlzchyQdos0Imgw5AljyCiYyesutt17NeLw820Z1VqoEjGX3pyrxUQfrlTZl6scR6UEG3KuP0Qh5EyMMnCXzXI2MP29jfgjrsM6D45IbE8DhUtRQuBzm59cpSjAilAAG5ocRoeFGGs4qCmjiG9I+K9n3WRPS25INjfCkLqOe9qiUEFob10E9OAy+oRJX/tyQ8l9oacjEgLS/bFygIkU/+vPlMylmzOrkVALVHwTg3o6/acbkKqlLDHuncqO0HNOhjNNqU6Jl1kxLLkPLS0A1UJmpkWzLfsjZZiyzfyIx1JXnVHZkipAl1f0cs7xFBzDMXj6BR+gbcz9zPBrOW8HvqF1npERtys5MMWQqu6OIqYvddoPpdM3aKLiRbyuZNXHRoihl1U1pn3NbQ+Z7gIAkynwQgHsYBzS7uYaIWk2SB+wTVOayDEQzy+7vLiTSskesVfM2q9oRuHj85s2+KgqZVReM9qVKo65QFPabFKsUBT/5oAnZ8zGYLKmUstFg1KuLwpuZbMmFWa3GhjV+fz46zbw2m8uoVWjV4orEiNrYlR5lRnIkVXtc4vYcMyeHTd3VeDsTP61NTlwvOAjAvXsEd120HRApJoi2y8x+btm9E8niweoOVTA51ZLSasksrVDaQLGqA2R7WCCyo8jYZ1W6WmbV1K6ckoK9dbdMQgDWnfAgAPdgD0zLCDJxzmpcdJPLl4mRjUfFCrUIt3NLviQu6Fxe8o7+w6G6biUiqJqd4Go0nW4CjvrMmZxLxM22nXNUM18mdami6w4y4B4vAasnRnXglNJJFq8yNWoJQUDsIAFYLEL0Nysmi4voDpn8eTW5B9TGpe2EKQl9EsXtlLwvQqogFzCajjDquLJpkkRGm1mNnULyVcxWsnRwBO/1CLRGLC0oXC0Saq0lIYBch61LM4xmCxxfmYCL0U71L4ltaA5kKV0ziaXkI8Eokpa1Oe7surw9xrh4bgdXxw5rxyZFVjfvRBYhonKsW+f4+LEP+wsI3F81YIGi4wVlx2mpm4q6gFW6yv5rm1dnuHEk+K+/9804eqRDx4TgJRo3hxoU1UqVW+07tHWfhXDciNGNKG65gXHxco9f+sDn8ej5bRw+PoXCg7RLXiqSlPSNwkOq/7p9Br/s3yMY7QrkVySGajWt2TxzAd/6nd+Al52Y4tLFTcxDNO4Tr5BArdEeFCrcSmlk/KV0vQYndAB3hG4Ul7ZPHJ7iu/7Sbbjn1/4M4egUjqhItUG4GGkzJYGmXV7bQQDu2YdPeilGpBID3ehCqEtsExV0YwcmwpULM2xvMUJy+lTj+BTlZrkQQ8ssOQkS1QCRJC9X3QDACjdmdCOBI4++X8DBR/NoFbiOkz2rESJKqlj5c1ldRvmgC97TXTBZCSBta8JcqFXN50SlGk/xpw8+gztvegPC/CpmO4zgW2ww6sNEJ56sc2ysYpCEpKrOIiV3yeSMLl6hE4HbmOBTDz+GMBmn4zoJg4ZWCtjaKtRxHcByQEjd0w9rA8ZohRntpCNaHyh88FhZHeP+R1/E7dc8g7e+8jpcmc8RuQkMCYkJkzzqVKh4hsBKk+QakKvxIbnaBQdWTKcreODzZ/DHDz+F9RtPxt1k5+pyP0zZkOEaoHj4pVHgQRe8tx91yVqzK5ByAzZH+juM1ktAd2iM93/4M7hx413YmI4w9z0gIbqkh3wc18xUDaXz8m3VXNFkZcocj1ciYDRiXN0M+Pd/8GmE6SR1y5zGdlU1P6uOckqdmpTwXTI+RLe/LhljXz6GVPdlEciMDyJ1mdPpBJc64Dc+8jkod1BR9D1hMQMWO8BiRtGefhbdwaNVPWEx1+oaP1PM54qwAMJc4XtGimOMR2P81p8+gKfnO5iuTyFBlnSUo6oYoMrFGKaychK2GeSAEb2Xe5CGnZJb1CSLW/1CpLhFWuGkI8c38NC5M/j455/AeLQKv1D4ntCnP6HnaGW/gPk8Y74gLBaEfkHx8wtEi/sF0PeKyXiEh585gz997BkcPnnUOGnG5ajG+9fYtOauupAeSBFEDo7gPZ37SKvgjmpymqzGNqpVLs06RkYdY4f1k0fwe5/7Am44dALHplPMew8VgvdSjA7z98SasqpVxWmJJMVRgDvFxDEubwl++5MPYnzt0aQkynURysXnGbwULeb8HEVCmeLk58oMOciAe/z0VetHgap4kMdwsoupIHOEQkZjh9kq43c//SBmvYMELg7x3kd8MHhCn7Jj8Arvo82pBEbwjOCjf7L3ANEYv/vph3BGA9ZWJ1H6NnUqhY+YARytrk5kBI52k/g4CMC9+oJIyuA+K+ZpkKqzHNIOL/KxDDClrJSO67XDq3h88zw++cUvY8Rj9AmQDkHhhdAHRQiS3OJjEIYg6L1HEEEAEFQxHk3w0BPP4LMvPoeNY4dilkyBXqAWtYaHVNzMiytY5HAlGhcdBOCe7n8paMl82WsuwzJiGxIxrQoVsBlGbHvt2Bo+/tQX8eylyxjxCEGST5vEYBRlSHaIF0VQwEv8E0RB7HDhyhb+8AsPYXTkUPzFXQcwNc2RpOAqzyfR80WkWqpqU+YeBOCePoGl7tPSQCyosQ7NNWKi2RNxMdNzcOhGDv6Qw4cffQiBok5jxADjjkfwQAjZP4Va+WBVdN0EH3v0EVyeANPpOILRaBeayNjWVnfzijnmheV6wyhGB3vBezsDxoUkTqowVTKtdMBB6mqmKEjSJCKhyBQ316FEWNtYxfP+Mj7z9OMYT8bVKqJxRpJqS5v+ezKZ4KHnn8EXr57B4aOH6kQEZI5f4z1nbBk0ZEV800ihGl/rPiOk7qsA1M5RcZ8EmjkwkMmkVTRoqF0NoKxJcjcCMbB6fB3/6aUv49kr5zCaOigFA3ln8mkRfsRo3OHybAcfe/IRTI+tgTuCMoN5BKIkwUvYVXG/cU7XqnCfFUjTazjIgHs2A/qgVuelMeAu9vXV0UmNNWu024qet9mM0HEXl9DWHf70yw/Ds2LkAHAkHICjFC1z8j5zwGji8NHHHsR8AownXaRkMQNcvY3zkrkmR/L8t2Bg4WBdJ1OAe/XdQQDu6WOYirxaXvapdlfxvGtqr9wx54AggFw8hkHRjnayNsELsoVPPfFFTKdjOKdwLm5IMsWPQYLpdIIHnn0CX948i9XDa9HmKjkNld9TnCVrbWrleofOn5TpWnmrTg4mIXv3xQRRlSaPRHZA6TGpHMONT4eV1iCkXQ4HZY4u4FCsHVnBn599Ck9eOovVlSnYAc4R3AjgDpiujHFu80I8eo+vwyVbKyUqQUeNd0c5xKs7ErC0SCXaGlEfwDB78HHfnXcqAHjimOuSOqpKUr9Sg7Et2dGiqGnBdKfFcoyimbNzBLcxxce//DBmWGCywnBjgRspurGCx8AfffEzCKsjTLouHvMu+yFXV0stzpapRaLEgA6SiAgRjyw609XBOo8UDzLgnn0xTiViaslVOLuLBymrkNmStdWAMeQFo0oQR2MdQB3YdVhZm+Ac7eATX34Yq6sTjEYR2lvfmOKTjz2MZ/otrB9ZQ7YRbzzzzK9qzXCkWIqR2XAqNw9aK9dwEIB78PHII1F5xasrdpSEKIOhrfLVsiGhmP2LuAec82CuwVw3ArsOYGD96Do+f/4FfO6Zx7B2aIrVjQkeee5pfPqFp7Bx4ijUKXjUgVyEctKKXGpsXP095ditPmwigCBASMu2KIozFJIx4wEZYc89TiGqpIpjqgY4yUlJFVyK+6E3RxUiX3JBGjY37ADtwE6wds1hfPjZL+KJCy+CnMPTl6/AndhA1zk4cs3xnYMvExmG2bD6ztn9FansnWwR63Q/XbL9FYC5BgxBVIvJHwy5ScuFjkdwttLRKt+LZT+3RumUGIw4M3YuwB07gqd3ZiBlTI6tg0mh3MFxV4MuObhFqZAcWK1OnA50qZdXMhMVvxzfB0D0nnvcnV/MRCV3mnEdM9HoDRU/HrnV9zhbnbbKpxaY5tJ/OnYgF+tCxx3W1taxtraKruvgulF05yzexZmBU1UYrDVsDnwpC1Qoz6dclmwGGY/eNPbzBzshe+2RnUw6dcYKKS0LFUr+UBS8BX1bXed2KhH1XLhRvEcuMbPbZPJS1r9A5LI22jYLajlqQa3vSCtaRFkE6WArbq8+vA+qZNTvzUR4iaaP7I7kBrPd9m8bcNY+QUuGjF7KMWlRCg9j78XDNQB78GjNfiUtIpk72gIURUJOVcJBAO7Rh6gPRB4AKO7/SmEUD316c9IJQZbAaBpo9ZU4sEr4g+xpO4v4dVSWzBs1LeMIWrNrm5HLLZPKhQJik6DruD+oAffoGTwdyRXRsKiOW9HUWlHZnbYerGAwtZZdWPb4RVPHYdd/GwqV0y7mNjb7Dr+/sXMAKocxSS8IAlixSK3XQQDuoQhUADg0+vQZUpwndiB2CL2g7z2yrWxRM0WSnMIyNmgDRQx8s3stZ1ktyTkTRk8Qyz97aFQdf0feV0HN1qrQXmKGJiiUiGQeZPbCWQC477479SAA985D775b+UMf+sw2y/ZDYzdJ60gBs6ubCL1PfDoqi0mWI6hL2VEHMMwQwCaocKvEpdktfNBc1P8ymtQy0HlpvesUhBAW2NnegfQBxKSum2iHrccn+KWn4lzxnoMA3EuPD3/4fRyz1sX3dyNPBFXXKRazbcy2roLgq9qAUOxq02guTko4LbJTkuFIWQnxv6OIX8L10tdGlZlsZE0GVmGIMlTy10fWdJAc/Azk3yd2BTPKCrMGzLZ3sLW1g240AglkMgGBLv/GRz4C//a3v88B+0OpaD+19AQovuU17159YeOvP7SjN73cL7aCqHe+77F2aAVr66twbgSAox0WVZg6a7xkMoC1dMjAdvbsiDJq1h3JSPtGqnX6MP8sKR6EuQrIPwcGKAcEIoqdrRk2r8zA3GHEnXC3grXJC1tj/yd3fO4Tv/Yi8D4C7tkX65n7qQvWU6fe6+677//Zeu033vnDY57+kbjjDL8Tug5u68oM25szjMeJZGrrOlPTRZn7JLGmlUpfhcmrdC6KICUamEYT57AZ8yGvAsfjusA1aXaoGhec+kXMyl03BhMJ0UjWVra7bv7kj3/u/v/wwqlT73H33XdP2EdZY389Tp065e67777w9W/96e/tu9v/r61wjZN+LlCB954S+aCFg5O+HyWHzWyNxclrzuVpSJntJoKAbVhQCQbRa0TKiM+aGLZOS4qhhRMRK5FTEOtoPHIro6tw/pH/6aFP/NzPnzp175Ll/UEA7skgjBfqze/48Tfv4JX/Wy/XvnUepgg+1oEFi0tZrIqQl9a2fBzHwC300kAxyfgmqETYW1PPbUUtEyBdJh4gqAm8vMecDWGdA7qux8RdfKTzj/7jz338n35gPwbfvg1AG4RvB7rZN9/9N4Sv/W7R7ut9wDFRWtc0rCU1QCARVcuuSJwSVcoEUo5fwJHbGv8hB2AKtOz+EGM4fSrN0PKHSWbfiE1DANWgQM8czk558QDh0u/Ozv2fv/Lgg6e39mvwHTwOHgePg8fB4+Bx8Pj/7fH/AmPXE4m8u/+9AAAAAElFTkSuQmCC';
-const iconeAgenteKoda = mexendo=>`<img class="ia-ico${mexendo ? ' mexe' : ''}" src="${ICONE_AGENTE_KODA}" alt="" width="28" height="28" decoding="async">`;
+/* a cara do Agente Koda é o agente da própria pessoa (o personagem e o nome que ela montou em "Seu agente") */
+function agenteNomeIA(){ try{ const a = meuAgente(); return a.nome || t('ia_tit'); }catch(e){ return t('ia_tit'); } }
+function iconeAgenteKoda(mexendo){
+  let svg = '';
+  try{ svg = pzSvg(meuAgente().cfg, 'corpo'); }catch(e){}
+  return `<span class="ia-ico ia-ag${mexendo ? ' mexe' : ''}" aria-hidden="true">${svg}</span>`;
+}
 /* só um botãozinho "Agente Koda"; tocando, abre a conversa */
 function assistenteHtml(){
   return `<div class="ia-assist">
-      <button type="button" class="ia-assist-abrir" data-ia-abrir>${iconeAgenteKoda()}<span>${t('ia_tit')}</span></button>
+      <button type="button" class="ia-assist-abrir" data-ia-abrir>${iconeAgenteKoda()}<span>${chatListEscape(agenteNomeIA())}</span></button>
       <button type="button" class="ia-assist-desfazer" data-ia-desfazer hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M9 4L4 9l5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 9H14a5.5 5.5 0 0 1 0 11h-3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg> ${t('ia_desfazer')}</button>
       <p class="ia-assist-status" data-ia-status aria-live="polite"></p>
     </div>`;
@@ -22849,7 +22888,8 @@ var DEP = {      /* o que o site empresta (nos testes fora do site ficam estes) 
   preparar: function(c){ return String(c || ''); },
   diagnostico: function(){ return null; },
   improprio: function(){ return false; },
-  maxC: 100000, maxD: 50, maxItens: 20, moedasPorDiamante: 6600, salvoMax: 6000
+  maxC: 100000, maxD: 50, maxItens: 20, moedasPorDiamante: 6600, salvoMax: 6000,
+  nomeAgente: 'Agente Koda'      /* o nome que a pessoa deu ao agente dela (entra em {agente} nos textos) */
 };
 function ligar(o){ for(var k in o) if(o[k] != null) DEP[k] = o[k]; }
 function lingua(l){ LING = (l === 'en' || l === 'es' || l === 'pt') ? l : 'en'; return LING; }
@@ -22870,7 +22910,7 @@ function T(k, v){
   var p = String(e).split('|');
   var s = p[LING === 'en' ? 1 : LING === 'es' ? 2 : 0];
   if(s == null || s === '') s = p[1] || p[0];
-  return s.replace(/\{(\w+)\}/g, function(m, n){ return v && v[n] != null ? String(v[n]) : m; });
+  return s.replace(/\{(\w+)\}/g, function(m, n){ return v && v[n] != null ? String(v[n]) : (n === 'agente' ? DEP.nomeAgente : m); });
 }
 /* o mesmo texto numa língua escolhida (itens da loja ficam na língua do jogo) */
 function TL(l, k, v){ var a = LING; LING = l; try{ return T(k, v); }finally{ LING = a; } }
@@ -23819,6 +23859,7 @@ function novoValorDoItem(it, m, res){
   var antes = {preco: n.preco, moeda: n.moeda, nome: n.nome};
   if(m.tipo === 'moeda'){
     if(n.moeda !== m.moeda){ n.preco = m.moeda === 'd' ? paraDiamantes(n.preco) : paraMoedas(n.preco); n.moeda = m.moeda; }
+    else { (res.jaEra = res.jaEra || []).push({id: n.id, nome: n.nome, moeda: n.moeda}); return n; }
   } else if(m.tipo === 'preco'){
     var moe = m.moeda || n.moeda;
     var p = Math.round(Number(m.preco) || 1);
@@ -25227,7 +25268,13 @@ function fazerPontuar(codigo){
 
 /* ---- jogar com a skin (o personagem do Koda vira o herói) ---- */
 var NOMES_DESENHO = /^(draw|desenha|desenhar|render|renderizar|paint|pintar|show|mostrar|display)(player|jogador|hero|heroi|personagem|nave|ship|bird|passaro|char|character|boneco|me|eu|dino|sapo|frog|gato|cat|cobra|snake|car|carro|astronauta|astronaut|ninja|jugador|personaje|avatar)$/;
-function acharDesenhoDoJogador(doc){
+var DICA_HEROI = null;     /* palavras que a pessoa disse sobre o herói ("a nave", "o sapo") */
+function nomeBateComDica(n){ if(!DICA_HEROI) return false; var k = chaveDeNome(n); return DICA_HEROI.some(function(h){ return h.length >= 3 && k.indexOf(h) >= 0; }); }
+function acharDesenhoDoJogador(doc, dica){
+  DICA_HEROI = dica && dica.length ? dica.map(function(h){ return chaveDeNome(norm(h)); }) : null;
+  try{ return acharDesenhoDoJogadorSemDica(doc); }finally{ DICA_HEROI = null; }
+}
+function acharDesenhoDoJogadorSemDica(doc){
   var achado = null;
   doc.js.forEach(function(js){
     if(achado || js.sc.koda) return;
@@ -25235,7 +25282,7 @@ function acharDesenhoDoJogador(doc){
     /* a) função com nome de desenhar o jogador, ou draw() de uma classe de jogador */
     R.forEach(function(r){
       if(achado || !r.nome) return;
-      var k = chaveDeNome(r.nome), dono = null, especifica = NOMES_DESENHO.test(k);
+      var k = chaveDeNome(r.nome), dono = null, especifica = NOMES_DESENHO.test(k) || (nomeBateComDica(r.nome) && /^(draw|desenha|desenhar|render|renderizar|paint|pintar|show|mostrar|display)/.test(k));
       if(!especifica && /^(draw|desenha|desenhar|render|show)$/.test(k)){
         var cl = rangesEm(R, r.ini).filter(function(x){ return x.classe; })[0];
         if(cl && ehJogador(cl.nome)) dono = 'this';
@@ -25269,7 +25316,7 @@ function chamadaDeDesenho(T, a, b, dono, exigirJogador){
       if(!T[q] || T[q].v !== ',') break;
     }
     var txt = args.join(',');
-    var dosJogador = dono === 'this' ? /\bthis\./.test(txt) : (function(){ var ids = txt.match(/[A-Za-z_$][\w$]*/g) || []; return ids.some(function(n){ return ehJogador(n); }); })();
+    var dosJogador = dono === 'this' ? /\bthis\./.test(txt) : (function(){ var ids = txt.match(/[A-Za-z_$][\w$]*/g) || []; return ids.some(function(n){ return ehJogador(n) || nomeBateComDica(n); }); })();
     if((exigirJogador || dono) && !dosJogador) continue;
     var x, y, w, h;
     if(t.v === 'fillRect' || t.v === 'strokeRect' || t.v === 'roundRect'){ if(args.length < 4) continue; x = args[0]; y = args[1]; w = args[2]; h = args[3]; }
@@ -25280,11 +25327,11 @@ function chamadaDeDesenho(T, a, b, dono, exigirJogador){
   return null;
 }
 var GENEROS_SEM_HEROI = {bola: 1, cobrinha: 1, blocos: 1, memoria: 1, quiz: 1, clicker: 1, tabuleiro: 1, puzzle: 1, desenho: 1};
-function fazerSkin(codigo, forcar){
+function fazerSkin(codigo, forcar, dica){
   if(/KODA\s*\.\s*jogador\s*\.\s*(desenhar|andar)\s*\(/.test(codigo)) return {erro: 'ja_tem'};
   var doc = lerDocumento(codigo), g = generoDoJogo(doc);
   if(!forcar && GENEROS_SEM_HEROI[g.id]) return {erro: 'sem_heroi', genero: g.nome};
-  var d = acharDesenhoDoJogador(doc);
+  var d = acharDesenhoDoJogador(doc, dica);
   if(!d) return {erro: 'nao_achei'};
   var js = d.js, T = js.T, ed = new Edicao(codigo);
   var desenha = 'KODA.jogador.desenhar(' + d.ctx + ', (' + d.x + ') + (' + d.w + ') / 2 - (' + d.h + ') * 11 / 29, ' + d.y + ', ' + d.h + ')';
@@ -25367,11 +25414,12 @@ function kodaSalvarNoJogo(){
   window.kodaSalvoVigiar = function(f){ var ult = ''; setInterval(function(){ try{ var o = f(), s = JSON.stringify(o); if(s !== ult){ ult = s; for(var k in o) dados.v[k] = o[k]; agendar(); } }catch(e){} }, 1500); };
   window.addEventListener('pagehide', guardar);
 }
-function fazerSalvar(codigo){
+function fazerSalvar(codigo, tipos){
   if(/data-koda-salvar/.test(codigo)) return {erro: 'ja_tem'};
   var doc = lerDocumento(codigo);
   var usaStorage = /\b(localStorage|sessionStorage)\b/.test(codigo);
   var prog = acharProgresso(doc);
+  if(tipos && tipos.length) prog = prog.filter(function(p){ return tipos.indexOf(p.tipo) >= 0; });
   if(!usaStorage && !prog.length) return {erro: 'nao_achei'};
   var ed = new Edicao(codigo);
   prog.forEach(function(p){
@@ -25441,7 +25489,7 @@ function dentroDeIf(T, j){
   }
   return false;
 }
-function fazerSons(codigo){
+function fazerSons(codigo, quais){
   if(/data-koda-sons/.test(codigo)) return {erro: 'ja_tem'};
   var doc = lerDocumento(codigo), ed = new Edicao(codigo), feitos = {};
   var pts = variavelDosPontos(doc);
@@ -25455,7 +25503,7 @@ function fazerSons(codigo){
     var som = null;
     if(pts && t.v === pts.split('.').pop() && pts.indexOf('.') < 0 && nx && (nx.v === '++' || nx.v === '+=') && dentroDeIf(T, j)) som = 'ponto';
     else if(nomesVida[t.v] && nx && (nx.v === '--' || nx.v === '-=')) som = 'dano';
-    if(!som) return;
+    if(!som || (quais && !quais[som])) return;
     /* só se for uma frase inteira (score++; ou score += 10;) */
     var fim = nx.v === '++' || nx.v === '--' ? j + 1 : fimDaExpr(T, j + 2);
     var depois = T[fim + 1];
@@ -25468,6 +25516,7 @@ function fazerSons(codigo){
   /* fim de jogo */
   doc.js.forEach(function(js){
     if(js.sc.koda) return;
+    if(quais && !quais.fim) return;
     rangesComNome(js.T).forEach(function(r){ if(r.nome && NOMES_FIM.test(chaveDeNome(r.nome))){ ed.inserir(js.base + js.T[r.ini].e, ' if(window.kodaSom) kodaSom(\'fim\');'); feitos.fim = (feitos.fim || 0) + 1; } });
   });
   /* pulo: player.vy = -jumpPower / vy = jump */
@@ -25480,6 +25529,7 @@ function fazerSons(codigo){
     if(dono === 'this'){ if(!Rs[js.n]) Rs[js.n] = rangesComNome(T); dono = classeDoThis(Rs[js.n], j); }
     var palavraDePulo = /jump|pulo|salto|lift|flap|impulso/i.test(txt);
     if(!palavraDePulo && !(/^-\d/.test(txt) && dono && ehJogador(dono))) return;
+    if(quais && !quais.pulo) return;
     var ini = T[j - 1] && T[j - 1].v === '.' && T[j - 2] ? j - 2 : j;
     var pv = T[ini - 1], depois = T[f + 1];
     if(depois && !/^[;)}]$/.test(depois.v) && !depois.nl) return;
@@ -25790,7 +25840,7 @@ function nomeNovo(P, depoisDe){
   for(var i = Math.max(0, ini); i < ws.length; i++){ if(/^(chamado|chamada|called|named|llamado|llamada)$/.test(ws[i])){ ini = i + 1; break; } }
   if(ini < 0){ for(var i2 = 0; i2 < ws.length; i2++){ if(/^(nome|name|nombre)$/.test(ws[i2])){ ini = i2 + 1; break; } } }
   if(ini < 0) return null;
-  while(ini < ws.length && ((TIRA_INICIO[ws[ini]] && !(ws[ini] === 'a' && ws[ini + 1] && ws[ini + 1].length > 2 && !TIRA_INICIO[ws[ini + 1]] && ini > 0 && /^(chamado|chamada|called|named)$/.test(ws[ini - 1]))) || ehDa('por', ws[ini]) || ehDa('vender', ws[ini]))) ini++;
+  while(ini < ws.length && ((TIRA_INICIO[ws[ini]] && !(ws[ini] === 'a' && ws[ini + 1] && ws[ini + 1].length > 2 && !TIRA_INICIO[ws[ini + 1]] && ini > 0 && /^(chamado|chamada|called|named)$/.test(ws[ini - 1]))) || (ehDa('por', ws[ini]) && !(ini > 0 && ARTIGO_ANTES.test(ws[ini - 1]) && !ehDa('por', ws[ini - 1]))) || ehDa('vender', ws[ini]))) ini++;
   if(/^(que|q|that|to|se|si|isso|isto|it|this|o|ela|ele)$/.test(ws[ini] || '')) return null;
   var fim = ini;
   while(fim < ws.length){
@@ -25844,6 +25894,8 @@ function entenderLoja(P, ctx){
   }
   /* sem loja ainda: criar (com o que a pessoa pediu) */
   if(!temLoja){
+    var listaIt = itensDaFrase(P.orig);
+    if(listaIt.itens.length && (P.tem('loja') || P.tem('vender') || verbo('por') || P.moedas.length || P.precos.length)) return {int: 'loja_criar', moeda: moedaUnica(listaIt), itens: listaIt.itens, confirmado: true};
     var lista = listaDeNomes(P);
     if(lista) return {int: 'loja_criar', moeda: moedaGeral, itens: lista.map(function(nm){ return {nome: capitalizar(nm), moeda: moedaGeral}; })};
     var querNovo = (verbo('por') || verbo('vender')) && !P.tem('loja');
@@ -25932,6 +25984,8 @@ function entenderLoja(P, ctx){
   var indefinido = vNovo >= 0 && /^(um|uma|uns|umas|an|un|una|unos|unas|some|another|outro|outra|otro|otra)$/.test(ws[kArt + 1] || '') && !(ws[kArt + 1] === 'um' && ORDINAIS[ws[kArt + 2]] != null);
   if(indefinido) ids = ids.filter(function(id){ var m = P.mencoes.filter(function(x){ return x.id === id; })[0]; return m && m.nota >= 1 && m.i < vNovo; });
   if(vNovo >= 0 && (indefinido || !(ids.length && P.mencoes.every(function(m){ return m.i > vNovo; }) && !P.frase(['novo', 'nova', 'new', 'nuevo', 'outro', 'outra', 'another', 'otro', 'mais um', 'mais uma', 'one more'])))){
+    var multi = itensDaFrase(P.orig);
+    if(multi.itens.length >= 2 && !ids.length) return {int: 'loja_novo', itens: multi.itens.map(function(i){ return {nome: i.nome, preco: i.preco, moeda: i.moeda || (multi.geral || null)}; })};
     var lista2 = listaDeNomes(P);
     var nm2 = nomeNovo(P, kArt);
     if(nm2 && !ehDaAlgum(palavras(norm(nm2)), 'loja') && !(P.moedas.length && significativas(norm(nm2)).every(function(w){ return ehDa('moeda', w) || ehDa('diamante', w) || ehDa('todos', w) || ehDa('so', w); }))){
@@ -25980,7 +26034,7 @@ function entenderLoja(P, ctx){
 function querMudarMoeda(P){
   if(P.frase(['como ganho', 'como ganhar', 'como consigo', 'como conseguir', 'onde ganho', 'onde consigo', 'how do i get', 'how to get', 'how do i earn', 'how to earn', 'como gano', 'como consigo', 'donde consigo', 'quanto vale', 'how much is', 'cuanto vale', 'o que sao', 'what are', 'que son'])) return false;
   if(P.interrogacao && !P.tem('mudar') && !P.tem('so')) return false;
-  return P.tem('mudar') || P.tem('por') || P.tem('so') || P.todos || P.tem('vender') || P.frase(['seja', 'sejam', 'ser de', 'fique', 'fiquem', 'virar', 'em diamantes', 'em moedas', 'de diamantes', 'de moedas', 'por diamantes', 'por moedas', 'in diamonds', 'in coins', 'for diamonds', 'for coins', 'con diamantes', 'con monedas', 'en diamantes', 'en monedas', 'sea', 'sean', 'be']);
+  return P.tem('mudar') || P.tem('por') || P.tem('so') || P.todos || P.tem('vender') || P.frase(['feito com', 'feita com', 'paga com', 'paga em', 'pago com', 'pago em', 'pagar com', 'pagar em', 'se paga', 'cobra em', 'cobrar em', 'cobrado em', 'paid with', 'paid in', 'pay with', 'pay in', 'costs diamonds', 'costs coins', 'paga con', 'pagar con', 'se paga con', 'hecho con', 'seja', 'sejam', 'ser de', 'fique', 'fiquem', 'virar', 'em diamantes', 'em moedas', 'de diamantes', 'de moedas', 'por diamantes', 'por moedas', 'in diamonds', 'in coins', 'for diamonds', 'for coins', 'con diamantes', 'con monedas', 'en diamantes', 'en monedas', 'sea', 'sean', 'be']);
 }
 function ehDaAlgum(ws, c){ return (Array.isArray(ws) ? ws : String(ws).split(' ')).some(function(w){ return ehDa(c, w); }); }
 function primeiroVerbo(P, classes){ for(var i = 0; i < P.ws.length; i++){ for(var c = 0; c < classes.length; c++) if(ehDa(classes[c], P.ws[i])) return i; } return -1; }
@@ -26110,6 +26164,7 @@ function responderPendente(P, ctx){
     if(nm) return {int: 'deu_nome', nome: nm.slice(0, 40), acao: pd.acao};
     return null;
   }
+  if(pd.tipo === 'briefing') return responderBriefing(P, ctx, pd);
   if(pd.tipo === 'tipo_jogo'){
     var tp = null;
     TIPO_PALAVRAS.forEach(function(t){ if(!tp && t[1].test(P.n)) tp = t[0]; });
@@ -26142,8 +26197,8 @@ function responderPendente(P, ctx){
 Object.assign(TX, {
   w_moeda: 'moeda|coin|moneda', w_moedas: 'moedas|coins|monedas', w_diamante: 'diamante|diamond|diamante', w_diamantes: 'diamantes|diamonds|diamantes',
   w_loja: 'loja|shop|tienda',
-  oi_sem_codigo: ['Oi! Eu sou o Agente Koda. Posso colocar loja no seu jogo, verificar o código, dar nota, tirar dúvidas do Koda e dar ideias. Cole o código do seu jogo na caixa ou me pergunte qualquer coisa!|Hi! I\'m Koda Agent. I can add a shop to your game, check the code, rate it, answer Koda questions and give ideas. Paste your game code in the box or ask me anything!|¡Hola! Soy el Agente Koda. Puedo poner una tienda en tu juego, revisar el código, darle nota, resolver dudas de Koda y darte ideas. ¡Pega el código de tu juego en la caja o pregúntame lo que quieras!'],
-  oi_com_codigo: ['Oi! Já dei uma olhada no seu jogo: parece um jogo de {genero}, com {linhas} linhas.{loja} O que você quer fazer?|Hi! I already took a look at your game: it looks like a {genero} game, with {linhas} lines.{loja} What do you want to do?|¡Hola! Ya miré tu juego: parece un juego de {genero}, con {linhas} líneas.{loja} ¿Qué quieres hacer?'],
+  oi_sem_codigo: ['Oi! Eu sou {agente}. Posso colocar loja no seu jogo, verificar o código, dar nota, tirar dúvidas do Koda e dar ideias. Cole o código do seu jogo na caixa ou me diga o que tem na sua mente!|Hi! I’m {agente}. I can add a shop to your game, check the code, rate it, answer Koda questions and give ideas. Paste your game code in the box or tell me what’s on your mind!|¡Hola! Soy {agente}. Puedo poner una tienda en tu juego, revisar el código, darle nota, resolver dudas de Koda y darte ideas. ¡Pega el código de tu juego en la caja o dime lo que tienes en mente!'],
+  oi_com_codigo: ['Oi! Eu sou {agente}. Já dei uma olhada no seu jogo: parece um jogo de {genero}, com {linhas} linhas.{loja} Você não gostaria de adicionar alguma coisa a ele? É só escolher uma opção aqui embaixo, ou me falar o que tem na sua mente.|Hi! I’m {agente}. I already took a look at your game: it looks like a {genero} game, with {linhas} lines.{loja} Wouldn’t you like to add something to it? Just pick an option below, or tell me what’s on your mind.|¡Hola! Soy {agente}. Ya miré tu juego: parece un juego de {genero}, con {linhas} líneas.{loja} ¿No te gustaría agregarle algo? Elige una opción aquí abajo, o dime lo que tienes en mente.'],
   oi_com_loja: ' Ele tem uma loja com {n} {itens}.| It has a shop with {n} {itens}.| Tiene una tienda con {n} {itens}.',
   lj_nao_achei_item: 'Não achei esse item na loja. Ela tem:|I could not find that item in the shop. It has:|No encontré ese artículo en la tienda. Tiene:',
   oi_de_novo: ['Oi de novo! O que vamos fazer no jogo?|Hi again! What are we doing in the game?|¡Hola de nuevo! ¿Qué hacemos en el juego?', 'Oi! Pode pedir do seu jeito.|Hi! Ask me your way.|¡Hola! Pídeme a tu manera.'],
@@ -26171,6 +26226,9 @@ Object.assign(TX, {
   lj_botao_dica: 'Tem um botão "{botao}" no canto do jogo que abre a loja. No Testar a compra é de mentirinha (nada é cobrado).|There is a "{botao}" button in the corner of the game that opens the shop. In Test the purchase is pretend (nothing is charged).|Hay un botón "{botao}" en la esquina del juego que abre la tienda. En Probar la compra es de mentira (no se cobra nada).',
   lj_so_visual: 'Não achei vidas, velocidade nem pulo no seu jogo, então os itens mudam as cores. Se quiser itens que mudam o jogo, me diga a variável (por exemplo: "a variável da vida é hp").|I did not find lives, speed or jump in your game, so the items change the colors. If you want items that change the game, tell me the variable (for example: "the life variable is hp").|No encontré vidas, velocidad ni salto en tu juego, así que los artículos cambian los colores. Si quieres artículos que cambien el juego, dime la variable (por ejemplo: "la variable de la vida es hp").',
   lj_sem_efeito: 'O item "{item}" ainda não faz nada no jogo. Me diga o que ele faz (por exemplo: "{item} dá vida extra") ou use KODA.loja.tem(\'{id}\') no seu código.|The item "{item}" does not do anything in the game yet. Tell me what it does (for example: "{item} gives an extra life") or use KODA.loja.tem(\'{id}\') in your code.|El artículo "{item}" todavía no hace nada en el juego. Dime qué hace (por ejemplo: "{item} da vida extra") o usa KODA.loja.tem(\'{id}\') en tu código.',
+  lj_sem_efeito_varios: 'Os itens {itens} ainda não fazem nada no jogo. Me diga o que cada um faz (por exemplo: "{item} dá vida extra") ou use KODA.loja.tem(\'{id}\') no seu código.|The items {itens} don’t do anything in the game yet. Tell me what each one does (for example: "{item} gives an extra life") or use KODA.loja.tem(\'{id}\') in your code.|Los artículos {itens} todavía no hacen nada en el juego. Dime qué hace cada uno (por ejemplo: "{item} da vida extra") o usa KODA.loja.tem(\'{id}\') en tu código.',
+  lj_item_ja_era: '{itens}: já estava em {moeda}, então nada mudou.|{itens}: it was already in {moeda}, so nothing changed.|{itens}: ya estaba en {moeda}, así que no cambió nada.',
+  lj_mista: 'Do jeito que você pediu: {lista}.|The way you asked: {lista}.|Como pediste: {lista}.', lj_em: 'em|in|en',
   lj_ja_tem: 'Seu jogo já tem uma loja! Olha o que tem nela:|Your game already has a shop! Here is what is in it:|¡Tu juego ya tiene una tienda! Mira lo que tiene:',
   lj_quer_criar: 'Seu jogo ainda não tem loja. Quer que eu crie uma?|Your game does not have a shop yet. Want me to create one?|Tu juego todavía no tiene tienda. ¿Quieres que cree una?',
   lj_nao_deu: 'Não consegui mexer na loja sem estragar o jogo, então deixei tudo como estava. Pode tentar pedir de outro jeito?|I could not change the shop without breaking the game, so I left everything as it was. Can you ask another way?|No pude cambiar la tienda sin romper el juego, así que dejé todo como estaba. ¿Puedes pedirlo de otra forma?',
@@ -26300,7 +26358,7 @@ Object.assign(TX, {
   desfiz: ['Desfiz: {o}. Voltou como estava antes.|Undone: {o}. It is back to how it was.|Deshecho: {o}. Volvió a como estaba.'], nada_desfazer: 'Não tem nada pra desfazer.|There is nothing to undo.|No hay nada que deshacer.',
   d_loja_criada: 'a loja nova|the new shop|la tienda nueva', d_loja_mudou: 'a mudança na loja|the shop change|el cambio en la tienda', d_loja_removida: 'tirar a loja|removing the shop|quitar la tienda', d_conserto: 'os consertos|the fixes|los arreglos', d_skin: 'a skin no jogo|the skin in the game|la skin en el juego', d_salvar: 'o salvar|the saving|el guardado', d_pontuar: 'os pontos pro ranking|the ranking points|los puntos al ranking', d_sons: 'os sons|the sounds|los sonidos',
   obrigado_r: ['De nada! Se precisar, é só chamar.|You\'re welcome! Just call me if you need anything.|¡De nada! Si necesitas algo, aquí estoy.', 'Imagina! Bora deixar esse jogo incrível.|Anytime! Let\'s make this game amazing.|¡Cuando quieras! Hagamos este juego increíble.'],
-  quem_r: 'Eu sou o Agente Koda, uma IA feita só de código, aqui dentro do Koda. Eu não sou uma pessoa e não uso a internet: leio o código do seu jogo de verdade (cada parte, cada linha), entendo o que você pede e faço as mudanças no lugar certo. Também testo o jogo com um robô e respondo dúvidas do Koda.|I\'m Koda Agent, an AI made only of code, right here inside Koda. I\'m not a person and I don\'t use the internet: I really read your game code (every part, every line), understand what you ask and make changes in the right place. I also test the game with a robot and answer Koda questions.|Soy el Agente Koda, una IA hecha solo de código, aquí dentro de Koda. No soy una persona y no uso internet: leo de verdad el código de tu juego (cada parte, cada línea), entiendo lo que pides y hago los cambios en el lugar correcto. También pruebo el juego con un robot y respondo dudas de Koda.',
+  quem_r: 'Eu sou {agente}, o seu agente aqui dentro do Koda. Sou uma IA feita só de código: não sou uma pessoa e não uso a internet. Leio o código do seu jogo de verdade (cada parte, cada linha), entendo o que você pede e faço as mudanças no lugar certo. Também testo o jogo com um robô e respondo dúvidas do Koda.|I’m {agente}, your agent inside Koda. I’m an AI made only of code: I’m not a person and I don’t use the internet. I really read your game code (every part, every line), understand what you ask and make the changes in the right place. I also test the game with a robot and answer Koda questions.|Soy {agente}, tu agente dentro de Koda. Soy una IA hecha solo de código: no soy una persona y no uso internet. Leo de verdad el código de tu juego (cada parte, cada línea), entiendo lo que pides y hago los cambios en el lugar correcto. También pruebo el juego con un robot y respondo dudas de Koda.',
   ajuda_r: 'Eu consigo:\n- colocar loja no jogo e mudar do seu jeito ("deixa tudo em diamantes", "o escudo custa 20 moedas", "tira o turbo", "coloca uma espada por 5 diamantes")\n- verificar o código e achar erros (com a linha certinha)\n- consertar o que dá\n- avaliar o jogo e dar nota\n- fazer o jogo salvar, mandar pontos pro ranking, colocar sons e usar sua skin\n- tirar dúvidas do Koda e dar ideias de jogos|I can:\n- add a shop to the game and change it your way ("make it all diamonds", "the shield costs 20 coins", "remove the turbo", "add a sword for 5 diamonds")\n- check the code and find errors (with the exact line)\n- fix what can be fixed\n- rate the game\n- make the game save, send points to the ranking, add sounds and use your skin\n- answer Koda questions and give game ideas|Puedo:\n- poner una tienda en el juego y cambiarla a tu manera ("todo en diamantes", "el escudo cuesta 20 monedas", "quita el turbo", "pon una espada por 5 diamantes")\n- revisar el código y encontrar errores (con la línea exacta)\n- arreglar lo que se pueda\n- evaluar el juego y darle nota\n- hacer que el juego guarde, mandar puntos al ranking, poner sonidos y usar tu skin\n- resolver dudas de Koda y dar ideas de juegos',
   nada_r: ['Hmm, não entendi direito. Pode falar de outro jeito? Eu cuido de loja, verificar código, nota do jogo, sons, salvar e dúvidas do Koda.|Hmm, I did not quite get that. Can you say it another way? I handle shops, code checks, game scores, sounds, saving and Koda questions.|Hmm, no entendí bien. ¿Puedes decirlo de otra manera? Me encargo de tiendas, revisar código, nota del juego, sonidos, guardado y dudas de Koda.', 'Não entendi essa. Tenta assim: "coloca uma loja", "verifica meu código", "dá uma nota pro meu jogo" ou uma pergunta sobre o Koda.|I did not get that one. Try: "add a shop", "check my code", "rate my game" or a question about Koda.|No entendí esa. Prueba: "pon una tienda", "revisa mi código", "dale nota a mi juego" o una pregunta sobre Koda.'],
   sim_solto: 'Sim pra quê? Me conta o que você quer fazer no jogo.|Yes to what? Tell me what you want to do in the game.|¿Sí a qué? Cuéntame qué quieres hacer en el juego.',
@@ -26394,6 +26452,8 @@ function precisaCodigo(ctx){ if(!ctx.temCodigo) return diz(novaResp(), T('sem_co
 H.loja_criar = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
   if(ctx.loja.tipo !== 'nenhuma') return H.loja_ver({ja: true}, ctx, est);
+  /* pedido vago ("coloca uma loja"): primeiro o agente pergunta como a pessoa quer */
+  if(!it.confirmado && !it.moeda && !(it.itens && it.itens.length)) return HB.loja({}, ctx, est);
   var itensPedidos = (it.itens || []).map(function(p){ return {nome: p.nome, preco: p.preco, moeda: p.moeda || it.moeda, efeito: p.efeito}; });
   var res = lojaCriar(ctx.codigo, {moeda: it.moeda, itens: itensPedidos.length ? itensPedidos : null, ensinado: est.ensinado});
   if(res.erro) return diz(novaResp(), T('lj_nao_deu'));
@@ -26407,7 +26467,9 @@ H.loja_criar = function(it, ctx, est){
   });
   if(ligs.length) diz(r, T('lj_ligados', {lista: listaE(ligs)}));
   else if(!itensPedidos.length) diz(r, T('lj_so_visual'));
-  L2.itens.forEach(function(i){ if(!res.efeitos[i.idSite] && itensPedidos.length) diz(r, T('lj_sem_efeito', {item: i.nome, id: i.idSite})); });
+  if(itensPedidos.length) avisoSemEfeito(r, L2.itens.filter(function(i){ return !res.efeitos[i.idSite]; }));
+  var mista = moedasDiferentes(itensPedidos);
+  if(mista) diz(r, T('lj_mista', {lista: mista}));
   diz(r, T('lj_botao_dica', {botao: (L2.botao && L2.botao.texto) || TL(res.lingua || LING, 'it_botao')}));
   if(!it.moeda || it.moeda === 'c') chip(r, T('ch_so_diamantes')); else chip(r, T('ch_so_moedas'));
   chip(r, T('ch_mais_barato')); chip(r, T('ch_outro_item'));
@@ -26416,7 +26478,7 @@ H.loja_criar = function(it, ctx, est){
 };
 H.loja_criar_pergunta = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
-  est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar', moeda: it.moeda}};
+  est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar', moeda: it.moeda, confirmado: true}};
   var r = diz(novaResp(), T('lj_quer_criar'));
   chip(r, T('ch_sim')); chip(r, T('ch_nao'));
   return r;
@@ -26424,7 +26486,7 @@ H.loja_criar_pergunta = function(it, ctx, est){
 H.loja_ver = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
   var L = ctx.loja, r = novaResp();
-  if(L.tipo === 'nenhuma'){ est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar'}}; diz(r, T('lj_sem_loja') + ' ' + T('lj_quer_criar')); chip(r, T('ch_sim')); chip(r, T('ch_nao')); return r; }
+  if(L.tipo === 'nenhuma'){ est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar', confirmado: true}}; diz(r, T('lj_sem_loja') + ' ' + T('lj_quer_criar')); chip(r, T('ch_sim')); chip(r, T('ch_nao')); return r; }
   if(L.tipo === 'complexa'){ diz(r, T('lj_ver_complexa')); chip(r, T('ch_so_diamantes')); chip(r, T('ch_mais_barato')); return r; }
   if(!L.itens.length){ diz(r, T('lj_ver_vazia')); chip(r, T('ch_outro_item')); chip(r, T('ch_tirar_loja')); return r; }
   diz(r, it.ja ? T('lj_ja_tem') : T('lj_ver', {n: L.itens.length, itens: plural(L.itens.length, 'w_item', 'w_itens')}));
@@ -26479,6 +26541,7 @@ H.loja_mudar = function(it, ctx, est){
   else if(unica && unica.tipo === 'moeda' && unica.alvo.length === 1) diz(r, T('lj_mudou_item_moeda', {item: nomeItem(L, unica.alvo[0]), moeda: nomeMoeda(unica.moeda, 2)}));
   else diz(r, T('lj_mudou_varios'));
   if(linhas.length && !(unica && unica.tipo === 'moeda' && unica.alvo === '*' && linhas.length > 4)) diz(r, linhas.slice(0, 8).join('\n'));
+  if(res.res.jaEra && res.res.jaEra.length && !(unica && unica.alvo === '*')) diz(r, T('lj_item_ja_era', {itens: listaE(res.res.jaEra.map(function(x){ return '"' + x.nome + '"'; })), moeda: nomeMoeda(res.res.jaEra[0].moeda, 2)}));
   if(res.res.limite) diz(r, T('lj_limite', {max: milhar(res.res.limite.max), moeda: nomeMoeda(res.res.limite.moeda, 2)}));
   if(!res.res.regras){
     r.blocos.push(cartaoLoja(res.loja.itens, mudou));
@@ -26523,6 +26586,18 @@ H.loja_tirar = function(it, ctx, est){
   est.ultimoItem = null;
   return aplicar(est, r, ctx.codigo, res.codigo, T('d_loja_mudou'));
 };
+/* itens que ainda não fazem nada no jogo: um aviso só, com o nome de todos */
+function avisoSemEfeito(r, itens){
+  if(!itens.length) return;
+  if(itens.length === 1) return diz(r, T('lj_sem_efeito', {item: itens[0].nome, id: itens[0].idSite}));
+  diz(r, T('lj_sem_efeito_varios', {itens: listaE(itens.map(function(i){ return '"' + i.nome + '"'; })), item: itens[0].nome, id: itens[0].idSite}));
+}
+/* "Bolo em diamantes e Biscoito em moedas": só quando a pessoa pediu moedas diferentes */
+function moedasDiferentes(pedidos){
+  var com = pedidos.filter(function(p){ return p.moeda; });
+  if(com.length < 2 || com.every(function(p){ return p.moeda === com[0].moeda; })) return '';
+  return listaE(com.map(function(p){ return p.nome + ' ' + T('lj_em') + ' ' + nomeMoeda(p.moeda, 2); }));
+}
 function precoPadrao(ef, moeda){ var c = PRECO_DO_EFEITO[ef] || 300; return moeda === 'd' ? paraDiamantes(c) : c; }
 H.loja_novo = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
@@ -26551,7 +26626,7 @@ H.loja_novo = function(it, ctx, est){
     var ce = comEfeito.filter(function(c){ return c.item === n; })[0];
     diz(r, T('lj_novo', {item: n.nome, preco: precoTxt(n.preco, n.moeda)}) + (ce ? ' ' + capitalizar(T('ef_' + ce.ef)) + '.' : ''));
   });
-  semEfeito.forEach(function(s){ diz(r, T('lj_sem_efeito', {item: s.item.nome, id: s.item.id})); });
+  avisoSemEfeito(r, semEfeito.map(function(x){ return {nome: x.item.nome, idSite: x.item.id}; }));
   var mudou = {}; res.res.novos.forEach(function(n){ mudou[n.id] = 1; });
   if(res.loja && res.loja.tipo !== 'complexa') r.blocos.push(cartaoLoja(res.loja.itens, mudou));
   if(semEfeito.length === 1){
@@ -26715,7 +26790,7 @@ H.consertar = function(it, ctx, est){
 function transformacao(f, okTxt, jaTxt, naoTxt, desc, extra){
   return function(it, ctx, est){
     var x = precisaCodigo(ctx); if(x) return x;
-    var res = f(ctx.codigo);
+    var res = f(ctx.codigo, it && it.arg);
     var r = novaResp();
     if(res.erro === 'ja_tem') return diz(r, T(jaTxt));
     if(res.erro){ diz(r, T(naoTxt)); if(extra) extra(r, null, ctx); return r; }
@@ -26726,7 +26801,7 @@ function transformacao(f, okTxt, jaTxt, naoTxt, desc, extra){
 }
 H.skin = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
-  var res = fazerSkin(ctx.codigo, it.forcar), r = novaResp();
+  var res = fazerSkin(ctx.codigo, it.forcar, it.dica), r = novaResp();
   if(res.erro === 'ja_tem') return diz(r, T('sk_ja'));
   if(res.erro === 'sem_heroi'){ diz(r, T('sk_sem_heroi', {genero: res.genero})); chip(r, T('ch_skin_mesmo'), T('ch_skin_mesmo')); return r; }
   if(res.erro){
@@ -26894,8 +26969,8 @@ function responder(est, texto, bruto){
     var direto = null;
     Object.keys(CHIPS_DIRETOS).forEach(function(k){ if(String(texto).trim() === T(k)) direto = {int: 'efeito_curto', efeito: CHIPS_DIRETOS[k]}; });
     var it = direto || entender(texto, ctx);
-    est.pendente = it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' ? est.pendente : (est.pendente && /^(confirmar|qual_item|nome_item|ideia|tipo_jogo|tema_jogo)$/.test(est.pendente.tipo) && it.int !== 'nada' ? null : est.pendente);
-    if(it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' || it.int === 'negou') est.pendente = null;
+    est.pendente = it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' ? est.pendente : (est.pendente && /^(confirmar|qual_item|nome_item|ideia|tipo_jogo|tema_jogo|briefing)$/.test(est.pendente.tipo) && it.int !== 'nada' ? null : est.pendente);
+    if(it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' || it.int === 'negou' || it.int === 'briefing_resp') est.pendente = null;
     r = (H[it.int] || H.nada)(it, ctx, est);
     r.intencao = it.int;
   }catch(e){
@@ -26937,15 +27012,12 @@ function saudar(est, bruto, deNovo){
   var sl = L.tipo !== 'nenhuma' && L.itens.length ? T('oi_com_loja', {n: L.itens.length, itens: plural(L.itens.length, 'w_item', 'w_itens')}) : '';
   var s = deNovo && est.turnos > 1 ? T('oi_de_novo') : T('oi_com_codigo', {genero: g.nome, linhas: milhar(doc.linhas.length), loja: sl});
   diz(r, s);
-  chip(r, L.tipo === 'nenhuma' ? T('ch_loja') : T('ch_ver_loja'));
-  if(L.tipo !== 'nenhuma') chip(r, L.itens.length && L.itens.every(function(i){ return i.moedaSite === 'd'; }) ? T('ch_so_moedas') : T('ch_so_diamantes'));
-  chip(r, T('ch_verificar')); chip(r, T('ch_avaliar'));
-  if(!/KODA\s*\.\s*jogador/.test(ctx.codigo)) chip(r, T('ch_skin'));
+  chipsDeOferta(r, bruto);
   return r;
 }
 /* ---------------- textos da tela da conversa ---------------- */
 Object.assign(TX, {
-  ui_ph: 'Peça do seu jeito...|Ask your way...|Pide a tu manera...',
+  ui_ph: 'Diga o que tem na sua mente para {agente}...|Tell {agente} what’s on your mind...|Dile a {agente} lo que tienes en mente...',
   ui_enviar: 'Enviar|Send|Enviar',
   ui_desfazer: 'Desfazer a última mudança|Undo the last change|Deshacer el último cambio',
   ui_robo: 'O robô está jogando seu jogo...|The robot is playing your game...|El robot está jugando tu juego...',
@@ -26953,6 +27025,10 @@ Object.assign(TX, {
   ui_desfeito: 'Voltei o código como estava.|The code is back to how it was.|El código volvió a como estaba.',
   ui_copiar: 'Copiar|Copy|Copiar', ui_copiado: 'Copiado!|Copied!|¡Copiado!', ui_nao_copiou: 'Não deu pra copiar. Segure o texto e copie.|Could not copy. Hold the text and copy it.|No se pudo copiar. Mantén presionado el texto y cópialo.',
   ui_loja_tit: 'Loja do jogo|Game shop|Tienda del juego',
+  ui_oferta_tit: 'Você não gostaria de adicionar alguma coisa ao seu jogo?|Wouldn’t you like to add something to your game?|¿No te gustaría agregarle algo a tu juego?',
+  ui_oferta_sub: 'Escolha uma opção e me conte como você quer.|Pick an option and tell me how you want it.|Elige una opción y cuéntame cómo la quieres.',
+  ui_oferta_publicar: 'Publicar assim mesmo|Publish anyway|Publicar así igual', ui_oferta_agora_nao: 'Agora não|Not now|Ahora no',
+  ui_dica: 'Quer adicionar alguma coisa ao seu jogo?|Want to add something to your game?|¿Quieres agregarle algo a tu juego?',
   ui_varias: 'compra várias vezes|can buy many times|se compra varias veces'
 });
 /* ---------------- 13) placar online ----------------
@@ -27708,10 +27784,261 @@ H.mudar_tema = function(it, ctx, est){
   return aplicar(est, r, ctx.codigo, novo, T('d_tema'));
 };
 Object.assign(TX, {d_jogo_novo: 'o jogo novo|the new game|el juego nuevo', d_tema: 'a troca de tema|the theme change|el cambio de tema'});
+/* ---------------- 15) o agente pergunta "como você quer?" ----------------
+   Antes de publicar (ou quando a pessoa quiser), o agente oferece o que dá pra pôr no jogo. Cada opção escolhida
+   vira uma pergunta: a pessoa explica como quer (por exemplo "o bolo em diamantes e o biscoito em moedas") e só
+   depois o agente mexe no código. Tem também a lista de itens com moeda e preço de cada um. */
+Object.assign(TX, {
+  of_loja: 'Colocar uma loja|Add a shop|Poner una tienda', of_loja_sub: 'Itens que custam moedas ou diamantes|Items that cost coins or diamonds|Artículos que cuestan monedas o diamantes',
+  of_loja_mudar: 'Mudar a loja|Change the shop|Cambiar la tienda', of_loja_mudar_sub: 'Preços, moedas e itens|Prices, currencies and items|Precios, monedas y artículos',
+  of_salvar: 'Salvar o progresso|Save progress|Guardar el progreso', of_salvar_sub: 'Quem voltar continua de onde parou|Whoever comes back continues where they left off|Quien vuelva sigue donde lo dejó',
+  of_skin: 'Jogar com a minha skin|Play with my skin|Jugar con mi skin', of_skin_sub: 'O herói vira o seu personagem do Koda|The hero becomes your Koda character|El héroe es tu personaje de Koda',
+  of_pontuar: 'Pontos no ranking|Points in the ranking|Puntos en el ranking', of_pontuar_sub: 'Mandar a pontuação pro Koda|Send the score to Koda|Mandar la puntuación a Koda',
+  of_online: 'Placar online|Online scoreboard|Marcador online', of_online_sub: 'Ver os pontos de quem joga junto|See the points of whoever plays together|Ver los puntos de quien juega junto',
+  of_sons: 'Colocar sons|Add sounds|Poner sonidos', of_sons_sub: 'Pontos, pulo, dano e fim de jogo|Points, jump, damage and game over|Puntos, salto, daño y fin del juego',
+  of_verificar: 'Procurar erros|Look for errors|Buscar errores', of_verificar_sub: 'Leio o código e um robô joga|I read the code and a robot plays|Leo el código y un robot juega',
+  of_avaliar: 'Dar uma nota|Give a score|Dar una nota', of_avaliar_sub: 'Nota de 0 a 10 com dicas|Score from 0 to 10 with tips|Nota de 0 a 10 con consejos',
+  of_duvida: 'Tirar uma dúvida|Ask a question|Resolver una duda', of_duvida_sub: 'Pergunte o que quiser|Ask anything you want|Pregunta lo que quieras',
+  bf_loja: 'Boa! Vamos montar a loja. Me conta como você quer: o que vai vender e se cada coisa custa moedas ou diamantes. Por exemplo: "o bolo em diamantes e o biscoito em moedas". Se preferir, eu escolho os itens que combinam com o seu jogo.|Great! Let’s build the shop. Tell me how you want it: what you will sell and whether each thing costs coins or diamonds. For example: "the cake in diamonds and the cookie in coins". If you prefer, I will pick items that fit your game.|¡Bien! Armemos la tienda. Cuéntame cómo la quieres: qué vas a vender y si cada cosa cuesta monedas o diamantes. Por ejemplo: "el pastel en diamantes y la galleta en monedas". Si prefieres, yo elijo los artículos que combinan con tu juego.',
+  ch_voce_escolhe_itens: 'Você escolhe os itens|You pick the items|Tú eliges los artículos', ch_tudo_moedas: 'Tudo em moedas|Everything in coins|Todo en monedas', ch_tudo_diamantes: 'Tudo em diamantes|Everything in diamonds|Todo en diamantes',
+  bf_salvar: 'Boa! Vou fazer o jogo lembrar onde a pessoa parou. Achei no seu código: {lista}. O que você quer que ele guarde? Pode ser só uma parte (por exemplo: "só o recorde") ou tudo.|Great! I will make the game remember where the person stopped. I found in your code: {lista}. What do you want it to keep? It can be just one part (for example: "only the high score") or everything.|¡Bien! Voy a hacer que el juego recuerde dónde se quedó la persona. Encontré en tu código: {lista}. ¿Qué quieres que guarde? Puede ser solo una parte (por ejemplo: "solo el récord") o todo.',
+  sv_t_recorde: 'o recorde|the high score|el récord', sv_t_fase: 'a fase|the level|el nivel', sv_t_moedas: 'as moedas do jogo|the game coins|las monedas del juego', sv_t_xp: 'o XP|the XP|la XP', sv_t_storage: 'o que o jogo já guardava (localStorage)|what the game already stored (localStorage)|lo que el juego ya guardaba (localStorage)',
+  ch_salvar_tudo: 'Tudo que achar|Everything you find|Todo lo que encuentres', ch_so_x: 'Só {x}|Only {x}|Solo {x}',
+  bf_skin: 'Boa! Vou trocar o desenho do herói pelo seu personagem do Koda, com a roupa que você escolheu. Qual é o herói do seu jogo? (por exemplo: "a nave", "o sapo"). Se preferir, eu mesmo procuro.|Great! I will swap the hero drawing for your Koda character, with the outfit you chose. Which one is the hero of your game? (for example: "the ship", "the frog"). If you prefer, I will look for it myself.|¡Bien! Voy a cambiar el dibujo del héroe por tu personaje de Koda, con la ropa que elegiste. ¿Cuál es el héroe de tu juego? (por ejemplo: "la nave", "la rana"). Si prefieres, lo busco yo.',
+  ch_procura_voce: 'Procura você|You look for it|Búscalo tú',
+  bf_pontuar: 'Boa! Quando a partida acabar, o jogo manda os pontos (a variável "{v}") pro ranking do Koda. Pode ser assim?|Great! When the round ends, the game sends the points (the "{v}" variable) to the Koda ranking. Is that okay?|¡Bien! Cuando termine la partida, el juego manda los puntos (la variable "{v}") al ranking de Koda. ¿Está bien así?',
+  bf_sons: 'Boa! Posso colocar sons feitos dentro do jogo: {lista}. Quais você quer?|Great! I can add sounds made inside the game: {lista}. Which ones do you want?|¡Bien! Puedo poner sonidos hechos dentro del juego: {lista}. ¿Cuáles quieres?',
+  ch_sons_todos: 'Todos os sons|All the sounds|Todos los sonidos',
+  bf_duvida: 'Claro! Pode perguntar o que quiser: sobre o Koda (moedas, diamantes, regras, publicar), sobre o seu jogo ou sobre como fazer alguma coisa.|Sure! Ask whatever you want: about Koda (coins, diamonds, rules, publishing), about your game or about how to do something.|¡Claro! Pregunta lo que quieras: sobre Koda (monedas, diamantes, reglas, publicar), sobre tu juego o sobre cómo hacer algo.',
+  ch_fq_moedas: 'Como ganho moedas?|How do I earn coins?|¿Cómo gano monedas?', ch_fq_regras: 'O que não pode ter no jogo?|What can’t be in a game?|¿Qué no puede tener el juego?', ch_fq_publicar: 'O que acontece quando eu publico?|What happens when I publish?|¿Qué pasa cuando publico?',
+  bf_nada_pra_salvar: 'Não achei nada pra salvar no seu jogo (procurei fase, recorde, moedas e localStorage). Se ele tiver progresso com outro nome, me conta qual é a variável (por exemplo: "a fase é a variável nivelAtual").|I found nothing to save in your game (I looked for level, high score, coins and localStorage). If it has progress under another name, tell me the variable (for example: "the level is the variable currentStage").|No encontré nada para guardar en tu juego (busqué nivel, récord, monedas y localStorage). Si tiene progreso con otro nombre, dime la variable (por ejemplo: "el nivel es la variable nivelActual").',
+  cp_continua: 'Beleza, deixei como estava. Quando quiser, é só pedir.|Okay, I left it as it was. Whenever you want, just ask.|Vale, lo dejé como estaba. Cuando quieras, solo pídelo.'
+});
+/* ---- ler uma lista de itens com a moeda e o preço de cada um ---- */
+var LIGA = {};
+('que,q,quero,queria,gostaria,gostava,pode,podia,poderia,deve,tenha,tenham,ter,tem,tinha,ficar,fique,fiquem,fica,ficam,seja,sejam,ser,sao,eh,e,sera,serao,feito,feita,feitos,feitas,pago,paga,pagos,pagas,pagar,pague,pagam,pagando,cobrado,cobrada,cobrados,cobrar,cobre,cobra,vendido,vendida,vendidos,vendidas,vende,vendem,vendendo,venda,comprado,comprada,compra,compram,custa,custam,custar,custando,valor,vale,valem,usa,usam,usar,use,precisa,precisam,preciso,so,somente,apenas,em,de,do,da,dos,das,com,por,pra,para,pelo,pela,no,na,nos,nas,ao,aos,ai,aqui,la,tambem,ainda,ja,agora,depois,entao,mais,outro,outra,tipo,assim,sem,nao,nem,voce,vc,tu,eu,meu,minha,seu,sua,ele,ela,isso,esse,essa,mas,porem,ou,y,and,or,but,the,a,an,of,for,with,is,are,be,made,paid,pay,paying,costs,cost,buy,sell,sold,selling,want,wanna,i,you,your,my,in,on,to,at,only,just,also,that,which,have,has,get,got,make,put,add,let,quiero,quisiera,puede,tenga,tengan,tener,tiene,sea,sean,son,hecho,hecha,pagado,pagan,venden,cuesta,cuestan,solo,todavia,ya,ahora,luego,entonces,otro,asi,ni,mi,su,el,la,los,las,un,una,unos,unas,lo,le,pero,o,en,al,del,vai,vao,onde,quando,como,qual,quais,cada,todo,toda,todos,todas,tudo,coisa,coisas,item,itens,items,produto,produtos,objeto,objetos,articulo,articulos,cosa,cosas,upgrade,upgrades,loja,lojinha,jogo,jogos,joguinho,shop,store,game,tienda,juego,nova,novo,new,nuevo,nueva').split(',').forEach(function(w){ LIGA[w] = 1; });
+var ARTIGO_ANTES = /^(um|uma|o|a|os|as|the|an|un|una|el|la|de|do|da|of|del|meu|minha|seu|sua|my|your|mi|su|novo|nova|new|nuevo|nueva)$/;
+function ehTokenLiga(ws, i){
+  var w = ws[i];
+  if(LIGA[w] || PARADAS[w] || /^\d/.test(w) || NUM_PAL[w] != null) return true;
+  if(ehDa('moeda', w) || ehDa('diamante', w) || ehDa('real', w) || ehDa('preco', w) || ehDa('so', w) || ehDa('todos', w) || ehDa('vender', w) || ehDa('comprar', w) || ehDa('loja', w) || ehDa('jogo', w) || ehDa('mudar', w) || ehDa('tirar', w) || ehDa('barato', w) || ehDa('caro', w) || ehDa('baixar', w) || ehDa('subir', w)) return true;
+  if(ehDa('por', w)) return !(i > 0 && ARTIGO_ANTES.test(ws[i - 1]));   // "bota um capacete" é verbo; "uma bota" é o item
+  return false;
+}
+/* o nome do item de um pedaço de frase: o primeiro grupo de palavras "de verdade" ("espada de fogo") */
+function nomeDaParte(Q){
+  var ws = Q.ws, wo = Q.wo, ini = -1, fim = -1;
+  for(var i = 0; i < ws.length; i++){
+    if(ehTokenLiga(ws, i)) continue;
+    ini = i; fim = i;
+    var j = i + 1;
+    while(j < ws.length){
+      if(!ehTokenLiga(ws, j)){ fim = j; j++; continue; }
+      if(/^(de|do|da|dos|das|of|del)$/.test(ws[j]) && j + 1 < ws.length && !ehTokenLiga(ws, j + 1)){ j++; continue; }
+      break;
+    }
+    break;
+  }
+  if(ini < 0) return null;
+  var nome = wo.slice(ini, Math.min(fim + 1, ini + 5)).join(' ').trim();
+  return nome.length >= 2 ? nome : null;
+}
+var CLASSES_DE_OUTRO_PEDIDO = ['verificar', 'avaliar', 'testar', 'consertar', 'desfazer', 'skin', 'salvar', 'ranking', 'online', 'ideia', 'explicar', 'ajuda', 'oi', 'obrigado'];
+/* "o bolo é feito com diamante, mas o biscoito você paga moeda" -> [{nome:'Bolo', moeda:'d'}, {nome:'Biscoito', moeda:'c'}] */
+function itensDaFrase(texto){
+  var res = {itens: [], geral: null};
+  var t = String(texto || '').trim();
+  if(!t || /\?\s*$/.test(t)) return res;
+  var primeira = norm(t).split(/\s+/)[0] || '';
+  if(ehDa('quanto', primeira) || ehDa('pergunta', primeira)) return res;
+  var partes = t.split(/[,;:.!\n]+|\s+(?:mas|porem|por[eé]m|but|pero|while|mientras|depois|then|tamb[eé]m|also|ou|or|e|and|y)\s+/i).map(function(s){ return (s || '').trim(); }).filter(Boolean);
+  var lista = [], gerais = [];
+  partes.forEach(function(parte){
+    var Q = analisar(parte, null);
+    if(!Q.ws.length) return;
+    if(CLASSES_DE_OUTRO_PEDIDO.some(function(c){ return Q.tem(c); })) return;
+    var moeda = Q.moedas.length ? Q.moedas[Q.moedas.length - 1].m : null;
+    var nome = nomeDaParte(Q);
+    if(!nome){ if(moeda) gerais.push(moeda); return; }
+    var pr = Q.precos.length ? Q.precos[0] : null;
+    lista.push({nome: capitalizar(nome).slice(0, 40), preco: pr ? pr.v : null, moeda: (pr && pr.moeda) || moeda});
+  });
+  var geral = gerais.length ? gerais[gerais.length - 1] : null;
+  for(var k = lista.length - 1; k >= 0; k--){
+    if(lista[k].moeda) continue;
+    var prox = null;
+    for(var q = k + 1; q < lista.length; q++) if(lista[q].moeda){ prox = lista[q].moeda; break; }
+    lista[k].moeda = geral || prox || null;
+  }
+  var vistos = {};
+  res.itens = lista.filter(function(it){ var c = norm(it.nome); if(vistos[c]) return false; vistos[c] = 1; return true; }).slice(0, 8);
+  res.geral = geral;
+  return res;
+}
+/* a moeda da loja inteira, quando todos os itens usam a mesma (senão null: cada item tem a sua) */
+function moedaUnica(li){
+  var todas = li.itens.map(function(i){ return i.moeda; });
+  if(!todas.length) return li.geral;
+  if(todas.some(function(m){ return !m; })) return null;
+  return todas.every(function(m){ return m === todas[0]; }) ? todas[0] : null;
+}
+function voceEscolhe(P){
+  return P.frase(['voce escolhe', 'voce que sabe', 'voce decide', 'tanto faz', 'pode escolher', 'escolhe pra mim', 'escolhe por mim', 'escolhe voce', 'surpreenda', 'surpreende', 'qualquer um', 'qualquer coisa', 'como voce quiser', 'como quiser', 'faz do seu jeito', 'faca do seu jeito', 'you choose', 'you pick', 'you decide', 'up to you', 'surprise me', 'whatever', 'your choice', 'tu eliges', 'tu decides', 'tu escoges', 'como quieras', 'sorprendeme', 'lo que quieras', 'cualquiera', 'da igual']);
+}
+/* quando a pessoa respondeu outra coisa (um pedido novo, uma pergunta): não é resposta da pergunta do agente */
+function outraCoisa(P, que){
+  if(P.interrogacao) return true;
+  if(['verificar', 'avaliar', 'consertar', 'desfazer', 'ideia', 'explicar', 'ajuda', 'oi', 'obrigado'].some(function(c){ return P.tem(c); })) return true;
+  if(que !== 'loja' && (P.tem('loja') || P.tem('vender'))) return true;
+  return false;
+}
+var TIPOS_SALVAR_RE = {recorde: /\b(recorde|recordes|melhor|best|high|highscore|record|mejor|maxim\w*)\b/, fase: /\b(fase|fases|nivel|niveis|level|levels|stage|etapa|mundo|world)\b/, moedas: /\b(moeda|moedas|dinheiro|coin|coins|gold|ouro|money|monedas|dinero|oro)\b/, xp: /\b(xp|exp|experiencia|experience)\b/};
+var SONS_RE = {ponto: /\b(ponto|pontos|pontu\w*|score|scor\w*|point|points|punto|puntos|moeda|coin)\b/, dano: /\b(vida|vidas|dano|perde|perder|perdendo|machuc\w*|damage|hurt|lose|losing|life|lives|herid\w*|golpe|bate|bater)\b/, pulo: /\b(pulo|pula|pular|salto|saltar|jump|jumping)\b/, fim: /\b(fim|acab\w*|termin\w*|game over|gameover|end|ends|over|final|fin)\b/};
+/* a resposta de uma pergunta do agente. Devolve o pedido já entendido, ou null se a pessoa pediu outra coisa. */
+function responderBriefing(P, ctx, pd){
+  var ws = P.ws, que = pd.que;
+  var nao = P.tem('nao') && !P.frase(['nao sei', 'dont know', 'no se']) && ws.length <= 5;
+  if(nao) return {int: 'negou'};
+  if(que === 'loja'){
+    if(voceEscolhe(P)) return {int: 'loja_criar', confirmado: true};
+    var li = itensDaFrase(P.orig);
+    if(li.itens.length) return {int: 'loja_criar', confirmado: true, moeda: moedaUnica(li), itens: li.itens};
+    if(P.moedas.length && !P.precos.length && !P.interrogacao) return {int: 'loja_criar', confirmado: true, moeda: P.moedas[P.moedas.length - 1].m};
+    return null;
+  }
+  if(outraCoisa(P, que)) return null;
+  if(que === 'salvar'){
+    var tipos = [];
+    Object.keys(TIPOS_SALVAR_RE).forEach(function(k){ if(TIPOS_SALVAR_RE[k].test(P.n)) tipos.push(k); });
+    if(voceEscolhe(P) || P.tem('todos') || P.tem('sim') || P.frase(['tudo que achar', 'everything you find', 'todo lo que encuentres'])) return {int: 'briefing_resp', que: 'salvar', tipos: null};
+    if(tipos.length) return {int: 'briefing_resp', que: 'salvar', tipos: tipos};
+    return null;
+  }
+  if(que === 'skin'){
+    if(voceEscolhe(P) || P.tem('sim') || P.frase(['procura voce', 'you look for it', 'busca tu', 'busca lo tu', 'procure voce'])) return {int: 'briefing_resp', que: 'skin', dica: null};
+    if(ws.length <= 6){
+      var dica = ws.filter(function(w){ return !ehTokenLiga(ws, ws.indexOf(w)) && w.length >= 3; });
+      return {int: 'briefing_resp', que: 'skin', dica: dica.length ? dica : null};
+    }
+    return null;
+  }
+  if(que === 'sons'){
+    var quais = {};
+    Object.keys(SONS_RE).forEach(function(k){ if(SONS_RE[k].test(P.n)) quais[k] = 1; });
+    if(voceEscolhe(P) || P.tem('todos') || P.tem('sim') || P.frase(['todos os sons', 'all the sounds', 'todos los sonidos'])) return {int: 'briefing_resp', que: 'sons', quais: null};
+    if(Object.keys(quais).length) return {int: 'briefing_resp', que: 'sons', quais: quais};
+    return null;
+  }
+  return null;
+}
+H.briefing_resp = function(it, ctx, est){
+  if(it.que === 'salvar') return H.salvar({arg: it.tipos}, ctx, est);
+  if(it.que === 'skin') return H.skin({forcar: true, dica: it.dica}, ctx, est);
+  if(it.que === 'sons') return H.sons({arg: it.quais}, ctx, est);
+  return diz(novaResp(), T('nada_r'));
+};
+
+/* ---- a lista do que dá pra pôr no jogo (a folha antes de publicar e os botões do cumprimento) ---- */
+function opcoesDeOferta(bruto){
+  var codigo = DEP.preparar(String(bruto || '')) || '';
+  if(!codigo) return [];
+  var out = [], doc, L, g;
+  try{ doc = lerDocumento(codigo); L = lojaLer(codigo, doc); g = generoDoJogo(doc); }catch(e){ return []; }
+  function add(id, adicionar, icone){ out.push({id: id, adicionar: !!adicionar, icone: icone, titulo: T('of_' + id), sub: T('of_' + id + '_sub')}); }
+  function tenta(f){ try{ return f(); }catch(e){ return false; } }
+  if(L.tipo === 'nenhuma') add('loja', true, 'bag'); else add('loja_mudar', false, 'bag');
+  if(!/data-koda-salvar|KODA\s*\.\s*salvar/.test(codigo) && tenta(function(){ return /\b(localStorage|sessionStorage)\b/.test(codigo) || acharProgresso(doc).length > 0; })) add('salvar', true, 'save');
+  if(!/KODA\s*\.\s*jogador\s*\.\s*(desenhar|andar)/.test(codigo) && !GENEROS_SEM_HEROI[g.id] && tenta(function(){ return !!acharDesenhoDoJogador(doc); })) add('skin', true, 'person');
+  if(!/KODA\s*\.\s*(pontuar|fimDePartida|score|gameOver)\s*\(/.test(codigo) && tenta(function(){ return !!planoDePontuar(doc); })) add('pontuar', true, 'ranking');
+  if(!/KODA\s*\.\s*online/.test(codigo) && tenta(function(){ return !!variavelDosPontos(doc); })) add('online', true, 'people');
+  if(!/data-koda-sons|kodaSom|AudioContext|new Audio\(/.test(codigo) && tenta(function(){ return fazerSons(codigo).erro !== 'nao_achei'; })) add('sons', true, 'sound');
+  add('verificar', false, 'code');
+  add('avaliar', false, 'star');
+  add('duvida', false, 'chat');
+  return out;
+}
+/* os botões do cumprimento: a mesma lista, em formato de resposta rápida */
+function chipsDeOferta(r, bruto){
+  opcoesDeOferta(bruto).forEach(function(o){
+    if(r.chips.length < 9 && !r.chips.some(function(c){ return c.opcao === o.id; })) r.chips.push({txt: o.titulo, msg: o.titulo, opcao: o.id});
+  });
+}
+/* a pessoa escolheu uma opção: o agente pergunta como ela quer */
+var HB = {};
+function comecarOpcao(est, id, bruto){
+  est.turnos++;
+  var ctx = contexto(est, bruto), r;
+  try{
+    est.pendente = null;
+    r = (HB[id] || H.nada)({}, ctx, est);
+    r.intencao = 'opcao_' + id;
+  }catch(e){ r = diz(novaResp(), T('ops')); r.erro = String(e && e.stack || e); }
+  return r;
+}
+HB.loja = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  if(ctx.loja.tipo !== 'nenhuma') return H.loja_ver({dica: true}, ctx, est);
+  est.pendente = {tipo: 'briefing', que: 'loja'};
+  var r = diz(novaResp(), T('bf_loja'));
+  chip(r, T('ch_voce_escolhe_itens')); chip(r, T('ch_tudo_moedas')); chip(r, T('ch_tudo_diamantes'));
+  return r;
+};
+HB.loja_mudar = HB.loja;
+HB.salvar = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  if(/data-koda-salvar|KODA\s*\.\s*salvar/.test(ctx.codigo)) return diz(novaResp(), T('sv_ja'));
+  var doc = lerDocumento(ctx.codigo), prog = acharProgresso(doc), usaStorage = /\b(localStorage|sessionStorage)\b/.test(ctx.codigo);
+  if(!usaStorage && !prog.length){ var r0 = diz(novaResp(), T('bf_nada_pra_salvar')); return r0; }
+  var tipos = unicos(prog.map(function(p){ return p.tipo; }));
+  var nomes = tipos.map(function(k){ return T('sv_t_' + k); });
+  if(usaStorage) nomes.push(T('sv_t_storage'));
+  est.pendente = {tipo: 'briefing', que: 'salvar'};
+  var r = diz(novaResp(), T('bf_salvar', {lista: listaE(nomes)}));
+  chip(r, T('ch_salvar_tudo'));
+  tipos.forEach(function(k){ chip(r, T('ch_so_x', {x: T('sv_t_' + k)})); });
+  return r;
+};
+HB.skin = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var teste = fazerSkin(ctx.codigo);
+  if(teste.erro) return H.skin({}, ctx, est);       // já tem, não tem herói ou não achei: o jeito normal explica
+  est.pendente = {tipo: 'briefing', que: 'skin'};
+  var r = diz(novaResp(), T('bf_skin'));
+  chip(r, T('ch_procura_voce'));
+  return r;
+};
+HB.pontuar = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var teste = fazerPontuar(ctx.codigo);
+  if(teste.erro) return H.pontuar({}, ctx, est);
+  est.pendente = {tipo: 'confirmar', acao: {int: 'pontuar'}};
+  var r = diz(novaResp(), T('bf_pontuar', {v: teste.res.pontos}));
+  chip(r, T('ch_sim')); chip(r, T('ch_nao'));
+  return r;
+};
+HB.online = function(it, ctx, est){ return H.online({}, ctx, est); };
+HB.sons = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var teste = fazerSons(ctx.codigo);
+  if(teste.erro) return H.sons({}, ctx, est);
+  var achados = Object.keys(teste.res.sons);
+  est.pendente = {tipo: 'briefing', que: 'sons'};
+  var r = diz(novaResp(), T('bf_sons', {lista: listaE(achados.map(function(k){ return T('so_' + k); }))}));
+  chip(r, T('ch_sons_todos'));
+  achados.forEach(function(k){ chip(r, T('ch_so_x', {x: T('so_' + k)})); });
+  return r;
+};
+HB.verificar = function(it, ctx, est){ return H.verificar({}, ctx, est); };
+HB.avaliar = function(it, ctx, est){ return H.avaliar({}, ctx, est); };
+HB.duvida = function(it, ctx, est){
+  var r = diz(novaResp(), T('bf_duvida'));
+  chip(r, T('ch_fq_moedas')); chip(r, T('ch_fq_regras')); chip(r, T('ch_fq_publicar'));
+  return r;
+};
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T,
-  novoEstado: novoEstado, saudar: saudar, responder: responder, depoisDoTeste: depoisDoTeste,
+  novoEstado: novoEstado, saudar: saudar, responder: responder, depoisDoTeste: depoisDoTeste, comecarOpcao: comecarOpcao, opcoes: opcoesDeOferta,
   robo: function(id){ return '(' + kodaRoboNoJogo.toString() + ')(' + JSON.stringify(String(id)) + ');'; },
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
   /* (pra testes) */
@@ -27720,7 +28047,7 @@ return {
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,
       entender: entender, analisar: analisar, buscarFaq: buscarFaq, fazerSkin: fazerSkin, fazerSalvar: fazerSalvar, fazerPontuar: fazerPontuar,
-      fazerSons: fazerSons, explicarJogo: explicarJogo, criarJogo: criarJogo, trocarTema: trocarTema, fazerOnline: fazerOnline, modeloDoCodigo: modeloDoCodigo, gerarIdeias: gerarIdeias, kodaRoboNoJogo: kodaRoboNoJogo, TX: TX, FAQ: FAQ}
+      fazerSons: fazerSons, explicarJogo: explicarJogo, itensDaFrase: itensDaFrase, responderBriefing: responderBriefing, criarJogo: criarJogo, trocarTema: trocarTema, fazerOnline: fazerOnline, modeloDoCodigo: modeloDoCodigo, gerarIdeias: gerarIdeias, kodaRoboNoJogo: kodaRoboNoJogo, TX: TX, FAQ: FAQ}
 };
 })();
 /* ============================================================
@@ -27738,6 +28065,7 @@ function kaLigarMotor(){
     kaLigado = true;
   }
   KA.lingua(currentLang);
+  KA.ligar({nomeAgente: agenteNomeIA()});
 }
 const KA_ICO = {
   x: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
@@ -27864,10 +28192,10 @@ function abrirAgente(caixa, opts){
   document.querySelectorAll('.ka-tela').forEach(e=>e.remove());
   const tela = document.createElement('div');
   tela.className = 'ka-tela';
-  tela.setAttribute('role', 'dialog'); tela.setAttribute('aria-modal', 'true'); tela.setAttribute('aria-label', t('ia_tit'));
+  tela.setAttribute('role', 'dialog'); tela.setAttribute('aria-modal', 'true'); tela.setAttribute('aria-label', agenteNomeIA());
   tela.innerHTML = `<div class="ka-topo">
       <button type="button" class="ka-ib" data-fechar aria-label="${esc(t('x_fechar'))}" title="${esc(t('x_fechar'))}">${KA_ICO.x}</button>
-      <b class="ka-tit">${iconeAgenteKoda()}<span>${esc(t('ia_tit'))}</span></b>
+      <b class="ka-tit">${iconeAgenteKoda()}<span>${esc(agenteNomeIA())}</span></b>
       <button type="button" class="ka-ib" data-desfazer aria-label="${esc(KA.T('ui_desfazer'))}" title="${esc(KA.T('ui_desfazer'))}">${KA_ICO.desfazer}</button>
     </div>
     <div class="ka-corpo"><div class="ka-lista" aria-live="polite"></div></div>
@@ -27891,7 +28219,7 @@ function abrirAgente(caixa, opts){
     conv.chips.forEach(c=>{
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ka-chip'; b.textContent = c.txt;
-      b.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); falar(c.msg || c.txt); });
+      b.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); if(c.opcao) falarOpcao(c.opcao, c.txt); else falar(c.msg || c.txt); });
       chipsEl.appendChild(b);
     });
     chipsEl.hidden = !conv.chips.length;
@@ -27913,16 +28241,8 @@ function abrirAgente(caixa, opts){
     }
     pintarChips(r.chips);
   }
-  async function falar(txt){
-    txt = String(txt || '').trim().slice(0, 600);
-    if(!txt || ocupado) return;
-    ocupado = true; enviar.disabled = true; entrada.value = ''; ajustarAltura();
-    chipsEl.hidden = true;
-    bolhaEu(txt);
-    const p = pensando();
-    await new Promise(r=>setTimeout(r, 280 + Math.random() * 380));
-    const r = KA.responder(conv.estado, txt, caixa.value);
-    p.remove();
+  /* o que fazer com a resposta do motor: código novo na caixa, nome do jogo, texto, cartões e o robô */
+  async function processar(r){
     if(r.erro) try{ console.warn('Agente Koda:', r.erro); }catch(e){}
     if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); }
     /* jogo criado do zero: o nome dele já vai pro campo "Nome" (se estiver vazio) */
@@ -27940,8 +28260,28 @@ function abrirAgente(caixa, opts){
         await mostrar(r2);
       } else conv.estado.aguardando = null;
     }
+  }
+  async function executar(txt, resolver){
+    if(ocupado) return;
+    ocupado = true; enviar.disabled = true; entrada.value = ''; ajustarAltura();
+    chipsEl.hidden = true;
+    bolhaEu(txt);
+    const p = pensando();
+    await new Promise(r=>setTimeout(r, 280 + Math.random() * 380));
+    const r = resolver();
+    p.remove();
+    await processar(r);
     ocupado = false; enviar.disabled = false;
     if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) try{ entrada.focus(); }catch(e){}
+  }
+  function falar(txt){
+    txt = String(txt || '').trim().slice(0, 600);
+    if(!txt) return Promise.resolve();
+    return executar(txt, ()=>KA.responder(conv.estado, txt, caixa.value));
+  }
+  /* uma opção da oferta ("Colocar uma loja"): o agente pergunta como a pessoa quer */
+  function falarOpcao(id, txt){
+    return executar(txt || KA.T('of_' + id), ()=>KA.comecarOpcao(conv.estado, id, caixa.value));
   }
   function ajustarAltura(){ entrada.style.height = 'auto'; entrada.style.height = Math.min(120, entrada.scrollHeight) + 'px'; }
   entrada.addEventListener('input', ajustarAltura);
@@ -27953,10 +28293,51 @@ function abrirAgente(caixa, opts){
   document.addEventListener('keydown', teclas);
   q('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
   pintarDesfazer();
-  if(nova) mostrar(KA.saudar(conv.estado, caixa.value));
+  if(opts.comecar){
+    /* veio da oferta: vai direto pra pergunta da opção escolhida */
+    if(!nova){ pintarChips(conv.chips); setTimeout(rolar, 30); }
+    setTimeout(()=>falarOpcao(opts.comecar), 320);
+  }
+  else if(nova) mostrar(KA.saudar(conv.estado, caixa.value));
   else { pintarChips(conv.chips); setTimeout(rolar, 30); }
   if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) setTimeout(()=>{ try{ entrada.focus(); }catch(e){} }, 80);
-  return {falar, fechar};
+  return {falar, falarOpcao, fechar};
+}
+/* ---- a oferta: "você não gostaria de adicionar alguma coisa ao seu jogo?" ---- */
+const KA_OFERTADO = new WeakSet();       // caixas que já receberam a oferta antes de publicar (uma vez só por tela)
+const KA_ICONES_OFERTA = {bag: 'bag', save: 'save', person: 'person', ranking: 'ranking', people: 'people', sound: 'soundOn', code: 'code', star: 'starOutline', chat: 'chatBubble'};
+function kaTemParaAdicionar(caixa){
+  kaLigarMotor();
+  try{ return KA.opcoes(caixa.value).some(o=>o.adicionar); }catch(e){ return false; }
+}
+/* mostra a folha com as opções. o.publicar = veio do botão Publicar (aparece "Publicar assim mesmo"); o.depois = o que fazer se a pessoa seguir sem escolher */
+function kaOferta(caixa, o){
+  o = o || {};
+  kaLigarMotor();
+  const esc = chatListEscape;
+  let opcoes = [];
+  try{ opcoes = KA.opcoes(caixa.value); }catch(e){}
+  if(!opcoes.length){ if(o.depois) o.depois(); return false; }
+  document.querySelectorAll('.ka-oferta-bg').forEach(e=>e.remove());
+  const bg = document.createElement('div');
+  bg.className = 'game-menu-bg ka-oferta-bg';
+  bg.setAttribute('role', 'dialog'); bg.setAttribute('aria-modal', 'true');
+  bg.innerHTML = `<div class="game-menu-sheet ka-oferta">
+      <div class="ka-of-topo">${iconeAgenteKoda(true)}<div><b>${esc(agenteNomeIA())}</b><p>${esc(KA.T('ui_oferta_tit'))}</p></div></div>
+      <p class="ka-of-sub">${esc(KA.T('ui_oferta_sub'))}</p>
+      <div class="ka-of-lista">${opcoes.map(x=>`<button type="button" class="ka-of-op" data-op="${esc(x.id)}">${ICONS[KA_ICONES_OFERTA[x.icone]] || ICONS.gamepad}<span><b>${esc(x.titulo)}</b><small>${esc(x.sub)}</small></span></button>`).join('')}</div>
+      <button type="button" class="ka-of-sair">${esc(KA.T(o.publicar ? 'ui_oferta_publicar' : 'ui_oferta_agora_nao'))}</button>
+    </div>`;
+  document.body.appendChild(bg);
+  requestAnimationFrame(()=>bg.classList.add('show'));
+  const fechar = ()=>{ bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 220); };
+  bg.addEventListener('click', e=>{ if(e.target === bg){ playSound('click'); fechar(); } });
+  bg.querySelector('.ka-of-sair').addEventListener('click', ()=>{ playSound('click'); fechar(); if(o.depois) o.depois(); });
+  bg.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click', ()=>{
+    playSound('click'); fechar();
+    abrirAgente(caixa, {aoMudar: o.aoMudar, nomeEl: o.nomeEl, comecar: b.dataset.op});
+  }));
+  return true;
 }
 /* liga o botão do Agente Koda; codeSel = a caixa do código; editingId = o jogo que está sendo editado (se for edição) */
 function ligarAssistente(root, codeSel, editingId){
@@ -27972,7 +28353,36 @@ function ligarAssistente(root, codeSel, editingId){
     mostrarStatus(KA.T(desfez ? 'ui_desfeito' : 'ui_codigo_mudou'), desfez ? '' : 'ok');
   };
   const nomeEl = root.querySelector('#fName, #directName');
-  abrir.addEventListener('click', ()=>{ playSound('click'); abrirAgente(caixa, {aoMudar, nomeEl}); });
+  abrir.addEventListener('click', ()=>{ playSound('click'); ocultarDica(); abrirAgente(caixa, {aoMudar, nomeEl}); });
+  /* a dica: logo depois de colar o código, o agente pergunta se a pessoa quer adicionar alguma coisa */
+  let dica = null, dicaTm = null, dicaFeita = false;
+  const ocultarDica = ()=>{ if(dica){ dica.remove(); dica = null; } };
+  function mostrarDica(){
+    if(dicaFeita || dica || !caixa.isConnected || caixa.value.trim().length < 120) return;
+    if(document.querySelector('.ka-tela, .ka-oferta-bg')) return;
+    if(!kaTemParaAdicionar(caixa)) return;
+    dicaFeita = true;
+    dica = document.createElement('button');
+    dica.type = 'button'; dica.className = 'ka-dica';
+    dica.innerHTML = `${iconeAgenteKoda(true)}<span>${chatListEscape(KA.T('ui_dica'))}</span>`;
+    dica.addEventListener('click', ()=>{ playSound('click'); ocultarDica(); kaOferta(caixa, {aoMudar, nomeEl}); });
+    box.insertBefore(dica, status);
+  }
+  caixa.addEventListener('input', ()=>{ clearTimeout(dicaTm); dicaTm = setTimeout(mostrarDica, 900); });
+  caixa.addEventListener('paste', ()=>{ clearTimeout(dicaTm); dicaTm = setTimeout(mostrarDica, 1200); });
+  if(caixa.value.trim().length >= 120) dicaTm = setTimeout(mostrarDica, 1500);     // editando um jogo que já tem código
+  /* ao tocar em Publicar: antes de seguir, o agente pergunta se a pessoa quer adicionar alguma coisa (uma vez por tela) */
+  if(root._kaPublicar) root.removeEventListener('click', root._kaPublicar, true);
+  root._kaPublicar = e=>{
+    const b = e.target && e.target.closest ? e.target.closest('#directGo, #publishBtn') : null;
+    if(!b || !root.contains(b) || !caixa.isConnected || KA_OFERTADO.has(caixa)) return;
+    if(caixa.value.trim().length < 60 || !kaTemParaAdicionar(caixa)) return;
+    KA_OFERTADO.add(caixa);
+    e.preventDefault(); e.stopImmediatePropagation();
+    ocultarDica(); dicaFeita = true;
+    kaOferta(caixa, {publicar: true, aoMudar, nomeEl, depois: ()=>{ try{ b.click(); }catch(x){} }});
+  };
+  root.addEventListener('click', root._kaPublicar, true);
   /* o "desfazer" do lado do botão faz o mesmo que o da conversa (e fica anotado nela) */
   desfazer.addEventListener('click', ()=>{
     const conv = KA_CONVERSAS.get(caixa);
