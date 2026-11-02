@@ -27087,7 +27087,8 @@ function kodaPlacarOnline(lerPontos, TXT){
   O.aoEntrar(function(){ manda(true); });
   O.aoSair(function(j){ if(j) delete outros[j.id]; desenha(); });
   if(O.aoConectar) O.aoConectar(function(info){ if(info && info.eu) eu = info.eu; manda(true); });
-  O.entrar({max: 16}).then(function(info){ eu = info && info.eu; manda(true); setInterval(function(){ manda(false); }, 700); }).catch(function(){});
+  /* escrito por extenso de propósito: é assim que o Koda reconhece que o jogo é online (e põe ele nos bancos da Praça) */
+  window.KODA.online.entrar({max: 16}).then(function(info){ eu = info && info.eu; manda(true); setInterval(function(){ manda(false); }, 700); }).catch(function(){});
 }
 function fazerOnline(codigo){
   if(/KODA\s*\.\s*online\s*\.\s*entrar\s*\(/.test(codigo)) return {erro: 'ja_tem'};
@@ -27399,8 +27400,18 @@ function modeloCorrida(){
     if(estado === 'inicio') telaInicio(TXT.como);
     if(estado === 'fim') telaFim(pontos);
   }
-  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
-  loop();
+  /* o jogo anda 60 passos por segundo em qualquer tela (em tela de 120 Hz ele não fica mais rápido) */
+  let ultimo = performance.now(), acumulado = 0;
+  function loop(t){
+    const agora = t || performance.now();
+    acumulado += Math.min(100, agora - ultimo); ultimo = agora;
+    let passos = 0;
+    while(acumulado >= 16.667 && passos++ < 6){ if(!pausado) atualizar(); acumulado -= 16.667; }
+    if(acumulado > 50) acumulado = 0;
+    desenhar();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
 }
 
 /* ---- voar: passar entre colunas ---- */
@@ -27488,8 +27499,18 @@ function modeloVoar(){
     if(estado === 'inicio') telaInicio(TXT.como);
     if(estado === 'fim') telaFim(pontos);
   }
-  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
-  loop();
+  /* o jogo anda 60 passos por segundo em qualquer tela (em tela de 120 Hz ele não fica mais rápido) */
+  let ultimo = performance.now(), acumulado = 0;
+  function loop(t){
+    const agora = t || performance.now();
+    acumulado += Math.min(100, agora - ultimo); ultimo = agora;
+    let passos = 0;
+    while(acumulado >= 16.667 && passos++ < 6){ if(!pausado) atualizar(); acumulado -= 16.667; }
+    if(acumulado > 50) acumulado = 0;
+    desenhar();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
 }
 
 /* ---- pegar: coisas caindo do céu ---- */
@@ -27563,8 +27584,18 @@ function modeloPegar(){
     if(estado === 'inicio') telaInicio(TXT.como);
     if(estado === 'fim') telaFim(pontos);
   }
-  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
-  loop();
+  /* o jogo anda 60 passos por segundo em qualquer tela (em tela de 120 Hz ele não fica mais rápido) */
+  let ultimo = performance.now(), acumulado = 0;
+  function loop(t){
+    const agora = t || performance.now();
+    acumulado += Math.min(100, agora - ultimo); ultimo = agora;
+    let passos = 0;
+    while(acumulado >= 16.667 && passos++ < 6){ if(!pausado) atualizar(); acumulado -= 16.667; }
+    if(acumulado > 50) acumulado = 0;
+    desenhar();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
 }
 
 /* ---- nave: acertar o que vem de cima ---- */
@@ -27643,8 +27674,18 @@ function modeloNave(){
     if(estado === 'inicio') telaInicio(TXT.como);
     if(estado === 'fim') telaFim(pontos);
   }
-  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
-  loop();
+  /* o jogo anda 60 passos por segundo em qualquer tela (em tela de 120 Hz ele não fica mais rápido) */
+  let ultimo = performance.now(), acumulado = 0;
+  function loop(t){
+    const agora = t || performance.now();
+    acumulado += Math.min(100, agora - ultimo); ultimo = agora;
+    let passos = 0;
+    while(acumulado >= 16.667 && passos++ < 6){ if(!pausado) atualizar(); acumulado -= 16.667; }
+    if(acumulado > 50) acumulado = 0;
+    desenhar();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
 }
 
 /* o corpo de uma função (sem o "function x(){" e o "}" do fim), com dois espaços a menos na frente */
