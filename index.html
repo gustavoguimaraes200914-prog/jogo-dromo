@@ -23675,6 +23675,7 @@ Object.assign(TX, {
   it_municao: 'Munição extra|Extra ammo|Munición extra', it_municao_d: '50% a mais de munição|50% more ammo|50% más munición',
   it_escudo: 'Escudo extra|Extra shield|Escudo extra', it_escudo_d: 'Comece com +1 escudo|Start with +1 shield|Empieza con +1 escudo',
   it_dano: 'Super força|Super strength|Súper fuerza', it_dano_d: 'Ataques 50% mais fortes|50% stronger attacks|Ataques 50% más fuertes',
+  it_cadencia: 'Tiro rápido|Rapid fire|Disparo rápido', it_cadencia_d: 'Atira 30% mais rápido|Shoots 30% faster|Dispara 30% más rápido',
   it_gravidade: 'Gravidade da Lua|Moon gravity|Gravedad lunar', it_gravidade_d: 'Cai mais devagar e pula mais longe|Fall slower and jump farther|Cae más despacio y salta más lejos',
   it_neon: 'Cores neon|Neon colors|Colores neón', it_neon_d: 'Deixa o jogo com cores fortes e brilhantes|Makes the game bright and vivid|Pone el juego con colores fuertes y brillantes',
   it_arcoiris: 'Arco-íris|Rainbow|Arcoíris', it_arcoiris_d: 'As cores do jogo mudam sem parar|The game colors keep changing|Los colores del juego cambian sin parar',
@@ -23687,8 +23688,8 @@ Object.assign(TX, {
   mod_c3: 'o que cada item faz no jogo|what each item does in the game|lo que hace cada artículo en el juego',
   mod_regras: 'REGRAS DA LOJA (Agente Koda): mudam os itens na hora em que o jogo manda para a loja.|SHOP RULES (Koda Agent): they change the items when the game sends them to the shop.|REGLAS DE LA TIENDA (Agente Koda): cambian los artículos cuando el juego los manda a la tienda.'
 });
-var ID_DO_EFEITO = {vidas: 'vida_extra', velocidade: 'turbo', pulo: 'super_pulo', tempo: 'relogio_magico', municao: 'municao_extra', escudo: 'escudo_extra', dano: 'super_forca', gravidade: 'gravidade_lua', neon: 'cores_neon', arcoiris: 'arco_iris', dourado: 'visual_dourado', noite: 'modo_noturno', retro: 'modo_antigo'};
-var PRECO_DO_EFEITO = {vidas: 400, velocidade: 300, pulo: 300, tempo: 300, municao: 200, escudo: 400, dano: 400, gravidade: 350, neon: 250, arcoiris: 500, dourado: 350, noite: 200, retro: 150};
+var ID_DO_EFEITO = {cadencia: 'tiro_rapido', vidas: 'vida_extra', velocidade: 'turbo', pulo: 'super_pulo', tempo: 'relogio_magico', municao: 'municao_extra', escudo: 'escudo_extra', dano: 'super_forca', gravidade: 'gravidade_lua', neon: 'cores_neon', arcoiris: 'arco_iris', dourado: 'visual_dourado', noite: 'modo_noturno', retro: 'modo_antigo'};
+var PRECO_DO_EFEITO = {cadencia: 450, vidas: 400, velocidade: 300, pulo: 300, tempo: 300, municao: 200, escudo: 400, dano: 400, gravidade: 350, neon: 250, arcoiris: 500, dourado: 350, noite: 200, retro: 150};
 function itemDoEfeito(ef, lj, genero, passo){
   var nome = ef === 'velocidade' && (genero === 'nave' || genero === 'tiro') ? TL(lj, 'it_velocidade_nave') : ef === 'velocidade' && genero === 'corrida' ? TL(lj, 'it_velocidade_carro') : ef === 'velocidade' && genero === 'bola' ? TL(lj, 'it_velocidade_raquete') : TL(lj, 'it_' + ef);
   var desc = ef === 'vidas' ? TL(lj, passo > 1 ? 'it_vidas_dk' : 'it_vidas_d1') : TL(lj, 'it_' + ef + '_d');
@@ -24042,7 +24043,8 @@ var CONCEITOS = {
   escudo: {tipo: 'soma', valor: 1, prio: 6, jogador: true, nomes: 'shield,escudo,shields,escudos,armor,armadura,defesa,defense,defensa,protecao,protection'},
   dano: {tipo: 'vezes', valor: 1.5, prio: 7, jogador: true, especificos: 'playerdamage,bulletdamage,attackpower,danojogador,danotiro,forcadoataque,playerpower,playerattack,shotdamage,laserdamage',
     nomes: 'damage,dano,power,forca,attack,ataque,dmg,fuerza,strength,atk,poder'},
-  gravidade: {tipo: 'vezes', valor: 0.85, prio: 8, nomes: 'gravity,gravidade,gravedad,grav,gravityforce,forcagravidade'}
+  gravidade: {tipo: 'vezes', valor: 0.85, prio: 8, nomes: 'gravity,gravidade,gravedad,grav,gravityforce,forcagravidade'},
+  cadencia: {tipo: 'vezes', valor: 0.7, prio: 2.5, jogador: true, especificos: 'cadencia,cooldown,shootdelay,firedelay,shotdelay,intervalotiro,tempotiro,recarga,tempoentretiros,shootcooldown,firecooldown', nomes: 'cadencia'}
 };
 var MAPA_NOMES = {}, MAPA_ESPEC = {};
 Object.keys(CONCEITOS).forEach(function(c){
@@ -24335,6 +24337,7 @@ var EFEITO_PALAVRAS = [
   ['escudo', /escudo|shield|armadura|armor|protec|defesa|defense|capacete|helmet|bolha|bubble/],
   ['dano', /forca|dano|power|damage|ataque|attack|espada|sword|arma|weapon|laser|machado|axe|martelo|hammer|poder|fuerza|super soco|punch|luva|glove/],
   ['gravidade', /gravid|lua|moon|flutu|float|leve|light|pena|feather|antigravid|gravedad|luna/],
+  ['cadencia', /tiro rapido|tiro duplo|rapid fire|metralhad|disparo rapido|recarga rapida|fast shot/],
   ['neon', /neon|brilh|glow|luz|light ?up/],
   ['arcoiris', /arco|rainbow|color|colorid|disco|festa|party/],
   ['dourado', /dourad|ouro|gold|dorad|tesouro|treasure/],
@@ -25011,6 +25014,7 @@ Object.assign(TX, {
   g_cobrinha: 'cobrinha|snake|serpiente', g_quiz: 'perguntas (quiz)|quiz|preguntas (quiz)', g_memoria: 'memória|memory|memoria',
   g_clicker: 'clicar e evoluir (clicker)|clicker|clicker', g_bola: 'bola e raquete|paddle and ball|pelota y paleta', g_labirinto: 'labirinto|maze|laberinto',
   g_puzzle: 'quebra-cabeça|puzzle|rompecabezas', g_luta: 'luta|fighting|peleas', g_aventura: 'aventura|adventure|aventura', g_blocos: 'blocos que caem|falling blocks|bloques que caen',
+  g_pegar: 'pegar coisas que caem|catching falling things|atrapar cosas que caen',
   g_alvo: 'acertar o alvo|target hitting|acertar al blanco', g_ritmo: 'ritmo e música|rhythm and music|ritmo y música', g_cozinhar: 'cozinhar e servir|cooking and serving|cocinar y servir',
   g_pesca: 'pescaria|fishing|pesca', g_esporte: 'esporte|sports|deportes', g_tabuleiro: 'tabuleiro|board game|juego de mesa', g_desenho: 'desenho e pintura|drawing and painting|dibujo y pintura',
   g_jogo: 'jogo|game|juego'
@@ -25039,7 +25043,10 @@ var GENEROS = [
   ['tabuleiro', /\b(board|tabuleiro|chess|xadrez|checkers|damas|tic.?tac|velha|ludo|dice|dados)\b/g, 1],
   ['desenho', /\b(draw|drawing|desenhar|desenho|paint|pintar|pincel|brush|palette|paleta de cores)\b/g, 0.9]
 ];
+var GENERO_DO_MODELO = {corrida: 'desviar', voar: 'flappy', pegar: 'pegar', nave: 'nave'};
 function generoDoJogo(doc){
+  var mm = /<meta name="koda-modelo" content="(\w+);/.exec(doc.codigo);
+  if(mm && GENERO_DO_MODELO[mm[1]]) return {id: GENERO_DO_MODELO[mm[1]], nome: T('g_' + GENERO_DO_MODELO[mm[1]]), certeza: 99};
   var txt = (doc.codigo.length > 400000 ? doc.codigo.slice(0, 400000) : doc.codigo).replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, ' ').replace(/data:[a-z]+\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi, ' ');
   var lower = semAcento(txt.replace(/([a-z])([A-Z])/g, '$1 $2')).toLowerCase();
   var pontos = {};
@@ -25096,7 +25103,7 @@ function avaliarJogo(bruto, teste, Lpronta){
   nota.controles = limitar(ctl + (teclado && toque ? 1 : 0), 0, 10);
   /* desafio */
   var at = acharAtributos(doc), pontos = !!variavelDosPontos(doc) || /\b(score|pontos|points|puntos|pontuacao)\b/i.test(semKoda);
-  var dificulta = /(speed|velocidade|velocidad|dificuldade|difficulty|level|nivel|fase|spawnRate|spawn_rate|intervalo|interval|gravity|gravidade)\w*\s*(\+=|\*=|\+\+|-=)/i.test(semKoda);
+  var dificulta = /(speed|velo\w*|dificuldade|difficulty|level|nivel|fase|spawnRate|spawn_rate|intervalo|interval|gravity|gravidade)\w*\s*(\+=|\*=|\+\+|-=)/i.test(semKoda) || /\b(quadro|frame|frames|tempo|time|ticks?|elapsed)\s*\/\s*\d{2,}/.test(semKoda);
   var perde = !!at.vidas || /game ?over|fim de jogo|voc[eê] perdeu|perdeu|gameover|you lose|perdiste|morreu|died/i.test(semKoda);
   var fases = /\b(level|fase|nivel|stage|wave|onda)\w*\s*(\+\+|\+=)/i.test(semKoda);
   nota.desafio = limitar((pontos ? 3 : 0) + (dificulta ? 3 : 0) + (perde ? 2 : 0) + (fases ? 2 : 0) + (at.tempo ? 1 : 0), 0, 10);
@@ -26004,6 +26011,11 @@ function entender(txt, ctx){
     /* ensinar: "a variável da vida é hp" / "hp é a vida" */
     var ens = entenderEnsinar(P);
     if(ens) return ens;
+    /* criar um jogo do zero / trocar o tema de um jogo criado */
+    var cj = entenderCriarJogo(P, ctx);
+    if(cj && !P.frase(FRASES.pedido)) return cj;
+    var mt = entenderTema(P);
+    if(mt) return mt;
     /* ações grandes que têm palavra própria */
     if(P.frase(FRASES.pedido)) return {int: 'pedido', online: P.tem('online')};
     if(P.frase(FRASES.nome_jogo)) return {int: 'nome_jogo'};
@@ -26021,8 +26033,11 @@ function entender(txt, ctx){
     if(P.tem('verificar') || P.frase(FRASES.verificar) || (P.tem('erro') && !P.frase(['sem erro', 'no errors', 'sin errores'])) || (P.tem('testar') && (P.tem('jogo') || P.tem('codigo')) && !P.tem('skin'))) return {int: 'verificar', robo: P.tem('testar') || P.frase(['tela preta', 'tela branca', 'nao abre', 'black screen', 'pantalla negra'])};
     if(P.frase(FRASES.sons) || ((P.tem('por') || P.tem('mudar')) && /\b(som|sons|sound|sounds|sonido|sonidos|efeito sonoro)\b/.test(P.n))) return {int: 'sons'};
     if(P.tem('skin') && (P.tem('jogar') || P.tem('por') || P.tem('mudar') || P.tem('jogo') || P.frase(['meu personagem', 'minha skin', 'my character', 'my skin', 'mi personaje', 'personagem do koda', 'koda character', 'meu boneco', 'meu avatar', 'a skin', 'the skin', 'la skin'])) && !P.tem('loja') && !P.tem('vender')) return {int: 'skin', forcar: P.frase(['mesmo assim', 'assim mesmo', 'anyway', 'de todos modos', 'igual', 'igualmente', 'mesmo que fique estranho'])};
+    if(P.frase(['placar online', 'placar ao vivo', 'online scoreboard', 'live scoreboard', 'marcador online', 'marcador en vivo', 'placar da sala'])) return {int: 'online_placar'};
+    if(P.frase(['mais dificil', 'mais facil', 'muito dificil', 'muito facil', 'harder', 'easier', 'too hard', 'too easy', 'mas dificil', 'mas facil', 'muy dificil', 'muy facil', 'dificuldade', 'difficulty', 'dificultad'])) return {int: 'dificuldade', facil: P.frase(['mais facil', 'muito dificil', 'easier', 'too hard', 'mas facil', 'muy dificil'])};
     if(P.tem('ranking') || P.frase(['pontos pro koda', 'pontos para o koda', 'pontuar', 'manda os pontos', 'mandar os pontos', 'send the points', 'send score', 'manda los puntos'])) return {int: 'pontuar'};
     if(P.tem('salvar') && !P.tem('loja') && (P.tem('jogo') || P.tem('por') || P.tem('mudar') || P.frase(['de onde parou', 'where i left', 'donde lo deje', 'progresso', 'progress', 'progreso', 'fase', 'recorde', 'level']))) return {int: 'salvar'};
+    if(P.frase(['placar online', 'placar ao vivo', 'online scoreboard', 'live scoreboard', 'marcador online', 'marcador en vivo', 'placar da sala'])) return {int: 'online_placar'};
     if(P.tem('online') && (P.tem('jogo') || P.tem('por') || P.tem('mudar') || P.tem('jogar') || P.tem('online'))) return {int: 'online'};
     if(lj) return lj;
     if(P.frase(FRASES.ajuda) || (P.tem('ajuda') && ws.length <= 4)) return {int: 'ajuda'};
@@ -26093,6 +26108,21 @@ function responderPendente(P, ctx){
     if(ws.length > 5 || ['ideia', 'verificar', 'avaliar', 'loja', 'desfazer', 'consertar', 'ajuda', 'oi', 'obrigado', 'salvar', 'online', 'ranking', 'erro', 'testar', 'explicar'].some(function(c){ return P.tem(c); })) return null;
     var nm = P.aspas[0] || (ws.length <= 6 ? capitalizar(P.wo.filter(function(w, i){ return !TIRA_INICIO[ws[i]]; }).join(' ')) : null);
     if(nm) return {int: 'deu_nome', nome: nm.slice(0, 40), acao: pd.acao};
+    return null;
+  }
+  if(pd.tipo === 'tipo_jogo'){
+    var tp = null;
+    TIPO_PALAVRAS.forEach(function(t){ if(!tp && t[1].test(P.n)) tp = t[0]; });
+    if(!tp){ ws.forEach(function(w){ if(!tp && /^[1-4]$/.test(w)) tp = TIPOS_JOGO[Number(w) - 1]; }); }
+    if(tp){ var tm = pd.tema; TEMA_PALAVRAS.forEach(function(t){ if(t[1].test(P.n)) tm = t[0]; }); return {int: 'criar_jogo', tipo: tp, tema: tm, nome: pd.nome}; }
+    if(nao && ws.length <= 3) return {int: 'negou'};
+    return null;
+  }
+  if(pd.tipo === 'tema_jogo'){
+    var tm2 = null;
+    TEMA_PALAVRAS.forEach(function(t){ if(!tm2 && t[1].test(P.n)) tm2 = t[0]; });
+    if(tm2) return {int: 'mudar_tema', tema: tm2};
+    if(nao && ws.length <= 3) return {int: 'negou'};
     return null;
   }
   if(pd.tipo === 'ideia'){
@@ -26187,6 +26217,7 @@ Object.assign(TX, {
   lj_editar_dica: 'O que você quer mudar na loja? Pode falar do seu jeito: "deixa tudo em diamantes", "o {item} custa 10 moedas", "tira o {item}", "coloca uma espada por 5 diamantes".|What do you want to change in the shop? Say it your way: "make it all diamonds", "the {item} costs 10 coins", "remove the {item}", "add a sword for 5 diamonds".|¿Qué quieres cambiar en la tienda? Dilo a tu manera: "todo en diamantes", "el {item} cuesta 10 monedas", "quita el {item}", "pon una espada por 5 diamantes".',
   ef_vidas: 'dá vida extra|gives an extra life|da vida extra', ef_velocidade: 'deixa o jogador mais rápido|makes the player faster|hace al jugador más rápido', ef_pulo: 'faz pular mais alto|makes you jump higher|hace saltar más alto',
   ef_tempo: 'dá mais tempo|gives more time|da más tiempo', ef_municao: 'dá mais munição|gives more ammo|da más munición', ef_escudo: 'dá um escudo a mais|gives an extra shield|da un escudo extra', ef_dano: 'deixa os ataques mais fortes|makes attacks stronger|hace los ataques más fuertes',
+  ef_cadencia: 'faz atirar mais rápido|makes you shoot faster|hace disparar más rápido', efn_cadencia: 'a cadência dos tiros|the fire rate|la cadencia de disparo',
   ef_gravidade: 'deixa a gravidade mais leve|makes gravity lighter|hace la gravedad más liviana', ef_neon: 'deixa as cores neon|makes the colors neon|pone los colores neón', ef_arcoiris: 'faz as cores mudarem sem parar|makes the colors keep changing|hace que los colores cambien sin parar',
   ef_dourado: 'deixa tudo dourado|makes everything golden|deja todo dorado', ef_noite: 'deixa o jogo de noite|makes the game look like night|pone el juego de noche', ef_retro: 'deixa em preto e branco|makes it black and white|lo deja en blanco y negro',
   efn_vidas: 'as vidas|the lives|las vidas', efn_velocidade: 'a velocidade do jogador|the player speed|la velocidad del jugador', efn_pulo: 'o pulo|the jump|el salto', efn_tempo: 'o tempo|the time|el tiempo',
@@ -26244,6 +26275,8 @@ Object.assign(TX, {
   so_ja: 'Seu jogo já tem os sons do Agente Koda!|Your game already has Koda Agent sounds!|¡Tu juego ya tiene los sonidos del Agente Koda!',
   so_nao: 'Não achei onde colocar os sons (procurei pontos, vidas, pulo e fim de jogo).|I could not find where to add sounds (I looked for points, lives, jump and game over).|No encontré dónde poner sonidos (busqué puntos, vidas, salto y fin del juego).',
   on_explica: 'Deixar um jogo online de verdade muda a lógica do jogo inteiro (cada pessoa manda a posição dela, a sala espera todos ficarem prontos...). Isso eu ainda não faço sozinho sem arriscar estragar o jogo. O melhor caminho: pedir a versão online pra IA que fez o jogo, com a API do Koda. Eu monto esse pedido pra você!|Making a game truly online changes the whole game logic (each person sends their position, the room waits for everyone to be ready...). I cannot do that by myself yet without risking breaking the game. The best way: ask the AI that made the game for an online version, using the Koda API. I can write that request for you!|Hacer un juego online de verdad cambia toda la lógica del juego (cada persona manda su posición, la sala espera a que todos estén listos...). Eso todavía no lo hago solo sin arriesgar romper el juego. Lo mejor: pedirle la versión online a la IA que hizo el juego, con la API de Koda. ¡Yo armo ese pedido!',
+  df_dificil: 'Pra deixar mais difícil, mexa nos números do seu código: aumente a velocidade dos inimigos ou obstáculos, diminua o tempo entre um e outro, ou faça a velocidade crescer com o tempo (por exemplo: velocidade += 0.001 a cada quadro). Depois use o Testar pra ver se ficou divertido!|To make it harder, change the numbers in your code: increase the speed of enemies or obstacles, shorten the time between them, or make the speed grow over time (for example: speed += 0.001 every frame). Then use Test to see if it is still fun!|Para hacerlo más difícil, cambia los números de tu código: aumenta la velocidad de los enemigos u obstáculos, acorta el tiempo entre uno y otro, o haz que la velocidad crezca con el tiempo (por ejemplo: velocidad += 0.001 en cada cuadro). ¡Después usa Probar para ver si sigue divertido!',
+  df_facil: 'Pra deixar mais fácil: diminua a velocidade dos inimigos, aumente o espaço entre os obstáculos ou dê mais vidas no começo. E uma loja com "Vida extra" ajuda quem quiser! Eu coloco a loja pra você se pedir.|To make it easier: lower the enemies speed, add more space between obstacles or give more lives at the start. A shop with "Extra life" also helps! I can add the shop if you ask.|Para hacerlo más fácil: baja la velocidad de los enemigos, deja más espacio entre los obstáculos o da más vidas al empezar. ¡Una tienda con "Vida extra" también ayuda! Pongo la tienda si me la pides.',
   on_ja: 'Seu jogo já é online (usa KODA.online)! Ele aparece nos bancos da Praça.|Your game is already online (uses KODA.online)! It shows up on the Plaza benches.|¡Tu juego ya es online (usa KODA.online)! Aparece en los bancos de la Plaza.',
   /* ideias, pedido, nome, explicar */
   id_titulo: ['Aqui vão umas ideias:|Here are some ideas:|Aquí van unas ideas:', 'Olha só essas ideias:|Check out these ideas:|Mira estas ideas:'],
@@ -26718,9 +26751,30 @@ H.sons = transformacao(fazerSons, function(res){ return T('so_ok', {lista: lista
 H.online = function(it, ctx, est){
   var r = novaResp();
   if(ctx.temCodigo && /KODA\s*\.\s*online\s*\.\s*entrar\s*\(/.test(ctx.codigo)) return diz(r, T('on_ja'));
+  if(ctx.temCodigo && ctx.codigo && variavelDosPontos(lerDocumento(ctx.codigo))){
+    est.pendente = {tipo: 'confirmar', acao: {int: 'online_placar'}};
+    diz(r, T('on_oferta'));
+    chip(r, T('ch_placar')); chip(r, T('ch_online_pedido'));
+    return r;
+  }
   diz(r, T('on_explica'));
   chip(r, T('ch_online_pedido'));
   return r;
+};
+H.dificuldade = function(it, ctx, est){
+  var r = diz(novaResp(), T(it.facil ? 'df_facil' : 'df_dificil'));
+  if(ctx.temCodigo && ctx.loja.tipo === 'nenhuma') chip(r, T('ch_loja'));
+  return r;
+};
+H.online_placar = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var res = fazerOnline(ctx.codigo), r = novaResp();
+  if(res.erro === 'ja_tem') return diz(r, T('on_ja'));
+  if(res.erro === 'sem_pontos'){ diz(r, T('on_sem_pontos')); chip(r, T('ch_online_pedido')); return r; }
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  diz(r, T('on_ok', {v: res.res.pontos}));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_online'));
 };
 
 /* ---- ideias, pedido, nome, explicar ---- */
@@ -26840,7 +26894,7 @@ function responder(est, texto, bruto){
     var direto = null;
     Object.keys(CHIPS_DIRETOS).forEach(function(k){ if(String(texto).trim() === T(k)) direto = {int: 'efeito_curto', efeito: CHIPS_DIRETOS[k]}; });
     var it = direto || entender(texto, ctx);
-    est.pendente = it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' ? est.pendente : (est.pendente && /^(confirmar|qual_item|nome_item|ideia)$/.test(est.pendente.tipo) && it.int !== 'nada' ? null : est.pendente);
+    est.pendente = it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' ? est.pendente : (est.pendente && /^(confirmar|qual_item|nome_item|ideia|tipo_jogo|tema_jogo)$/.test(est.pendente.tipo) && it.int !== 'nada' ? null : est.pendente);
     if(it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' || it.int === 'negou') est.pendente = null;
     r = (H[it.int] || H.nada)(it, ctx, est);
     r.intencao = it.int;
@@ -26901,6 +26955,759 @@ Object.assign(TX, {
   ui_loja_tit: 'Loja do jogo|Game shop|Tienda del juego',
   ui_varias: 'compra várias vezes|can buy many times|se compra varias veces'
 });
+/* ---------------- 13) placar online ----------------
+   Um jogo de uma pessoa vira uma disputa: todo mundo que joga o mesmo jogo na mesma sala do Koda vê os pontos
+   de todos, ao vivo. O jogo continua igual; só entra um placar pequeno no canto (quando tem mais gente). */
+Object.assign(TX, {
+  on_placar_tit: 'Online|Online|Online', on_placar_voce: 'Você|You|Tú',
+  on_oferta: 'Deixar um jogo online de verdade muda a lógica do jogo inteiro, e isso eu não faço sozinho sem arriscar estragar o jogo. Mas eu consigo colocar o PLACAR ONLINE: quem estiver jogando o mesmo jogo, na mesma sala do Koda, vê os pontos de todo mundo ao vivo, e ganha quem fizer mais. O jogo aparece nos bancos da Praça. Quer?|Making a game truly online changes the whole game logic, and I cannot do that by myself without risking breaking it. But I can add an ONLINE SCOREBOARD: whoever is playing the same game in the same Koda room sees everyone\'s points live, and the highest score wins. The game shows up on the Plaza benches. Want it?|Hacer un juego online de verdad cambia toda la lógica, y eso no lo hago solo sin arriesgar romperlo. Pero puedo poner el MARCADOR ONLINE: quien esté jugando el mismo juego, en la misma sala de Koda, ve los puntos de todos en vivo, y gana quien haga más. El juego aparece en los bancos de la Plaza. ¿Quieres?',
+  on_ok: 'Pronto! Agora o jogo tem placar online: quando mais gente estiver jogando junto, aparece no canto quem está com mais pontos (eu uso a variável "{v}" do seu jogo). O jogo também aparece nos bancos da Praça.|Done! Now the game has an online scoreboard: when more people are playing together, the corner shows who has the most points (I use the "{v}" variable from your game). The game also shows up on the Plaza benches.|¡Listo! Ahora el juego tiene marcador online: cuando haya más gente jugando junta, en la esquina aparece quién tiene más puntos (uso la variable "{v}" de tu juego). El juego también aparece en los bancos de la Plaza.',
+  on_sem_pontos: 'Pra colocar o placar online eu preciso saber os pontos do jogo, e não achei a variável dos pontos (score / pontos). O melhor caminho é pedir a versão online pra IA que fez o jogo: eu monto esse pedido.|To add the online scoreboard I need the game\'s points, and I could not find the points variable (score / pontos). The best way is to ask the AI that made the game for an online version: I can write that request.|Para poner el marcador online necesito los puntos del juego, y no encontré la variable de los puntos (score / puntos). Lo mejor es pedirle la versión online a la IA que hizo el juego: yo armo ese pedido.',
+  ch_placar: 'Coloca o placar online|Add the online scoreboard|Pon el marcador online',
+  d_online: 'o placar online|the online scoreboard|el marcador online'
+});
+/* roda DENTRO do jogo */
+function kodaPlacarOnline(lerPontos, TXT){
+  var O = window.KODA && window.KODA.online;
+  if(!O) return;
+  var eu = null, outros = {}, melhor = 0, ultimo = -1, caixa = null;
+  function pontos(){ try{ var p = Number(lerPontos()); return isFinite(p) && p > 0 ? Math.floor(p) : 0; }catch(e){ return 0; } }
+  var pont = window.KODA.pontuar;
+  if(typeof pont === 'function') window.KODA.pontuar = function(n){ melhor = Math.max(melhor, Math.floor(Number(n) || 0)); manda(true); return pont.apply(this, arguments); };
+  function manda(forcar){
+    var p = pontos();
+    if(p > melhor) melhor = p;
+    if(p === ultimo && !forcar) return;
+    ultimo = p;
+    try{ O.enviar({k: 'kodaPts', p: p, m: melhor}); }catch(e){}
+    desenha();
+  }
+  function desenha(){
+    if(!document.body) return;
+    var js = O.jogadores ? O.jogadores() : [];
+    if(!caixa){
+      caixa = document.createElement('div');
+      caixa.id = 'kodaPlacarOnline';
+      caixa.style.cssText = 'position:fixed;left:10px;top:10px;z-index:2147482999;min-width:110px;max-width:46vw;padding:6px 10px;border-radius:12px;background:rgba(10,14,30,.72);color:#fff;font:700 13px/1.35 system-ui,-apple-system,sans-serif;pointer-events:none;';
+      document.body.appendChild(caixa);
+    }
+    if(js.length < 2){ caixa.style.display = 'none'; return; }
+    var linhas = js.map(function(j){
+      var me = j.id === eu, v = me ? {p: pontos()} : (outros[j.id] || {p: 0});
+      return {nome: me ? TXT.voce : String(j.nome || '...').slice(0, 14), p: v.p, me: me};
+    }).sort(function(a, b){ return b.p - a.p; }).slice(0, 6);
+    caixa.textContent = '';
+    var t = document.createElement('div'); t.textContent = TXT.titulo + ' (' + js.length + ')'; t.style.cssText = 'opacity:.75;font-size:11px;margin-bottom:2px;'; caixa.appendChild(t);
+    linhas.forEach(function(l, i){ var d = document.createElement('div'); d.textContent = (i + 1) + '. ' + l.nome + ': ' + l.p; if(l.me) d.style.color = '#7CFFCB'; caixa.appendChild(d); });
+    caixa.style.display = 'block';
+  }
+  O.aoReceber(function(d, de){
+    if(!d || d.k !== 'kodaPts') return;
+    var p = Math.floor(Number(d.p)), m = Math.floor(Number(d.m));
+    if(!isFinite(p) || p < 0 || p > 1e9) return;
+    outros[de] = {p: p, m: isFinite(m) ? Math.max(0, Math.min(1e9, m)) : 0};
+    desenha();
+  });
+  O.aoEntrar(function(){ manda(true); });
+  O.aoSair(function(j){ if(j) delete outros[j.id]; desenha(); });
+  if(O.aoConectar) O.aoConectar(function(info){ if(info && info.eu) eu = info.eu; manda(true); });
+  O.entrar({max: 16}).then(function(info){ eu = info && info.eu; manda(true); setInterval(function(){ manda(false); }, 700); }).catch(function(){});
+}
+function fazerOnline(codigo){
+  if(/KODA\s*\.\s*online\s*\.\s*entrar\s*\(/.test(codigo)) return {erro: 'ja_tem'};
+  var doc = lerDocumento(codigo), pts = variavelDosPontos(doc);
+  if(!pts) return {erro: 'sem_pontos'};
+  var TXT = {titulo: T('on_placar_tit'), voce: T('on_placar_voce')};
+  var mod = '<script data-koda-online="1">(' + kodaPlacarOnline.toString() + ')(function(){ return ' + pts + '; }, ' + JSON.stringify(TXT).replace(/</g, '\\u003c') + ');<\/script>';
+  var fim = codigo.search(/<\/body\s*>/i);
+  if(fim < 0) fim = codigo.search(/<\/html\s*>/i);
+  if(fim < 0) fim = codigo.length;
+  var novo = codigo.slice(0, fim) + mod + '\n' + codigo.slice(fim);
+  return conferirDepois(codigo, novo, {pontos: pts});
+}
+/* ---------------- 14) criar um jogo do zero ----------------
+   "cria um jogo de nave no espaço": a IA monta um jogo completo a partir de modelos testados (corrida, voar,
+   pegar coisas, nave), com o tema pedido, o personagem do Koda como herói, pontos no ranking, recorde salvo na
+   conta, sons, telas de começo e fim, e controles de toque e teclado. O código sai legível pra pessoa mexer.
+   As funções modelo...() abaixo NÃO rodam aqui: o corpo delas vira o script do jogo. */
+var TEMAS_JOGO = {
+  espaco: {fundo: ['#0b1030', '#2a1d63'], chao: '#3a2d7a', heroi: '#7CFFCB', item: 'estrela', corItem: '#FFD93D', perigo: 'meteoro', corPerigo: '#C0643C', enfeite: 'estrelas', coluna: '#6c5ce7',
+    n: 'espaço|space|espacio', coisa: 'estrelas|stars|estrellas', bicho: 'meteoros|meteors|meteoritos'},
+  mar: {fundo: ['#063b63', '#0d8bbf'], chao: '#e9c98a', heroi: '#FF8FA3', item: 'perola', corItem: '#F4F1FF', perigo: 'espinho', corPerigo: '#6b2fa0', enfeite: 'bolhas', coluna: '#ff7f50',
+    n: 'fundo do mar|under the sea|fondo del mar', coisa: 'pérolas|pearls|perlas', bicho: 'ouriços|sea urchins|erizos'},
+  floresta: {fundo: ['#8fdcff', '#dff7cf'], chao: '#4c8c3a', heroi: '#FF6B6B', item: 'fruta', corItem: '#E63946', perigo: 'bloco', corPerigo: '#7a4b23', enfeite: 'nuvens', coluna: '#3d7a35',
+    n: 'floresta|forest|bosque', coisa: 'frutas|fruits|frutas', bicho: 'troncos|logs|troncos'},
+  neve: {fundo: ['#a9d8ff', '#f4fbff'], chao: '#e6f2ff', heroi: '#3D6FE0', item: 'floco', corItem: '#4fa8ff', perigo: 'bola', corPerigo: '#8aa6c9', enfeite: 'neve', coluna: '#7cc6f0',
+    n: 'neve|snow|nieve', coisa: 'flocos|snowflakes|copos', bicho: 'bolas de neve|snowballs|bolas de nieve'},
+  doces: {fundo: ['#ffc9e6', '#fff0f8'], chao: '#ff8fc8', heroi: '#7C4DFF', item: 'doce', corItem: '#ff4fa3', perigo: 'espinho', corPerigo: '#6b3e26', enfeite: 'confeitos', coluna: '#ff9fd0',
+    n: 'doces|candy|dulces', coisa: 'balas|candies|caramelos', bicho: 'espinhos de chocolate|chocolate spikes|púas de chocolate'},
+  vulcao: {fundo: ['#2b0f0f', '#7a1f12'], chao: '#3b2a2a', heroi: '#FFD93D', item: 'cristal', corItem: '#38e8ff', perigo: 'lava', corPerigo: '#ff6a00', enfeite: 'brasas', coluna: '#5a3a3a',
+    n: 'vulcão|volcano|volcán', coisa: 'cristais|crystals|cristales', bicho: 'bolas de lava|lava balls|bolas de lava'},
+  cidade: {fundo: ['#0f1a3a', '#3a2f6b'], chao: '#2b2b3d', heroi: '#17C79E', item: 'moeda', corItem: '#FFC83D', perigo: 'bloco', corPerigo: '#ff7a3d', enfeite: 'predios', coluna: '#555a7a',
+    n: 'cidade|city|ciudad', coisa: 'moedas|coins|monedas', bicho: 'caixas|boxes|cajas'},
+  deserto: {fundo: ['#ffc77a', '#fff1d6'], chao: '#e0a458', heroi: '#3D6FE0', item: 'cristal', corItem: '#2ec4b6', perigo: 'cacto', corPerigo: '#2d8a3e', enfeite: 'sol', coluna: '#c98b4a',
+    n: 'deserto|desert|desierto', coisa: 'cristais|crystals|cristales', bicho: 'cactos|cacti|cactus'}
+};
+var TIPOS_JOGO = ['corrida', 'voar', 'pegar', 'nave'];
+Object.assign(TX, {
+  mj_toque: 'Toque para jogar|Tap to play|Toca para jugar',
+  mj_denovo: 'Toque para jogar de novo|Tap to play again|Toca para jugar de nuevo',
+  mj_fim: 'Fim de jogo!|Game over!|¡Fin del juego!',
+  mj_pontos: 'Pontos|Points|Puntos', mj_recorde: 'Recorde|Best|Récord',
+  mj_como_corrida: 'Toque (ou espaço) para pular, e dá pra pular duas vezes|Tap (or space) to jump, and you can double jump|Toca (o espacio) para saltar, y puedes saltar dos veces',
+  mj_como_voar: 'Toque (ou espaço) para voar|Tap (or space) to fly|Toca (o espacio) para volar',
+  mj_como_pegar: 'Arraste (ou use as setas) para pegar as {coisa}|Drag (or use the arrows) to catch the {coisa}|Arrastra (o usa las flechas) para atrapar los {coisa}',
+  mj_como_nave: 'Arraste (ou use as setas) e acerte os {bicho}|Drag (or use the arrows) and hit the {bicho}|Arrastra (o usa las flechas) y acierta a los {bicho}',
+  mj_desc_corrida: 'corra sem parar, pule os {bicho} e pegue {coisa}|run nonstop, jump over the {bicho} and grab {coisa}|corre sin parar, salta los {bicho} y junta {coisa}',
+  mj_desc_voar: 'voe entre as colunas sem bater e pegue {coisa}|fly between the columns without crashing and grab {coisa}|vuela entre las columnas sin chocar y junta {coisa}',
+  mj_desc_pegar: 'pegue as {coisa} que caem e fuja dos {bicho}|catch the falling {coisa} and avoid the {bicho}|atrapa los {coisa} que caen y esquiva los {bicho}',
+  mj_desc_nave: 'acerte os {bicho} antes que eles cheguem embaixo|hit the {bicho} before they reach the bottom|acierta a los {bicho} antes de que lleguen abajo',
+  g_corrida_m: 'corrida|runner|carrera', g_voar_m: 'voar|flying|volar', g_pegar_m: 'pegar coisas|catching|atrapar', g_nave_m: 'nave|shooter|naves',
+  mj_criado: 'Pronto! Criei o jogo "{nome}" ({tipo}, no tema {tema}): {desc}. {como}.|Done! I made the game "{nome}" ({tipo}, {tema} theme): {desc}. {como}.|¡Listo! Creé el juego "{nome}" ({tipo}, tema {tema}): {desc}. {como}.',
+  mj_vem_com: 'Ele já vem com o seu personagem do Koda como herói, pontos no ranking, recorde salvo na conta, sons e telas de começo e fim. Toque em Testar pra jogar!|It already comes with your Koda character as the hero, ranking points, a best score saved in the account, sounds and start and end screens. Tap Test to play!|Ya viene con tu personaje de Koda como héroe, puntos en el ranking, récord guardado en la cuenta, sonidos y pantallas de inicio y fin. ¡Toca Probar para jugar!',
+  mj_qual_tipo: 'Que tipo de jogo você quer? Eu sei fazer estes:|What kind of game do you want? I can make these:|¿Qué tipo de juego quieres? Sé hacer estos:',
+  mj_trocar: 'Isso vai trocar o código que está na caixa pelo jogo novo. Quer mesmo? (Dá pra desfazer depois.)|This will replace the code in the box with the new game. Are you sure? (You can undo it later.)|Esto va a cambiar el código de la caja por el juego nuevo. ¿Seguro? (Se puede deshacer después.)',
+  mj_tema_ok: 'Pronto! Troquei o tema do jogo pra {tema}.|Done! I changed the game theme to {tema}.|¡Listo! Cambié el tema del juego a {tema}.',
+  mj_tema_qual: 'Qual tema? Tenho estes:|Which theme? I have these:|¿Qué tema? Tengo estos:',
+  mj_nao_modelo: 'Esse jogo não foi criado por mim, então não consigo trocar o tema dele sozinho. Mas posso criar um jogo novo no tema que você quiser!|I did not create this game, so I cannot change its theme by myself. But I can create a new game in any theme you want!|Este juego no lo creé yo, así que no puedo cambiar su tema solo. ¡Pero puedo crear un juego nuevo en el tema que quieras!',
+  ch_mj_corrida: 'Corrida (pular obstáculos)|Runner (jump obstacles)|Carrera (saltar obstáculos)', ch_mj_voar: 'Voar entre colunas|Fly between columns|Volar entre columnas',
+  ch_mj_pegar: 'Pegar coisas que caem|Catch falling things|Atrapar cosas que caen', ch_mj_nave: 'Nave (acertar meteoros)|Shooter (hit meteors)|Nave (acertar meteoritos)',
+  ch_mj_tema: 'Muda o tema|Change the theme|Cambia el tema', ch_mj_outro: 'Cria outro jogo|Make another game|Crea otro juego'
+});
+var TEMA_NOMES = {espaco: 'espaco', mar: 'mar', floresta: 'floresta', neve: 'neve', doces: 'doces', vulcao: 'vulcao', cidade: 'cidade', deserto: 'deserto'};
+
+/* ---- o que todo jogo criado tem: tela, sons, herói, enfeites, recorde, telas de começo e fim ---- */
+function modeloBase(){
+  const tela = document.getElementById('tela');
+  const ctx = tela.getContext('2d');
+  let L = 0, A = 0, escala = 1;
+  function ajustar(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    L = window.innerWidth; A = window.innerHeight;
+    tela.width = Math.floor(L * dpr); tela.height = Math.floor(A * dpr);
+    tela.style.width = L + 'px'; tela.style.height = A + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    escala = Math.max(0.6, Math.min(1.5, Math.min(L, A) / 420));
+  }
+  window.addEventListener('resize', ajustar);
+  ajustar();
+  /* sons feitos na hora, sem arquivo de fora */
+  let audio = null;
+  function som(tipo){
+    try{
+      if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if(audio.state === 'suspended') audio.resume();
+      const n = {pulo: [520, 780, 0.12, 'triangle'], ponto: [880, 1320, 0.1, 'square'], dano: [220, 90, 0.25, 'sawtooth'], fim: [440, 150, 0.5, 'triangle'], tiro: [900, 500, 0.05, 'square']}[tipo];
+      if(!n) return;
+      const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+      o.type = n[3]; o.frequency.setValueAtTime(n[0], t); o.frequency.exponentialRampToValueAtTime(n[1], t + n[2]);
+      g.gain.setValueAtTime(tipo === 'tiro' ? 0.03 : 0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + n[2]);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + n[2] + 0.02);
+    }catch(e){}
+  }
+  /* o herói: o personagem do Koda de quem está jogando (ou um bonequinho, se ainda não chegou) */
+  function desenharHeroi(x, y, h, andando, direcao){
+    if(window.KODA && KODA.jogador && KODA.jogador.pronto()){
+      KODA.jogador.andar(ctx, x, y, h, {direcao: direcao || 'direita', andando: !!andando});
+      return;
+    }
+    const w = h * 22 / 29;
+    ctx.fillStyle = TEMA.heroi;
+    ctx.fillRect(x + w * 0.15, y + h * 0.42, w * 0.7, h * 0.58);
+    ctx.beginPath(); ctx.arc(x + w / 2, y + h * 0.25, h * 0.24, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x + w * 0.62, y + h * 0.22, h * 0.07, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(x + w * 0.65, y + h * 0.22, h * 0.035, 0, Math.PI * 2); ctx.fill();
+  }
+  function larguraHeroi(h){ return h * 22 / 29; }
+  /* as coisas boas (pra pegar) */
+  function desenharItem(x, y, r){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = TEMA.corItem;
+    const tipo = TEMA.item;
+    if(tipo === 'estrela'){
+      ctx.beginPath();
+      for(let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+      ctx.closePath(); ctx.fill();
+    } else if(tipo === 'cristal'){
+      ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.7, 0); ctx.lineTo(0, r); ctx.lineTo(-r * 0.7, 0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.25, 0); ctx.lineTo(0, r * 0.4); ctx.lineTo(-r * 0.25, 0); ctx.closePath(); ctx.fill();
+    } else if(tipo === 'fruta'){
+      ctx.beginPath(); ctx.arc(0, r * 0.1, r * 0.85, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#3a9d3a'; ctx.beginPath(); ctx.ellipse(r * 0.3, -r * 0.8, r * 0.35, r * 0.18, -0.6, 0, Math.PI * 2); ctx.fill();
+    } else if(tipo === 'floco'){
+      ctx.strokeStyle = TEMA.corItem; ctx.lineWidth = Math.max(2, r * 0.18); ctx.lineCap = 'round';
+      for(let i = 0; i < 6; i++){ const a = i * Math.PI / 3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); ctx.stroke(); }
+    } else if(tipo === 'doce'){
+      ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-r * 0.55, 0); ctx.lineTo(-r * 1.1, -r * 0.45); ctx.lineTo(-r * 1.1, r * 0.45); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(r * 0.55, 0); ctx.lineTo(r * 1.1, -r * 0.45); ctx.lineTo(r * 1.1, r * 0.45); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r * 0.32, 0, Math.PI * 1.4); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = Math.max(2, r * 0.15); ctx.beginPath(); ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(-r * 0.35, -r * 0.35, r * 0.22, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  /* os perigos */
+  function desenharPerigo(x, y, w, h){
+    ctx.save();
+    ctx.fillStyle = TEMA.corPerigo;
+    const tipo = TEMA.perigo, cx = x + w / 2, cy = y + h / 2, r = Math.min(w, h) / 2;
+    if(tipo === 'meteoro' || tipo === 'bola' || tipo === 'lava'){
+      if(tipo === 'lava'){ ctx.shadowColor = '#ffb000'; ctx.shadowBlur = 16; }
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(0,0,0,.18)';
+      ctx.beginPath(); ctx.arc(cx - r * 0.3, cy - r * 0.2, r * 0.25, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + r * 0.35, cy + r * 0.3, r * 0.18, 0, Math.PI * 2); ctx.fill();
+    } else if(tipo === 'espinho'){
+      ctx.beginPath();
+      for(let i = 0; i < 16; i++){ const a = i * Math.PI / 8, rr = i % 2 ? r * 0.6 : r; ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
+      ctx.closePath(); ctx.fill();
+    } else if(tipo === 'cacto'){
+      const tw = w * 0.36;
+      ctx.fillRect(cx - tw / 2, y, tw, h);
+      ctx.fillRect(x, y + h * 0.35, w * 0.32, tw * 0.7); ctx.fillRect(x, y + h * 0.12, tw * 0.7, h * 0.3);
+      ctx.fillRect(x + w * 0.68, y + h * 0.5, w * 0.32, tw * 0.7); ctx.fillRect(x + w - tw * 0.7, y + h * 0.25, tw * 0.7, h * 0.3);
+    } else {
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + h); ctx.moveTo(x + w, y); ctx.lineTo(x, y + h); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  /* enfeites do fundo (andam devagar, dando profundidade) */
+  const enfeites = [];
+  for(let i = 0; i < 40; i++) enfeites.push({x: Math.random(), y: Math.random(), s: 0.4 + Math.random() * 0.8});
+  function desenharFundo(desloc){
+    const g = ctx.createLinearGradient(0, 0, 0, A);
+    g.addColorStop(0, TEMA.fundo[0]); g.addColorStop(1, TEMA.fundo[1]);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, L, A);
+    const tipo = TEMA.enfeite;
+    enfeites.forEach(function(e, i){
+      let x = ((e.x * L - desloc * e.s * 0.3) % L + L) % L, y = e.y * A;
+      if(tipo === 'estrelas'){ ctx.fillStyle = 'rgba(255,255,255,' + (0.4 + e.s * 0.5) + ')'; ctx.fillRect(x, y, 2 * e.s + 1, 2 * e.s + 1); }
+      else if(tipo === 'bolhas'){ y = ((e.y * A - desloc * e.s * 0.4) % A + A) % A; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 3 + e.s * 6, 0, Math.PI * 2); ctx.stroke(); }
+      else if(tipo === 'nuvens' && i < 7){ ctx.fillStyle = 'rgba(255,255,255,.8)'; const r = 18 + e.s * 22; ctx.beginPath(); ctx.arc(x, y * 0.5, r, 0, Math.PI * 2); ctx.arc(x + r, y * 0.5 + 6, r * 0.8, 0, Math.PI * 2); ctx.arc(x - r, y * 0.5 + 8, r * 0.7, 0, Math.PI * 2); ctx.fill(); }
+      else if(tipo === 'neve'){ y = ((e.y * A + desloc * e.s * 0.5) % A + A) % A; ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(x, y, 1.5 + e.s * 2.5, 0, Math.PI * 2); ctx.fill(); }
+      else if(tipo === 'confeitos'){ ctx.fillStyle = ['#ff4fa3', '#7C4DFF', '#17C79E', '#FFD93D'][i % 4]; ctx.fillRect(x, y, 6 * e.s + 2, 3); }
+      else if(tipo === 'brasas'){ y = ((e.y * A - desloc * e.s * 0.6) % A + A) % A; ctx.fillStyle = 'rgba(255,' + (90 + Math.floor(e.s * 100)) + ',0,.8)'; ctx.fillRect(x, y, 3, 3); }
+      else if(tipo === 'predios' && i < 14){ const w = 30 + e.s * 40, h = A * (0.2 + e.s * 0.35); ctx.fillStyle = 'rgba(10,10,30,.55)'; ctx.fillRect(x, A - h, w, h); ctx.fillStyle = 'rgba(255,220,120,.5)'; for(let k = 8; k < h - 10; k += 18) ctx.fillRect(x + 6, A - h + k, 5, 7); }
+      else if(tipo === 'sol' && i === 0){ ctx.fillStyle = 'rgba(255,240,180,.9)'; ctx.beginPath(); ctx.arc(L * 0.82, A * 0.2, 46 * escala, 0, Math.PI * 2); ctx.fill(); }
+    });
+  }
+  /* faíscas quando pega ou bate */
+  let particulas = [];
+  function faiscas(x, y, cor, n){
+    for(let i = 0; i < n; i++){ const a = Math.random() * Math.PI * 2, v = 1 + Math.random() * 4; particulas.push({x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, vida: 28 + Math.random() * 14, cor: cor}); }
+  }
+  function desenharParticulas(){
+    particulas = particulas.filter(function(p){ return p.vida > 0; });
+    particulas.forEach(function(p){ p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.vida--; ctx.globalAlpha = Math.max(0, p.vida / 40); ctx.fillStyle = p.cor; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); });
+    ctx.globalAlpha = 1;
+  }
+  /* corações das vidas */
+  function coracao(x, y, s, cheio){
+    ctx.save(); ctx.translate(x, y); ctx.scale(s / 20, s / 20);
+    ctx.beginPath(); ctx.moveTo(10, 18); ctx.bezierCurveTo(-6, 8, 0, -4, 10, 4); ctx.bezierCurveTo(20, -4, 26, 8, 10, 18); ctx.closePath();
+    ctx.fillStyle = cheio ? '#ff4d6d' : 'rgba(255,255,255,.25)'; ctx.fill();
+    ctx.restore();
+  }
+  /* recorde guardado na conta de quem joga (vale em qualquer aparelho) */
+  let recorde = 0;
+  try{ const s = window.KODA && KODA.salvar ? KODA.salvar.carregar() : null; if(s && typeof s.recorde === 'number') recorde = s.recorde; }catch(e){}
+  function guardarRecorde(){ try{ if(window.KODA && KODA.salvar) KODA.salvar.guardar({recorde: recorde}); }catch(e){} }
+  function texto(t, x, y, tam, cor, alinhar){
+    ctx.fillStyle = cor || '#fff'; ctx.textAlign = alinhar || 'center'; ctx.textBaseline = 'middle';
+    ctx.font = 'bold ' + Math.round(tam * escala) + 'px system-ui, -apple-system, sans-serif';
+    ctx.lineWidth = 4 * escala; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.strokeText(t, x, y); ctx.fillText(t, x, y);
+  }
+  function placar(pontos, vidas){
+    texto(String(pontos), L / 2, 40 * escala, 34);
+    for(let i = 0; i < 3; i++) coracao(L / 2 - 36 * escala + i * 26 * escala, 64 * escala, 22 * escala, i < vidas);
+  }
+  function telaInicio(como){
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, 0, L, A);
+    texto(TXT.titulo, L / 2, A * 0.34, 40);
+    texto(como, L / 2, A * 0.46, 17);
+    texto(TXT.toque, L / 2, A * 0.58, 24, '#7CFFCB');
+    if(recorde > 0) texto(TXT.recorde + ': ' + recorde, L / 2, A * 0.68, 18);
+  }
+  function telaFim(pontos){
+    ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0, 0, L, A);
+    texto(TXT.fim, L / 2, A * 0.34, 40);
+    texto(TXT.pontos + ': ' + pontos, L / 2, A * 0.46, 26);
+    texto(TXT.recorde + ': ' + recorde, L / 2, A * 0.54, 20);
+    texto(TXT.denovo, L / 2, A * 0.66, 22, '#7CFFCB');
+  }
+  /* quando a pessoa sai da aba, o jogo pausa */
+  let pausado = false;
+  document.addEventListener('visibilitychange', function(){ pausado = document.hidden; });
+}
+
+/* ---- corrida: pular obstáculos e pegar coisas ---- */
+function modeloCorrida(){
+  const GRAVIDADE = 0.65;
+  let vidas = 3;
+  let pontos = 0;
+  let estado = 'inicio', quadro = 0, quadroFim = 0, veloMundo = 6, proximo = 60, invencivel = 0, desloc = 0;
+  const jogador = {x: 0, y: 0, vy: 0, altura: 64, pulo: 13.5, pulos: 0, noChao: true};
+  let obstaculos = [], itens = [];
+  function chao(){ return A - 70 * escala; }
+  function comecar(){
+    vidas = 3; pontos = 0; veloMundo = 6; quadro = 0; proximo = 60; invencivel = 0;
+    obstaculos = []; itens = []; particulas = [];
+    jogador.x = 60 * escala; jogador.y = chao() - jogador.altura * escala; jogador.vy = 0; jogador.pulos = 0; jogador.noChao = true;
+    estado = 'jogando';
+  }
+  function acao(){
+    if(estado === 'inicio' || (estado === 'fim' && quadro - quadroFim > 40)){ comecar(); return; }
+    if(estado !== 'jogando') return;
+    if(jogador.noChao || jogador.pulos < 2){ jogador.vy = -jogador.pulo * escala; jogador.noChao = false; jogador.pulos++; som('pulo'); }
+  }
+  tela.addEventListener('pointerdown', function(e){ e.preventDefault(); acao(); });
+  document.addEventListener('keydown', function(e){ if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter'){ e.preventDefault(); if(!e.repeat) acao(); } });
+  function fimDeJogo(){
+    estado = 'fim'; quadroFim = quadro;
+    if(pontos > recorde){ recorde = pontos; guardarRecorde(); }
+    if(window.KODA) KODA.pontuar(pontos);
+    som('fim');
+  }
+  function bateu(a, b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+  function atualizar(){
+    quadro++;
+    if(estado !== 'jogando') return;
+    veloMundo = (6 + Math.min(9, quadro / 500)) * escala;
+    desloc += veloMundo;
+    if(quadro % 6 === 0) pontos++;
+    if(invencivel > 0) invencivel--;
+    jogador.vy += GRAVIDADE * escala; jogador.y += jogador.vy;
+    const h = jogador.altura * escala;
+    if(jogador.y + h >= chao()){ jogador.y = chao() - h; jogador.vy = 0; jogador.noChao = true; jogador.pulos = 0; }
+    proximo--;
+    if(proximo <= 0){
+      const alto = (36 + Math.random() * 34) * escala, largo = (30 + Math.random() * 20) * escala;
+      obstaculos.push({x: L + 20, y: chao() - alto, w: largo, h: alto});
+      if(Math.random() < 0.6) itens.push({x: L + 20 + largo / 2 + 140 * escala, y: chao() - alto - (60 + Math.random() * 80) * escala, r: 13 * escala});
+      proximo = Math.max(38, 95 - quadro / 80) + Math.random() * 40;
+    }
+    const corpo = {x: jogador.x + larguraHeroi(h) * 0.2, y: jogador.y + h * 0.1, w: larguraHeroi(h) * 0.6, h: h * 0.85};
+    obstaculos.forEach(function(o){
+      o.x -= veloMundo;
+      if(!o.batido && invencivel === 0 && bateu(corpo, {x: o.x + 4, y: o.y + 4, w: o.w - 8, h: o.h - 4})){
+        o.batido = true; vidas--; invencivel = 70; som('dano'); faiscas(o.x, o.y, TEMA.corPerigo, 14);
+        if(vidas <= 0) fimDeJogo();
+      }
+    });
+    itens.forEach(function(it){
+      it.x -= veloMundo;
+      if(!it.pego && bateu(corpo, {x: it.x - it.r, y: it.y - it.r, w: it.r * 2, h: it.r * 2})){ it.pego = true; pontos += 10; som('ponto'); faiscas(it.x, it.y, TEMA.corItem, 12); }
+    });
+    obstaculos = obstaculos.filter(function(o){ return o.x + o.w > -40; });
+    itens = itens.filter(function(it){ return !it.pego && it.x > -40; });
+  }
+  function desenhar(){
+    desenharFundo(desloc);
+    ctx.fillStyle = TEMA.chao; ctx.fillRect(0, chao(), L, A - chao());
+    ctx.fillStyle = 'rgba(0,0,0,.12)'; for(let x = -(desloc % 40); x < L; x += 40) ctx.fillRect(x, chao() + 12, 20, 6);
+    obstaculos.forEach(function(o){ desenharPerigo(o.x, o.y, o.w, o.h); });
+    itens.forEach(function(it){ desenharItem(it.x, it.y + Math.sin(quadro / 8 + it.x) * 4, it.r); });
+    const h = jogador.altura * escala;
+    if(estado !== 'inicio' && !(invencivel > 0 && Math.floor(quadro / 5) % 2)) desenharHeroi(jogador.x, jogador.y, h, jogador.noChao && estado === 'jogando', 'direita');
+    desenharParticulas();
+    if(estado !== 'inicio') placar(pontos, vidas);
+    if(estado === 'inicio') telaInicio(TXT.como);
+    if(estado === 'fim') telaFim(pontos);
+  }
+  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
+  loop();
+}
+
+/* ---- voar: passar entre colunas ---- */
+function modeloVoar(){
+  const GRAVIDADE = 0.42;
+  let vidas = 3;
+  let pontos = 0;
+  let estado = 'inicio', quadro = 0, quadroFim = 0, desloc = 0, invencivel = 0, proximo = 0;
+  const jogador = {x: 0, y: 0, vy: 0, altura: 52, pulo: 7.6};
+  let colunas = [], itens = [];
+  function comecar(){
+    vidas = 3; pontos = 0; quadro = 0; invencivel = 0; proximo = 20; colunas = []; itens = []; particulas = [];
+    jogador.x = L * 0.22; jogador.y = A * 0.4; jogador.vy = 0;
+    estado = 'jogando';
+  }
+  function acao(){
+    if(estado === 'inicio' || (estado === 'fim' && quadro - quadroFim > 40)){ comecar(); return; }
+    if(estado !== 'jogando') return;
+    jogador.vy = -jogador.pulo * escala; som('pulo');
+  }
+  tela.addEventListener('pointerdown', function(e){ e.preventDefault(); acao(); });
+  document.addEventListener('keydown', function(e){ if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter'){ e.preventDefault(); if(!e.repeat) acao(); } });
+  function fimDeJogo(){
+    estado = 'fim'; quadroFim = quadro;
+    if(pontos > recorde){ recorde = pontos; guardarRecorde(); }
+    if(window.KODA) KODA.pontuar(pontos);
+    som('fim');
+  }
+  function perderVida(){
+    vidas--; invencivel = 90; som('dano'); faiscas(jogador.x, jogador.y, TEMA.corPerigo, 16);
+    jogador.vy = -4 * escala;
+    if(vidas <= 0) fimDeJogo();
+  }
+  function atualizar(){
+    quadro++;
+    if(estado !== 'jogando') return;
+    const velo = (3 + Math.min(3, quadro / 900)) * escala;
+    desloc += velo;
+    if(invencivel > 0) invencivel--;
+    jogador.vy += GRAVIDADE * escala; jogador.y += jogador.vy;
+    const h = jogador.altura * escala, w = larguraHeroi(h);
+    proximo--;
+    if(proximo <= 0){
+      const buraco = Math.max(150, 220 - quadro / 30) * escala, meio = A * 0.2 + Math.random() * (A * 0.6 - buraco) + buraco / 2;
+      colunas.push({x: L + 10, w: 64 * escala, cima: meio - buraco / 2, baixo: meio + buraco / 2, passou: false});
+      if(Math.random() < 0.5) itens.push({x: L + 10 + 32 * escala, y: meio, r: 12 * escala});
+      proximo = Math.max(70, 110 - quadro / 120);
+    }
+    if(jogador.y < 0){ jogador.y = 0; jogador.vy = 0; }
+    if(jogador.y + h > A){ jogador.y = A - h; if(invencivel === 0) perderVida(); else jogador.vy = -8 * escala; }
+    colunas.forEach(function(c){
+      c.x -= velo;
+      if(!c.passou && c.x + c.w < jogador.x){ c.passou = true; pontos++; }
+      const dentro = jogador.x + w * 0.8 > c.x && jogador.x + w * 0.2 < c.x + c.w;
+      if(dentro && invencivel === 0 && (jogador.y + h * 0.12 < c.cima || jogador.y + h * 0.9 > c.baixo)) perderVida();
+    });
+    itens.forEach(function(it){
+      it.x -= velo;
+      if(!it.pego && Math.abs(it.x - (jogador.x + w / 2)) < it.r + w / 2 && Math.abs(it.y - (jogador.y + h / 2)) < it.r + h / 2){ it.pego = true; pontos += 5; som('ponto'); faiscas(it.x, it.y, TEMA.corItem, 12); }
+    });
+    colunas = colunas.filter(function(c){ return c.x + c.w > -10; });
+    itens = itens.filter(function(it){ return !it.pego && it.x > -30; });
+  }
+  function desenharColuna(c){
+    ctx.fillStyle = TEMA.coluna;
+    ctx.fillRect(c.x, 0, c.w, c.cima); ctx.fillRect(c.x, c.baixo, c.w, A - c.baixo);
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    ctx.fillRect(c.x - 5, c.cima - 18 * escala, c.w + 10, 18 * escala); ctx.fillRect(c.x - 5, c.baixo, c.w + 10, 18 * escala);
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(c.x + 6, 0, 6, c.cima); ctx.fillRect(c.x + 6, c.baixo, 6, A - c.baixo);
+  }
+  function desenhar(){
+    desenharFundo(desloc);
+    colunas.forEach(desenharColuna);
+    itens.forEach(function(it){ desenharItem(it.x, it.y, it.r); });
+    const h = jogador.altura * escala;
+    if(estado !== 'inicio' && !(invencivel > 0 && Math.floor(quadro / 5) % 2)){
+      ctx.save();
+      const w = larguraHeroi(h), giro = Math.max(-0.5, Math.min(0.6, jogador.vy / 14));
+      ctx.translate(jogador.x + w / 2, jogador.y + h / 2); ctx.rotate(giro); ctx.translate(-(jogador.x + w / 2), -(jogador.y + h / 2));
+      desenharHeroi(jogador.x, jogador.y, h, jogador.vy < 0, 'direita');
+      ctx.restore();
+    }
+    desenharParticulas();
+    if(estado !== 'inicio') placar(pontos, vidas);
+    if(estado === 'inicio') telaInicio(TXT.como);
+    if(estado === 'fim') telaFim(pontos);
+  }
+  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
+  loop();
+}
+
+/* ---- pegar: coisas caindo do céu ---- */
+function modeloPegar(){
+  let vidas = 3;
+  let pontos = 0;
+  let estado = 'inicio', quadro = 0, quadroFim = 0, proximo = 30, invencivel = 0, desloc = 0;
+  const jogador = {x: 0, y: 0, altura: 72, velocidade: 8, alvoX: null, olhando: 'direita'};
+  const teclas = {};
+  let coisas = [];
+  function comecar(){
+    vidas = 3; pontos = 0; quadro = 0; proximo = 30; invencivel = 0; coisas = []; particulas = [];
+    jogador.x = L / 2 - larguraHeroi(jogador.altura * escala) / 2; jogador.alvoX = null;
+    estado = 'jogando';
+  }
+  function tocar(x){
+    if(estado === 'inicio' || (estado === 'fim' && quadro - quadroFim > 40)){ comecar(); return; }
+    jogador.alvoX = x;
+  }
+  tela.addEventListener('pointerdown', function(e){ e.preventDefault(); tocar(e.clientX); });
+  tela.addEventListener('pointermove', function(e){ if(e.buttons || e.pointerType === 'touch') jogador.alvoX = e.clientX; });
+  document.addEventListener('keydown', function(e){ teclas[e.code] = true; if((e.code === 'Space' || e.code === 'Enter') && estado !== 'jogando'){ e.preventDefault(); tocar(L / 2); } });
+  document.addEventListener('keyup', function(e){ teclas[e.code] = false; });
+  function fimDeJogo(){
+    estado = 'fim'; quadroFim = quadro;
+    if(pontos > recorde){ recorde = pontos; guardarRecorde(); }
+    if(window.KODA) KODA.pontuar(pontos);
+    som('fim');
+  }
+  function atualizar(){
+    quadro++; desloc += 0.5;
+    if(estado !== 'jogando') return;
+    if(invencivel > 0) invencivel--;
+    const h = jogador.altura * escala, w = larguraHeroi(h);
+    jogador.y = A - h - 24 * escala;
+    const passo = jogador.velocidade * escala;
+    let andou = false;
+    if(teclas.ArrowLeft || teclas.KeyA){ jogador.x -= passo; jogador.olhando = 'esquerda'; jogador.alvoX = null; andou = true; }
+    if(teclas.ArrowRight || teclas.KeyD){ jogador.x += passo; jogador.olhando = 'direita'; jogador.alvoX = null; andou = true; }
+    if(jogador.alvoX !== null){
+      const dx = jogador.alvoX - (jogador.x + w / 2);
+      if(Math.abs(dx) > 4){ jogador.x += Math.max(-passo * 1.4, Math.min(passo * 1.4, dx)); jogador.olhando = dx < 0 ? 'esquerda' : 'direita'; andou = true; }
+    }
+    jogador.andando = andou;
+    jogador.x = Math.max(0, Math.min(L - w, jogador.x));
+    proximo--;
+    if(proximo <= 0){
+      const boa = Math.random() < 0.72;
+      coisas.push({x: 20 + Math.random() * (L - 40), y: -30, vy: (2.2 + Math.random() * 1.5 + quadro / 1500) * escala, r: (boa ? 14 : 18) * escala, boa: boa});
+      proximo = Math.max(16, 48 - quadro / 120);
+    }
+    const corpo = {x: jogador.x + w * 0.1, y: jogador.y, w: w * 0.8, h: h};
+    coisas.forEach(function(c){
+      c.y += c.vy;
+      if(!c.fora && c.x + c.r > corpo.x && c.x - c.r < corpo.x + corpo.w && c.y + c.r > corpo.y && c.y - c.r < corpo.y + corpo.h){
+        c.fora = true;
+        if(c.boa){ pontos += 10; som('ponto'); faiscas(c.x, c.y, TEMA.corItem, 12); }
+        else if(invencivel === 0){ vidas--; invencivel = 60; som('dano'); faiscas(c.x, c.y, TEMA.corPerigo, 16); if(vidas <= 0) fimDeJogo(); }
+      }
+    });
+    coisas = coisas.filter(function(c){ return !c.fora && c.y < A + 40; });
+  }
+  function desenhar(){
+    desenharFundo(desloc);
+    ctx.fillStyle = TEMA.chao; ctx.fillRect(0, A - 24 * escala, L, 24 * escala);
+    coisas.forEach(function(c){ if(c.boa) desenharItem(c.x, c.y, c.r); else desenharPerigo(c.x - c.r, c.y - c.r, c.r * 2, c.r * 2); });
+    const h = jogador.altura * escala;
+    if(estado !== 'inicio' && !(invencivel > 0 && Math.floor(quadro / 5) % 2)) desenharHeroi(jogador.x, jogador.y, h, jogador.andando, jogador.olhando);
+    desenharParticulas();
+    if(estado !== 'inicio') placar(pontos, vidas);
+    if(estado === 'inicio') telaInicio(TXT.como);
+    if(estado === 'fim') telaFim(pontos);
+  }
+  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
+  loop();
+}
+
+/* ---- nave: acertar o que vem de cima ---- */
+function modeloNave(){
+  let vidas = 3;
+  let pontos = 0;
+  let estado = 'inicio', quadro = 0, quadroFim = 0, proximo = 40, invencivel = 0, desloc = 0;
+  const jogador = {x: 0, y: 0, altura: 64, velocidade: 8, alvoX: null, cadencia: 14};
+  const teclas = {};
+  let tiros = [], inimigos = [];
+  function comecar(){
+    vidas = 3; pontos = 0; quadro = 0; proximo = 40; invencivel = 0; tiros = []; inimigos = []; particulas = [];
+    jogador.x = L / 2 - larguraHeroi(jogador.altura * escala) / 2; jogador.alvoX = null;
+    estado = 'jogando';
+  }
+  function tocar(x){
+    if(estado === 'inicio' || (estado === 'fim' && quadro - quadroFim > 40)){ comecar(); return; }
+    jogador.alvoX = x;
+  }
+  tela.addEventListener('pointerdown', function(e){ e.preventDefault(); tocar(e.clientX); });
+  tela.addEventListener('pointermove', function(e){ if(e.buttons || e.pointerType === 'touch') jogador.alvoX = e.clientX; });
+  document.addEventListener('keydown', function(e){ teclas[e.code] = true; if((e.code === 'Space' || e.code === 'Enter') && estado !== 'jogando'){ e.preventDefault(); tocar(L / 2); } });
+  document.addEventListener('keyup', function(e){ teclas[e.code] = false; });
+  function fimDeJogo(){
+    estado = 'fim'; quadroFim = quadro;
+    if(pontos > recorde){ recorde = pontos; guardarRecorde(); }
+    if(window.KODA) KODA.pontuar(pontos);
+    som('fim');
+  }
+  function perderVida(x, y){
+    if(invencivel > 0) return;
+    vidas--; invencivel = 80; som('dano'); faiscas(x, y, TEMA.corPerigo, 18);
+    if(vidas <= 0) fimDeJogo();
+  }
+  function atualizar(){
+    quadro++; desloc += 1.5;
+    if(estado !== 'jogando') return;
+    if(invencivel > 0) invencivel--;
+    const h = jogador.altura * escala, w = larguraHeroi(h), passo = jogador.velocidade * escala;
+    jogador.y = A - h - 20 * escala;
+    if(teclas.ArrowLeft || teclas.KeyA){ jogador.x -= passo; jogador.alvoX = null; }
+    if(teclas.ArrowRight || teclas.KeyD){ jogador.x += passo; jogador.alvoX = null; }
+    if(jogador.alvoX !== null){ const dx = jogador.alvoX - (jogador.x + w / 2); if(Math.abs(dx) > 4) jogador.x += Math.max(-passo * 1.5, Math.min(passo * 1.5, dx)); }
+    jogador.x = Math.max(0, Math.min(L - w, jogador.x));
+    if(quadro % Math.max(3, Math.round(jogador.cadencia)) === 0){ tiros.push({x: jogador.x + w / 2, y: jogador.y}); som('tiro'); }
+    proximo--;
+    if(proximo <= 0){
+      const r = (16 + Math.random() * 14) * escala;
+      inimigos.push({x: r + Math.random() * (L - r * 2), y: -r, r: r, vy: (1.4 + Math.random() + quadro / 2200) * escala, onda: Math.random() * 6, vida: r > 24 * escala ? 2 : 1});
+      proximo = Math.max(14, 50 - quadro / 100);
+    }
+    tiros.forEach(function(t){ t.y -= 11 * escala; });
+    inimigos.forEach(function(m){
+      m.y += m.vy; m.x += Math.sin(quadro / 30 + m.onda) * 0.8 * escala;
+      tiros.forEach(function(t){
+        if(!t.usado && !m.fora && Math.abs(t.x - m.x) < m.r && Math.abs(t.y - m.y) < m.r){
+          t.usado = true; m.vida--;
+          if(m.vida <= 0){ m.fora = true; pontos += 10; som('ponto'); faiscas(m.x, m.y, TEMA.corPerigo, 14); }
+        }
+      });
+      if(!m.fora && m.y - m.r > A){ m.fora = true; perderVida(m.x, A - 10); }
+      if(!m.fora && Math.abs(m.x - (jogador.x + w / 2)) < m.r + w * 0.35 && Math.abs(m.y - (jogador.y + h / 2)) < m.r + h * 0.4){ m.fora = true; perderVida(m.x, m.y); }
+    });
+    tiros = tiros.filter(function(t){ return !t.usado && t.y > -20; });
+    inimigos = inimigos.filter(function(m){ return !m.fora; });
+  }
+  function desenhar(){
+    desenharFundo(desloc);
+    ctx.fillStyle = TEMA.corItem;
+    tiros.forEach(function(t){ ctx.fillRect(t.x - 2 * escala, t.y - 12 * escala, 4 * escala, 12 * escala); });
+    inimigos.forEach(function(m){ desenharPerigo(m.x - m.r, m.y - m.r, m.r * 2, m.r * 2); });
+    const h = jogador.altura * escala;
+    if(estado !== 'inicio' && !(invencivel > 0 && Math.floor(quadro / 5) % 2)) desenharHeroi(jogador.x, jogador.y, h, false, 'costas');
+    desenharParticulas();
+    if(estado !== 'inicio') placar(pontos, vidas);
+    if(estado === 'inicio') telaInicio(TXT.como);
+    if(estado === 'fim') telaFim(pontos);
+  }
+  function loop(){ if(!pausado){ atualizar(); desenhar(); } requestAnimationFrame(loop); }
+  loop();
+}
+
+/* o corpo de uma função (sem o "function x(){" e o "}" do fim), com dois espaços a menos na frente */
+function corpoDe(f){ var s = f.toString(); return s.slice(s.indexOf('{') + 1, s.lastIndexOf('}')).replace(/^\n/, '').replace(/^  /gm, '').replace(/\s+$/, ''); }
+var MODELOS = {corrida: modeloCorrida, voar: modeloVoar, pegar: modeloPegar, nave: modeloNave};
+function textoTema(tema, campo, lj){ var p = String(TEMAS_JOGO[tema][campo]).split('|'); return p[lj === 'en' ? 1 : lj === 'es' ? 2 : 0] || p[0]; }
+/* monta o HTML do jogo */
+function criarJogo(tipo, tema, nome, lj){
+  lj = lj || LING;
+  if(!MODELOS[tipo]) tipo = 'corrida';
+  if(!TEMAS_JOGO[tema]) tema = 'espaco';
+  var cfg = TEMAS_JOGO[tema];
+  var TEMA = {fundo: cfg.fundo, chao: cfg.chao, heroi: cfg.heroi, item: cfg.item, corItem: cfg.corItem, perigo: cfg.perigo, corPerigo: cfg.corPerigo, enfeite: cfg.enfeite, coluna: cfg.coluna};
+  var coisa = textoTema(tema, 'coisa', lj), bicho = textoTema(tema, 'bicho', lj);
+  var TXT = {titulo: nome, toque: TL(lj, 'mj_toque'), denovo: TL(lj, 'mj_denovo'), fim: TL(lj, 'mj_fim'), pontos: TL(lj, 'mj_pontos'), recorde: TL(lj, 'mj_recorde'),
+    como: TL(lj, 'mj_como_' + tipo, {coisa: coisa, bicho: bicho})};
+  var json = function(o){ return JSON.stringify(o, null, 0).replace(/</g, '\\u003c').replace(/,"/g, ', "').replace(/":/g, '": '); };
+  return '<!DOCTYPE html>\n<html lang="' + lj + '">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">\n'
+    + '<meta name="koda-modelo" content="' + tipo + ';' + tema + '">\n<title>' + esc(nome) + '</title>\n'
+    + '<style>html,body{margin:0;height:100%;overflow:hidden;background:' + cfg.fundo[0] + ';touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}canvas{display:block}</style>\n'
+    + '</head>\n<body>\n<canvas id="tela"></canvas>\n<script>\n'
+    + '/* ' + nome.replace(/\*\//g, '') + ': feito pelo Agente Koda. Pode mudar o que quiser! */\n'
+    + 'const TEMA = ' + json(TEMA) + ';\nconst TXT = ' + json(TXT) + ';\n'
+    + corpoDe(modeloBase) + '\n' + corpoDe(MODELOS[tipo]) + '\n<\/script>\n</body>\n</html>';
+}
+/* o jogo que está na caixa foi feito por um modelo? (pra trocar o tema) */
+function modeloDoCodigo(codigo){
+  var m = /<meta name="koda-modelo" content="(\w+);(\w+)">/.exec(String(codigo || ''));
+  return m && MODELOS[m[1]] && TEMAS_JOGO[m[2]] ? {tipo: m[1], tema: m[2]} : null;
+}
+function trocarTema(codigo, tema, lj){
+  var m = modeloDoCodigo(codigo);
+  if(!m || !TEMAS_JOGO[tema]) return null;
+  var cfg = TEMAS_JOGO[tema];
+  var novo = String(codigo).replace(/<meta name="koda-modelo" content="(\w+);(\w+)">/, '<meta name="koda-modelo" content="' + m.tipo + ';' + tema + '">');
+  var TEMA = {fundo: cfg.fundo, chao: cfg.chao, heroi: cfg.heroi, item: cfg.item, corItem: cfg.corItem, perigo: cfg.perigo, corPerigo: cfg.corPerigo, enfeite: cfg.enfeite, coluna: cfg.coluna};
+  var json = JSON.stringify(TEMA).replace(/</g, '\\u003c').replace(/,"/g, ', "').replace(/":/g, '": ');
+  novo = novo.replace(/const TEMA = \{[^\n]*\};/, 'const TEMA = ' + json + ';');
+  novo = novo.replace(/(html,body\{[^}]*background:)#[0-9a-fA-F]{3,8}/, '$1' + cfg.fundo[0]);
+  /* o texto de "como jogar" fala das coisas do tema */
+  var mt = /const TXT = (\{[^\n]*\});/.exec(novo);
+  if(mt){ try{ var TXT = JSON.parse(mt[1]); TXT.como = TL(lj || LING, 'mj_como_' + m.tipo, {coisa: textoTema(tema, 'coisa', lj), bicho: textoTema(tema, 'bicho', lj)}); novo = novo.replace(mt[0], 'const TXT = ' + JSON.stringify(TXT).replace(/</g, '\\u003c').replace(/,"/g, ', "').replace(/":/g, '": ') + ';'); }catch(e){} }
+  return novo;
+}
+
+/* ---- entender "cria um jogo de nave no espaço" ---- */
+Object.assign(TX, {
+  mjn_corrida: 'Corrida {t}|{t} Run|Carrera {t}', mjn_voar: 'Voo {t}|{t} Flight|Vuelo {t}', mjn_pegar: 'Chuva de {coisa}|{coisa} Rain|Lluvia de {coisa}', mjn_nave: 'Defesa {t}|{t} Defense|Defensa {t}'
+});
+var ADJ_TEMA = {espaco: 'Espacial|Space|Espacial', mar: 'Submarina|Ocean|Submarina', floresta: 'na Floresta|Forest|en el Bosque', neve: 'na Neve|Snow|en la Nieve', doces: 'Doce|Candy|Dulce', vulcao: 'no Vulcão|Volcano|en el Volcán', cidade: 'na Cidade|City|en la Ciudad', deserto: 'no Deserto|Desert|en el Desierto'};
+function nomeDoModelo(tipo, tema, lj){
+  var p = ADJ_TEMA[tema].split('|'), t = p[lj === 'en' ? 1 : lj === 'es' ? 2 : 0];
+  return TL(lj, 'mjn_' + tipo, {t: t, coisa: capitalizar(textoTema(tema, 'coisa', lj))});
+}
+var TIPO_PALAVRAS = [
+  ['nave', /\b(nave|naves|navinha|tiro|tiros|atira\w*|shooter|shoot\w*|dispar\w*|meteoro\w*|alien\w*|invasor\w*|invaders?|asteroide\w*|espacial de tiro)\b/],
+  ['voar', /\b(voa\w*|voo|flappy|passaro\w*|passarinho\w*|fly\w*|flight|vuel\w*|volar|pajaro\w*|canos?|colunas?)\b/],
+  ['pegar', /\b(pega\w*|pegue|coleta\w*|colete|catch\w*|cai\w*|chuva|atrapa\w*|recog\w*|apanha\w*|junta\w*|caem|caindo|falling)\b/],
+  ['corrida', /\b(corr\w*|runner|run|pul\w*|obstacul\w*|dino\w*|desvi\w*|salt\w*|jump\w*|carrera|endless)\b/]
+];
+var TEMA_PALAVRAS = [
+  ['espaco', /\b(espaco|espacial|space|espacio|estrelas?|planetas?|galaxias?|astronauta\w*|lua|moon|luna|cosmo\w*)\b/],
+  ['mar', /\b(mar|oceano|sea|ocean|oceano|peix\w*|fish|pez|peces|praia|beach|playa|submarin\w*|agua|water|tubar\w*|shark)\b/],
+  ['floresta', /\b(floresta|forest|bosque|selva|jungle|arvore\w*|trees?|mato|natureza|nature|naturaleza)\b/],
+  ['neve', /\b(neve|snow|nieve|gelo|ice|hielo|inverno|winter|invierno|natal|christmas|navidad|pinguim\w*|penguin\w*)\b/],
+  ['doces', /\b(doce\w*|candy|candies|bala\w*|chocolate\w*|dulce\w*|caramelo\w*|bolo\w*|cake|torta|sorvete\w*|ice cream)\b/],
+  ['vulcao', /\b(vulcao|volcano|volcan|lava|fogo|fire|fuego|dragao|dragon|dragon)\b/],
+  ['cidade', /\b(cidade|city|ciudad|rua\w*|street|calle|predio\w*|building\w*|carro\w*|cars?|trafego|traffic)\b/],
+  ['deserto', /\b(deserto|desert|desierto|areia|sand|arena|cacto\w*|cactus|camelo\w*|egito|egypt|piramide\w*)\b/]
+];
+var TIPO_PADRAO_TEMA = {nave: 'espaco', voar: 'floresta', pegar: 'doces', corrida: 'deserto'};
+function entenderCriarJogo(P, ctx){
+  var n = P.n;
+  var criar = /\b(cri\w*|faz|fazer|faca|faz um|monta\w*|monte|ger\w*|invent\w*|make|create|build|crea\w*|haz|hace|hacer|arma|armame|programa|desenvolv\w*)\b/.test(n);
+  var quero = /\b(quero|queria|want|wanna|quiero|quisiera)\b/.test(n);
+  var falaJogo = P.tem('jogo') || /\b(game|juego)\b/.test(n);
+  if(!falaJogo || !(criar || quero)) return null;
+  if(P.interrogacao || /^\s*(como|how|como se|o que|what)\b/.test(n.trim())) return null;
+  if(P.tem('loja') || P.tem('vender') || P.tem('verificar') || P.tem('avaliar') || P.tem('skin') || P.tem('salvar') || P.tem('online') || P.tem('ranking')) return null;
+  if(/\b(meu jogo|my game|mi juego|esse jogo|este jogo|o jogo)\b/.test(n) && !/\b(um jogo|novo jogo|outro jogo|jogo novo|a game|a new game|un juego|otro juego)\b/.test(n)) return null;
+  var tipo = null, tema = null;
+  TIPO_PALAVRAS.forEach(function(t){ if(!tipo && t[1].test(n)) tipo = t[0]; });
+  TEMA_PALAVRAS.forEach(function(t){ if(!tema && t[1].test(n)) tema = t[0]; });
+  var nome = P.aspas[0] || null;
+  if(!nome){ var k = P.ws.findIndex(function(w){ return /^(chamado|chamada|called|named|llamado|llamada)$/.test(w); }); if(k >= 0){ var nm = P.wo.slice(k + 1, k + 6).join(' ').replace(/\s+(no|na|de|com|with|in|en|con)\s.*$/i, ''); if(nm) nome = capitalizar(nm).slice(0, 40); } }
+  return {int: 'criar_jogo', tipo: tipo, tema: tema, nome: nome};
+}
+function entenderTema(P){
+  if(!/\b(tema|theme|cenario|cenário|scenery|fundo)\b/.test(P.n) || !(P.tem('mudar') || P.tem('por') || /\b(no|in|en|de)\b/.test(P.n))) return null;
+  var tema = null;
+  TEMA_PALAVRAS.forEach(function(t){ if(!tema && t[1].test(P.n)) tema = t[0]; });
+  return {int: 'mudar_tema', tema: tema};
+}
+H.criar_jogo = function(it, ctx, est){
+  var lj = LING;
+  if(!it.tipo){
+    est.pendente = {tipo: 'tipo_jogo', tema: it.tema, nome: it.nome};
+    var r0 = diz(novaResp(), T('mj_qual_tipo'));
+    chip(r0, T('ch_mj_corrida')); chip(r0, T('ch_mj_voar')); chip(r0, T('ch_mj_pegar')); chip(r0, T('ch_mj_nave'));
+    return r0;
+  }
+  var tema = it.tema || TIPO_PADRAO_TEMA[it.tipo] || 'espaco';
+  if(ctx.temCodigo && String(ctx.codigoBruto).trim().length > 40 && !it.confirmado){
+    est.pendente = {tipo: 'confirmar', acao: {int: 'criar_jogo', tipo: it.tipo, tema: tema, nome: it.nome, confirmado: true}};
+    var rc = diz(novaResp(), T('mj_trocar'));
+    chip(rc, T('ch_sim')); chip(rc, T('ch_nao'));
+    return rc;
+  }
+  var nome = it.nome || nomeDoModelo(it.tipo, tema, lj);
+  var codigo = criarJogo(it.tipo, tema, nome, lj);
+  var r = novaResp();
+  var coisa = textoTema(tema, 'coisa', lj), bicho = textoTema(tema, 'bicho', lj);
+  diz(r, T('mj_criado', {nome: nome, tipo: T('g_' + it.tipo + '_m'), tema: textoTema(tema, 'n', lj), desc: T('mj_desc_' + it.tipo, {coisa: coisa, bicho: bicho}), como: T('mj_como_' + it.tipo, {coisa: coisa, bicho: bicho})}));
+  diz(r, T('mj_vem_com'));
+  chip(r, T('ch_loja')); chip(r, T('ch_mj_tema')); chip(r, T('ch_mj_outro'));
+  est.ultimoItem = null;
+  est.historico.push({antes: ctx.codigoBruto, depois: codigo, desc: T('d_jogo_novo')});
+  r.codigo = codigo;
+  r.nomeJogo = nome;
+  chip(r, T('ch_desfazer'));
+  return r;
+};
+H.mudar_tema = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var m = modeloDoCodigo(ctx.codigo);
+  if(!m) return diz(novaResp(), T('mj_nao_modelo'));
+  if(!it.tema){
+    est.pendente = {tipo: 'tema_jogo'};
+    var r0 = diz(novaResp(), T('mj_tema_qual'));
+    Object.keys(TEMAS_JOGO).filter(function(k){ return k !== m.tema; }).slice(0, 6).forEach(function(k){ chip(r0, capitalizar(textoTema(k, 'n', LING))); });
+    return r0;
+  }
+  var novo = trocarTema(ctx.codigo, it.tema, LING);
+  if(!novo) return diz(novaResp(), T('lj_nao_deu'));
+  var r = diz(novaResp(), T('mj_tema_ok', {tema: textoTema(it.tema, 'n', LING)}));
+  chip(r, T('ch_mj_tema'));
+  return aplicar(est, r, ctx.codigo, novo, T('d_tema'));
+};
+Object.assign(TX, {d_jogo_novo: 'o jogo novo|the new game|el juego nuevo', d_tema: 'a troca de tema|the theme change|el cambio de tema'});
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T,
@@ -26913,7 +27720,7 @@ return {
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,
       entender: entender, analisar: analisar, buscarFaq: buscarFaq, fazerSkin: fazerSkin, fazerSalvar: fazerSalvar, fazerPontuar: fazerPontuar,
-      fazerSons: fazerSons, explicarJogo: explicarJogo, gerarIdeias: gerarIdeias, kodaRoboNoJogo: kodaRoboNoJogo, TX: TX, FAQ: FAQ}
+      fazerSons: fazerSons, explicarJogo: explicarJogo, criarJogo: criarJogo, trocarTema: trocarTema, fazerOnline: fazerOnline, modeloDoCodigo: modeloDoCodigo, gerarIdeias: gerarIdeias, kodaRoboNoJogo: kodaRoboNoJogo, TX: TX, FAQ: FAQ}
 };
 })();
 /* ============================================================
@@ -27118,6 +27925,8 @@ function abrirAgente(caixa, opts){
     p.remove();
     if(r.erro) try{ console.warn('Agente Koda:', r.erro); }catch(e){}
     if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); }
+    /* jogo criado do zero: o nome dele já vai pro campo "Nome" (se estiver vazio) */
+    if(r.nomeJogo && opts.nomeEl && !opts.nomeEl.value.trim()){ opts.nomeEl.value = r.nomeJogo; try{ opts.nomeEl.dispatchEvent(new Event('input', {bubbles: true})); }catch(e){} }
     await mostrar(r);
     if(r.testar){
       /* o robô joga com o código que está na caixa (já arrumado, igual o Testar faz) */
@@ -27162,7 +27971,8 @@ function ligarAssistente(root, codeSel, editingId){
     desfazer.hidden = !(conv && conv.estado.historico.length);
     mostrarStatus(KA.T(desfez ? 'ui_desfeito' : 'ui_codigo_mudou'), desfez ? '' : 'ok');
   };
-  abrir.addEventListener('click', ()=>{ playSound('click'); abrirAgente(caixa, {aoMudar}); });
+  const nomeEl = root.querySelector('#fName, #directName');
+  abrir.addEventListener('click', ()=>{ playSound('click'); abrirAgente(caixa, {aoMudar, nomeEl}); });
   /* o "desfazer" do lado do botão faz o mesmo que o da conversa (e fica anotado nela) */
   desfazer.addEventListener('click', ()=>{
     const conv = KA_CONVERSAS.get(caixa);
