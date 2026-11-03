@@ -29365,9 +29365,8 @@ HB.visual = function(it, ctx, est){
 Object.assign(TX, {md_varios_resto: 'Ainda falta: "{resto}". Me peça de novo depois de responder aqui em cima.|Still to do: "{resto}". Ask me again after answering the question above.|Falta: "{resto}". Pídemelo otra vez después de responder lo de arriba.'});
 var ACOES_JUNTAS = /^(mod_|skin$|salvar$|pontuar$|sons$|online$|online_placar$|desfazer$)/;
 function dividirPedido(t){
-  var porVirgula = t.split(/\s*[,;]\s*/).filter(function(x){ return x.trim(); });
-  if(porVirgula.length > 1) return porVirgula;
-  return t.split(/\s+(?:e|and|y|também|tambem|depois|then|also|alem disso|além disso)\s+/i).filter(function(x){ return x.trim(); });
+  /* corta em vírgulas e em "e / and / y / também..."; pedaços que sozinhos não são pedido ("branco") voltam a ser juntados depois */
+  return t.split(/\s*[,;]\s*|\s+(?:e|and|y|também|tambem|depois|then|also|alem disso|além disso)\s+/i).filter(function(x){ return x && x.trim(); });
 }
 function responderVarios(est, texto, bruto){
   if(est.pendente || !String(bruto || '').trim()) return null;
