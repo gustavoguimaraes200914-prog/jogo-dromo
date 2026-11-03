@@ -3,3 +3,4 @@ agente
 .gitignore
 wrangler.toml
 firebase
+jogos-exemplo

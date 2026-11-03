@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Arena das Estrelas</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0b1030;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="tela"></canvas>
+<script>
+/* ============================================================
+   ARENA DAS ESTRELAS  (jogo ONLINE do Koda)
+   Todo mundo da sala aparece na mesma arena, com o próprio personagem do Koda, e disputa as mesmas estrelas.
+   Estrela dourada vale 3. A rodada dura 45 segundos. Ganha quem pegar mais.
+
+   COMO O ONLINE FUNCIONA (o Koda não tem servidor que decide nada, então o jogo se organiza sozinho):
+   - Cada pessoa manda a própria posição umas 7 vezes por segundo.
+   - As estrelas não precisam ser enviadas: o "anfitrião" (quem tem o menor id da sala) sorteia um número (semente)
+     e manda no começo da rodada; com o mesmo número, todo mundo calcula as MESMAS estrelas, nos mesmos lugares e horas.
+   - Quando alguém encosta numa estrela, avisa o anfitrião. O anfitrião decide quem foi o primeiro e avisa todo mundo.
+     (Se o anfitrião sair, o próximo menor id vira anfitrião.)
+   - Sozinho (ou sem internet) dá pra treinar contra dois robôs.
+   Usa: KODA.online (a sala), KODA.jogador (o seu herói), KODA.pontuar (ranking) e KODA.salvar (recorde).
+   ============================================================ */
+(function () {
+  'use strict';
+  var tela = document.getElementById('tela'), ctx = tela.getContext('2d');
+  var KODA = window.KODA || {};   // se o jogo abrir fora do Koda, KODA fica vazio e o jogo usa os desenhos de reserva
+
+  var MUNDO_L = 1000, MUNDO_A = 640, DURACAO = 45 * 60;
+  var L = 0, A = 0, sc = 1, ox = 0, oy = 0, esc = 1;
+  function ajustar() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    L = window.innerWidth; A = window.innerHeight;
+    tela.width = Math.floor(L * dpr); tela.height = Math.floor(A * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sc = Math.min(L / MUNDO_L, (A - 70) / MUNDO_A); ox = (L - MUNDO_L * sc) / 2; oy = 62 + (A - 70 - MUNDO_A * sc) / 2;
+    esc = Math.max(0.75, Math.min(1.5, Math.min(L, A) / 480));
+  }
+  window.addEventListener('resize', ajustar);
+  ajustar();
+
+  /* ---------- números ---------- */
+  function mulberry(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function limita(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+  /* ---------- sons ---------- */
+  var audio = null;
+  function liberarSom() { try { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); } catch (e) {} }
+  function som(nome) {
+    try {
+      liberarSom();
+      var n = { estrela: [880, 1320, 0.12, 'square', 0.045], ouro: [660, 1760, 0.3, 'triangle', 0.08], outra: [1000, 1200, 0.08, 'sine', 0.02], inicio: [330, 990, 0.5, 'triangle', 0.09], fim: [660, 220, 0.7, 'triangle', 0.09], pronto: [520, 780, 0.15, 'sine', 0.07] }[nome];
+      if (!n) return;
+      var o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+      o.type = n[3]; o.frequency.setValueAtTime(n[0], t); o.frequency.exponentialRampToValueAtTime(n[1], t + n[2]);
+      g.gain.setValueAtTime(n[4], t); g.gain.exponentialRampToValueAtTime(0.001, t + n[2]);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + n[2] + 0.03);
+    } catch (e) {}
+  }
+
+  /* ---------- recorde: o melhor que a pessoa já fez numa rodada ---------- */
+  var melhor = 0;
+  try { var sv = KODA.salvar && KODA.salvar.carregar(); if (sv && typeof sv.melhor === 'number' && sv.melhor >= 0 && sv.melhor < 1e6) melhor = Math.floor(sv.melhor); } catch (e) {}
+
+  /* ---------- quem está na sala ---------- */
+  var rede = { ligado: false, eu: 'eu', sala: 0, tentando: true, caiu: false };
+  var jog = {};            // id -> { id, nome, x, y, tx, ty, d, pontos, pronto, emRodada, bot }
+  var ordem = ['eu'];      // ids em ordem (o primeiro é o anfitrião)
+  var CORES = ['#7CFFCB', '#ff8fb8', '#ffd84d', '#8ec5ff', '#c3a6ff', '#ff9f6b', '#9cf26b', '#ff6b6b'];
+  function corDe(id) { if (jog[id] && jog[id].cor) return jog[id].cor; var i = ordem.indexOf(id); return CORES[(i < 0 ? 0 : i) % CORES.length]; }
+  function idAnfitriao() { for (var i = 0; i < ordem.length; i++) if (jog[ordem[i]] && !jog[ordem[i]].bot) return ordem[i]; return rede.eu; }
+  function souAnfitriao() { return !rede.ligado || idAnfitriao() === rede.eu; }
+  function novoJogador(id, nome) { return { id: id, nome: nome, x: 500, y: 330, tx: 500, ty: 330, d: 0, pontos: 0, pronto: false, emRodada: false, bot: false, mov: 0 }; }
+  jog.eu = novoJogador('eu', '');
+  function listaDaSala() { try { return (window.KODA && window.KODA.online && window.KODA.online.jogadores()) || []; } catch (e) { return []; } }
+  function sincronizarLista() {
+    var lista = listaDaSala(), novos = {};
+    lista.forEach(function (j) {
+      if (!j || !j.id) return;
+      var id = String(j.id), antigo = jog[id] || novoJogador(id, '');
+      antigo.nome = String(j.nome || 'Jogador').replace(/[<>]/g, '').slice(0, 14); novos[id] = antigo;
+    });
+    if (!lista.length) { novos = { eu: jog.eu || novoJogador('eu', '') }; }
+    jog = novos; ordem = Object.keys(jog).sort();
+    if (!jog[rede.eu]) { jog[rede.eu] = novoJogador(rede.eu, ''); ordem = Object.keys(jog).sort(); }
+    if (jog[rede.eu] && !jog[rede.eu].nome) jog[rede.eu].nome = nomeDoJogador() || 'Você';
+  }
+  function nomeDoJogador() { try { return (KODA.jogador && KODA.jogador.nome && KODA.jogador.nome()) || ''; } catch (e) { return ''; } }
+  function eu() { return jog[rede.eu]; }
+
+  /* ---------- falar com os outros ---------- */
+  var fila = [];           // o que ainda não conseguiu ser enviado (o Koda deixa no máximo 10 mensagens por segundo)
+  function enviar(d, para) { if (!rede.ligado) return true; try { return !!window.KODA.online.enviar(d, para); } catch (e) { return false; } }
+  function enviarOuGuardar(d, para) { if (!enviar(d, para)) { if (fila.length < 20) fila.push([d, para]); } }
+  function esvaziarFila() { while (fila.length) { if (!enviar(fila[0][0], fila[0][1])) break; fila.shift(); } }
+
+  function recebeu(d, de) {
+    if (!d || typeof d !== 'object' || typeof d.k !== 'string') return;
+    var j = jog[de];
+    if (d.k === 'p') {                                           // a posição de alguém
+      if (!j) return;
+      j.emRodada = d.r === 1;
+      if (d.r !== 1 || typeof d.x !== 'number' || typeof d.y !== 'number') return;
+      j.tx = limita(d.x, 0, MUNDO_L); j.ty = limita(d.y, 0, MUNDO_A);
+      j.d = (d.d | 0) >= 0 && (d.d | 0) <= 3 ? (d.d | 0) : 0; j.mov = 8;
+    } else if (d.k === 'pronto') { if (j) j.pronto = !!d.v; }
+    else if (d.k === 'inicio') { if (de === idAnfitriao() && estado !== 'jogando' && typeof d.s === 'number') comecarRodada(d.s | 0); }
+    else if (d.k === 'pega') { if (souAnfitriao() && rodada.ativa && typeof d.i === 'number') decidirEstrela(d.i | 0, de); }
+    else if (d.k === 'ponto') { if (de === idAnfitriao() && typeof d.i === 'number' && typeof d.q === 'string') aplicarPonto(d.i | 0, d.q); }
+    else if (d.k === 'fim') { if (de === idAnfitriao() && d.p && typeof d.p === 'object') { Object.keys(d.p).forEach(function (id) { if (jog[id] && typeof d.p[id] === 'number') jog[id].pontos = limita(d.p[id] | 0, 0, 9999); }); } }
+  }
+  function ligarOnline() {
+    if (!(window.KODA && window.KODA.online)) { rede.tentando = false; return; }
+    var O = window.KODA.online;
+    O.aoReceber(recebeu);
+    O.aoEntrar(function () { sincronizarLista(); avisarPronto(); });
+    O.aoSair(function () { sincronizarLista(); });
+    O.aoDesconectar(function () { rede.caiu = true; });
+    O.aoConectar(function (info) {
+      rede.ligado = true; rede.caiu = false; rede.tentando = false; rede.eu = String(info.eu); rede.sala = info.sala | 0;
+      sincronizarLista(); avisarPronto();
+    });
+    /* escrito por extenso de propósito: é assim que o Koda reconhece que o jogo é online e o põe nos bancos da Praça */
+    window.KODA.online.entrar({ max: 8 }).catch(function () { rede.tentando = false; });
+    setTimeout(function () { rede.tentando = false; }, 3000);
+  }
+  function avisarPronto() { if (eu()) enviarOuGuardar({ k: 'pronto', v: eu().pronto ? 1 : 0 }); }
+
+  /* ---------- estado da partida ---------- */
+  var estado = 'lobby';      // lobby | jogando | fim
+  var rodada = { ativa: false, t: 0, estrelas: [], tomadas: {}, pendentes: {}, modoSolo: false, desde: 0 };
+  var bots = [], particulas = [], flutuantes = [], quadro = 0, quadroFim = 0, enviouFim = false, resultado = [];
+  var minhaRodada = 0;
+
+  function gerarEstrelas(semente) {
+    var r = mulberry(semente), a = [];
+    for (var i = 0; i < 90; i++) a.push({ i: i, x: Math.round(70 + r() * 860), y: Math.round(90 + r() * 470), t0: 30 + i * 30 + Math.floor(r() * 14), vida: 500, v: i % 7 === 6 ? 3 : 1 });
+    return a;
+  }
+  function ativa(e) { return rodada.t >= e.t0 && rodada.t < e.t0 + e.vida && rodada.tomadas[e.i] === undefined; }
+  function comecarRodada(semente) {
+    estado = 'jogando'; rodada.ativa = true; rodada.t = 0; rodada.estrelas = gerarEstrelas(semente); rodada.tomadas = {}; rodada.pendentes = {};
+    particulas = []; flutuantes = []; enviouFim = false; fila = [];
+    rodada.modoSolo = ordem.length < 2;
+    bots = [];
+    if (rodada.modoSolo) {
+      ['Robô Bip', 'Robô Bop'].forEach(function (nome, k) { var b = novoJogador('bot' + k, nome); b.bot = true; jog[b.id] = b; bots.push(b); });
+      ordem = Object.keys(jog).sort();
+    }
+    ordem.forEach(function (id, idx) {
+      var j = jog[id], a = idx / ordem.length * 6.283;
+      j.x = j.tx = 500 + Math.cos(a) * 240; j.y = j.ty = 330 + Math.sin(a) * 140; j.pontos = 0; j.d = 0; j.emRodada = true; j.pronto = false; j.cor = CORES[idx % CORES.length];
+    });
+    som('inicio'); minhaRodada++;
+  }
+  function decidirEstrela(i, quem) {              // só o anfitrião: quem chegou primeiro leva
+    var e = rodada.estrelas[i];
+    if (!e || rodada.tomadas[i] !== undefined) return;
+    if (rodada.t < e.t0 - 60 || rodada.t > e.t0 + e.vida + 60) return;
+    aplicarPonto(i, quem);
+    enviarOuGuardar({ k: 'ponto', i: i, q: quem });
+  }
+  function aplicarPonto(i, quem) {
+    var e = rodada.estrelas[i];
+    if (!e || rodada.tomadas[i] !== undefined || !jog[quem]) return;
+    rodada.tomadas[i] = quem; jog[quem].pontos += e.v; delete rodada.pendentes[i];
+    var px = e.x, py = e.y;
+    faiscas(px, py, e.v === 3 ? '#ffd84d' : corDe(quem), e.v === 3 ? 22 : 12);
+    flutuantes.push({ x: px, y: py - 16, txt: '+' + e.v, cor: corDe(quem), t: 0 });
+    if (quem === rede.eu) som(e.v === 3 ? 'ouro' : 'estrela'); else som('outra');
+  }
+  function terminarRodada() {
+    rodada.ativa = false; estado = 'fim'; quadroFim = quadro; som('fim'); eu().emRodada = false;
+    resultado = ordem.map(function (id) { return jog[id]; }).sort(function (a, b) { return b.pontos - a.pontos; });
+    if (souAnfitriao() && !rodada.modoSolo) { var p = {}; ordem.forEach(function (id) { p[id] = jog[id].pontos; }); enviarOuGuardar({ k: 'fim', p: p }); }
+    var meus = eu().pontos;
+    if (meus > melhor) { melhor = meus; try { if (KODA.salvar) KODA.salvar.guardar({ melhor: melhor }); } catch (e) {} }
+    try { if (KODA.pontuar) KODA.pontuar(meus); } catch (e) {}
+    bots.forEach(function (b) { delete jog[b.id]; }); bots = []; ordem = Object.keys(jog).sort();
+  }
+  function voltarAoLobby() {
+    estado = 'lobby'; rodada.ativa = false;
+    ordem.forEach(function (id) { jog[id].pronto = false; jog[id].emRodada = false; });
+    eu().pronto = false; avisarPronto();
+    if (!rede.ligado) { jog = { eu: eu() }; ordem = ['eu']; rede.eu = 'eu'; }
+  }
+  function alternarPronto() { var m = eu(); m.pronto = !m.pronto; som('pronto'); avisarPronto(); }
+  function treinarSozinho() { if (ordem.length >= 2) return; comecarRodada(Math.floor(Math.random() * 1e9)); }
+
+  /* ---------- controles ---------- */
+  var joy = { ativo: false, id: null, ox: 0, oy: 0, x: 0, y: 0 }, teclas = {}, botoes = [];
+  tela.addEventListener('pointerdown', function (e) {
+    e.preventDefault(); liberarSom();
+    for (var i = 0; i < botoes.length; i++) { var b = botoes[i]; if (e.clientX >= b.x && e.clientX <= b.x + b.w && e.clientY >= b.y && e.clientY <= b.y + b.h) { b.fazer(); return; } }
+    if (estado === 'jogando') { joy.ativo = true; joy.id = e.pointerId; joy.ox = joy.x = e.clientX; joy.oy = joy.y = e.clientY; try { tela.setPointerCapture(e.pointerId); } catch (x) {} }
+  });
+  tela.addEventListener('pointermove', function (e) { if (joy.ativo && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; } });
+  function soltou(e) { if (joy.ativo && e.pointerId === joy.id) joy.ativo = false; }
+  tela.addEventListener('pointerup', soltou); tela.addEventListener('pointercancel', soltou);
+  window.addEventListener('keydown', function (e) {
+    teclas[e.code] = true;
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].indexOf(e.code) >= 0) e.preventDefault();
+    if (!e.repeat && (e.code === 'Space' || e.code === 'Enter')) { if (estado === 'lobby') alternarPronto(); else if (estado === 'fim' && quadro - quadroFim > 60) voltarAoLobby(); }
+  });
+  window.addEventListener('keyup', function (e) { teclas[e.code] = false; });
+  window.addEventListener('blur', function () { teclas = {}; joy.ativo = false; });
+  function entrada() {
+    var dx = 0, dy = 0;
+    if (teclas.ArrowLeft || teclas.KeyA) dx -= 1; if (teclas.ArrowRight || teclas.KeyD) dx += 1;
+    if (teclas.ArrowUp || teclas.KeyW) dy -= 1; if (teclas.ArrowDown || teclas.KeyS) dy += 1;
+    if (joy.ativo) { var jx = joy.x - joy.ox, jy = joy.y - joy.oy, d = Math.hypot(jx, jy); if (d > 8) { var m = Math.min(1, d / (46 * esc)); dx = jx / d * m; dy = jy / d * m; } }
+    var t = Math.hypot(dx, dy); if (t > 1) { dx /= t; dy /= t; }
+    return { x: dx, y: dy };
+  }
+
+  /* ---------- um passo (60 por segundo) ---------- */
+  var ultimoAviso = 0;
+  function faiscas(x, y, cor, n) { for (var i = 0; i < n; i++) { var a = Math.random() * 6.283, v = 1 + Math.random() * 3.5; particulas.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vida: 24 + Math.random() * 14, cor: cor }); } }
+  function passo() {
+    quadro++;
+    esvaziarFila();
+    for (var q = particulas.length - 1; q >= 0; q--) { var p = particulas[q]; p.x += p.vx; p.y += p.vy; if (--p.vida <= 0) particulas.splice(q, 1); }
+    for (var f = flutuantes.length - 1; f >= 0; f--) { flutuantes[f].t++; flutuantes[f].y -= 0.7; if (flutuantes[f].t > 45) flutuantes.splice(f, 1); }
+    /* os outros deslizam até onde disseram que estão */
+    Object.keys(jog).forEach(function (id) { var j = jog[id]; if (id === rede.eu || j.bot) return; j.x += (j.tx - j.x) * 0.3; j.y += (j.ty - j.y) * 0.3; if (j.mov > 0) j.mov--; });
+
+    if (estado === 'lobby') {
+      /* o anfitrião começa quando todos estão prontos (2 ou mais pessoas) */
+      if (rede.ligado && souAnfitriao() && ordem.length >= 2 && ordem.every(function (id) { return jog[id].pronto; }) && !ordem.some(function (id) { return jog[id].emRodada; })) {
+        var semente = Math.floor(Math.random() * 1e9);
+        enviarOuGuardar({ k: 'inicio', s: semente }); comecarRodada(semente);
+      }
+      if (quadro % 20 === 0 && rede.ligado) enviar({ k: 'p', x: 0, y: 0, d: 0, r: 0 });     // "estou aqui" (também avisa que não estou em rodada)
+      return;
+    }
+    if (estado === 'fim') { if (quadro % 20 === 0 && rede.ligado) enviar({ k: 'p', x: 0, y: 0, d: 0, r: 0 }); return; }
+
+    rodada.t++;
+    var m = eu(), v = entrada(), mexeu = Math.hypot(v.x, v.y) > 0.12;
+    if (mexeu) {
+      m.x = limita(m.x + v.x * 3.7, 30, MUNDO_L - 30); m.y = limita(m.y + v.y * 3.7, 60, MUNDO_A - 20);
+      m.d = Math.abs(v.x) > Math.abs(v.y) ? (v.x > 0 ? 3 : 2) : (v.y > 0 ? 0 : 1);
+    }
+    m.mov = mexeu ? 8 : 0;
+    if (quadro % 8 === 0) enviar({ k: 'p', x: Math.round(m.x), y: Math.round(m.y), d: m.d, r: 1 });
+
+    /* robôs (só no treino) */
+    bots.forEach(function (b) {
+      var alvo = null, dm = 1e9;
+      rodada.estrelas.forEach(function (e) { if (ativa(e)) { var d = Math.hypot(e.x - b.x, e.y - b.y); if (d < dm) { dm = d; alvo = e; } } });
+      if (alvo) { var a = Math.atan2(alvo.y - b.y, alvo.x - b.x), vel = b.id === 'bot0' ? 2.3 : 1.9; b.x += Math.cos(a) * vel; b.y += Math.sin(a) * vel; b.d = Math.abs(Math.cos(a)) > Math.abs(Math.sin(a)) ? (Math.cos(a) > 0 ? 3 : 2) : (Math.sin(a) > 0 ? 0 : 1); b.mov = 8; if (dm < 30) decidirEstrela(alvo.i, b.id); }
+    });
+    /* eu encosto numa estrela? */
+    rodada.estrelas.forEach(function (e) {
+      if (!ativa(e) || rodada.pendentes[e.i]) return;
+      if (Math.hypot(e.x - m.x, e.y - (m.y - 24)) < 38) {
+        if (souAnfitriao()) decidirEstrela(e.i, rede.eu);
+        else { rodada.pendentes[e.i] = rodada.t; enviarOuGuardar({ k: 'pega', i: e.i }, idAnfitriao()); }
+      }
+    });
+    /* pedido que o anfitrião nunca respondeu (ele saiu?): tenta de novo com o anfitrião de agora */
+    Object.keys(rodada.pendentes).forEach(function (i) { if (rodada.t - rodada.pendentes[i] > 120) { delete rodada.pendentes[i]; } });
+    if (rodada.t >= DURACAO) terminarRodada();
+  }
+
+  /* ---------- desenho ---------- */
+  function texto(t, x, y, tam, cor, alinhar) {
+    ctx.font = '800 ' + Math.round(tam * esc) + 'px system-ui, -apple-system, sans-serif'; ctx.textAlign = alinhar || 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 5 * esc; ctx.strokeStyle = 'rgba(5,5,30,.7)'; ctx.lineJoin = 'round'; ctx.strokeText(t, x, y); ctx.fillStyle = cor || '#fff'; ctx.fillText(t, x, y);
+  }
+  function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  var fundoEstrelas = []; for (var fs = 0; fs < 90; fs++) fundoEstrelas.push({ x: Math.random(), y: Math.random(), s: Math.random() });
+  function fundo() {
+    var g = ctx.createLinearGradient(0, 0, 0, A); g.addColorStop(0, '#0b1030'); g.addColorStop(1, '#2a1d63'); ctx.fillStyle = g; ctx.fillRect(0, 0, L, A);
+    fundoEstrelas.forEach(function (s) { ctx.fillStyle = 'rgba(255,255,255,' + (0.25 + 0.5 * Math.abs(Math.sin(quadro / 50 + s.s * 9))) + ')'; ctx.fillRect(s.x * L, s.y * A, 1 + s.s * 2, 1 + s.s * 2); });
+  }
+  function estrelaDesenho(e, ouro) {
+    var r = (ouro ? 22 : 15), giro = quadro / 40, vida = rodada.t - e.t0, resta = e.t0 + e.vida - rodada.t;
+    if (resta < 90 && Math.floor(quadro / 6) % 2) return;                 // pisca antes de sumir
+    var surgir = Math.min(1, vida / 12);
+    ctx.save(); ctx.translate(e.x, e.y + Math.sin(quadro / 15 + e.i) * 3); ctx.scale(surgir, surgir); ctx.rotate(giro * 0.4);
+    ctx.shadowColor = ouro ? '#ffd84d' : '#7CFFCB'; ctx.shadowBlur = ouro ? 22 : 14;
+    ctx.fillStyle = ouro ? '#ffd84d' : '#9bffe0'; ctx.beginPath();
+    for (var k = 0; k < 10; k++) { var a = -Math.PI / 2 + k * Math.PI / 5, rr2 = k % 2 ? r * 0.45 : r; ctx.lineTo(Math.cos(a) * rr2, Math.sin(a) * rr2); }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function desenharPessoa(j) {
+    var h = 62, w = h * 22 / 29, ehEu = j.id === rede.eu, andando = j.mov > 0;
+    ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(j.x, j.y - 1, w * 0.45, h * 0.07, 0, 0, 6.283); ctx.fill();
+    ctx.save(); ctx.strokeStyle = corDe(j.id); ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(j.x, j.y - 1, w * 0.58, h * 0.1, 0, 0, 6.283); ctx.stroke(); ctx.restore();
+    var dir = ['frente', 'costas', 'esquerda', 'direita'][j.d] || 'frente', desenhou = false;
+    if (ehEu && KODA.jogador && KODA.jogador.pronto && KODA.jogador.pronto()) { KODA.jogador.andar(ctx, j.x - w / 2, j.y - h, h, { direcao: dir, andando: andando }); desenhou = true; }
+    else if (!j.bot && !ehEu && window.KODA && window.KODA.online && window.KODA.online.desenhar) {
+      var bob = andando ? Math.abs(Math.sin(quadro / 4)) * 3 : 0;
+      desenhou = window.KODA.online.desenhar(ctx, j.id, j.x - w / 2, j.y - h - bob, h);
+    }
+    if (!desenhou) {                                  // reserva: um bonequinho (robôs, ou quem ainda não carregou)
+      ctx.fillStyle = corDe(j.id); ctx.fillRect(j.x - w * 0.3, j.y - h * 0.55, w * 0.6, h * 0.42); ctx.beginPath(); ctx.arc(j.x, j.y - h * 0.7, h * 0.2, 0, 6.283); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillRect(j.x - h * 0.09, j.y - h * 0.74, 4, 5); ctx.fillRect(j.x + h * 0.04, j.y - h * 0.74, 4, 5);
+      if (j.bot) { ctx.fillStyle = '#222'; ctx.fillRect(j.x - 1, j.y - h * 0.95, 2, h * 0.12); ctx.beginPath(); ctx.arc(j.x, j.y - h * 0.97, 3, 0, 6.283); ctx.fill(); }
+    }
+    ctx.font = '800 14px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var nome = ehEu ? 'Você' : j.nome; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(5,5,30,.8)'; ctx.strokeText(nome, j.x, j.y + 14); ctx.fillStyle = corDe(j.id); ctx.fillText(nome, j.x, j.y + 14);
+  }
+  function botao(x, y, w, h, fn) { botoes.push({ x: x, y: y, w: w, h: h, fazer: fn }); }
+  function cartaoJogador(j, x, y, w, h) {
+    ctx.fillStyle = 'rgba(255,255,255,.1)'; rr(x, y, w, h, 14 * esc); ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = j.pronto ? '#4cd964' : 'rgba(255,255,255,.25)'; ctx.stroke();
+    var hh = h * 0.52, ww = hh * 22 / 29, feito = false;
+    if (j.id === rede.eu && KODA.jogador && KODA.jogador.pronto && KODA.jogador.pronto()) { KODA.jogador.desenhar(ctx, x + w / 2 - ww / 2, y + 8 * esc, hh); feito = true; }
+    else if (j.id !== rede.eu && !j.bot && window.KODA && window.KODA.online && window.KODA.online.desenhar) feito = window.KODA.online.desenhar(ctx, j.id, x + w / 2 - ww / 2, y + 8 * esc, hh);
+    if (!feito) { ctx.fillStyle = corDe(j.id); ctx.beginPath(); ctx.arc(x + w / 2, y + 8 * esc + hh * 0.5, hh * 0.35, 0, 6.283); ctx.fill(); }
+    texto(j.id === rede.eu ? 'Você' : j.nome, x + w / 2, y + h * 0.72, 14, corDe(j.id));
+    texto(j.pronto ? 'Pronto!' : 'Esperando', x + w / 2, y + h * 0.89, 12, j.pronto ? '#4cd964' : '#c9c9ff');
+  }
+  function desenhar() {
+    botoes = [];
+    fundo();
+    if (estado === 'lobby') {
+      texto('Arena das Estrelas', L / 2, 52 * esc, 36);
+      var sub = rede.ligado ? 'Sala ' + rede.sala + ' - ' + ordem.length + (ordem.length === 1 ? ' pessoa' : ' pessoas') : (rede.tentando ? 'Entrando na sala...' : 'Sem sala por aqui: dá pra treinar sozinho!');
+      texto(sub, L / 2, 86 * esc, 16, '#c9c9ff');
+      if (rede.caiu) texto('Reconectando...', L / 2, 108 * esc, 14, '#ffd84d');
+      var n = ordem.length, cols = Math.min(4, n), linhas = Math.ceil(n / cols), cw = Math.min(150 * esc, (L - 30 * esc) / cols - 10 * esc), ch = Math.min(150 * esc, (A * 0.42) / linhas - 10 * esc);
+      var x0 = (L - (cols * cw + (cols - 1) * 10 * esc)) / 2, y0 = 126 * esc;
+      ordem.forEach(function (id, k) { cartaoJogador(jog[id], x0 + (k % cols) * (cw + 10 * esc), y0 + Math.floor(k / cols) * (ch + 10 * esc), cw, ch); });
+      var emRodada = ordem.some(function (id) { return jog[id].emRodada && id !== rede.eu; });
+      var by = A - 150 * esc, bw = Math.min(280 * esc, L - 40 * esc), bx = (L - bw) / 2, m = eu();
+      if (emRodada) texto('Uma rodada está acontecendo. Você entra na próxima!', L / 2, by - 24 * esc, 15, '#ffd84d');
+      else if (rede.ligado && ordem.length < 2) texto('Esperando mais gente chegar...', L / 2, by - 24 * esc, 15, '#c9c9ff');
+      else if (rede.ligado) texto('Começa quando todos ficarem prontos', L / 2, by - 24 * esc, 15, '#c9c9ff');
+      ctx.fillStyle = m.pronto ? '#4cd964' : '#7C4DFF'; rr(bx, by, bw, 56 * esc, 28 * esc); ctx.fill();
+      texto(m.pronto ? 'Pronto! (toque para desfazer)' : 'Estou pronto!', L / 2, by + 28 * esc, 21, '#fff');
+      botao(bx, by, bw, 56 * esc, alternarPronto);
+      if (ordem.length < 2) {
+        var tb = Math.min(220 * esc, L - 40 * esc), tx = (L - tb) / 2, ty = by + 70 * esc;
+        ctx.strokeStyle = '#7CFFCB'; ctx.lineWidth = 3; rr(tx, ty, tb, 44 * esc, 22 * esc); ctx.stroke();
+        texto('Treinar sozinho', L / 2, ty + 22 * esc, 17, '#7CFFCB'); botao(tx, ty, tb, 44 * esc, treinarSozinho);
+      }
+      if (melhor > 0) texto('Seu recorde numa rodada: ' + melhor, L / 2, A - 24 * esc, 14, '#ffd84d');
+      return;
+    }
+    /* arena */
+    ctx.save(); ctx.translate(ox, oy); ctx.scale(sc, sc);
+    ctx.fillStyle = 'rgba(255,255,255,.05)'; rr(0, 0, MUNDO_L, MUNDO_A, 24); ctx.fill();
+    ctx.strokeStyle = 'rgba(180,170,255,.7)'; ctx.lineWidth = 4; ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 2; for (var gx = 100; gx < MUNDO_L; gx += 100) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, MUNDO_A); ctx.stroke(); } for (var gy = 100; gy < MUNDO_A; gy += 100) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(MUNDO_L, gy); ctx.stroke(); }
+    rodada.estrelas.forEach(function (e) { if (ativa(e) && !rodada.pendentes[e.i]) estrelaDesenho(e, e.v === 3); });
+    Object.keys(jog).map(function (id) { return jog[id]; }).filter(function (j) { return j.emRodada || j.bot || j.id === rede.eu; }).sort(function (a, b) { return a.y - b.y; }).forEach(desenharPessoa);
+    particulas.forEach(function (p) { ctx.globalAlpha = Math.max(0, p.vida / 38); ctx.fillStyle = p.cor; ctx.fillRect(p.x - 2, p.y - 2, 5, 5); }); ctx.globalAlpha = 1;
+    flutuantes.forEach(function (f) { ctx.globalAlpha = Math.max(0, 1 - f.t / 45); ctx.font = '800 24px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(5,5,30,.8)'; ctx.strokeText(f.txt, f.x, f.y); ctx.fillStyle = f.cor; ctx.fillText(f.txt, f.x, f.y); }); ctx.globalAlpha = 1;
+    ctx.restore();
+    /* placar e tempo */
+    var segs = Math.max(0, Math.ceil((DURACAO - rodada.t) / 60));
+    if (estado === 'jogando') texto(String(segs), L / 2, 34 * esc, 34, segs <= 10 ? '#ff6b6b' : '#fff');
+    var top = ordem.map(function (id) { return jog[id]; }).sort(function (a, b) { return b.pontos - a.pontos; }).slice(0, 4);
+    top.forEach(function (j, k) { ctx.fillStyle = corDe(j.id); ctx.beginPath(); ctx.arc(14 * esc, (18 + k * 20) * esc, 6 * esc, 0, 6.283); ctx.fill(); texto((j.id === rede.eu ? 'Você' : j.nome) + ': ' + j.pontos, 26 * esc, (18 + k * 20) * esc, 13, j.id === rede.eu ? '#7CFFCB' : '#fff', 'left'); });
+    if (rede.caiu) texto('Reconectando...', L - 12 * esc, 20 * esc, 13, '#ffd84d', 'right');
+    if (joy.ativo && estado === 'jogando') {
+      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 46 * esc, 0, 6.283); ctx.stroke();
+      var d = Math.min(Math.hypot(joy.x - joy.ox, joy.y - joy.oy), 46 * esc), an = Math.atan2(joy.y - joy.oy, joy.x - joy.ox);
+      ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(joy.ox + Math.cos(an) * d, joy.oy + Math.sin(an) * d, 20 * esc, 0, 6.283); ctx.fill();
+    }
+    if (estado === 'jogando' && rodada.t < 100) { ctx.globalAlpha = Math.min(1, (100 - rodada.t) / 30); texto('Pegue as estrelas!', L / 2, A * 0.18, 34, '#7CFFCB'); ctx.globalAlpha = 1; }
+    if (estado === 'fim') {
+      ctx.fillStyle = 'rgba(10,5,40,.78)'; ctx.fillRect(0, 0, L, A);
+      texto('Fim da rodada!', L / 2, 56 * esc, 38);
+      var vencedor = resultado[0], meu = eu();
+      texto(vencedor && vencedor.pontos > 0 ? (vencedor.id === rede.eu ? 'Você ganhou!' : (vencedor.nome + ' ganhou!')) : 'Ninguém pegou estrela...', L / 2, 96 * esc, 20, '#ffd84d');
+      var rh = Math.min(52 * esc, (A - 260 * esc) / Math.max(1, resultado.length));
+      resultado.slice(0, 8).forEach(function (j, k) {
+        var yy = 140 * esc + k * rh, ww = Math.min(360 * esc, L - 30 * esc), xx = (L - ww) / 2;
+        ctx.fillStyle = j.id === rede.eu ? 'rgba(124,255,203,.2)' : 'rgba(255,255,255,.08)'; rr(xx, yy, ww, rh - 6 * esc, 12 * esc); ctx.fill();
+        texto((k + 1) + '.', xx + 18 * esc, yy + rh / 2 - 3 * esc, 18, k === 0 ? '#ffd84d' : '#fff');
+        texto(j.id === rede.eu ? 'Você' : j.nome, xx + 44 * esc, yy + rh / 2 - 3 * esc, 17, j.cor || corDe(j.id), 'left');
+        texto(String(j.pontos), xx + ww - 16 * esc, yy + rh / 2 - 3 * esc, 22, '#fff', 'right');
+      });
+      texto('Seu recorde numa rodada: ' + melhor, L / 2, A - 108 * esc, 15, '#ffd84d');
+      if (quadro - quadroFim > 60) {
+        var bw2 = Math.min(280 * esc, L - 40 * esc), bx2 = (L - bw2) / 2, by2 = A - 84 * esc;
+        ctx.fillStyle = '#7C4DFF'; rr(bx2, by2, bw2, 54 * esc, 27 * esc); ctx.fill(); texto('Jogar de novo', L / 2, by2 + 27 * esc, 21, '#fff'); botao(bx2, by2, bw2, 54 * esc, voltarAoLobby);
+      }
+    }
+  }
+
+  function rodar() {
+    var ultimo = performance.now(), acum = 0;
+    function loop(t) {
+      acum += Math.min(100, t - ultimo); ultimo = t;
+      var n = 0; while (acum >= 16.667 && n++ < 6) { passo(); acum -= 16.667; }
+      if (acum > 50) acum = 0;
+      desenhar(); requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+  jog.eu.nome = nomeDoJogador() || 'Você';
+  ligarOnline();
+  rodar();
+})();
+</script>
+</body>
+</html>

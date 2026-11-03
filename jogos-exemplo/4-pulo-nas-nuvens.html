@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Pulo nas Nuvens</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#79c8ff;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="tela"></canvas>
+<script>
+/* ============================================================
+   PULO NAS NUVENS
+   O herói (o personagem do Koda de quem joga) pula sozinho de nuvem em nuvem. Você só escolhe pra onde ele vai:
+   arraste o dedo pro lado (ou use as setas / A e D). Suba o mais alto que conseguir!
+   - nuvem branca: normal    - nuvem azul: anda de um lado pro outro    - nuvem marrom: quebra quando pisa (não pule nela!)
+   - mola: pulo gigante      - estrela: vale pontos extras             - passarinho: se encostar, acabou (um "!" avisa de que lado ele vem)
+   Usa do Koda: KODA.jogador (o herói), KODA.pontuar (ranking) e KODA.salvar (recorde e estrelas guardadas na conta).
+   ============================================================ */
+(function () {
+  'use strict';
+  var tela = document.getElementById('tela'), ctx = tela.getContext('2d');
+  var KODA = window.KODA || {};   // se o jogo abrir fora do Koda, KODA fica vazio e o jogo usa os desenhos de reserva
+
+  var L = 0, A = 0, esc = 1;
+  function ajustar() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    L = window.innerWidth; A = window.innerHeight;
+    tela.width = Math.floor(L * dpr); tela.height = Math.floor(A * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    esc = Math.max(0.8, Math.min(1.5, Math.min(L, A * 0.62) / 400));
+  }
+  window.addEventListener('resize', ajustar);
+  ajustar();
+
+  /* ---------- sons ---------- */
+  var audio = null;
+  function liberarSom() { try { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); } catch (e) {} }
+  function som(nome) {
+    try {
+      liberarSom();
+      var n = { pulo: [330, 620, 0.16, 'sine', 0.07], mola: [300, 1100, 0.3, 'triangle', 0.1], estrela: [880, 1760, 0.16, 'square', 0.04], quebra: [180, 60, 0.25, 'sawtooth', 0.08], passaro: [700, 200, 0.4, 'sawtooth', 0.09], fim: [440, 110, 0.8, 'triangle', 0.1] }[nome];
+      if (!n) return;
+      var o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+      o.type = n[3]; o.frequency.setValueAtTime(n[0], t); o.frequency.exponentialRampToValueAtTime(n[1], t + n[2]);
+      g.gain.setValueAtTime(n[4], t); g.gain.exponentialRampToValueAtTime(0.001, t + n[2]);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + n[2] + 0.03);
+    } catch (e) {}
+  }
+
+  /* ---------- o que fica guardado na conta de quem joga ---------- */
+  var salvo = { melhor: 0, estrelas: 0 };
+  try {
+    var sv = KODA.salvar && KODA.salvar.carregar();
+    if (sv && typeof sv === 'object') {
+      if (typeof sv.melhor === 'number' && sv.melhor >= 0 && sv.melhor < 1e7) salvo.melhor = Math.floor(sv.melhor);
+      if (typeof sv.estrelas === 'number' && sv.estrelas >= 0 && sv.estrelas < 1e7) salvo.estrelas = Math.floor(sv.estrelas);
+    }
+  } catch (e) {}
+  function guardar() { try { if (KODA.salvar) KODA.salvar.guardar(salvo); } catch (e) {} }
+  function nomeDoJogador() { try { return (KODA.jogador && KODA.jogador.nome && KODA.jogador.nome()) || ''; } catch (e) { return ''; } }
+
+  /* ---------- estado ---------- */
+  var estado = 'inicio';                       // inicio | jogando | fim
+  var h = { x: 0, y: 0, vx: 0, vy: 0, esticar: 0, dir: 'frente' };
+  var camY = 0, base = 0, maxAlt = 0, estrelasPartida = 0, pontos = 0, quadro = 0, quadroFim = 0, topo = 0, ultimaX = 0, proxPassaro = 0, tremor = 0;
+  var plataformas = [], estrelas = [], passaros = [], nuvensFundo = [], particulas = [], alvoX = null, teclas = {};
+  var palitos = [[0, [121, 200, 255], [210, 238, 255]], [900, [255, 160, 120], [255, 222, 170]], [2400, [40, 30, 90], [90, 60, 150]], [4200, [8, 8, 30], [30, 20, 70]]];   // cores do céu conforme a altura
+
+  function alturaHeroi() { return 60 * esc; }
+  function aleatorio(a, b) { return a + Math.random() * (b - a); }
+  function novoJogo() {
+    plataformas = []; estrelas = []; passaros = []; particulas = []; nuvensFundo = [];
+    camY = 0; maxAlt = 0; estrelasPartida = 0; pontos = 0; quadro = 0; tremor = 0; proxPassaro = 90;
+    base = A * 0.78; topo = base; ultimaX = L / 2;
+    plataformas.push({ x: L / 2 - 60 * esc, y: base, w: 120 * esc, tipo: 'normal', mola: false, dx: 0, caiu: false });
+    h.x = L / 2; h.y = base; h.vx = 0; h.vy = -12.5 * esc; h.esticar = 0; h.dir = 'frente';
+    for (var i = 0; i < 6; i++) nuvensFundo.push({ x: Math.random() * L, y: Math.random() * A * 2 - A, s: 0.5 + Math.random() * 0.9 });
+    gerar();
+    alvoX = null; estado = 'jogando';
+  }
+  /* cria nuvens pra cima, sempre com um caminho possível de pular (a nuvem principal nunca quebra) */
+  function gerar() {
+    while (topo > camY - A * 1.2) {
+      var alt = Math.max(0, (base - topo) / (10 * esc));
+      var vao = Math.min(150 * esc, (62 + Math.random() * 38 + Math.min(60, alt / 6)) * esc);
+      topo -= vao;
+      var x = ultimaX + aleatorio(-210, 210) * esc, w = (alt > 80 ? 62 : 74) * esc;
+      x = x < 0 ? x + L : x > L ? x - L : x;
+      x = Math.max(0, Math.min(L - w, x - w / 2));
+      ultimaX = x + w / 2;
+      var movel = alt > 40 && Math.random() < Math.min(0.4, 0.1 + alt / 400);
+      var p = { x: x, y: topo, w: w, tipo: movel ? 'movel' : 'normal', mola: !movel && Math.random() < 0.07, dx: movel ? (Math.random() < 0.5 ? -1 : 1) * (1 + Math.min(2.2, alt / 160)) * esc : 0, caiu: false };
+      plataformas.push(p);
+      if (Math.random() < 0.28) estrelas.push({ x: x + w / 2, y: topo - 38 * esc, fase: Math.random() * 6 });
+      if (alt > 25 && Math.random() < Math.min(0.5, 0.18 + alt / 500)) {          // uma nuvem marrom de enfeite perigoso, longe da principal
+        var qx = Math.max(0, Math.min(L - w, aleatorio(0, L))), qy = topo + aleatorio(-vao * 0.6, -vao * 0.2);
+        if (Math.abs(qx - x) > w * 1.3) plataformas.push({ x: qx, y: qy, w: w, tipo: 'quebra', mola: false, dx: 0, caiu: false });
+      }
+    }
+  }
+  function faiscas(x, y, cor, n) { for (var i = 0; i < n; i++) { var a = Math.random() * 6.283, v = 1 + Math.random() * 3.5; particulas.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, vida: 24 + Math.random() * 14, cor: cor }); } }
+  function fimDeJogo() {
+    estado = 'fim'; quadroFim = quadro; som('fim');
+    var total = pontos;
+    if (total > salvo.melhor) salvo.melhor = total;
+    salvo.estrelas += estrelasPartida; guardar();
+    try { if (KODA.pontuar) KODA.pontuar(total); } catch (e) {}
+  }
+
+  /* ---------- controles ---------- */
+  tela.addEventListener('pointerdown', function (e) {
+    e.preventDefault(); liberarSom();
+    if (estado === 'inicio') { novoJogo(); return; }
+    if (estado === 'fim') { if (quadro - quadroFim > 45) novoJogo(); return; }
+    alvoX = e.clientX; try { tela.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  tela.addEventListener('pointermove', function (e) { if (alvoX !== null) alvoX = e.clientX; });
+  function soltou() { alvoX = null; }
+  tela.addEventListener('pointerup', soltou); tela.addEventListener('pointercancel', soltou);
+  window.addEventListener('keydown', function (e) {
+    teclas[e.code] = true;
+    if (['ArrowLeft', 'ArrowRight', 'Space'].indexOf(e.code) >= 0) e.preventDefault();
+    if (!e.repeat && (e.code === 'Space' || e.code === 'Enter')) { if (estado === 'inicio') novoJogo(); else if (estado === 'fim' && quadro - quadroFim > 45) novoJogo(); }
+  });
+  window.addEventListener('keyup', function (e) { teclas[e.code] = false; });
+  window.addEventListener('blur', function () { teclas = {}; alvoX = null; });
+
+  /* ---------- um passo (60 por segundo) ---------- */
+  function passo() {
+    quadro++;
+    for (var q = particulas.length - 1; q >= 0; q--) { var p = particulas[q]; p.x += p.vx; p.y += p.vy; p.vy += 0.1; if (--p.vida <= 0) particulas.splice(q, 1); }
+    if (tremor > 0) tremor--;
+    if (estado !== 'jogando') return;
+    /* o herói vai pro lado que a pessoa escolheu */
+    var quer = 0;
+    if (alvoX !== null) { var d = alvoX - h.x; quer = Math.max(-1, Math.min(1, d / (50 * esc))); }
+    if (teclas.ArrowLeft || teclas.KeyA) quer = -1;
+    if (teclas.ArrowRight || teclas.KeyD) quer = 1;
+    h.vx += (quer * 6.2 * esc - h.vx) * 0.22;
+    h.x += h.vx;
+    if (h.x < -10) h.x += L + 20; if (h.x > L + 10) h.x -= L + 20;         // sai de um lado, entra do outro
+    h.dir = h.vx < -0.8 * esc ? 'esquerda' : h.vx > 0.8 * esc ? 'direita' : 'frente';
+    var yAntes = h.y;
+    h.vy += 0.38 * esc; if (h.vy > 16 * esc) h.vy = 16 * esc;
+    h.y += h.vy;
+    if (h.esticar > 0) h.esticar -= 0.08; if (h.esticar < 0) h.esticar = 0;
+
+    /* nuvens: só dá pra pisar descendo, vindo de cima */
+    plataformas.forEach(function (p) {
+      if (p.tipo === 'movel') { p.x += p.dx; if (p.x < 0 || p.x + p.w > L) p.dx *= -1; }
+      if (p.caiu) { p.y += 8 * esc; return; }
+      if (h.vy > 0 && yAntes <= p.y + 2 && h.y >= p.y && h.x > p.x - 8 * esc && h.x < p.x + p.w + 8 * esc) {
+        if (p.tipo === 'quebra') { p.caiu = true; som('quebra'); faiscas(h.x, p.y, '#b07a45', 12); return; }
+        h.y = p.y; h.vy = p.mola ? -23 * esc : -12.5 * esc; h.esticar = p.mola ? 1 : 0.6; som(p.mola ? 'mola' : 'pulo'); faiscas(h.x, p.y, p.mola ? '#ffd84d' : '#ffffff', p.mola ? 14 : 6);
+      }
+    });
+    /* estrelas */
+    for (var i = estrelas.length - 1; i >= 0; i--) {
+      var s = estrelas[i];
+      if (Math.hypot(s.x - h.x, s.y - (h.y - 30 * esc)) < 34 * esc) { estrelas.splice(i, 1); estrelasPartida++; som('estrela'); faiscas(s.x, s.y, '#ffd84d', 12); }
+    }
+    /* passarinhos */
+    proxPassaro--;
+    var alt = Math.max(0, (base - h.y) / (10 * esc));
+    if (proxPassaro <= 0 && alt > 120) {          // passarinho: nasce fora da tela, com 1 segundo de aviso (aparece um "!" na borda)
+      var da = Math.random() < 0.5, vel = (1.6 + Math.min(2.5, alt / 250)) * esc;
+      passaros.push({ x: da ? -30 - vel * 60 : L + 30 + vel * 60, y: camY + aleatorio(A * 0.1, A * 0.5), vx: (da ? 1 : -1) * vel, fase: 0 });
+      proxPassaro = Math.max(180, 520 - alt / 2) + Math.random() * 160;
+    }
+    passaros.forEach(function (b) {
+      b.x += b.vx; b.fase += 0.25;
+      if (Math.hypot(b.x - h.x, b.y - (h.y - 28 * esc)) < 30 * esc) { tremor = 14; som('passaro'); fimDeJogo(); }
+    });
+    passaros = passaros.filter(function (b) { return b.x > -60 - 400 * esc && b.x < L + 60 + 400 * esc && (b.vx > 0 ? b.x < L + 60 : b.x > -60); });
+    /* a câmera sobe com o herói */
+    if (h.y < camY + A * 0.42) camY = h.y - A * 0.42;
+    maxAlt = Math.max(maxAlt, (base - h.y) / (10 * esc));
+    pontos = Math.floor(maxAlt) + estrelasPartida * 25;
+    gerar();
+    plataformas = plataformas.filter(function (p) { return p.y < camY + A + 80; });
+    estrelas = estrelas.filter(function (s) { return s.y < camY + A + 80; });
+    if (h.y - camY > A + 60 && estado === 'jogando') fimDeJogo();
+  }
+
+  /* ---------- desenho ---------- */
+  function mistura(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t].map(Math.round); }
+  function ceu() {
+    var alt = maxAlt * 1.0, i = 0;
+    while (i < palitos.length - 2 && alt > palitos[i + 1][0]) i++;
+    var a = palitos[i], b = palitos[i + 1], t = Math.max(0, Math.min(1, (alt - a[0]) / (b[0] - a[0])));
+    var c1 = mistura(a[1], b[1], t), c2 = mistura(a[2], b[2], t);
+    var g = ctx.createLinearGradient(0, 0, 0, A); g.addColorStop(0, 'rgb(' + c1 + ')'); g.addColorStop(1, 'rgb(' + c2 + ')'); ctx.fillStyle = g; ctx.fillRect(0, 0, L, A);
+    if (alt > 1500) { ctx.fillStyle = 'rgba(255,255,255,' + Math.min(0.9, (alt - 1500) / 2000) + ')'; for (var k = 0; k < 50; k++) ctx.fillRect(((k * 97.3) % 1) * L + (k * 53 % L), ((k * 61.7) % A), 1.6, 1.6); }
+    nuvensFundo.forEach(function (n) {
+      var y = ((n.y - camY * 0.3 * n.s) % (A * 1.3) + A * 1.3) % (A * 1.3) - A * 0.15, r = 34 * esc * n.s;
+      ctx.fillStyle = 'rgba(255,255,255,' + (alt > 2000 ? 0.12 : 0.55) + ')'; ctx.beginPath(); ctx.arc(n.x, y, r, 0, 6.283); ctx.arc(n.x + r, y + r * 0.2, r * 0.8, 0, 6.283); ctx.arc(n.x - r, y + r * 0.3, r * 0.7, 0, 6.283); ctx.fill();
+    });
+  }
+  function rr(x, y, w, hh, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + hh, r); ctx.arcTo(x + w, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function desenharPlataforma(p) {
+    var ph = 15 * esc;
+    ctx.fillStyle = 'rgba(0,0,0,.12)'; rr(p.x + 3, p.y + 6, p.w, ph, ph / 2); ctx.fill();
+    var cor = p.tipo === 'movel' ? ['#6ec6ff', '#3d9be0'] : p.tipo === 'quebra' ? ['#c99a62', '#9a6a3a'] : ['#ffffff', '#d8ecff'];
+    var g = ctx.createLinearGradient(0, p.y, 0, p.y + ph); g.addColorStop(0, cor[0]); g.addColorStop(1, cor[1]); ctx.fillStyle = g; rr(p.x, p.y, p.w, ph, ph / 2); ctx.fill();
+    if (p.tipo === 'quebra') { ctx.strokeStyle = '#5c3a1c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x + p.w * 0.3, p.y + 1); ctx.lineTo(p.x + p.w * 0.38, p.y + ph * 0.5); ctx.lineTo(p.x + p.w * 0.32, p.y + ph - 1); ctx.moveTo(p.x + p.w * 0.7, p.y + 1); ctx.lineTo(p.x + p.w * 0.62, p.y + ph * 0.6); ctx.stroke(); }
+    if (p.mola) {
+      var mx = p.x + p.w / 2, sq = h.esticar > 0 && Math.abs(h.x - mx) < p.w ? 0.5 : 1;
+      ctx.strokeStyle = '#ff5d5d'; ctx.lineWidth = 4 * esc; ctx.beginPath();
+      for (var z = 0; z <= 4; z++) { var yy = p.y - z * 6 * esc * sq, xx = mx + (z % 2 ? 9 : -9) * esc; if (z === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); }
+      ctx.stroke(); ctx.fillStyle = '#ffd84d'; rr(mx - 14 * esc, p.y - 28 * esc * sq, 28 * esc, 7 * esc, 3 * esc); ctx.fill();
+    }
+  }
+  function desenharEstrela(s) {
+    var r = 14 * esc, y = s.y + Math.sin(quadro / 14 + s.fase) * 3;
+    ctx.save(); ctx.translate(s.x, y); ctx.rotate(Math.sin(quadro / 25 + s.fase) * 0.3); ctx.shadowColor = '#ffd84d'; ctx.shadowBlur = 14; ctx.fillStyle = '#ffd84d'; ctx.beginPath();
+    for (var k = 0; k < 10; k++) { var a = -Math.PI / 2 + k * Math.PI / 5, rr2 = k % 2 ? r * 0.45 : r; ctx.lineTo(Math.cos(a) * rr2, Math.sin(a) * rr2); }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  function desenharPassaro(b) {
+    var asa = Math.sin(b.fase) * 12 * esc, s = esc, dir = b.vx > 0 ? 1 : -1;
+    ctx.save(); ctx.translate(b.x, b.y); ctx.scale(dir, 1);
+    ctx.fillStyle = '#ff6b6b'; ctx.beginPath(); ctx.ellipse(0, 0, 18 * s, 12 * s, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#c0392b'; ctx.beginPath(); ctx.moveTo(-6 * s, -2 * s); ctx.lineTo(-24 * s, -asa - 6 * s); ctx.lineTo(-2 * s, -9 * s); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(4 * s, -2 * s); ctx.lineTo(-10 * s, asa * 0.6 + 2 * s); ctx.lineTo(8 * s, 4 * s); ctx.fill();
+    ctx.fillStyle = '#ffd84d'; ctx.beginPath(); ctx.moveTo(17 * s, -2 * s); ctx.lineTo(28 * s, 1 * s); ctx.lineTo(17 * s, 4 * s); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(10 * s, -4 * s, 4 * s, 0, 6.283); ctx.fill(); ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(11.5 * s, -4 * s, 2 * s, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+  function desenharHeroi() {
+    var hh = alturaHeroi(), w = hh * 22 / 29, esticar = 1 + Math.min(0.2, Math.max(-0.12, -h.vy * 0.012)) + h.esticar * 0.06, larg = 1 / esticar;
+    ctx.save(); ctx.translate(h.x, h.y); ctx.scale(larg, esticar);
+    function um(dx) { if (KODA.jogador && KODA.jogador.pronto && KODA.jogador.pronto()) KODA.jogador.andar(ctx, dx - w / 2, -hh, hh, { direcao: h.dir, andando: false });
+      else { ctx.fillStyle = '#ff8a3d'; ctx.fillRect(dx - w * 0.3, -hh * 0.55, w * 0.6, hh * 0.45); ctx.fillStyle = '#3a5fd0'; ctx.fillRect(dx - w * 0.3, -hh * 0.12, w * 0.25, hh * 0.12); ctx.fillRect(dx + w * 0.05, -hh * 0.12, w * 0.25, hh * 0.12); ctx.fillStyle = '#ffd0a0'; ctx.beginPath(); ctx.arc(dx, -hh * 0.72, hh * 0.2, 0, 6.283); ctx.fill(); ctx.fillStyle = '#222'; ctx.fillRect(dx - hh * 0.08, -hh * 0.75, 3, 4); ctx.fillRect(dx + hh * 0.04, -hh * 0.75, 3, 4); } }
+    um(0);
+    if (h.x < w / 2) { ctx.restore(); ctx.save(); ctx.translate(h.x + L, h.y); ctx.scale(larg, esticar); um(0); }   // saindo pela esquerda: aparece também do outro lado
+    else if (h.x > L - w / 2) { ctx.restore(); ctx.save(); ctx.translate(h.x - L, h.y); ctx.scale(larg, esticar); um(0); }
+    ctx.restore();
+  }
+  function texto(t, x, y, tam, cor, alinhar) {
+    ctx.font = '800 ' + Math.round(tam * esc) + 'px system-ui, -apple-system, sans-serif'; ctx.textAlign = alinhar || 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 5 * esc; ctx.strokeStyle = 'rgba(20,20,60,.55)'; ctx.lineJoin = 'round'; ctx.strokeText(t, x, y); ctx.fillStyle = cor || '#fff'; ctx.fillText(t, x, y);
+  }
+  function estrelinha(x, y, r) { ctx.fillStyle = '#ffd84d'; ctx.beginPath(); for (var k = 0; k < 10; k++) { var a = -Math.PI / 2 + k * Math.PI / 5, rr2 = k % 2 ? r * 0.45 : r; ctx.lineTo(x + Math.cos(a) * rr2, y + Math.sin(a) * rr2); } ctx.closePath(); ctx.fill(); }
+  function desenhar() {
+    ceu();
+    ctx.save();
+    if (tremor > 0) ctx.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8);
+    ctx.translate(0, -camY);
+    plataformas.forEach(desenharPlataforma);
+    estrelas.forEach(desenharEstrela);
+    passaros.forEach(function (b) {
+      if (b.x > -30 && b.x < L + 30) { desenharPassaro(b); return; }
+      /* ainda fora da tela: mostra um aviso piscando na borda, na altura em que ele vai passar */
+      if (Math.floor(quadro / 8) % 2) return;
+      var ax = b.vx > 0 ? 22 * esc : L - 22 * esc, ay = b.y;
+      ctx.fillStyle = '#ff4d4d'; ctx.beginPath(); ctx.moveTo(ax, ay - 17 * esc); ctx.lineTo(ax + 17 * esc, ay + 13 * esc); ctx.lineTo(ax - 17 * esc, ay + 13 * esc); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillRect(ax - 1.5 * esc, ay - 7 * esc, 3 * esc, 11 * esc * 0.7); ctx.fillRect(ax - 1.5 * esc, ay + 6 * esc, 3 * esc, 3 * esc);
+    });
+    if (estado !== 'fim' || quadro - quadroFim < 40) desenharHeroi();
+    particulas.forEach(function (p) { ctx.globalAlpha = Math.max(0, p.vida / 38); ctx.fillStyle = p.cor; ctx.fillRect(p.x - 2, p.y - 2, 5, 5); }); ctx.globalAlpha = 1;
+    ctx.restore();
+    if (estado === 'jogando') {
+      texto(String(pontos), L / 2, 38 * esc, 36);
+      estrelinha(L - 70 * esc, 28 * esc, 13 * esc); texto(String(estrelasPartida), L - 14 * esc, 28 * esc, 22, '#ffd84d', 'right');
+      if (salvo.melhor > 0) texto('Recorde ' + salvo.melhor, 14 * esc, 28 * esc, 14, '#fff', 'left');
+    }
+    if (estado === 'inicio') {
+      ctx.fillStyle = 'rgba(20,40,90,.35)'; ctx.fillRect(0, 0, L, A);
+      texto('Pulo nas Nuvens', L / 2, A * 0.2, 42);
+      texto('Suba o mais alto que puder!', L / 2, A * 0.2 + 40 * esc, 17, '#eaf6ff');
+      var nome = nomeDoJogador(); if (nome) texto('Boa sorte, ' + nome + '!', L / 2, A * 0.2 + 68 * esc, 18, '#ffe07a');
+      h.x = L / 2; h.y = A * 0.62 + Math.sin(quadro / 14) * 10 * esc; h.vy = -Math.cos(quadro / 14) * 3; h.dir = 'frente'; h.esticar = 0; desenharHeroi();
+      ctx.fillStyle = '#fff'; rr(L / 2 - 60 * esc, A * 0.62 + 4, 120 * esc, 15 * esc, 8 * esc); ctx.fill();
+      texto('Toque para jogar', L / 2, A * 0.82, 26, '#7CFFCB');
+      texto('Arraste o dedo pro lado (ou use as setas)', L / 2, A * 0.82 + 32 * esc, 15, '#fff');
+      if (salvo.melhor > 0) texto('Recorde: ' + salvo.melhor + '   Estrelas guardadas: ' + salvo.estrelas, L / 2, A * 0.82 + 58 * esc, 15, '#ffe07a');
+    }
+    if (estado === 'fim') {
+      ctx.fillStyle = 'rgba(20,10,50,.6)'; ctx.fillRect(0, 0, L, A);
+      texto('Fim do pulo!', L / 2, A * 0.26, 42);
+      texto('Pontos: ' + pontos, L / 2, A * 0.26 + 52 * esc, 28);
+      texto((pontos >= salvo.melhor && pontos > 0 ? 'Novo recorde: ' : 'Recorde: ') + salvo.melhor, L / 2, A * 0.26 + 88 * esc, 20, '#ffe07a');
+      texto('Altura: ' + Math.floor(maxAlt) + '   Estrelas: ' + estrelasPartida, L / 2, A * 0.26 + 118 * esc, 17, '#eaf6ff');
+      texto('Estrelas guardadas: ' + salvo.estrelas, L / 2, A * 0.26 + 144 * esc, 15, '#ffe07a');
+      if (quadro - quadroFim > 45) texto('Toque para jogar de novo', L / 2, A * 0.7, 25, '#7CFFCB');
+    }
+  }
+
+  function rodar() {
+    var ultimo = performance.now(), acum = 0;
+    function loop(t) {
+      acum += Math.min(100, t - ultimo); ultimo = t;
+      var n = 0; while (acum >= 16.667 && n++ < 6) { passo(); acum -= 16.667; }
+      if (acum > 50) acum = 0;
+      if (estado === 'inicio') quadro++;
+      desenhar(); requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+  rodar();
+})();
+</script>
+</body>
+</html>
