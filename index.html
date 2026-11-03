@@ -22892,7 +22892,9 @@ var DEP = {      /* o que o site empresta (nos testes fora do site ficam estes) 
   nomeAgente: 'Agente Koda'      /* o nome que a pessoa deu ao agente dela (entra em {agente} nos textos) */
 };
 function ligar(o){ for(var k in o) if(o[k] != null) DEP[k] = o[k]; }
-function lingua(l){ LING = (l === 'en' || l === 'es' || l === 'pt') ? l : 'en'; return LING; }
+var LUI = 'pt', FORCA_LING = 0, TXL = {}, REV = {};     /* LUI: idioma do site (it, fr, de, nl, ja, zh, ko também); TXL: textos nesses idiomas; REV: texto traduzido -> o mesmo em português (pros botões) */
+var LINGUAS_EXTRA = ['it', 'fr', 'de', 'nl', 'ja', 'zh', 'ko'];
+function lingua(l){ LUI = LINGUAS_EXTRA.indexOf(l) >= 0 ? l : ((l === 'en' || l === 'es' || l === 'pt') ? l : 'en'); LING = (l === 'en' || l === 'es' || l === 'pt') ? l : 'en'; return LING; }
 
 /* sorteio com semente (as respostas variam, mas os testes conseguem repetir) */
 var semente = (Date.now() % 2147483646) + 1;
@@ -22904,16 +22906,27 @@ function embaralhar(a){ a = a.slice(); for(var i = a.length - 1; i > 0; i--){ va
 /* textos: 'português|english|español'. Uma lista = jeitos diferentes de dizer a mesma coisa (um é sorteado). */
 var TX = {};
 function T(k, v){
-  var e = TX[k];
+  var e = TX[k], i0 = -1;
   if(e == null) return k;
-  if(Array.isArray(e)) e = sortear(e);
+  if(Array.isArray(e)){ i0 = Math.floor(rand() * e.length); e = e[i0]; }
   var p = String(e).split('|');
   var s = p[LING === 'en' ? 1 : LING === 'es' ? 2 : 0];
   if(s == null || s === '') s = p[1] || p[0];
-  return s.replace(/\{(\w+)\}/g, function(m, n){ return v && v[n] != null ? String(v[n]) : (n === 'agente' ? DEP.nomeAgente : m); });
+  var sub = function(m, n){ return v && v[n] != null ? String(v[n]) : (n === 'agente' ? DEP.nomeAgente : m); };
+  /* idiomas a mais do site: se tiver o texto neles usa; senão fica em inglês */
+  if(!FORCA_LING && LING === 'en' && LUI !== 'en' && LUI !== 'pt' && LUI !== 'es' && TXL[LUI]){
+    var x = TXL[LUI][k];
+    if(x != null){
+      if(Array.isArray(x)) x = x[i0 >= 0 && i0 < x.length ? i0 : 0];
+      var out = String(x).replace(/\{(\w+)\}/g, sub);
+      REV[out] = String(p[0]).replace(/\{(\w+)\}/g, sub);
+      return out;
+    }
+  }
+  return s.replace(/\{(\w+)\}/g, sub);
 }
 /* o mesmo texto numa língua escolhida (itens da loja ficam na língua do jogo) */
-function TL(l, k, v){ var a = LING; LING = l; try{ return T(k, v); }finally{ LING = a; } }
+function TL(l, k, v){ var a = LING, f = FORCA_LING; LING = l; FORCA_LING = 1; try{ return T(k, v); }finally{ LING = a; FORCA_LING = f; } }
 
 function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function limitar(n, a, b){ return Math.max(a, Math.min(b, n)); }
@@ -26491,7 +26504,7 @@ Object.assign(TX, {
 function blocoTxt(s){ return {t: 'txt', s: s}; }
 function novaResp(){ return {blocos: [], chips: []}; }
 function diz(r, s){ if(s) r.blocos.push(blocoTxt(s)); return r; }
-function chip(r, txt, msg){ if(r.chips.length < 6 && !r.chips.some(function(c){ return c.txt === txt; })) r.chips.push({txt: txt, msg: msg || txt}); return r; }
+function chip(r, txt, msg){ if(r.chips.length < 6 && !r.chips.some(function(c){ return c.txt === txt; })) { var pt = (msg && msg !== txt) ? msg : REV[txt]; r.chips.push({txt: txt, msg: pt || txt, rot: pt && pt !== txt ? txt : null}); } return r; }
 function nomeMoeda(m, p){ return m === 'd' ? T(p === 1 ? 'w_diamante' : 'w_diamantes') : T(p === 1 ? 'w_moeda' : 'w_moedas'); }
 function plural(n, s, p){ return T(n === 1 ? s : p); }
 function cartaoLoja(itens, mudou){
@@ -26895,7 +26908,7 @@ H.consertar = function(it, ctx, est){
   var depois = verificar(cod, null);
   var resto = depois.achados.filter(function(a){ return a.nivel === 'erro'; });
   if(resto.length){ diz(r, T('cs_faltou')); r.blocos.push({t: 'lista', itens: resto.slice(0, 6)}); }
-  chip(r, T('ch_verificar_de_novo'), T('ch_testar'));
+  chip(r, T('ch_verificar_de_novo'), TL('pt', 'ch_testar'));
   return aplicar(est, r, ctx.codigoBruto, cod, T('d_conserto'));
 };
 
@@ -27913,7 +27926,7 @@ H.criar_jogo = function(it, ctx, est){
   if(!it.tipo){
     est.pendente = {tipo: 'tipo_jogo', tema: it.tema, nome: it.nome};
     var r0 = diz(novaResp(), T('mj_qual_tipo'));
-    chip(r0, T('ch_mj_corrida')); chip(r0, T('ch_mj_voar')); chip(r0, T('ch_mj_pegar')); chip(r0, T('ch_mj_nave'));
+    chip(r0, T('ch_mj_corrida')); chip(r0, T('ch_mj_voar')); chip(r0, T('ch_mj_pegar')); chip(r0, T('ch_mj_nave')); chip(r0, T('ch_mj_pular')); chip(r0, T('ch_mj_memoria'));
     return r0;
   }
   var tema = it.tema || TIPO_PADRAO_TEMA[it.tipo] || 'espaco';
@@ -29116,7 +29129,7 @@ function fazerCorJogador(codigo, cor){
 
 /* ---------------- as respostas ---------------- */
 var FILTROS = {pb: 'grayscale(1)', sepia: 'sepia(.85) contrast(1.05)', invert: 'invert(1) hue-rotate(180deg)', noite: 'brightness(.55) contrast(1.1) saturate(.9)', claro: 'brightness(1.25) saturate(1.1)', colorido: 'saturate(1.9) contrast(1.1) brightness(1.03)', giro: 'hue-rotate(90deg)'};
-function chipsDeCores(r){ ['azul', 'verde', 'vermelho', 'rosa', 'roxo', 'preto'].forEach(function(c){ chip(r, T('cor_' + c), T('cor_' + c)); }); }
+function chipsDeCores(r){ ['azul', 'verde', 'vermelho', 'rosa', 'roxo', 'preto'].forEach(function(c){ chip(r, T('cor_' + c), TL('pt', 'cor_' + c)); }); }
 function semCodigoOuNada(ctx){ return precisaCodigo(ctx); }
 H.mod_filtro = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
@@ -29200,7 +29213,7 @@ H.mod_musica = function(it, ctx, est){
   if(!it.estilo && est.emVarios) it.estilo = 'alegre';
   if(!it.estilo){
     est.pendente = {tipo: 'mod_musica'}; diz(r, T('md_musica_q'));
-    ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), T('ms_' + e)); });
+    ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), TL('pt', 'ms_' + e)); });
     return r;
   }
   var res = fazerMusica(ctx.codigo, it.estilo, false);
@@ -29244,7 +29257,7 @@ H.dificuldade = function(it, ctx, est){ return (it.int === 'mod_dificuldade' || 
 H.mod_traduzir = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
   var r = novaResp();
-  if(!it.lingua){ est.pendente = {tipo: 'mod_lingua'}; diz(r, T('md_trad_q')); ['en', 'es', 'pt'].forEach(function(l){ chip(r, capitalizar(T('lg_' + l)), T('lg_' + l)); }); return r; }
+  if(!it.lingua){ est.pendente = {tipo: 'mod_lingua'}; diz(r, T('md_trad_q')); ['en', 'es', 'pt'].forEach(function(l){ chip(r, capitalizar(T('lg_' + l)), TL('pt', 'lg_' + l)); }); return r; }
   var res = fazerTraducao(ctx.codigo, it.lingua);
   if(res.erro) return diz(r, T('md_trad_nada'));
   diz(r, T('md_trad_ok', {n: res.res.n, lingua: T('lg_' + it.lingua)}));
@@ -29342,7 +29355,7 @@ HB.musica = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
   est.pendente = {tipo: 'mod_musica'};
   var r = diz(novaResp(), T('bf_musica'));
-  ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), T('ms_' + e)); });
+  ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), TL('pt', 'ms_' + e)); });
   return r;
 };
 HB.botoes = function(it, ctx, est){
@@ -29856,7 +29869,7 @@ H.ideias = function(it, ctx, est){
   r.blocos.push({t: 'ideias', itens: ids});
   diz(r, T('id_escolhe2'));
   chip(r, T('ch_quero_n', {n: 1})); chip(r, T('ch_quero_n', {n: 2})); chip(r, T('ch_quero_n', {n: 3}));
-  chip(r, T('ch_mais_dessas'), T('ic_' + cat)); chip(r, T('ch_outro_tipo'), T('ch_ideias'));
+  chip(r, T('ch_mais_dessas'), TL('pt', 'ic_' + cat)); chip(r, T('ch_outro_tipo'), TL('pt', 'ch_ideias'));
   return r;
 };
 /* escolheu uma ideia (ou pediu um jogo): aqui dentro ou com outra IA? */
@@ -29901,9 +29914,9 @@ function extrasDaSaudacao(r, ctx, bruto){
   if(!ctx.temCodigo || !ctx.codigo) return;
   var c = ctx.codigo;
   /* veio de outra IA? (não usa nada do Koda) */
-  if(!/KODA\s*\.|data-koda-/.test(c) && c.length > 300){ diz(r, T('ad_sugestao')); r.chips.unshift({txt: T('ch_adaptar'), msg: T('ch_adaptar')}); }
+  if(!/KODA\s*\.|data-koda-/.test(c) && c.length > 300){ diz(r, T('ad_sugestao')); r.chips.unshift({txt: T('ch_adaptar'), msg: TL('pt', 'ch_adaptar'), rot: T('ch_adaptar')}); }
   var o = orientacaoDoJogo(c), cfg = lerConfig(c, 'data-koda-painel') || {};
-  if(o && !cfg.orientacao){ diz(r, T('gi_percebi', {modo: T('gi_' + o), outro: T('gi_outro_' + o), acao: T('gi_acao_' + o)})); r.chips.unshift({txt: T('ch_girar'), msg: T('ch_girar')}); }
+  if(o && !cfg.orientacao){ diz(r, T('gi_percebi', {modo: T('gi_' + o), outro: T('gi_outro_' + o), acao: T('gi_acao_' + o)})); r.chips.unshift({txt: T('ch_girar'), msg: TL('pt', 'ch_girar'), rot: T('ch_girar')}); }
   var sg = sugestoesDoJogo(bruto);
   if(sg.length){
     var sep = T('sg_ou'), lista = sg.length === 1 ? sg[0] : sg.slice(0, -1).join(', ') + sep + sg[sg.length - 1];
@@ -30036,9 +30049,536 @@ function traduzirOutrasLinguas(s){
 Object.assign(TX, {
   oi_sem_codigo: ['Oi! Eu sou {agente}. Posso criar um jogo com você (aqui dentro ou montando o pedido pra outra IA), dar ideias bem diferentes, e, com o código do seu jogo na caixa, colocar loja, música, botões, medalhas, mudar cores, vidas e velocidade, adaptar jogos de outras IAs pro Koda e muito mais. Me diga o que tem na sua mente!|Hi! I am {agente}. I can create a game with you (in here or by writing the request for another AI), give you really different ideas, and, with your game code in the box, add a shop, music, buttons, medals, change colors, lives and speed, adapt games from other AIs for Koda and much more. Tell me what is on your mind!|¡Hola! Soy {agente}. Puedo crear un juego contigo (aquí dentro o armando el pedido para otra IA), darte ideas muy distintas y, con el código de tu juego en la caja, poner tienda, música, botones, medallas, cambiar colores, vidas y velocidad, adaptar juegos de otras IAs a Koda y mucho más. ¡Dime lo que tienes en mente!']
 });
+/* ---------------- 18) mais dois modelos de jogo: pular de plataforma em plataforma e jogo da memória ----------------
+   Funcionam como os outros (o corpo de cada função vira o script do jogo, junto com modeloBase) */
+Object.assign(TX, {
+  mj_como_pular: 'Arraste pros lados: o herói pula sozinho|Drag sideways: the hero jumps on its own|Arrastra a los lados: el héroe salta solo',
+  mj_como_memoria: 'Toque nas cartas e ache os pares|Tap the cards and find the pairs|Toca las cartas y encuentra las parejas',
+  mj_desc_pular: 'suba o mais alto que puder pulando de plataforma em plataforma, pegue {coisa} e fuja dos {bicho}|climb as high as you can bouncing from platform to platform, grab {coisa} and avoid the {bicho}|sube lo más alto que puedas saltando de plataforma en plataforma, junta {coisa} y evita los {bicho}',
+  mj_desc_memoria: 'vire as cartas, ache os pares iguais nas 3 rodadas e ganhe pontos|flip the cards, find the matching pairs in 3 rounds and earn points|voltea las cartas, encuentra las parejas iguales en 3 rondas y gana puntos',
+  g_pular_m: 'pulo em plataformas|platform jumper|saltos en plataformas', g_memoria_m: 'memória|memory|memoria',
+  ch_mj_pular: 'Pular de plataforma em plataforma|Jump from platform to platform|Saltar de plataforma en plataforma', ch_mj_memoria: 'Jogo da memória (achar os pares)|Memory game (find the pairs)|Juego de memoria (encontrar parejas)',
+  mjn_pular: 'Pulo {t}|{t} Jump|Salto {t}', mjn_memoria: 'Memória {t}|{t} Memory|Memoria {t}'
+});
+
+/* ---- pular: o herói quica sozinho, você escolhe pra que lado ---- */
+function modeloPular(){
+  let vidas = 3, pontos = 0, estado = 'inicio', quadro = 0, quadroFim = 0, invencivel = 0;
+  const heroi = {x: 0, y: 0, vx: 0, vy: 0, altura: 64, olhando: 'direita'};
+  const teclas = {};
+  let bonus = 0, plataformas = [], coisas = [], perigos = [], camY = 0, topo = 0, base = 0, alvoX = null, maxAlt = 0, ultimaX = 0;
+  function gerar(){
+    while(topo > camY - A * 1.2){
+      const alt = Math.max(0, (base - topo) / (10 * escala));
+      const vao = Math.min(150 * escala, (62 + Math.random() * 38 + Math.min(60, alt / 6)) * escala);
+      topo -= vao;
+      const w = (alt > 80 ? 62 : 76) * escala;
+      let x = ultimaX + (Math.random() * 420 - 210) * escala;
+      x = x < 0 ? x + L : x > L ? x - L : x;
+      x = Math.max(0, Math.min(L - w, x - w / 2));
+      ultimaX = x + w / 2;
+      const movel = alt > 40 && Math.random() < Math.min(0.4, 0.1 + alt / 400);
+      plataformas.push({x: x, y: topo, w: w, movel: movel, dx: movel ? (Math.random() < 0.5 ? -1 : 1) * (1 + Math.min(2, alt / 160)) * escala : 0, mola: !movel && Math.random() < 0.07});
+      if(Math.random() < 0.3) coisas.push({x: x + w / 2, y: topo - 36 * escala, r: 13 * escala});
+      if(alt > 30 && Math.random() < Math.min(0.35, 0.1 + alt / 600)) perigos.push({x: Math.random() * L, y: topo - vao * 0.5, vx: (Math.random() < 0.5 ? -1 : 1) * (1 + Math.min(2.5, alt / 200)) * escala, r: 16 * escala});
+    }
+  }
+  function comecar(){
+    vidas = 3; pontos = 0; bonus = 0; quadro = 0; invencivel = 0; plataformas = []; coisas = []; perigos = []; particulas = [];
+    camY = 0; maxAlt = 0; base = A * 0.78; topo = base; ultimaX = L / 2; alvoX = null;
+    plataformas.push({x: L / 2 - 60 * escala, y: base, w: 120 * escala, movel: false, dx: 0, mola: false});
+    heroi.x = L / 2; heroi.y = base; heroi.vx = 0; heroi.vy = -12.5 * escala;
+    gerar();
+    estado = 'jogando';
+  }
+  function tocar(x){
+    if(estado === 'inicio' || (estado === 'fim' && quadro - quadroFim > 40)){ comecar(); return; }
+    alvoX = x;
+  }
+  tela.addEventListener('pointerdown', function(e){ e.preventDefault(); tocar(e.clientX); });
+  tela.addEventListener('pointermove', function(e){ if(alvoX !== null) alvoX = e.clientX; });
+  tela.addEventListener('pointerup', function(){ alvoX = null; });
+  document.addEventListener('keydown', function(e){ teclas[e.code] = true; if((e.code === 'Space' || e.code === 'Enter') && estado !== 'jogando'){ e.preventDefault(); tocar(L / 2); } });
+  document.addEventListener('keyup', function(e){ teclas[e.code] = false; });
+  function fimDeJogo(){
+    estado = 'fim'; quadroFim = quadro;
+    if(pontos > recorde){ recorde = pontos; guardarRecorde(); }
+    if(window.KODA) KODA.pontuar(pontos);
+    som('fim');
+  }
+  function atualizar(){
+    quadro++;
+    if(estado !== 'jogando') return;
+    if(invencivel > 0) invencivel--;
+    let quer = 0;
+    if(alvoX !== null) quer = Math.max(-1, Math.min(1, (alvoX - heroi.x) / (50 * escala)));
+    if(teclas.ArrowLeft || teclas.KeyA) quer = -1;
+    if(teclas.ArrowRight || teclas.KeyD) quer = 1;
+    heroi.vx += (quer * 6.2 * escala - heroi.vx) * 0.22;
+    heroi.x += heroi.vx;
+    if(heroi.x < -10) heroi.x += L + 20;
+    if(heroi.x > L + 10) heroi.x -= L + 20;
+    heroi.olhando = heroi.vx < -0.8 ? 'esquerda' : 'direita';
+    const yAntes = heroi.y;
+    heroi.vy = Math.min(16 * escala, heroi.vy + 0.38 * escala);
+    heroi.y += heroi.vy;
+    plataformas.forEach(function(p){
+      if(p.movel){ p.x += p.dx; if(p.x < 0 || p.x + p.w > L) p.dx *= -1; }
+      if(heroi.vy > 0 && yAntes <= p.y + 2 && heroi.y >= p.y && heroi.x > p.x - 8 * escala && heroi.x < p.x + p.w + 8 * escala){
+        heroi.y = p.y; heroi.vy = p.mola ? -23 * escala : -12.5 * escala; som('pulo'); faiscas(heroi.x, p.y, p.mola ? '#ffd84d' : '#ffffff', p.mola ? 14 : 6);
+      }
+    });
+    const cy = heroi.y - heroi.altura * escala / 2;
+    coisas = coisas.filter(function(c){
+      if(Math.hypot(c.x - heroi.x, c.y - cy) < c.r + 22 * escala){ bonus += 20; som('ponto'); faiscas(c.x, c.y, TEMA.corItem, 12); return false; }
+      return c.y < camY + A + 80;
+    });
+    perigos.forEach(function(g){
+      g.x += g.vx; if(g.x < -20 || g.x > L + 20) g.vx *= -1;
+      if(invencivel === 0 && Math.hypot(g.x - heroi.x, g.y - cy) < g.r + 20 * escala){ vidas--; invencivel = 70; som('dano'); faiscas(g.x, g.y, TEMA.corPerigo, 16); g.y = camY + A + 500; if(vidas <= 0) fimDeJogo(); }
+    });
+    if(heroi.y < camY + A * 0.42) camY = heroi.y - A * 0.42;
+    maxAlt = Math.max(maxAlt, (base - heroi.y) / (10 * escala));
+    pontos = Math.floor(maxAlt) + bonus;
+    gerar();
+    plataformas = plataformas.filter(function(p){ return p.y < camY + A + 80; });
+    perigos = perigos.filter(function(g){ return g.y < camY + A + 80; });
+    if(heroi.y - camY > A + 60 && estado === 'jogando') fimDeJogo();
+  }
+  function desenhar(){
+    desenharFundo(camY * 0.4);
+    ctx.save(); ctx.translate(0, -camY);
+    plataformas.forEach(function(p){
+      const ph = 15 * escala;
+      ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(p.x + 3, p.y + 5, p.w, ph);
+      ctx.fillStyle = p.movel ? TEMA.corItem : TEMA.coluna; ctx.fillRect(p.x, p.y, p.w, ph);
+      ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(p.x, p.y, p.w, ph * 0.35);
+      if(p.mola){ ctx.fillStyle = '#ff5d5d'; ctx.fillRect(p.x + p.w / 2 - 10 * escala, p.y - 12 * escala, 20 * escala, 12 * escala); ctx.fillStyle = '#ffd84d'; ctx.fillRect(p.x + p.w / 2 - 14 * escala, p.y - 16 * escala, 28 * escala, 6 * escala); }
+    });
+    coisas.forEach(function(c){ desenharItem(c.x, c.y, c.r); });
+    perigos.forEach(function(g){ desenharPerigo(g.x - g.r, g.y - g.r, g.r * 2, g.r * 2); });
+    const h = heroi.altura * escala;
+    if(estado !== 'inicio' && !(invencivel > 0 && Math.floor(quadro / 5) % 2)) desenharHeroi(heroi.x - larguraHeroi(h) / 2, heroi.y - h, h, false, heroi.olhando);
+    desenharParticulas();
+    ctx.restore();
+    if(estado !== 'inicio') placar(pontos, vidas);
+    if(estado === 'inicio'){ heroi.x = L / 2; heroi.y = A * 0.62; telaInicio(TXT.como); }
+    if(estado === 'fim') telaFim(pontos);
+  }
+  let ultimo = performance.now(), acumulado = 0;
+  function loop(t){
+    const agora = t || performance.now();
+    acumulado += Math.min(100, agora - ultimo); ultimo = agora;
+    let passos = 0;
+    while(acumulado >= 16.667 && passos++ < 6){ if(!pausado) atualizar(); acumulado -= 16.667; }
+    if(acumulado > 50) acumulado = 0;
+    desenhar();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ---- memória: virar cartas e achar os pares (3 rodadas) ---- */
+function modeloMemoria(){
+  let pontos = 0, estado = 'inicio', quadro = 0, quadroFim = 0, rodada = 0, erros = 0, travado = 0;
+  const RODADAS = [[3, 4], [4, 4], [4, 5]];
+  const CORES = [TEMA.corItem, TEMA.corPerigo, TEMA.coluna, TEMA.heroi, '#FFD93D', '#7CFFCB', '#ff8fc8', '#4fa8ff', '#b48cff', '#ff9f43'];
+  let cartas = [], viradas = [], achados = 0, tempoRodada = 0;
+  function embaralhar(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); const x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
+  function montar(){
+    const g = RODADAS[rodada], total = g[0] * g[1], pares = total / 2, ids = [];
+    for(let i = 0; i < pares; i++){ ids.push(i); ids.push(i); }
+    embaralhar(ids);
+    cartas = ids.map(function(id, k){ return {id: id, col: k % g[1], lin: Math.floor(k / g[1]), virada: 0, alvo: 0, ok: false}; });
+    viradas = []; achados = 0; erros = 0; travado = 0; tempoRodada = 0;
+  }
+  function comecar(){ pontos = 0; rodada = 0; quadro = 0; particulas = []; montar(); estado = 'jogando'; }
+  function area(){
+    const g = RODADAS[rodada], topoA = 100 * escala, baixoA = 24 * escala, gap = 10 * escala;
+    const larg = (L - 40 * escala - gap * (g[1] - 1)) / g[1], alt = (A - topoA - baixoA - gap * (g[0] - 1)) / g[0];
+    const t = Math.max(30, Math.min(larg, alt * 0.82, 130 * escala));
+    const cw = t, ch = t * 1.2;
+    const totalW = g[1] * cw + (g[1] - 1) * gap, totalH = g[0] * ch + (g[0] - 1) * gap;
+    return {x0: (L - totalW) / 2, y0: topoA + (A - topoA - baixoA - totalH) / 2, cw: cw, ch: ch, gap: gap};
+  }
+  function toque(x, y){
+    if(estado === 'inicio' || (estado === 'fim' && quadro - quadroFim > 40)){ comecar(); return; }
+    if(estado !== 'jogando' || travado > 0) return;
+    const a = area();
+    cartas.forEach(function(c){
+      const cx = a.x0 + c.col * (a.cw + a.gap), cy = a.y0 + c.lin * (a.ch + a.gap);
+      if(x >= cx && x <= cx + a.cw && y >= cy && y <= cy + a.ch && !c.ok && c.alvo === 0 && viradas.length < 2){
+        c.alvo = 1; viradas.push(c); som('pulo');
+        if(viradas.length === 2){
+          if(viradas[0].id === viradas[1].id){
+            const duas = viradas.slice(); viradas = [];
+            travado = 22;
+            duas.forEach(function(k){ k.ok = true; });
+            achados++; pontos += 100; som('ponto');
+            duas.forEach(function(k){ faiscas(a.x0 + k.col * (a.cw + a.gap) + a.cw / 2, a.y0 + k.lin * (a.ch + a.gap) + a.ch / 2, CORES[k.id % CORES.length], 12); });
+            if(achados * 2 === cartas.length) setTimeout(proximaRodada, 700);
+          } else { erros++; pontos = Math.max(0, pontos - 10); som('dano'); travado = 48; }
+        }
+      }
+    });
+  }
+  function proximaRodada(){
+    if(estado !== 'jogando') return;
+    pontos += Math.max(0, 60 - erros * 10);
+    if(rodada + 1 >= RODADAS.length){ fimDeJogo(); return; }
+    rodada++; montar();
+  }
+  function fimDeJogo(){
+    estado = 'fim'; quadroFim = quadro;
+    if(pontos > recorde){ recorde = pontos; guardarRecorde(); }
+    if(window.KODA) KODA.pontuar(pontos);
+    som('fim');
+  }
+  tela.addEventListener('pointerdown', function(e){ e.preventDefault(); toque(e.clientX, e.clientY); });
+  document.addEventListener('keydown', function(e){ if((e.code === 'Space' || e.code === 'Enter') && estado !== 'jogando'){ e.preventDefault(); toque(0, 0); } });
+  function atualizar(){
+    quadro++;
+    if(estado !== 'jogando') return;
+    tempoRodada++;
+    if(travado > 0){
+      travado--;
+      if(travado === 0 && viradas.length === 2){ viradas[0].alvo = 0; viradas[1].alvo = 0; viradas = []; }
+    }
+    cartas.forEach(function(c){ c.virada += (c.alvo - c.virada) * 0.22; });
+  }
+  function formaDe(c, cx, cy, r){
+    const cor = CORES[c.id % CORES.length], tipo = c.id % 8;
+    ctx.fillStyle = cor; ctx.strokeStyle = cor; ctx.lineWidth = Math.max(3, r * 0.22);
+    ctx.beginPath();
+    if(tipo === 0){ ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); }
+    else if(tipo === 1){ for(let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); }
+    else if(tipo === 2){ ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r * 0.75, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r * 0.75, cy); ctx.closePath(); ctx.fill(); }
+    else if(tipo === 3){ ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r, cy + r * 0.8); ctx.lineTo(cx - r, cy + r * 0.8); ctx.closePath(); ctx.fill(); }
+    else if(tipo === 4){ ctx.moveTo(cx, cy + r * 0.9); ctx.bezierCurveTo(cx - r * 1.5, cy - r * 0.2, cx - r * 0.6, cy - r * 1.2, cx, cy - r * 0.4); ctx.bezierCurveTo(cx + r * 0.6, cy - r * 1.2, cx + r * 1.5, cy - r * 0.2, cx, cy + r * 0.9); ctx.fill(); }
+    else if(tipo === 5){ ctx.fillRect(cx - r * 0.8, cy - r * 0.8, r * 1.6, r * 1.6); }
+    else if(tipo === 6){ ctx.arc(cx, cy, r * 0.8, 0, Math.PI * 2); ctx.stroke(); }
+    else { ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2); ctx.fill(); }
+  }
+  function desenhar(){
+    desenharFundo(quadro * 0.4);
+    if(estado !== 'inicio'){
+      const a = area();
+      cartas.forEach(function(c){
+        const cx = a.x0 + c.col * (a.cw + a.gap), cy = a.y0 + c.lin * (a.ch + a.gap), v = c.virada, larg = Math.abs(Math.cos(v * Math.PI)) * a.cw, meio = cx + a.cw / 2;
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(meio - larg / 2 + 3, cy + 4, larg, a.ch);
+        if(v < 0.5){
+          ctx.fillStyle = TEMA.chao; ctx.fillRect(meio - larg / 2, cy, larg, a.ch);
+          ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(meio - larg / 2 + larg * 0.1, cy + a.ch * 0.08, larg * 0.8, a.ch * 0.84);
+          if(larg > a.cw * 0.5) texto('?', meio, cy + a.ch / 2, a.cw * 0.45 / escala, 'rgba(255,255,255,.8)');
+        } else {
+          ctx.fillStyle = c.ok ? 'rgba(255,255,255,.95)' : '#fff'; ctx.fillRect(meio - larg / 2, cy, larg, a.ch);
+          ctx.save(); ctx.translate(meio, cy + a.ch / 2); ctx.scale(Math.max(0.05, larg / a.cw), 1); formaDe(c, 0, 0, a.cw * 0.32); ctx.restore();
+        }
+        ctx.restore();
+      });
+      texto(String(pontos), L / 2, 40 * escala, 34);
+      texto((rodada + 1) + ' / ' + RODADAS.length, L - 40 * escala, 40 * escala, 18);
+      texto('x ' + erros, 40 * escala, 40 * escala, 18, '#ffb3b3', 'left');
+    }
+    desenharParticulas();
+    if(estado === 'inicio') telaInicio(TXT.como);
+    if(estado === 'fim') telaFim(pontos);
+  }
+  let ultimo = performance.now(), acumulado = 0;
+  function loop(t){
+    const agora = t || performance.now();
+    acumulado += Math.min(100, agora - ultimo); ultimo = agora;
+    let passos = 0;
+    while(acumulado >= 16.667 && passos++ < 6){ if(!pausado) atualizar(); acumulado -= 16.667; }
+    if(acumulado > 50) acumulado = 0;
+    desenhar();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+MODELOS.pular = modeloPular; MODELOS.memoria = modeloMemoria;
+TIPOS_JOGO.push('pular', 'memoria');
+TIPO_PALAVRAS.unshift(
+  ['memoria', /\b(memoria|memory|memorama|pares|par de cartas|pares de cartas|cartas|cartinhas|cards|concentracao|parejas|combinar)\b/],
+  ['pular', /\b(nuvens?|plataformas?|doodle|escalar|escala|subir|montanha|climb\w*|bounce|trampolim|saltar de|pular de|pulo pula|pula pula|clouds?|nubes)\b/]
+);
+TIPO_PADRAO_TEMA.pular = 'floresta'; TIPO_PADRAO_TEMA.memoria = 'doces';
+/* ---------------- 19) o agente respondendo em italiano, francês, alemão, holandês, japonês, chinês e coreano ----------------
+   Cada texto tem 7 partes, nesta ordem:  it | fr | de | nl | ja | zh | ko
+   O que não está aqui continua em inglês. Os botões mandam o texto em português pro agente (ver REV), então continuam funcionando. */
+var TXL_DADOS = {
+  /* conversa geral */
+  oi_sem_codigo: "Ciao! Sono {agente}. Posso creare un gioco con te (qui dentro o scrivendo la richiesta per un'altra IA), darti idee davvero diverse e, con il codice del tuo gioco nella casella, aggiungere negozio, musica, pulsanti e medaglie, cambiare colori, vite e velocità, adattare a Koda i giochi di altre IA e molto altro. Dimmi cosa hai in mente!|Salut ! Je suis {agente}. Je peux créer un jeu avec toi (ici ou en écrivant la demande pour une autre IA), te donner des idées vraiment différentes et, avec le code de ton jeu dans la case, ajouter une boutique, de la musique, des boutons et des médailles, changer les couleurs, les vies et la vitesse, adapter à Koda les jeux d'autres IA et bien plus. Dis-moi ce que tu as en tête !|Hallo! Ich bin {agente}. Ich kann mit dir ein Spiel erstellen (hier drin oder indem ich die Anfrage für eine andere KI schreibe), dir ganz andere Ideen geben und, wenn dein Spielcode im Feld steht, Shop, Musik, Buttons und Medaillen hinzufügen, Farben, Leben und Tempo ändern, Spiele anderer KIs an Koda anpassen und mehr. Sag mir, was du vorhast!|Hoi! Ik ben {agente}. Ik kan samen met jou een spel maken (hier of door het verzoek voor een andere AI te schrijven), echt andere ideeën geven en, met de code van je spel in het vak, een winkel, muziek, knoppen en medailles toevoegen, kleuren, levens en snelheid veranderen, spellen van andere AI's voor Koda aanpassen en meer. Vertel me wat je in gedachten hebt!|こんにちは！{agente}です。いっしょにゲームを作れます（ここで作る、または別のAIに送るお願い文を作る）。ほかとはちがうアイデアも出せます。ゲームのコードを枠に入れてくれたら、ショップ・音楽・ボタン・メダルを足したり、色・ライフ・スピードを変えたり、ほかのAIのゲームをKoda用に直したりもできます。やりたいことを教えてね！|你好！我是{agente}。我可以和你一起做游戏（在这里做，或者帮你写给其他AI的请求），还能给你很特别的点子。把游戏代码放进输入框后，我可以加商店、音乐、按钮和奖牌，改颜色、生命和速度，把其他AI做的游戏改成适合Koda的样子，还有更多。告诉我你在想什么吧！|안녕! 나는 {agente}야. 같이 게임을 만들 수 있어 (여기에서 만들거나 다른 AI에게 보낼 요청을 써 줄게). 아주 색다른 아이디어도 줄 수 있고, 게임 코드를 칸에 넣어 주면 상점, 음악, 버튼, 메달을 넣고 색, 생명, 속도를 바꾸고 다른 AI가 만든 게임을 Koda에 맞게 고쳐 줄 수도 있어. 하고 싶은 걸 말해 줘!",
+  oi_com_codigo: "Ciao! Sono {agente}. Ho già dato un'occhiata al tuo gioco: sembra un gioco di tipo {genero}, con {linhas} righe.{loja} Non vorresti aggiungerci qualcosa? Scegli un'opzione qui sotto o dimmi cosa hai in mente.|Salut ! Je suis {agente}. J'ai déjà jeté un œil à ton jeu : on dirait un jeu de type {genero}, avec {linhas} lignes.{loja} Tu ne voudrais pas y ajouter quelque chose ? Choisis une option ci-dessous ou dis-moi ce que tu as en tête.|Hallo! Ich bin {agente}. Ich habe mir dein Spiel schon angesehen: Es wirkt wie ein {genero}-Spiel mit {linhas} Zeilen.{loja} Möchtest du etwas hinzufügen? Wähle unten eine Option oder sag mir, was du vorhast.|Hoi! Ik ben {agente}. Ik heb je spel al bekeken: het lijkt een {genero}-spel met {linhas} regels.{loja} Wil je er iets aan toevoegen? Kies hieronder een optie of vertel me wat je in gedachten hebt.|こんにちは！{agente}です。ゲームを見てみました。{genero}のゲームみたいで、{linhas}行あります。{loja} 何か足したくない？下から選ぶか、思っていることを教えてね。|你好！我是{agente}。我已经看了你的游戏：它像是{genero}类游戏，有{linhas}行代码。{loja}要不要给它加点什么？可以在下面选一个，也可以告诉我你的想法。|안녕! 나는 {agente}야. 네 게임을 봤어. {genero} 게임 같고 {linhas}줄이야.{loja} 뭔가 더 넣어 보지 않을래? 아래에서 고르거나 생각하는 걸 말해 줘.",
+  md_palpite: "Hmm, non sono sicuro di cosa intendi. Era una di queste?|Hmm, je ne suis pas sûr de ce que tu veux dire. C'était l'une de celles-ci ?|Hmm, ich bin nicht sicher, was du meinst. War es eine davon?|Hmm, ik weet niet zeker wat je bedoelt. Was het een van deze?|うーん、何のことかよくわかりません。これのどれかな？|嗯，我不太确定你的意思。是下面这些吗？|음, 무슨 말인지 잘 모르겠어. 이 중에 있을까?",
+  md_palpite_sem_codigo: "Hmm, non l'ho capita. Posso aiutarti a creare un gioco, rispondere a dubbi su Koda e, con il codice del tuo gioco nella casella, modificarlo in tanti modi. Vuoi vedere cosa so fare?|Hmm, je n'ai pas compris. Je peux t'aider à créer un jeu, répondre à tes questions sur Koda et, avec le code de ton jeu dans la case, le modifier de plein de façons. Tu veux voir ce que je sais faire ?|Hmm, das habe ich nicht verstanden. Ich kann dir helfen, ein Spiel zu erstellen, Fragen zu Koda zu beantworten und, wenn dein Spielcode im Feld steht, es auf viele Arten ändern. Willst du sehen, was ich kann?|Hmm, dat snapte ik niet. Ik kan je helpen een spel te maken, vragen over Koda beantwoorden en, met de code van je spel in het vak, het op veel manieren aanpassen. Wil je zien wat ik kan?|うーん、わかりませんでした。ゲーム作りの手伝い、Kodaの質問への答え、そしてゲームのコードを枠に入れてくれたらいろいろな変更ができます。何ができるか見てみる？|嗯，我没听懂。我可以帮你做游戏、回答关于Koda的问题，把游戏代码放进输入框后还能用很多方式修改它。想看看我会做什么吗？|음, 못 알아들었어. 게임 만들기를 돕고, Koda 질문에 답하고, 게임 코드를 칸에 넣어 주면 여러 방법으로 고칠 수 있어. 내가 뭘 할 수 있는지 볼래?",
+  nada_r: "Hmm, non ho capito bene. Puoi dirlo in un altro modo? Mi occupo di negozio, controllo del codice, voto al gioco, suoni, salvataggio e dubbi su Koda.|Hmm, je n'ai pas bien compris. Tu peux le dire autrement ? Je m'occupe de la boutique, de la vérification du code, de la note du jeu, des sons, de la sauvegarde et des questions sur Koda.|Hmm, das habe ich nicht richtig verstanden. Kannst du es anders sagen? Ich kümmere mich um Shop, Codeprüfung, Spielnote, Sounds, Speichern und Fragen zu Koda.|Hmm, dat heb ik niet goed begrepen. Kun je het anders zeggen? Ik regel de winkel, code controleren, het cijfer voor je spel, geluiden, opslaan en vragen over Koda.|うーん、よくわかりませんでした。ちがう言い方でお願いできますか？ショップ、コードのチェック、ゲームの点数、音、保存、Kodaの質問を担当しています。|嗯，我没太明白。可以换个说法吗？我负责商店、检查代码、给游戏打分、音效、保存和Koda的问题。|음, 잘 이해하지 못했어. 다르게 말해 줄래? 나는 상점, 코드 확인, 게임 점수, 소리, 저장, Koda 질문을 맡고 있어.",
+  obrigado_r: "Di niente! Rendiamo questo gioco incredibile.|De rien ! Rendons ce jeu incroyable.|Gern geschehen! Machen wir dieses Spiel großartig.|Graag gedaan! Laten we dit spel geweldig maken.|どういたしまして！このゲームをもっとすごくしよう。|不客气！让我们把这个游戏变得更棒吧。|천만에! 이 게임을 멋지게 만들어 보자.",
+  ops: "Ops, mi sono confuso. Puoi dirlo in un altro modo?|Oups, je me suis embrouillé. Tu peux le dire autrement ?|Ups, da habe ich mich vertan. Kannst du es anders sagen?|Oeps, ik raakte in de war. Kun je het anders zeggen?|あれ、混乱しちゃいました。ちがう言い方でお願いできますか？|哎呀，我弄糊涂了。可以换个说法吗？|앗, 헷갈렸어. 다르게 말해 줄래?",
+  sem_codigo: "Per questo mi serve il codice del gioco. Incollalo nella casella di Koda Studio (sotto il nome) e chiedimelo di nuovo!|Pour ça, j'ai besoin du code du jeu. Colle-le dans la case de Koda Studio (sous le nom) et redemande-moi !|Dafür brauche ich den Spielcode. Füge ihn in das Feld von Koda Studio ein (unter dem Namen) und frag mich noch einmal!|Hiervoor heb ik de code van het spel nodig. Plak hem in het vak van Koda Studio (onder de naam) en vraag het me opnieuw!|それにはゲームのコードが必要です。Koda Studioの枠（名前の下）に貼って、もう一度お願いしてね！|这需要游戏代码。请把它粘贴到Koda Studio的输入框（名字下面），然后再问我一次！|그러려면 게임 코드가 필요해. Koda Studio 칸(이름 아래)에 붙여 넣고 다시 말해 줘!",
+  sim_solto: "Sì a cosa? Dimmi cosa vuoi fare nel gioco.|Oui à quoi ? Dis-moi ce que tu veux faire dans le jeu.|Ja wozu? Sag mir, was du im Spiel machen willst.|Ja waarop? Vertel me wat je in het spel wilt doen.|何についての「はい」かな？ゲームでやりたいことを教えてね。|是指什么呢？告诉我你想在游戏里做什么。|뭐에 대한 '응'이야? 게임에서 하고 싶은 걸 말해 줘.",
+  ajuda_r: "Posso fare (parla pure a modo tuo):\n- mettere un negozio nel gioco e cambiarlo\n- cambiare l'aspetto: bianco e nero, tutto blu, sfondo, modalità notte\n- pulsanti e schermate: pausa, suono, schermata iniziale, riavvio\n- musica di sottofondo e medaglie con coriandoli\n- numeri del gioco: più vite, più veloce, salto più alto, più difficile\n- testi: traduzione e sostituzione\n- controllare il codice, correggere, dare un voto\n- salvataggio, classifica, suoni, la tua skin e online\n- rispondere a dubbi su Koda e dare idee|Je peux (parle comme tu veux) :\n- mettre une boutique dans le jeu et la modifier\n- changer l'apparence : noir et blanc, tout en bleu, fond, mode nuit\n- boutons et écrans : pause, son, écran d'accueil, redémarrer\n- musique de fond et médailles avec confettis\n- nombres du jeu : plus de vies, plus rapide, saut plus haut, plus difficile\n- textes : traduction et remplacement\n- vérifier le code, corriger, donner une note\n- sauvegarde, classement, sons, ta skin et en ligne\n- répondre aux questions sur Koda et donner des idées|Ich kann (sprich ruhig, wie du willst):\n- einen Shop ins Spiel einbauen und ändern\n- das Aussehen ändern: Schwarzweiß, alles blau, Hintergrund, Nachtmodus\n- Buttons und Bildschirme: Pause, Ton, Startbildschirm, Neustart\n- Hintergrundmusik und Medaillen mit Konfetti\n- Spielwerte: mehr Leben, schneller, höher springen, schwerer\n- Texte: übersetzen und ersetzen\n- Code prüfen, reparieren, eine Note geben\n- Speichern, Rangliste, Sounds, deine Skin und online\n- Fragen zu Koda beantworten und Ideen geben|Ik kan (praat gerust op je eigen manier):\n- een winkel in het spel zetten en aanpassen\n- het uiterlijk veranderen: zwart-wit, alles blauw, achtergrond, nachtmodus\n- knoppen en schermen: pauze, geluid, startscherm, opnieuw starten\n- achtergrondmuziek en medailles met confetti\n- getallen van het spel: meer levens, sneller, hoger springen, moeilijker\n- teksten: vertalen en vervangen\n- code controleren, repareren, een cijfer geven\n- opslaan, ranglijst, geluiden, je skin en online\n- vragen over Koda beantwoorden en ideeën geven|できること（自分の言葉で話しかけてね）：\n- ゲームにショップをつけて変更する\n- 見た目の変更：白黒、全部青、背景、夜モード\n- ボタンと画面：ポーズ、音、スタート画面、やり直し\n- BGMとコンフェッティつきメダル\n- ゲームの数字：ライフ、スピード、ジャンプ、むずかしさ\n- テキストの翻訳と入れ替え\n- コードのチェック、修正、点数\n- 保存、ランキング、効果音、スキン、オンライン\n- Kodaの質問に答える、アイデアを出す|我可以（用你自己的方式说就行）：\n- 给游戏加商店并修改\n- 改外观：黑白、全部变蓝、背景、夜间模式\n- 按钮和界面：暂停、声音、开始画面、重新开始\n- 背景音乐和带彩纸的奖牌\n- 游戏数值：更多生命、更快、跳得更高、更难\n- 文字：翻译和替换\n- 检查代码、修复、打分\n- 保存、排行榜、音效、你的皮肤和联网\n- 回答Koda的问题、给出点子|내가 할 수 있는 것 (편하게 말해 줘):\n- 게임에 상점 넣고 바꾸기\n- 모양 바꾸기: 흑백, 전부 파랑, 배경, 밤 모드\n- 버튼과 화면: 일시정지, 소리, 시작 화면, 다시 시작\n- 배경 음악과 종이꽃가루 메달\n- 게임 숫자: 생명, 속도, 점프, 난이도\n- 글자 번역과 바꾸기\n- 코드 확인, 고치기, 점수 주기\n- 저장, 랭킹, 효과음, 스킨, 온라인\n- Koda 질문에 답하고 아이디어 주기",
+  pd_texto: "Copia questa richiesta e mandala all'IA che usi (Claude, ChatGPT, Gemini...). Quando risponde, incolla il gioco qui in Koda Studio e controllo tutto io!|Copie cette demande et envoie-la à l'IA que tu utilises (Claude, ChatGPT, Gemini...). Quand elle répond, colle le jeu ici dans Koda Studio et je vérifie tout !|Kopiere diese Anfrage und schick sie an die KI, die du benutzt (Claude, ChatGPT, Gemini...). Wenn sie antwortet, füge das Spiel hier in Koda Studio ein, dann prüfe ich alles!|Kopieer dit verzoek en stuur het naar de AI die je gebruikt (Claude, ChatGPT, Gemini...). Als die antwoordt, plak je het spel hier in Koda Studio en ik controleer alles!|このお願い文をコピーして、使っているAI（Claude、ChatGPT、Geminiなど）に送ってね。返事が来たら、ゲームをここ（Koda Studio）に貼れば、私が全部チェックします！|复制这段请求，发给你用的AI（Claude、ChatGPT、Gemini等）。它回复后，把游戏粘贴到这里的Koda Studio，我来全部检查！|이 요청을 복사해서 네가 쓰는 AI(Claude, ChatGPT, Gemini 등)에게 보내 줘. 답이 오면 게임을 여기 Koda Studio에 붙여 넣어, 내가 다 확인할게!",
+  pd_depois: "Quando te lo restituisce, incolla il codice nella casella e scrivimi «adatta a Koda».|Quand elle te le renvoie, colle le code dans la case et écris-moi « adapte pour Koda ».|Wenn sie dir den Code gibt, füge ihn ins Feld ein und sag mir „an Koda anpassen“.|Als ze de code teruggeeft, plak je hem in het vak en zeg je „pas aan voor Koda”.|コードが返ってきたら、枠に貼って「Koda用に直して」と言ってね。|它把代码发回来后，把代码粘贴到输入框，然后对我说“改成适合Koda的”。|코드를 받으면 칸에 붙여 넣고 'Koda에 맞게 고쳐 줘'라고 말해 줘.",
+  /* botões */
+  ch_loja: "Aggiungi un negozio|Ajouter une boutique|Shop hinzufügen|Winkel toevoegen|ショップをつける|加商店|상점 넣기",
+  ch_verificar: "Controlla il codice|Vérifier le code|Code prüfen|Code controleren|コードをチェック|检查代码|코드 확인",
+  ch_avaliar: "Valuta il mio gioco|Évaluer mon jeu|Mein Spiel bewerten|Mijn spel beoordelen|ゲームを評価|给我的游戏打分|내 게임 평가",
+  ch_testar: "Prova il mio gioco|Teste mon jeu|Teste mein Spiel|Test mijn spel|ゲームをテスト|测试我的游戏|내 게임 테스트",
+  ch_desfazer: "Annulla|Annuler|Rückgängig|Ongedaan maken|元に戻す|撤销|되돌리기",
+  ch_ideias: "Dammi idee di giochi|Donne-moi des idées de jeux|Gib mir Spielideen|Geef me spelideeën|ゲームのアイデアをちょうだい|给我游戏点子|게임 아이디어 줘",
+  ch_como_criar: "Come creo un gioco?|Comment créer un jeu ?|Wie erstelle ich ein Spiel?|Hoe maak ik een spel?|ゲームはどう作るの？|怎么做游戏？|게임은 어떻게 만들어?",
+  ch_pedido: "Scrivi la richiesta per l'IA|Écris la demande pour l'IA|Schreib die Anfrage für die KI|Schrijf het verzoek voor de AI|AIへのお願い文を作って|写给AI的请求|AI에게 보낼 요청 써 줘",
+  ch_ve_ajuda: "Cosa sai fare?|Que sais-tu faire ?|Was kannst du?|Wat kun jij?|何ができる？|你会做什么？|뭘 할 수 있어?",
+  ch_skin: "Gioca con la mia skin|Jouer avec ma skin|Mit meiner Skin spielen|Met mijn skin spelen|自分のスキンで遊ぶ|用我的皮肤玩|내 스킨으로 하기",
+  ch_musica: "Aggiungi musica|Ajouter de la musique|Musik hinzufügen|Muziek toevoegen|音楽をつける|加音乐|음악 넣기",
+  ch_pausa: "Aggiungi pulsante pausa|Ajouter un bouton pause|Pause-Button hinzufügen|Pauzeknop toevoegen|ポーズボタンをつける|加暂停按钮|일시정지 버튼 넣기",
+  ch_pb: "Metti in bianco e nero|Mettre en noir et blanc|In Schwarzweiß|Zwart-wit maken|白黒にする|变成黑白|흑백으로",
+  ch_fundo: "Cambia colore dello sfondo|Changer la couleur du fond|Hintergrundfarbe ändern|Achtergrondkleur veranderen|背景の色を変える|改背景颜色|배경색 바꾸기",
+  ch_vidas: "Più vite|Plus de vies|Mehr Leben|Meer levens|ライフを増やす|更多生命|생명 늘리기",
+  ch_dificil: "Più difficile|Plus difficile|Schwerer machen|Moeilijker maken|もっとむずかしく|更难一点|더 어렵게",
+  ch_facil: "Più facile|Plus facile|Leichter machen|Makkelijker maken|もっと簡単に|更简单一点|더 쉽게",
+  ch_rapido: "Più veloce|Plus rapide|Schneller machen|Sneller maken|もっと速く|更快一点|더 빠르게",
+  ch_traduzir: "Traduci in inglese|Traduire en anglais|Ins Englische übersetzen|Naar het Engels vertalen|英語に翻訳|翻译成英语|영어로 번역",
+  ch_adaptar: "Adatta a Koda|Adapte pour Koda|An Koda anpassen|Aanpassen voor Koda|Koda用に直す|改成适合Koda|Koda에 맞게",
+  ch_girar: "Aggiungi l'avviso di rotazione|Ajouter l'avis de rotation|Dreh-Hinweis hinzufügen|Draaibericht toevoegen|画面を回す案内をつける|加翻转屏幕提示|화면 돌리기 안내 넣기",
+  ch_conquistas: "Aggiungi medaglie|Ajouter des médailles|Medaillen hinzufügen|Medailles toevoegen|メダルをつける|加奖牌|메달 넣기",
+  ch_on_aqui: "Fallo qui dentro|Fais-le ici|Hier drin machen|Maak het hier|ここで作る|在这里做|여기에서 만들기",
+  ch_on_outra: "Con un'altra IA|Avec une autre IA|Mit einer anderen KI|Met een andere AI|別のAIで|用其他AI|다른 AI로",
+  ch_sim: "Sì|Oui|Ja|Ja|はい|是|응",
+  ch_nao: "No|Non|Nein|Nee|いいえ|不|아니",
+  ch_quero_n: "Voglio il {n}|Je veux le {n}|Ich nehme Nr. {n}|Ik wil nummer {n}|{n}番がいい|我要第{n}个|{n}번 할래",
+  ch_mais_dessas: "Altre idee così|Plus d'idées comme ça|Mehr solche Ideen|Meer van dit soort ideeën|こんなアイデアをもっと|更多这样的点子|이런 아이디어 더",
+  ch_outro_tipo: "Un altro tipo di idea|Un autre type d'idée|Eine andere Art von Idee|Een ander soort idee|ほかの種類のアイデア|换一种点子|다른 종류의 아이디어",
+  ch_online_pedido: "Scrivi la richiesta per un gioco online|Écris la demande pour un jeu en ligne|Schreib die Anfrage für ein Online-Spiel|Schrijf het verzoek voor een online spel|オンラインゲームのお願い文を作って|写在线游戏的请求|온라인 게임 요청 써 줘",
+  ch_placar: "Aggiungi la classifica online|Ajouter le classement en ligne|Online-Rangliste hinzufügen|Online scorebord toevoegen|オンラインのスコアボードをつける|加在线排行榜|온라인 점수판 넣기",
+  ch_pontuar: "Manda i punti alla classifica|Envoyer les points au classement|Punkte an die Rangliste senden|Punten naar de ranglijst sturen|ポイントをランキングに送る|把分数发到排行榜|점수를 랭킹에 보내기",
+  ic_ensina: "Che insegna qualcosa|Qui apprend quelque chose|Das etwas beibringt|Waar je iets van leert|何かを学べる|能学到东西的|뭔가 배우는",
+  ic_historia: "Con una storia|Avec une histoire|Mit einer Geschichte|Met een verhaal|ストーリーつき|带故事的|이야기가 있는",
+  ic_acao: "Azione e avventura|Action et aventure|Action und Abenteuer|Actie en avontuur|アクション・冒険|动作和冒险|액션과 모험",
+  ic_maluca: "Divertente e pazzo|Drôle et fou|Lustig und verrückt|Grappig en gek|おもしろくて変なの|搞笑又疯狂的|웃기고 엉뚱한",
+  ic_amigos: "Da giocare con gli amici|À jouer avec des amis|Zum Spielen mit Freunden|Om met vrienden te spelen|友だちと遊ぶ|和朋友一起玩|친구와 같이 하는",
+  ic_misterio: "Mistero e enigmi|Mystère et énigmes|Rätsel und Geheimnisse|Mysterie en raadsels|ミステリーとなぞ解き|悬疑和谜题|미스터리와 수수께끼",
+  ic_surpresa: "Sorprendimi!|Surprends-moi !|Überrasch mich!|Verras me!|おどろかせて！|给我个惊喜！|깜짝 놀라게 해 줘!",
+  ch_mj_corrida: "Corsa (saltare ostacoli)|Course (sauter des obstacles)|Lauf (Hindernisse überspringen)|Race (over obstakels springen)|ランナー（障害をジャンプ）|跑酷（跳过障碍）|달리기 (장애물 점프)",
+  ch_mj_voar: "Volare tra le colonne|Voler entre les colonnes|Zwischen Säulen fliegen|Tussen kolommen vliegen|柱のあいだを飛ぶ|在柱子之间飞|기둥 사이 날기",
+  ch_mj_pegar: "Prendere cose che cadono|Attraper ce qui tombe|Fallende Dinge fangen|Vallende dingen vangen|落ちてくるものをつかむ|接住掉下来的东西|떨어지는 것 잡기",
+  ch_mj_nave: "Navicella (colpire meteoriti)|Vaisseau (toucher des météorites)|Raumschiff (Meteoriten treffen)|Ruimteschip (meteorieten raken)|宇宙船（隕石をうつ）|飞船（击中陨石）|우주선 (운석 맞히기)",
+  ch_mj_pular: "Saltare di piattaforma in piattaforma|Sauter de plateforme en plateforme|Von Plattform zu Plattform springen|Van platform naar platform springen|足場から足場へジャンプ|在平台之间跳跃|발판에서 발판으로 점프",
+  ch_mj_memoria: "Gioco della memoria (trova le coppie)|Jeu de mémoire (trouver les paires)|Memory-Spiel (Paare finden)|Memoryspel (paren vinden)|神経衰弱（ペアを探す）|记忆游戏（找配对）|기억력 게임 (짝 찾기)",
+  /* ofertas (antes de publicar) */
+  of_loja: "Aggiungi un negozio|Ajouter une boutique|Shop hinzufügen|Winkel toevoegen|ショップをつける|加商店|상점 넣기",
+  of_loja_sub: "Oggetti che costano monete o diamanti|Des objets qui coûtent des pièces ou des diamants|Gegenstände für Münzen oder Diamanten|Items die munten of diamanten kosten|コインやダイヤで買うアイテム|用金币或钻石买的物品|코인이나 다이아로 사는 아이템",
+  of_loja_mudar: "Cambia il negozio|Modifier la boutique|Shop ändern|Winkel aanpassen|ショップを変更|修改商店|상점 바꾸기",
+  of_loja_mudar_sub: "Prezzi, monete e oggetti|Prix, pièces et objets|Preise, Münzen und Gegenstände|Prijzen, munten en items|値段・コイン・アイテム|价格、货币和物品|가격, 코인, 아이템",
+  of_salvar: "Salva i progressi|Sauvegarder la progression|Fortschritt speichern|Voortgang opslaan|進行状況を保存|保存进度|진행 상황 저장",
+  of_salvar_sub: "Chi torna riparte da dove era|Qui revient reprend là où il s'était arrêté|Wer zurückkommt, macht dort weiter|Wie terugkomt gaat verder waar hij was|戻ったら続きから|回来时从上次继续|돌아오면 이어서 하기",
+  of_skin: "Gioca con la mia skin|Jouer avec ma skin|Mit meiner Skin spielen|Met mijn skin spelen|自分のスキンで遊ぶ|用我的皮肤玩|내 스킨으로 하기",
+  of_skin_sub: "L'eroe diventa il tuo personaggio Koda|Le héros devient ton personnage Koda|Der Held wird dein Koda-Charakter|De held wordt je Koda-personage|主人公があなたのKodaキャラに|主角变成你的Koda角色|주인공이 내 Koda 캐릭터가 돼요",
+  of_pontuar: "Punti in classifica|Points au classement|Punkte in der Rangliste|Punten in de ranglijst|ランキングにポイント|排行榜积分|랭킹 점수",
+  of_pontuar_sub: "Manda il punteggio a Koda|Envoyer le score à Koda|Punktestand an Koda senden|Score naar Koda sturen|スコアをKodaに送る|把分数发给Koda|점수를 Koda에 보내기",
+  of_online: "Classifica online|Classement en ligne|Online-Rangliste|Online scorebord|オンラインスコアボード|在线排行榜|온라인 점수판",
+  of_online_sub: "Vedi i punti di chi gioca insieme|Voir les points de ceux qui jouent ensemble|Punkte der Mitspieler sehen|De punten van medespelers zien|いっしょに遊ぶ人の点数を見る|看一起玩的人的分数|같이 하는 사람의 점수 보기",
+  of_sons: "Aggiungi suoni|Ajouter des sons|Sounds hinzufügen|Geluiden toevoegen|効果音をつける|加音效|효과음 넣기",
+  of_sons_sub: "Punti, salto, danno e fine partita|Points, saut, dégâts et fin de partie|Punkte, Sprung, Schaden und Spielende|Punten, sprong, schade en einde spel|得点・ジャンプ・ダメージ・ゲームオーバー|得分、跳跃、受伤和结束|점수, 점프, 피해, 게임 끝",
+  of_verificar: "Cerca errori|Chercher des erreurs|Fehler suchen|Fouten zoeken|エラーを探す|查找错误|오류 찾기",
+  of_verificar_sub: "Leggo il codice e un robot gioca|Je lis le code et un robot joue|Ich lese den Code und ein Roboter spielt|Ik lees de code en een robot speelt|コードを読んでロボットが遊ぶ|我读代码，机器人来玩|내가 코드를 읽고 로봇이 해 봐요",
+  of_avaliar: "Dai un voto|Donner une note|Eine Note geben|Een cijfer geven|点数をつける|打分|점수 주기",
+  of_avaliar_sub: "Voto da 0 a 10 con consigli|Note de 0 à 10 avec des conseils|Note von 0 bis 10 mit Tipps|Cijfer van 0 tot 10 met tips|0〜10点とアドバイス|0到10分，附建议|0~10점과 조언",
+  of_duvida: "Fai una domanda|Poser une question|Eine Frage stellen|Een vraag stellen|質問する|提问|질문하기",
+  of_duvida_sub: "Chiedi quello che vuoi|Demande ce que tu veux|Frag, was du willst|Vraag wat je wilt|なんでも聞いてね|想问什么都可以|뭐든 물어봐요",
+  of_musica: "Aggiungi musica di sottofondo|Ajouter de la musique de fond|Hintergrundmusik hinzufügen|Achtergrondmuziek toevoegen|BGMをつける|加背景音乐|배경 음악 넣기",
+  of_musica_sub: "Allegra, calma, d'avventura, spaziale...|Joyeuse, calme, d'aventure, spatiale...|Fröhlich, ruhig, abenteuerlich, Weltraum...|Vrolijk, rustig, avontuurlijk, ruimte...|明るい・静か・冒険・宇宙…|欢快、平静、冒险、太空……|밝은, 차분한, 모험, 우주...",
+  of_botoes: "Pulsanti pausa, suono e riavvio|Boutons pause, son et redémarrer|Pause-, Ton- und Neustart-Buttons|Pauze-, geluid- en herstartknoppen|ポーズ・音・やり直しボタン|暂停、声音和重新开始按钮|일시정지, 소리, 다시 시작 버튼",
+  of_botoes_sub: "Stanno in un angolo dello schermo|Ils restent dans un coin de l'écran|Sie sitzen in einer Ecke des Bildschirms|Ze staan in een hoek van het scherm|画面のすみに置きます|放在屏幕一角|화면 구석에 있어요",
+  of_inicio: "Schermata iniziale con «Gioca»|Écran d'accueil avec « Jouer »|Startbildschirm mit „Spielen“|Startscherm met „Spelen”|「あそぶ」のスタート画面|带“开始”的开始画面|'시작' 버튼이 있는 시작 화면",
+  of_inicio_sub: "Titolo e come si gioca, prima di iniziare|Titre et comment jouer, avant de commencer|Titel und Spielanleitung vor dem Start|Titel en uitleg voordat je begint|はじめる前にタイトルと遊び方|开始前的标题和玩法|시작 전에 제목과 방법",
+  of_visual: "Cambia colori e sfondo|Changer les couleurs et le fond|Farben und Hintergrund ändern|Kleuren en achtergrond veranderen|色と背景を変える|改颜色和背景|색과 배경 바꾸기",
+  of_visual_sub: "Bianco e nero, modalità notte, una sola tinta...|Noir et blanc, mode nuit, une seule teinte...|Schwarzweiß, Nachtmodus, ein Farbton...|Zwart-wit, nachtmodus, één tint...|白黒、夜モード、ひとつの色合い…|黑白、夜间模式、单一色调……|흑백, 밤 모드, 한 가지 색조...",
+  of_girar: "Avviso per ruotare lo schermo|Avis pour tourner l'écran|Hinweis zum Drehen des Bildschirms|Bericht om het scherm te draaien|画面を回す案内|翻转屏幕提示|화면 돌리기 안내",
+  of_girar_sub: "Il tuo gioco è orizzontale: sul telefono in verticale appare un'animazione|Ton jeu est en paysage : sur un téléphone en portrait une animation apparaît|Dein Spiel ist im Querformat: auf einem hochkant gehaltenen Handy erscheint eine Animation|Je spel is liggend: op een staande telefoon verschijnt een animatie|横向きのゲーム：縦持ちのときアニメーションが出ます|你的游戏是横屏：手机竖着拿时会出现动画|가로 화면 게임: 세로로 들면 애니메이션이 나와요",
+  of_conquistas: "Medaglie con coriandoli|Médailles avec confettis|Medaillen mit Konfetti|Medailles met confetti|紙ふぶきつきのメダル|带彩纸的奖牌|종이꽃가루 메달",
+  of_conquistas_sub: "Bronzo, argento, oro... in base ai punti|Bronze, argent, or... selon les points|Bronze, Silber, Gold... nach Punkten|Brons, zilver, goud... op basis van punten|ブロンズ・シルバー・ゴールド…点数に応じて|铜牌、银牌、金牌……按分数|동, 은, 금... 점수에 따라"
+};
+Object.keys(TXL_DADOS).forEach(function(k){
+  var p = TXL_DADOS[k].split('|');
+  LINGUAS_EXTRA.forEach(function(l, i){ (TXL[l] = TXL[l] || {})[k] = p[i]; });
+});
+/* ---------------- 19b) respostas das ações (it | fr | de | nl | ja | zh | ko) ---------------- */
+var TXL_DADOS2 = {
+  md_filtro_ok: "Fatto! Ho reso il gioco {como}. Se non ti piace, di' «annulla» o «togli il filtro».|Voilà ! J'ai mis le jeu {como}. Si ça ne te plaît pas, dis « annule » ou « enlève le filtre ».|Fertig! Ich habe das Spiel {como} gemacht. Wenn es dir nicht gefällt, sag „rückgängig“ oder „Filter entfernen“.|Klaar! Ik heb het spel {como} gemaakt. Als je het niet mooi vindt, zeg „ongedaan maken” of „filter weghalen”.|できました！ゲームを{como}しました。気に入らなければ「元に戻して」か「フィルターをはずして」と言ってね。|好了！我把游戏弄成了{como}。不喜欢的话说“撤销”或“去掉滤镜”就行。|완료! 게임을 {como} 만들었어. 마음에 안 들면 '되돌려 줘'나 '필터 없애 줘'라고 말해.",
+  fl_pb: "in bianco e nero|en noir et blanc|schwarzweiß|zwart-wit|白黒に|黑白|흑백으로",
+  fl_sepia: "con look da foto antica (seppia)|avec un look de vieille photo (sépia)|im Look eines alten Fotos (Sepia)|met een oude-foto-look (sepia)|古い写真風（セピア）に|老照片风格（深褐色）|옛날 사진 느낌(세피아)으로",
+  fl_invert: "con i colori invertiti|avec les couleurs inversées|mit invertierten Farben|met omgekeerde kleuren|色を反転|颜色反转|색을 뒤집은 모양으로",
+  fl_noite: "in modalità notte (più scuro)|en mode nuit (plus sombre)|im Nachtmodus (dunkler)|in nachtmodus (donkerder)|夜モード（暗め）に|夜间模式（更暗）|밤 모드(더 어둡게)로",
+  fl_claro: "più chiaro e luminoso|plus clair et lumineux|heller und leuchtender|lichter en helderder|明るく|更亮更明快|더 밝게",
+  fl_colorido: "con colori molto più vivaci|avec des couleurs bien plus vives|mit viel lebendigeren Farben|met veel levendigere kleuren|色をとても鮮やかに|颜色更鲜艳|색을 훨씬 선명하게",
+  fl_giro: "con i toni dei colori cambiati|avec les tons de couleur changés|mit verschobenen Farbtönen|met veranderde kleurtinten|色合いをちがうものに|颜色色调变了|색조를 바꿔서",
+  fl_tom: "con una tinta {cor}|avec une teinte {cor}|mit Farbton: {cor}|met tint: {cor}|{cor}の色合いに|{cor}色调|{cor} 색조로",
+  md_filtro_tirou: "Ho tolto il filtro: i colori del gioco sono tornati normali.|J'ai enlevé le filtre : les couleurs du jeu sont redevenues normales.|Ich habe den Filter entfernt: Die Farben des Spiels sind wieder normal.|Ik heb het filter weggehaald: de kleuren van het spel zijn weer normaal.|フィルターをはずしました。色がもとにもどりました。|我去掉了滤镜，游戏颜色恢复正常。|필터를 없앴어. 게임 색이 원래대로 돌아왔어.",
+  md_fundo_ok: "Fatto! Ho cambiato lo sfondo in {cor}.|Voilà ! J'ai changé le fond en {cor}.|Fertig! Ich habe den Hintergrund auf {cor} geändert.|Klaar! Ik heb de achtergrond veranderd naar {cor}.|できました！背景を{cor}にしました。|好了！我把背景改成了{cor}。|완료! 배경을 {cor}(으)로 바꿨어.",
+  md_qual_cor: "Che colore vuoi? Puoi dire il nome (blu, verde, rosa, nero...) o un codice come #ff8800.|Quelle couleur veux-tu ? Tu peux dire le nom (bleu, vert, rose, noir...) ou un code comme #ff8800.|Welche Farbe möchtest du? Du kannst den Namen sagen (blau, grün, rosa, schwarz...) oder einen Code wie #ff8800.|Welke kleur wil je? Je kunt de naam zeggen (blauw, groen, roze, zwart...) of een code zoals #ff8800.|どの色にする？名前（青、緑、ピンク、黒…）か、#ff8800のようなコードでもOK。|你想要什么颜色？可以说名字（蓝、绿、粉、黑……）或像 #ff8800 这样的代码。|어떤 색으로 할까? 이름(파랑, 초록, 분홍, 검정...)이나 #ff8800 같은 코드로 말해 줘.",
+  cor_azul: "blu|bleu|blau|blauw|青|蓝色|파란색",
+  cor_verde: "verde|vert|grün|groen|緑|绿色|초록색",
+  cor_vermelho: "rosso|rouge|rot|rood|赤|红色|빨간색",
+  cor_rosa: "rosa|rose|rosa|roze|ピンク|粉色|분홍색",
+  cor_roxo: "viola|violet|lila|paars|紫|紫色|보라색",
+  cor_preto: "nero|noir|schwarz|zwart|黒|黑色|검은색",
+  cor_branco: "bianco|blanc|weiß|wit|白|白色|흰색",
+  cor_amarelo: "giallo|jaune|gelb|geel|黄色|黄色|노란색",
+  cor_laranja: "arancione|orange|orange|oranje|オレンジ|橙色|주황색",
+  cor_marrom: "marrone|marron|braun|bruin|茶色|棕色|갈색",
+  cor_cinza: "grigio|gris|grau|grijs|灰色|灰色|회색",
+  cor_dourado: "oro|doré|golden|goud|金色|金色|금색",
+  md_painel_ok: "Fatto! Ho aggiunto al gioco: {lista}.{dica}|Voilà ! J'ai ajouté au jeu : {lista}.{dica}|Fertig! Ich habe dem Spiel hinzugefügt: {lista}.{dica}|Klaar! Ik heb aan het spel toegevoegd: {lista}.{dica}|できました！ゲームに追加しました：{lista}。{dica}|好了！我给游戏加上了：{lista}。{dica}|완료! 게임에 넣었어: {lista}.{dica}",
+  pn_pausa: "un pulsante di pausa (funziona anche con il tasto P o Esc)|un bouton pause (il marche aussi avec la touche P ou Échap)|einen Pause-Button (geht auch mit der Taste P oder Esc)|een pauzeknop (werkt ook met de toets P of Esc)|ポーズボタン（Pキーか Escでも使えます）|暂停按钮（按P键或Esc键也可以）|일시정지 버튼 (P 키나 Esc로도 돼요)",
+  pn_reiniciar: "un pulsante di riavvio|un bouton redémarrer|einen Neustart-Button|een herstartknop|やり直しボタン|重新开始按钮|다시 시작 버튼",
+  pn_som: "un pulsante audio (on/off)|un bouton son (marche/arrêt)|einen Ton-Button (an/aus)|een geluidsknop (aan/uit)|音のオン/オフボタン|声音开关按钮|소리 켜고 끄는 버튼",
+  pn_inicio: "una schermata iniziale con il pulsante «Gioca»|un écran d'accueil avec le bouton « Jouer »|einen Startbildschirm mit dem Button „Spielen“|een startscherm met de knop „Spelen”|「あそぶ」ボタンのスタート画面|带“开始”按钮的开始画面|'시작' 버튼이 있는 시작 화면",
+  pn_cronometro: "un cronometro in alto sullo schermo|un chronomètre en haut de l'écran|eine Stoppuhr oben am Bildschirm|een stopwatch bovenaan het scherm|画面の上のストップウォッチ|屏幕上方的计时器|화면 위쪽의 타이머",
+  md_painel_dica_botoes: " I pulsanti sono in alto a destra. Se coprono qualcosa, di': «metti i pulsanti nell'angolo in basso».| Les boutons sont en haut à droite. S'ils cachent quelque chose, dis : « mets les boutons dans le coin du bas ».| Die Buttons sind oben rechts. Wenn sie etwas verdecken, sag: „Buttons in die untere Ecke“.| De knoppen staan rechtsboven. Als ze iets bedekken, zeg: „zet de knoppen in de hoek onderaan”.|ボタンは右上にあります。じゃまなら「ボタンを下のすみに動かして」と言ってね。|按钮在右上角。如果挡住了东西，就说“把按钮放到下面的角落”。|버튼은 오른쪽 위에 있어. 가리는 게 있으면 '버튼을 아래쪽 구석으로 옮겨 줘'라고 말해.",
+  md_painel_tirou: "Fatto, ho tolto: {lista}.|Voilà, j'ai enlevé : {lista}.|Fertig, ich habe entfernt: {lista}.|Klaar, ik heb weggehaald: {lista}.|{lista}を外しました。|好了，我去掉了：{lista}。|{lista}을(를) 뺐어.",
+  md_musica_ok: "Fatto! Ora il gioco ha una musica {estilo}, creata dentro il gioco (nessun file). Parte al primo tocco e il pulsante audio nell'angolo la accende e la spegne.|Voilà ! Le jeu a maintenant une musique {estilo}, créée dans le jeu lui-même (sans fichier). Elle démarre au premier toucher et le bouton son dans le coin l'active ou la coupe.|Fertig! Das Spiel hat jetzt Musik im Stil „{estilo}“, im Spiel selbst erzeugt (ohne Dateien). Sie startet beim ersten Tippen, und der Ton-Button in der Ecke schaltet sie ein und aus.|Klaar! Het spel heeft nu een {estilo} muziek, gemaakt in het spel zelf (zonder bestanden). Ze start bij de eerste tik en de geluidsknop in de hoek zet haar aan en uit.|できました！ゲームに{estilo}BGMがつきました（ファイル不要）。最初のタップで始まり、すみの音ボタンでオン/オフできます。|好了！游戏现在有了一段{estilo}的音乐，由游戏自己生成（没有文件）。第一次点击时开始播放，角落的声音按钮可以开关。|완료! 게임에 {estilo} 음악이 생겼어 (파일 없이 게임 안에서 만들어져). 처음 터치할 때 시작하고, 구석의 소리 버튼으로 켜고 끌 수 있어.",
+  md_musica_q: "Che tipo di musica vuoi? Allegra, calma, di suspense, d'avventura, spaziale o retrò?|Quel genre de musique veux-tu ? Joyeuse, calme, de suspense, d'aventure, spatiale ou rétro ?|Welche Art von Musik möchtest du? Fröhlich, ruhig, spannend, abenteuerlich, Weltraum oder Retro?|Wat voor muziek wil je? Vrolijk, rustig, spannend, avontuurlijk, ruimte of retro?|どんな音楽にする？明るい、静か、ドキドキ、冒険、宇宙、レトロ。|你想要哪种音乐？欢快、平静、悬疑、冒险、太空还是复古？|어떤 음악으로 할까? 밝은, 차분한, 긴장감, 모험, 우주, 레트로 중에서 골라 줘.",
+  ms_alegre: "allegra|joyeuse|fröhlich|vrolijke|明るい|欢快|밝은",
+  ms_calma: "calma|calme|ruhig|rustige|静かな|平静|차분한",
+  ms_tensa: "di suspense|de suspense|spannend|spannende|ドキドキの|悬疑|긴장감 있는",
+  ms_aventura: "d'avventura|d'aventure|abenteuerlich|avontuurlijke|冒険の|冒险|모험",
+  ms_espacial: "spaziale|spatiale|Weltraum|ruimte-achtige|宇宙の|太空|우주",
+  ms_retro: "retrò (8 bit)|rétro (8 bits)|Retro (8-Bit)|retro (8-bit)|レトロ（8ビット）|复古（8位）|레트로(8비트)",
+  md_num_ok: "Fatto! {lista}|Voilà ! {lista}|Fertig! {lista}|Klaar! {lista}|できました！{lista}|好了！{lista}|완료! {lista}",
+  md_num_linha: "Ho cambiato «{nome}»: da {de} a {para}.|J'ai changé « {nome} » : de {de} à {para}.|Ich habe „{nome}“ geändert: von {de} auf {para}.|Ik heb „{nome}” veranderd: van {de} naar {para}.|「{nome}」を{de}から{para}に変えました。|我把“{nome}”从{de}改成了{para}。|'{nome}'을(를) {de}에서 {para}(으)로 바꿨어.",
+  md_num_nao: "Non trovo nel codice dove si trova {oque}. Se mi dici il nome della variabile, la modifico.|Je ne trouve pas dans le code où se trouve {oque}. Si tu me donnes le nom de la variable, je la modifie.|Ich finde im Code nicht, wo {oque} steht. Wenn du mir den Variablennamen sagst, ändere ich sie.|Ik vind in de code niet waar {oque} staat. Als je me de naam van de variabele zegt, pas ik hem aan.|コードの中で{oque}がどこにあるか見つかりませんでした。変数の名前を教えてくれたら変えます。|我在代码里找不到{oque}在哪里。告诉我变量名，我就能改。|코드에서 {oque}이(가) 어디 있는지 못 찾았어. 변수 이름을 알려 주면 바꿀게.",
+  nm_vidas: "le vite|les vies|die Leben|de levens|ライフ|生命|생명",
+  nm_velocidade: "la velocità|la vitesse|das Tempo|de snelheid|スピード|速度|속도",
+  nm_pulo: "il salto|le saut|der Sprung|de sprong|ジャンプ|跳跃|점프",
+  nm_gravidade: "la gravità|la gravité|die Schwerkraft|de zwaartekracht|重力|重力|중력",
+  nm_tempo: "il tempo|le temps|die Zeit|de tijd|時間|时间|시간",
+  nm_municao: "le munizioni|les munitions|die Munition|de munitie|弾|弹药|탄약",
+  nm_dano: "il danno|les dégâts|der Schaden|de schade|ダメージ|伤害|피해",
+  md_dif_ok: "Fatto! Ho reso il gioco più {como}. {lista}|Voilà ! J'ai rendu le jeu plus {como}. {lista}|Fertig! Ich habe das Spiel {como} gemacht. {lista}|Klaar! Ik heb het spel {como} gemaakt. {lista}|できました！ゲームをもっと{como}しました。{lista}|好了！我把游戏变得更{como}了。{lista}|완료! 게임을 더 {como} 만들었어. {lista}",
+  df_dificil_nome: "difficile|difficile|schwerer|moeilijker|むずかしく|难|어렵게",
+  df_facil_nome: "facile|facile|leichter|makkelijker|かんたんに|简单|쉽게",
+  md_trad_q: "In quale lingua? Portoghese, inglese o spagnolo?|Dans quelle langue ? Portugais, anglais ou espagnol ?|In welche Sprache? Portugiesisch, Englisch oder Spanisch?|In welke taal? Portugees, Engels of Spaans?|どの言語にする？ポルトガル語、英語、スペイン語。|翻译成哪种语言？葡萄牙语、英语还是西班牙语？|어떤 언어로 할까? 포르투갈어, 영어, 스페인어 중에서 골라 줘.",
+  md_trad_ok: "Fatto! Ho tradotto {n} testo/i del gioco in {lingua}. I testi che non conosco sono rimasti come prima e puoi chiedermi di cambiarne uno: sostituisci «testo vecchio» con «testo nuovo».|Voilà ! J'ai traduit {n} texte(s) du jeu en {lingua}. Les textes que je ne connais pas sont restés tels quels, et tu peux me demander d'en changer un : remplace « ancien texte » par « nouveau texte ».|Fertig! Ich habe {n} Text(e) des Spiels ins {lingua} übersetzt. Texte, die ich nicht kenne, blieben unverändert, und du kannst mich bitten, einen zu ändern: ersetze „alter Text“ durch „neuer Text“.|Klaar! Ik heb {n} tekst(en) van het spel naar het {lingua} vertaald. Teksten die ik niet ken zijn gelaten zoals ze waren en je kunt me vragen er een te veranderen: vervang „oude tekst” door „nieuwe tekst”.|ゲームの文字を{n}か所、{lingua}に翻訳しました。知らない文字はそのままです。「古い文字」を「新しい文字」に変えて、と言えば自分で直せます。|我把游戏里的{n}处文字翻译成了{lingua}。我不认识的文字保持原样，你也可以让我替换：把“旧文字”换成“新文字”。|게임 글자 {n}곳을 {lingua}(으)로 번역했어. 모르는 글자는 그대로 뒀고, '옛 글자'를 '새 글자'로 바꿔 줘라고 하면 바꿔 줄게.",
+  lg_pt: "portoghese|portugais|Portugiesische|Portugees|ポルトガル語|葡萄牙语|포르투갈어",
+  lg_en: "inglese|anglais|Englische|Engels|英語|英语|영어",
+  lg_es: "spagnolo|espagnol|Spanische|Spaans|スペイン語|西班牙语|스페인어",
+  md_troca_ok: "Fatto! Ho sostituito «{de}» con «{para}» ({n} posto/i).|Voilà ! J'ai remplacé « {de} » par « {para} » ({n} endroit(s)).|Fertig! Ich habe „{de}“ durch „{para}“ ersetzt ({n} Stelle(n)).|Klaar! Ik heb „{de}” vervangen door „{para}” ({n} plek(ken)).|「{de}」を「{para}」に変えました（{n}か所）。|好了！我把“{de}”换成了“{para}”（{n}处）。|'{de}'을(를) '{para}'(으)로 바꿨어 ({n}곳).",
+  md_hud_ok: "Fatto! Ora i punti compaiono sullo schermo, in alto a sinistra (uso la variabile «{v}» del tuo gioco).|Voilà ! Les points s'affichent maintenant à l'écran, en haut à gauche (j'utilise la variable « {v} » de ton jeu).|Fertig! Die Punkte erscheinen jetzt auf dem Bildschirm, oben links (ich nutze die Variable „{v}“ deines Spiels).|Klaar! De punten staan nu op het scherm, linksboven (ik gebruik de variabele „{v}” van je spel).|できました！得点が画面の左上に出ます（ゲームの変数「{v}」を使っています）。|好了！现在分数会显示在屏幕左上角（我用的是你游戏里的变量“{v}”）。|완료! 이제 점수가 화면 왼쪽 위에 나와 (게임의 변수 '{v}'를 써).",
+  on_ok_direto: "Fatto! Ho reso il tuo gioco online nel modo possibile senza rompere nulla: chi gioca lo stesso gioco nella stessa stanza di Koda vede i punti di tutti dal vivo (uso la variabile «{v}») e il gioco compare sulle panchine della Piazza. Vedere gli altri personaggi nella stessa scena (vero multiplayer) cambia tutta la logica del gioco: per quello preparo la richiesta per l'IA che ha fatto il gioco.|Voilà ! J'ai mis ton jeu en ligne comme je peux sans rien casser : ceux qui jouent au même jeu dans la même salle Koda voient les points de tous en direct (j'utilise la variable « {v} ») et le jeu apparaît sur les bancs de la Place. Voir les autres personnages dans la même scène (vrai multijoueur) change toute la logique du jeu : pour ça, je prépare la demande pour l'IA qui a fait le jeu.|Fertig! Ich habe dein Spiel so online gemacht, wie es ohne etwas kaputt zu machen geht: Wer dasselbe Spiel im selben Koda-Raum spielt, sieht die Punkte aller live (ich nutze die Variable „{v}“), und das Spiel erscheint auf den Bänken der Plaza. Die anderen Figuren in derselben Szene zu sehen (echter Multiplayer) ändert die ganze Spiellogik: dafür schreibe ich die Anfrage für die KI, die das Spiel gemacht hat.|Klaar! Ik heb je spel online gemaakt voor zover dat kan zonder iets kapot te maken: wie hetzelfde spel in dezelfde Koda-kamer speelt, ziet ieders punten live (ik gebruik de variabele „{v}”) en het spel verschijnt op de bankjes van het Plein. De andere personages in hetzelfde tafereel zien (echte multiplayer) verandert de hele spellogica: daarvoor schrijf ik het verzoek voor de AI die het spel maakte.|ゲームを、こわさずにできる形でオンラインにしました。同じKodaの部屋で同じゲームを遊ぶ人の得点がリアルタイムで見え（変数「{v}」を使っています）、広場のベンチにも出ます。ほかのキャラを同じ場面で見る（本物のマルチプレイ）にはゲーム全体の作り直しが必要なので、ゲームを作ったAIへのお願い文を作ります。|我用不会弄坏游戏的方式让它联网了：在同一个Koda房间玩同一款游戏的人能实时看到大家的分数（我用的是变量“{v}”），游戏也会出现在广场的长椅上。要在同一个场景里看到其他角色（真正的多人游戏）需要改动整个游戏逻辑：这需要我为做这个游戏的AI写一份请求。|게임을 망가뜨리지 않는 선에서 온라인으로 만들었어. 같은 Koda 방에서 같은 게임을 하는 사람들의 점수를 실시간으로 볼 수 있고(변수 '{v}'를 써), 광장 벤치에도 나와. 같은 장면에서 다른 캐릭터를 보는 진짜 멀티플레이는 게임 전체를 바꿔야 해서, 게임을 만든 AI에게 보낼 요청을 만들어 줄게.",
+  on_ok_sem_var: "Fatto! Ho reso il tuo gioco online: entra in una stanza di Koda (fino a 16 persone), mostra nell'angolo chi gioca insieme e i punti di ciascuno, e compare sulle panchine della Piazza. Non ho trovato la variabile dei punti, quindi la classifica usa ciò che il gioco manda alla classifica generale (KODA.pontuar).|Voilà ! J'ai mis ton jeu en ligne : il entre dans une salle Koda (jusqu'à 16 personnes), affiche dans le coin qui joue avec toi et les points de chacun, et apparaît sur les bancs de la Place. Je n'ai pas trouvé la variable des points, donc le tableau utilise ce que le jeu envoie au classement (KODA.pontuar).|Fertig! Ich habe dein Spiel online gemacht: Es betritt einen Koda-Raum (bis zu 16 Personen), zeigt in der Ecke, wer mitspielt, und die Punkte jedes Spielers, und erscheint auf den Bänken der Plaza. Ich habe die Punktevariable nicht gefunden, deshalb nutzt die Anzeige, was das Spiel an die Rangliste sendet (KODA.pontuar).|Klaar! Ik heb je spel online gemaakt: het gaat een Koda-kamer in (tot 16 personen), toont in de hoek wie meespeelt en ieders punten, en verschijnt op de bankjes van het Plein. Ik vond de puntenvariabele niet, dus het scorebord gebruikt wat het spel naar de ranglijst stuurt (KODA.pontuar).|ゲームをオンラインにしました。Kodaの部屋（最大16人）に入り、いっしょに遊ぶ人と全員の得点をすみに表示し、広場のベンチにも出ます。得点の変数が見つからなかったので、ゲームがランキングに送る得点（KODA.pontuar）を使います。|我让游戏联网了：它会进入一个Koda房间（最多16人），在角落显示一起玩的人和每个人的分数，也会出现在广场的长椅上。我没找到分数变量，所以排行榜用的是游戏发给排行榜的分数（KODA.pontuar）。|게임을 온라인으로 만들었어. Koda 방(최대 16명)에 들어가서, 같이 하는 사람과 모두의 점수를 구석에 보여 주고, 광장 벤치에도 나와. 점수 변수를 못 찾아서, 게임이 랭킹으로 보내는 점수(KODA.pontuar)를 사용해.",
+  gi_ok: "Fatto! Quando qualcuno apre il gioco su telefono o tablet in verticale, compare un'animazione di un telefono che si gira con «Gira lo schermo per giocare». Il gioco aspetta fermo finché lo giri. Sul computer l'avviso non compare.|Voilà ! Quand quelqu'un ouvre le jeu sur téléphone ou tablette en portrait, une animation d'un téléphone qui tourne apparaît avec « Tourne ton écran pour jouer ». Le jeu attend à l'arrêt jusqu'à ce qu'on le tourne. Sur ordinateur, l'avis n'apparaît pas.|Fertig! Wenn jemand das Spiel auf Handy oder Tablet hochkant öffnet, erscheint eine Animation eines sich drehenden Handys mit „Dreh den Bildschirm zum Spielen“. Das Spiel wartet angehalten, bis gedreht wird. Am Computer erscheint der Hinweis nicht.|Klaar! Als iemand het spel staand op een telefoon of tablet opent, verschijnt een animatie van een draaiende telefoon met „Draai je scherm om te spelen”. Het spel wacht stil tot je draait. Op een computer verschijnt het bericht niet.|スマホやタブレットを縦に持ってゲームを開くと、スマホが横に回るアニメーションと「画面を横にしてね」が出ます。画面を回すまでゲームは止まります。パソコンでは出ません。|有人用手机或平板竖着打开游戏时，会出现手机转成横屏的动画和“请把屏幕横过来玩”。在转屏之前游戏会暂停。在电脑上不会出现这个提示。|스마트폰이나 태블릿을 세로로 들고 게임을 열면 폰이 가로로 돌아가는 애니메이션과 '화면을 가로로 돌려서 하세요'가 나와. 화면을 돌릴 때까지 게임은 멈춰 있어. 컴퓨터에서는 안 나와.",
+  gi_ok_empe: "Fatto! Quando qualcuno apre il gioco su telefono o tablet in orizzontale, compare un'animazione di un telefono che si raddrizza con «Tieni lo schermo in verticale per giocare». Il gioco aspetta fermo finché lo giri.|Voilà ! Quand quelqu'un ouvre le jeu sur téléphone ou tablette en paysage, une animation d'un téléphone qui se redresse apparaît avec « Mets ton écran à la verticale pour jouer ». Le jeu attend à l'arrêt jusqu'à ce qu'on le tourne.|Fertig! Wenn jemand das Spiel auf Handy oder Tablet im Querformat öffnet, erscheint eine Animation eines sich aufrichtenden Handys mit „Halte den Bildschirm hochkant zum Spielen“. Das Spiel wartet angehalten, bis gedreht wird.|Klaar! Als iemand het spel liggend op een telefoon of tablet opent, verschijnt een animatie van een rechtop komende telefoon met „Houd je scherm rechtop om te spelen”. Het spel wacht stil tot je draait.|スマホやタブレットを横に持ってゲームを開くと、スマホが縦になるアニメーションと「画面を縦にしてね」が出ます。画面を回すまでゲームは止まります。|有人用手机或平板横着打开游戏时，会出现手机转成竖屏的动画和“请把屏幕竖过来玩”。在转屏之前游戏会暂停。|스마트폰이나 태블릿을 가로로 들고 게임을 열면 폰이 세로로 서는 애니메이션과 '화면을 세로로 세워서 하세요'가 나와. 화면을 돌릴 때까지 게임은 멈춰 있어.",
+  gi_percebi: "Ho notato una cosa: il tuo gioco è fatto per lo schermo {modo}, e su un telefono tenuto {outro} appare piccolo o tagliato. Vuoi che aggiunga un avviso con un'animazione che chiede di {acao} lo schermo?|J'ai remarqué quelque chose : ton jeu est fait pour un écran {modo}, et sur un téléphone tenu {outro} il apparaît petit ou coupé. Veux-tu que j'ajoute un avis avec une animation demandant de {acao} l'écran ?|Mir ist etwas aufgefallen: Dein Spiel ist für {modo} gemacht, und auf einem {outro} gehaltenen Handy wirkt es klein oder abgeschnitten. Soll ich einen Hinweis mit Animation einbauen, der bittet, den Bildschirm zu {acao}?|Ik zag iets: je spel is gemaakt voor een scherm {modo}, en op een telefoon die {outro} wordt gehouden ziet het er klein of afgeknipt uit. Zal ik een bericht met animatie toevoegen dat vraagt het scherm te {acao}?|気づいたことがあります。ゲームは{modo}の画面用で、{outro}に持つと小さく見えたり切れたりします。画面を{acao}ようにお願いするアニメーションつきの案内をつけましょうか？|我注意到：你的游戏是为{modo}屏幕做的，手机{outro}拿着时会显得很小或被截断。要不要我加一个带动画的提示，请大家{acao}？|한 가지 알아챘어. 게임이 {modo} 화면용인데, {outro}로 들면 작게 보이거나 잘려. 화면을 {acao} 달라고 하는 애니메이션 안내를 넣을까?",
+  gi_deitada: "orizzontale|paysage|Querformat|liggend|横向き|横向|가로",
+  gi_empe: "verticale|portrait|Hochformat|staand|縦向き|竖向|세로",
+  gi_outro_deitada: "in verticale|en portrait|hochkant|rechtop|縦|竖着|세로",
+  gi_outro_empe: "in orizzontale|en paysage|quer|liggend|横|横着|가로",
+  gi_acao_deitada: "ruotare|tourner|drehen|draaien|回す|把屏幕横过来|돌려",
+  gi_acao_empe: "raddrizzare|redresser|aufrichten|rechtop zetten|立てる|把屏幕竖过来|세워",
+  ad_ok: "Fatto! Ho dato al gioco il tocco Koda:|Voilà ! J'ai donné au jeu la touche Koda :|Fertig! Ich habe dem Spiel den Koda-Touch gegeben:|Klaar! Ik heb het spel de Koda-touch gegeven:|ゲームをKoda風にしました：|好了！我给游戏加上了Koda风格：|완료! 게임을 Koda 스타일로 만들었어:",
+  ad_viewport: "si adatta bene a telefoni e iPad|il s'adapte bien aux téléphones et iPad|passt gut auf Handys und iPads|past goed op telefoons en iPads|スマホやiPadにぴったり合います|在手机和iPad上大小合适|스마트폰과 iPad에 잘 맞아요",
+  ad_salvar: "i progressi (il percorso) restano salvati nell'account di chi gioca|la progression (le parcours) est sauvegardée dans le compte du joueur|der Fortschritt (die Reise) wird im Konto des Spielers gespeichert|de voortgang (de reis) wordt opgeslagen in het account van de speler|進行状況（ぼうけん）が遊ぶ人のアカウントに保存されます|进度（旅程）会保存在玩家账号里|진행 상황(여정)이 플레이어 계정에 저장돼요",
+  ad_skin: "chi gioca diventa il proprio personaggio Koda|le joueur devient son propre personnage Koda|der Spieler wird zu seinem eigenen Koda-Charakter|de speler wordt zijn eigen Koda-personage|遊ぶ人が自分のKodaキャラになります|玩家变成自己的Koda角色|플레이어가 자기 Koda 캐릭터가 돼요",
+  ad_pontuar: "i punti vanno alla classifica di Koda|les points vont au classement de Koda|die Punkte gehen an die Koda-Rangliste|de punten gaan naar de Koda-ranglijst|得点がKodaのランキングに送られます|分数会发到Koda排行榜|점수가 Koda 랭킹으로 가요",
+  ad_sons: "suoni creati dentro il gioco stesso|des sons créés dans le jeu lui-même|im Spiel selbst erzeugte Sounds|geluiden gemaakt in het spel zelf|ゲームの中で作った効果音|游戏自己生成的音效|게임 안에서 만든 효과음",
+  ad_girar: "avviso animato per ruotare lo schermo sul telefono|avis animé pour tourner l'écran sur téléphone|animierter Hinweis zum Drehen des Bildschirms am Handy|geanimeerd bericht om het scherm op telefoons te draaien|スマホで画面を回すアニメーション案内|手机上翻转屏幕的动画提示|폰에서 화면을 돌리라는 애니메이션 안내",
+  ad_nada: "Questo gioco è già ben adattato a Koda: non trovo nulla che io debba cambiare da solo.|Ce jeu est déjà bien adapté à Koda : je ne vois rien que je doive changer seul.|Dieses Spiel ist schon gut an Koda angepasst: Ich finde nichts, das ich allein ändern müsste.|Dit spel is al goed aangepast aan Koda: ik zie niets wat ik zelf moet veranderen.|このゲームはもうKodaによく合っています。私が変えることは見つかりません。|这个游戏已经很适合Koda了：我没发现需要自己改的地方。|이 게임은 이미 Koda에 잘 맞아. 내가 직접 바꿀 게 없어.",
+  ad_mais: "Vuoi altro? Posso aggiungere negozio, musica, pulsanti di pausa, schermata iniziale, medaglie...|Tu en veux plus ? Je peux ajouter boutique, musique, boutons pause, écran d'accueil, médailles...|Willst du mehr? Ich kann Shop, Musik, Pause-Buttons, Startbildschirm, Medaillen hinzufügen...|Wil je meer? Ik kan winkel, muziek, pauzeknoppen, startscherm en medailles toevoegen...|もっとほしい？ショップ、音楽、ポーズボタン、スタート画面、メダルなどを足せます。|还想要更多吗？我可以加商店、音乐、暂停按钮、开始画面、奖牌……|더 필요해? 상점, 음악, 일시정지 버튼, 시작 화면, 메달 등을 넣을 수 있어.",
+  ad_sugestao: "Sembra che questo gioco venga da un'altra IA (non usa ancora nulla di Koda). Vuoi che lo adatti a Koda? Aggiungo il tuo personaggio, la classifica, i progressi salvati e il resto che si può.|On dirait que ce jeu vient d'une autre IA (il n'utilise encore rien de Koda). Veux-tu que je l'adapte à Koda ? J'ajoute ton personnage, le classement, la progression sauvegardée et le reste possible.|Dieses Spiel scheint von einer anderen KI zu stammen (es nutzt noch nichts von Koda). Soll ich es an Koda anpassen? Ich baue deinen Charakter, die Rangliste, gespeicherten Fortschritt und was sonst geht ein.|Dit spel lijkt van een andere AI te komen (het gebruikt nog niets van Koda). Zal ik het aanpassen aan Koda? Ik voeg je personage, de ranglijst, opgeslagen voortgang en de rest toe.|このゲームはほかのAIが作ったみたいです（Kodaの機能はまだ使っていません）。Koda用に直しましょうか？あなたのキャラ、ランキング、保存など、できることを入れます。|这个游戏看起来来自其他AI（还没用到任何Koda功能）。要我把它改成适合Koda的吗？我会加上你的角色、排行榜、保存进度和其他能加的。|이 게임은 다른 AI가 만든 것 같아 (아직 Koda 기능을 안 써). Koda에 맞게 고칠까? 네 캐릭터, 랭킹, 진행 저장 같은 걸 넣어 줄게.",
+  oi_outra_ia: "Questo non so ancora farlo da solo qui dentro. Ma puoi chiederlo a un'altra IA (ChatGPT, Gemini, Claude...)! Ho già scritto la richiesta{com_codigo}: copiala e incollala lì. Quando ti restituisce il codice, incollalo qui nella casella e scrivimi «adatta a Koda»: lo preparo con lo stile Koda (il tuo personaggio, classifica, progressi salvati...).|Ça, je ne sais pas encore le faire seul ici. Mais tu peux le demander à une autre IA (ChatGPT, Gemini, Claude...) ! J'ai déjà écrit la demande{com_codigo} : copie-la et colle-la là-bas. Quand elle te renvoie le code, colle-le ici dans la case et écris-moi « adapte pour Koda » : je lui donne le style Koda (ton personnage, classement, progression sauvegardée...).|Das kann ich hier drin noch nicht allein. Aber du kannst eine andere KI (ChatGPT, Gemini, Claude...) darum bitten! Ich habe die Anfrage schon geschrieben{com_codigo}: kopiere sie und füge sie dort ein. Wenn sie dir den Code zurückgibt, füge ihn hier ins Feld ein und sag „an Koda anpassen“: Ich gebe ihm den Koda-Touch (dein Charakter, Rangliste, gespeicherter Fortschritt...).|Dat kan ik hier nog niet zelf. Maar je kunt het aan een andere AI vragen (ChatGPT, Gemini, Claude...)! Ik heb het verzoek al geschreven{com_codigo}: kopieer het en plak het daar. Als die de code teruggeeft, plak je hem hier in het vak en zeg je „pas aan voor Koda”: dan geef ik hem de Koda-touch (je personage, ranglijst, opgeslagen voortgang...).|これはまだここでは自分ではできません。でも、ほかのAI（ChatGPT、Gemini、Claudeなど）に頼めます！お願い文はもう作りました{com_codigo}。コピーして貼ってね。コードが返ってきたら、ここの枠に貼って「Koda用に直して」と言えば、Koda風（あなたのキャラ、ランキング、保存など）にします。|这个我还不能在这里自己做。但你可以请其他AI（ChatGPT、Gemini、Claude等）来做！我已经写好了请求{com_codigo}：复制后粘贴过去就行。它把代码发回来后，粘贴到这里的输入框，并对我说“改成适合Koda的”，我会给它加上Koda风格（你的角色、排行榜、保存进度……）。|이건 아직 여기서 혼자 못 해. 하지만 다른 AI(ChatGPT, Gemini, Claude 등)에게 부탁할 수 있어! 요청문은 이미 만들어 놨어{com_codigo}. 복사해서 거기에 붙여 넣어. 코드를 받으면 여기 칸에 붙여 넣고 'Koda에 맞게 고쳐 줘'라고 하면 Koda 스타일(네 캐릭터, 랭킹, 진행 저장...)로 만들어 줄게.",
+  oi_com_codigo_txt: " (con il codice del tuo gioco incluso)| (avec le code de ton jeu inclus)| (mit dem Code deines Spiels)| (met de code van je spel erbij)|（ゲームのコードつき）|（附上你的游戏代码）| (게임 코드도 같이)",
+  id_cat_q: "Andiamo! Che tipo di idea vuoi?|C'est parti ! Quel type d'idée veux-tu ?|Los geht's! Welche Art von Idee möchtest du?|Daar gaan we! Wat voor idee wil je?|いくよ！どんなアイデアがほしい？|开始吧！你想要哪种点子？|가자! 어떤 아이디어를 원해?",
+  id_titulo_cat: "Ecco 3 idee {cat}:|Voici 3 idées {cat} :|Hier sind 3 Ideen {cat}:|Hier zijn 3 ideeën {cat}:|{cat}アイデアを3つ：|这里有3个{cat}点子：|{cat} 아이디어 3개야:",
+  icn_ensina: "che insegnano qualcosa|qui apprennent quelque chose|die etwas beibringen|waar je iets van leert|学べる|能学到东西的|뭔가 배우는",
+  icn_historia: "con una storia|avec une histoire|mit Geschichte|met een verhaal|ストーリーつきの|带故事的|이야기가 있는",
+  icn_acao: "di azione e avventura|d'action et d'aventure|voller Action und Abenteuer|vol actie en avontuur|アクション・冒険の|动作冒险类的|액션과 모험",
+  icn_maluca: "divertenti e pazze|drôles et folles|lustige und verrückte|grappige en gekke|おもしろくて変な|搞笑又疯狂的|웃기고 엉뚱한",
+  icn_amigos: "da giocare con gli amici|à jouer avec des amis|zum Spielen mit Freunden|om met vrienden te spelen|友だちと遊ぶ|和朋友一起玩的|친구와 같이 하는",
+  icn_misterio: "di mistero|de mystère|voller Rätsel|vol mysterie|ミステリーの|悬疑类的|미스터리",
+  icn_surpresa: "molto diverse|très différentes|ganz verschiedene|heel verschillende|ぜんぜんちがう|很不一样的|서로 아주 다른",
+  id_escolhe2: "Ti piace qualcuna? Dimmi il numero e inizio, oppure chiedine altre.|Une te plaît ? Dis-moi le numéro et je commence, ou demande-en d'autres.|Gefällt dir eine? Sag mir die Nummer, dann fange ich an, oder frag nach anderen.|Is er een die je leuk vindt? Zeg het nummer en ik begin, of vraag om andere.|気に入ったのはある？番号を言ってくれたら始めるよ。ほかのも出せます。|有喜欢的吗？告诉我编号我就开始，也可以再要别的。|마음에 드는 거 있어? 번호를 말해 주면 시작할게. 다른 것도 보여 줄 수 있어.",
+  ik_loja: "Su Koda: puoi vendere poteri nel negozio|Sur Koda : tu peux vendre des pouvoirs dans la boutique|Auf Koda: Du kannst Kräfte im Shop verkaufen|Op Koda: je kunt krachten verkopen in de winkel|Kodaでは：ショップで能力を売れます|在Koda：可以在商店卖能力|Koda에서는: 상점에서 능력을 팔 수 있어요",
+  ik_online: "Su Koda: si gioca con gli amici nella stessa stanza|Sur Koda : on joue avec ses amis dans la même salle|Auf Koda: Man spielt mit Freunden im selben Raum|Op Koda: je speelt met vrienden in dezelfde kamer|Kodaでは：同じ部屋で友だちと遊べます|在Koda：可以和朋友在同一个房间玩|Koda에서는: 같은 방에서 친구와 해요",
+  ik_salvar: "Su Koda: il percorso resta salvato nell'account|Sur Koda : le parcours est sauvegardé dans le compte|Auf Koda: Die Reise wird im Konto gespeichert|Op Koda: de reis wordt opgeslagen in het account|Kodaでは：ぼうけんがアカウントに保存されます|在Koda：旅程会保存在账号里|Koda에서는: 여정이 계정에 저장돼요",
+  ik_skin: "Su Koda: l'eroe è il tuo personaggio|Sur Koda : le héros est ton personnage|Auf Koda: Der Held ist dein Charakter|Op Koda: de held is jouw personage|Kodaでは：主人公はあなたのキャラです|在Koda：主角就是你的角色|Koda에서는: 주인공이 내 캐릭터예요",
+  on_q: "Bene! Come vuoi fare questo gioco?|Super ! Comment veux-tu faire ce jeu ?|Gut! Wie möchtest du dieses Spiel machen?|Mooi! Hoe wil je dit spel maken?|いいね！このゲームをどうやって作る？|好的！你想怎么做这个游戏？|좋아! 이 게임을 어떻게 만들까?",
+  on_q_detalhe: "- Qui dentro: lo faccio subito dai miei modelli di gioco (corsa, volo, prendere cose, navicella, salti, memoria). È pronto da provare, con il tuo personaggio, classifica e record.\n- Con un'altra IA: scrivo una richiesta completa da incollare in ChatGPT, Gemini o Claude. Poi incolli qui il codice e lo adatto a Koda.|- Ici : je le fais tout de suite à partir de mes modèles de jeu (course, vol, attraper, vaisseau, sauts, mémoire). Il est prêt à tester, avec ton personnage, le classement et le record.\n- Avec une autre IA : j'écris une demande complète à coller dans ChatGPT, Gemini ou Claude. Ensuite tu colles ici le code et je l'adapte à Koda.|- Hier drin: Ich mache es sofort aus meinen Spielvorlagen (Lauf, Flug, Fangen, Raumschiff, Sprünge, Memory). Es ist bereit zum Testen, mit deinem Charakter, Rangliste und Rekord.\n- Mit einer anderen KI: Ich schreibe eine vollständige Anfrage zum Einfügen in ChatGPT, Gemini oder Claude. Dann fügst du den Code hier ein und ich passe ihn an Koda an.|- Hier: ik maak het meteen uit mijn spelmodellen (race, vliegen, vangen, ruimteschip, springen, memory). Het is klaar om te testen, met je personage, ranglijst en record.\n- Met een andere AI: ik schrijf een volledig verzoek om in ChatGPT, Gemini of Claude te plakken. Daarna plak je de code hier en ik pas hem aan voor Koda.|・ここで作る：私のゲームのひながた（ランナー、飛ぶ、つかむ、宇宙船、ジャンプ、神経衰弱）からすぐ作ります。あなたのキャラ、ランキング、ベストスコアつきでテストできます。\n・別のAIで作る：ChatGPT、Gemini、Claudeに貼れる完全なお願い文を作ります。コードが返ってきたらここに貼って、Koda用に直します。|・在这里做：我用自己的游戏模板（跑酷、飞行、接东西、飞船、跳跃、记忆）马上做好，带上你的角色、排行榜和最高分，可以直接测试。\n・用其他AI做：我写一份完整的请求，你粘贴到ChatGPT、Gemini或Claude。之后把代码粘贴到这里，我来改成适合Koda的。|- 여기에서 만들기: 내 게임 틀(달리기, 날기, 잡기, 우주선, 점프, 기억력)로 바로 만들어. 네 캐릭터, 랭킹, 최고 기록이 들어 있어서 바로 테스트할 수 있어.\n- 다른 AI로 만들기: ChatGPT, Gemini, Claude에 붙여 넣을 완전한 요청문을 써 줄게. 그다음 코드를 여기에 붙여 넣으면 Koda에 맞게 고쳐 줄게.",
+  mj_criado: "Fatto! Ho creato il gioco «{nome}» ({tipo}, tema {tema}): {desc}. {como}.|Voilà ! J'ai créé le jeu « {nome} » ({tipo}, thème {tema}) : {desc}. {como}.|Fertig! Ich habe das Spiel „{nome}“ erstellt ({tipo}, Thema {tema}): {desc}. {como}.|Klaar! Ik heb het spel „{nome}” gemaakt ({tipo}, thema {tema}): {desc}. {como}.|できました！ゲーム「{nome}」を作りました（{tipo}、テーマ：{tema}）：{desc}。{como}。|好了！我做好了游戏“{nome}”（{tipo}，主题：{tema}）：{desc}。{como}。|완료! 게임 '{nome}'을(를) 만들었어 ({tipo}, 테마: {tema}): {desc}. {como}.",
+  mj_vem_com: "Include già il tuo personaggio Koda come eroe, punti in classifica, record salvato nell'account, suoni e schermate di inizio e fine. Tocca «Prova» per giocare!|Il vient déjà avec ton personnage Koda comme héros, des points au classement, le record sauvegardé dans le compte, des sons et des écrans de début et de fin. Touche « Teste » pour jouer !|Es enthält schon deinen Koda-Charakter als Helden, Punkte in der Rangliste, den im Konto gespeicherten Rekord, Sounds und Start- und Endbildschirme. Tippe auf „Teste“ zum Spielen!|Het bevat al je Koda-personage als held, punten in de ranglijst, record opgeslagen in het account, geluiden en begin- en eindschermen. Tik op „Test” om te spelen!|主人公はあなたのKodaキャラ、得点はランキングへ、ベストスコアはアカウントに保存、効果音とスタート・終了画面つきです。「テスト」を押して遊ぼう！|它已经带有你的Koda角色当主角、排行榜积分、保存在账号里的最高分、音效以及开始和结束画面。点“测试”就能玩！|주인공은 네 Koda 캐릭터이고, 점수는 랭킹에 가고, 최고 기록은 계정에 저장돼. 소리와 시작·끝 화면도 있어. '테스트'를 눌러서 해 봐!",
+  mj_qual_tipo: "Che tipo di gioco vuoi? So fare questi:|Quel type de jeu veux-tu ? Je sais faire ceux-ci :|Welche Art von Spiel möchtest du? Diese kann ich machen:|Wat voor spel wil je? Deze kan ik maken:|どんなゲームにする？これが作れます：|你想要哪种游戏？我会做这些：|어떤 게임을 원해? 이런 걸 만들 수 있어:",
+  cq_ok: "Fatto! Ora il gioco dà medaglie (bronzo, argento, oro, diamante e leggenda) con coriandoli e un piccolo suono di festa. Iniziano intorno a {lista} punti e nei primi secondi di gioco le adatto al ritmo di punti del tuo gioco.|Voilà ! Le jeu donne maintenant des médailles (bronze, argent, or, diamant et légende) avec des confettis et un petit son de fête. Elles commencent vers {lista} points, et dans les premières secondes de jeu je les adapte au rythme de points de ton jeu.|Fertig! Das Spiel vergibt jetzt Medaillen (Bronze, Silber, Gold, Diamant und Legende) mit Konfetti und einem kleinen Jubelton. Sie beginnen bei etwa {lista} Punkten, und in den ersten Spielsekunden passe ich sie an das Punktetempo deines Spiels an.|Klaar! Het spel geeft nu medailles (brons, zilver, goud, diamant en legende) met confetti en een klein feestgeluid. Ze beginnen rond {lista} punten en in de eerste seconden van het spel pas ik ze aan op het punttempo van je spel.|ゲームがメダル（ブロンズ、シルバー、ゴールド、ダイヤ、伝説）をくれるようになりました。紙ふぶきとお祝いの音つきです。{lista}点あたりから始まり、最初の数秒でゲームの得点ペースに合わせて調整します。|游戏现在会发奖牌了（铜、银、金、钻石和传奇），带彩纸和庆祝音效。大约从{lista}分开始，游戏开始的几秒里我会按你游戏的得分速度调整。|이제 게임이 메달(동, 은, 금, 다이아, 전설)을 줘. 종이꽃가루와 축하 소리도 나와. {lista}점쯤부터 시작하고, 게임을 시작한 처음 몇 초 동안 게임의 점수 속도에 맞게 조정해.",
+  sg_intro: "Ci sono tante cose per rendere il gioco ancora più bello. Vuoi {lista}?|Il y a plein de choses pour le rendre encore plus génial. Tu veux {lista} ?|Es gibt viele Möglichkeiten, es noch besser zu machen. Möchtest du {lista}?|Er zijn veel manieren om het nog geweldiger te maken. Wil je {lista}?|もっとすごくする方法がたくさんあります。{lista}はどう？|还有很多办法让它更棒。你想要{lista}吗？|더 멋지게 만들 방법이 많아. {lista}은(는) 어때?",
+  sg_ou: " o | ou | oder | of | か | 或者 | 아니면 ",
+  sg_salvar: "salvare i progressi|sauvegarder la progression|den Fortschritt speichern|de voortgang opslaan|進行状況の保存|保存进度|진행 저장",
+  sg_loja: "un sistema di negozio|une boutique|ein Shop-System|een winkelsysteem|ショップ|商店系统|상점 시스템",
+  sg_loja_mudar: "cambiare il negozio|modifier la boutique|den Shop ändern|de winkel aanpassen|ショップの変更|修改商店|상점 바꾸기",
+  sg_skin: "giocare con il tuo personaggio Koda|jouer avec ton personnage Koda|mit deinem Koda-Charakter zu spielen|met je Koda-personage te spelen|自分のKodaキャラで遊ぶこと|用你的Koda角色来玩|내 Koda 캐릭터로 하기",
+  sg_pontuar: "i punti in classifica|les points au classement|die Punkte in der Rangliste|de punten in de ranglijst|ランキングへの得点|排行榜积分|랭킹 점수",
+  sg_online: "giocare online con gli amici|jouer en ligne avec des amis|online mit Freunden zu spielen|online met vrienden te spelen|友だちとオンラインで遊ぶこと|和朋友联网玩|친구와 온라인으로 하기",
+  sg_sons: "i suoni|les sons|Sounds|geluiden|効果音|音效|효과음",
+  sg_musica: "musica di sottofondo|de la musique de fond|Hintergrundmusik|achtergrondmuziek|BGM|背景音乐|배경 음악",
+  sg_botoes: "pulsanti di pausa e audio|des boutons pause et son|Pause- und Ton-Buttons|pauze- en geluidsknoppen|ポーズと音のボタン|暂停和声音按钮|일시정지와 소리 버튼",
+  sg_inicio: "una schermata iniziale|un écran d'accueil|einen Startbildschirm|een startscherm|スタート画面|开始画面|시작 화면",
+  sg_visual: "cambiare i colori|changer les couleurs|die Farben zu ändern|de kleuren te veranderen|色を変えること|改颜色|색 바꾸기",
+  sg_girar: "un avviso per ruotare lo schermo|un avis pour tourner l'écran|einen Hinweis zum Drehen des Bildschirms|een bericht om het scherm te draaien|画面を回す案内|翻转屏幕提示|화면 돌리기 안내",
+  sg_conquistas: "medaglie con coriandoli|des médailles avec confettis|Medaillen mit Konfetti|medailles met confetti|紙ふぶきメダル|带彩纸的奖牌|종이꽃가루 메달"
+};
+Object.keys(TXL_DADOS2).forEach(function(k){
+  var p = TXL_DADOS2[k].split('|');
+  LINGUAS_EXTRA.forEach(function(l, i){ (TXL[l] = TXL[l] || {})[k] = p[i]; });
+});
+var TXL_DADOS3 = {
+  ch_tirar_filtro: "Togli il filtro|Enlever le filtre|Filter entfernen|Filter weghalen|フィルターをはずす|去掉滤镜|필터 없애기",
+  ch_som_botao: "Aggiungi pulsante audio|Ajouter un bouton son|Ton-Button hinzufügen|Geluidsknop toevoegen|音ボタンをつける|加声音按钮|소리 버튼 넣기",
+  ch_inicio: "Aggiungi schermata iniziale|Ajouter un écran d'accueil|Startbildschirm hinzufügen|Startscherm toevoegen|スタート画面をつける|加开始画面|시작 화면 넣기",
+  ch_mais: "Di più|Plus|Mehr|Meer|もっと|更多|더",
+  ch_menos: "Di meno|Moins|Weniger|Minder|少なく|更少|덜",
+  ch_bt_pausa: "Pausa|Pause|Pause|Pauze|ポーズ|暂停|일시정지",
+  ch_bt_reiniciar: "Riavvia|Redémarrer|Neustart|Opnieuw starten|やり直し|重新开始|다시 시작",
+  ch_bt_som: "Audio|Son|Ton|Geluid|音|声音|소리",
+  ch_bt_todos: "Tutti|Tous|Alle|Alle|ぜんぶ|全部|모두",
+  ch_v_pb: "Bianco e nero|Noir et blanc|Schwarzweiß|Zwart-wit|白黒|黑白|흑백",
+  ch_v_cores: "Più colorato|Plus coloré|Bunter|Kleurrijker|もっとカラフル|更多彩|더 알록달록",
+  ch_v_noite: "Modalità notte|Mode nuit|Nachtmodus|Nachtmodus|夜モード|夜间模式|밤 모드",
+  ch_v_fundo: "Cambia lo sfondo|Changer le fond|Hintergrund ändern|Achtergrond veranderen|背景を変える|改背景|배경 바꾸기",
+  ch_v_azul: "Tutto blu|Tout en bleu|Alles blau|Alles blauw|ぜんぶ青|全部变蓝|전부 파랑",
+  ch_efeito_vida: "Vita extra|Vie en plus|Extraleben|Extra leven|ライフ追加|额外生命|생명 추가",
+  ch_efeito_vel: "Più velocità|Plus de vitesse|Mehr Tempo|Meer snelheid|スピードアップ|加速|속도 올리기",
+  ch_efeito_pulo: "Salto più alto|Saut plus haut|Höherer Sprung|Hogere sprong|高くジャンプ|跳得更高|더 높이 점프",
+  ch_efeito_cor: "Colori neon|Couleurs néon|Neonfarben|Neonkleuren|ネオンカラー|霓虹色|네온 색"
+};
+Object.keys(TXL_DADOS3).forEach(function(k){
+  var p = TXL_DADOS3[k].split('|');
+  LINGUAS_EXTRA.forEach(function(l, i){ (TXL[l] = TXL[l] || {})[k] = p[i]; });
+});
+var TXL_DADOS4 = {
+  ui_ph: "Dì a {agente} cosa hai in mente...|Dis à {agente} ce que tu as en tête...|Sag {agente}, was du vorhast...|Vertel {agente} wat je in gedachten hebt...|{agente}に思っていることを話してね…|告诉{agente}你在想什么……|{agente}에게 생각하는 걸 말해 줘...",
+  ui_enviar: "Invia|Envoyer|Senden|Versturen|送信|发送|보내기",
+  ui_desfazer: "Annulla l'ultima modifica|Annuler la dernière modification|Letzte Änderung rückgängig machen|Laatste wijziging ongedaan maken|最後の変更を元に戻す|撤销上一次修改|마지막 변경 되돌리기",
+  ui_robo: "Il robot sta giocando al tuo gioco...|Le robot joue à ton jeu...|Der Roboter spielt dein Spiel...|De robot speelt je spel...|ロボットがゲームを遊んでいます…|机器人正在玩你的游戏……|로봇이 네 게임을 하는 중이야...",
+  ui_codigo_mudou: "L'Agente Koda ha cambiato il codice. Si può annullare.|L'Agent Koda a modifié le code. On peut annuler.|Der Koda-Agent hat den Code geändert. Das lässt sich rückgängig machen.|De Koda-agent heeft de code veranderd. Dit kan ongedaan worden gemaakt.|Kodaエージェントがコードを変更しました。元に戻せます。|Koda助手修改了代码，可以撤销。|Koda 에이전트가 코드를 바꿨어. 되돌릴 수 있어.",
+  ui_desfeito: "Ho rimesso il codice com'era.|J'ai remis le code comme avant.|Ich habe den Code wieder so gemacht, wie er war.|Ik heb de code teruggezet zoals hij was.|コードをもとにもどしました。|我把代码恢复成原来的样子了。|코드를 원래대로 돌려놨어.",
+  ui_copiar: "Copia|Copier|Kopieren|Kopiëren|コピー|复制|복사",
+  ui_copiado: "Copiato!|Copié !|Kopiert!|Gekopieerd!|コピーしました！|已复制！|복사했어요!",
+  ui_nao_copiou: "Non sono riuscito a copiare. Tieni premuto il testo e copialo.|Impossible de copier. Maintiens le texte et copie-le.|Kopieren hat nicht geklappt. Halte den Text gedrückt und kopiere ihn.|Kopiëren is niet gelukt. Houd de tekst ingedrukt en kopieer hem.|コピーできませんでした。文字を長押ししてコピーしてね。|没能复制。请长按文字后复制。|복사하지 못했어. 글자를 길게 눌러서 복사해 줘.",
+  ui_loja_tit: "Negozio del gioco|Boutique du jeu|Shop des Spiels|Winkel van het spel|ゲームのショップ|游戏商店|게임 상점",
+  ui_oferta_tit: "Non vorresti aggiungere qualcosa al tuo gioco?|Tu ne voudrais pas ajouter quelque chose à ton jeu ?|Möchtest du deinem Spiel etwas hinzufügen?|Wil je iets aan je spel toevoegen?|ゲームに何か足したくない？|要不要给你的游戏加点什么？|게임에 뭔가 더 넣어 보지 않을래?",
+  ui_oferta_sub: "Scegli un'opzione e dimmi come la vuoi.|Choisis une option et dis-moi comment tu la veux.|Wähle eine Option und sag mir, wie du es möchtest.|Kies een optie en vertel me hoe je het wilt.|選んで、どうしたいか教えてね。|选一个选项，告诉我你想怎么做。|하나를 고르고 어떻게 하고 싶은지 말해 줘.",
+  ui_oferta_publicar: "Pubblica comunque|Publier quand même|Trotzdem veröffentlichen|Toch publiceren|このまま公開する|直接发布|그냥 게시하기",
+  ui_oferta_agora_nao: "Non ora|Pas maintenant|Jetzt nicht|Nu niet|今はやめておく|现在不要|지금은 안 할래",
+  ui_dica: "Vuoi aggiungere qualcosa al tuo gioco?|Tu veux ajouter quelque chose à ton jeu ?|Möchtest du deinem Spiel etwas hinzufügen?|Wil je iets aan je spel toevoegen?|ゲームに何か足す？|想给游戏加点什么吗？|게임에 뭔가 넣고 싶어?",
+  ui_varias: "si compra più volte|s'achète plusieurs fois|mehrfach kaufbar|meerdere keren te koop|何度でも買える|可多次购买|여러 번 살 수 있어요"
+};
+Object.keys(TXL_DADOS4).forEach(function(k){
+  var p = TXL_DADOS4[k].split('|');
+  LINGUAS_EXTRA.forEach(function(l, i){ (TXL[l] = TXL[l] || {})[k] = p[i]; });
+});
 /* ---------------- o que o site usa ---------------- */
 return {
-  ligar: ligar, lingua: lingua, semear: semear, T: T,
+  ligar: ligar, lingua: lingua, semear: semear, T: T, TL: TL,
   novoEstado: novoEstado, saudar: saudar, responder: responder, depoisDoTeste: depoisDoTeste, comecarOpcao: comecarOpcao, opcoes: opcoesDeOferta,
   robo: function(id){ return '(' + kodaRoboNoJogo.toString() + ')(' + JSON.stringify(String(id)) + ');'; },
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
@@ -30220,7 +30760,7 @@ function abrirAgente(caixa, opts){
     conv.chips.forEach(c=>{
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ka-chip'; b.textContent = c.txt;
-      b.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); if(c.opcao) falarOpcao(c.opcao, c.txt); else falar(c.msg || c.txt); });
+      b.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); if(c.opcao) falarOpcao(c.opcao, c.txt); else falar(c.msg || c.txt, c.rot || null); });
       chipsEl.appendChild(b);
     });
     chipsEl.hidden = !conv.chips.length;
@@ -30275,10 +30815,10 @@ function abrirAgente(caixa, opts){
     ocupado = false; enviar.disabled = false;
     if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) try{ entrada.focus(); }catch(e){}
   }
-  function falar(txt){
+  function falar(txt, rotulo){
     txt = String(txt || '').trim().slice(0, 600);
     if(!txt) return Promise.resolve();
-    return executar(txt, ()=>KA.responder(conv.estado, txt, caixa.value));
+    return executar(rotulo || txt, ()=>KA.responder(conv.estado, txt, caixa.value));
   }
   /* uma opção da oferta ("Colocar uma loja"): o agente pergunta como a pessoa quer */
   function falarOpcao(id, txt){
@@ -30288,7 +30828,7 @@ function abrirAgente(caixa, opts){
   entrada.addEventListener('input', ajustarAltura);
   q('.ka-form').addEventListener('submit', e=>{ e.preventDefault(); playSound('click'); falar(entrada.value); });
   entrada.addEventListener('keydown', e=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); playSound('click'); falar(entrada.value); } });
-  btDesfazer.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); falar(KA.T('ch_desfazer')); });
+  btDesfazer.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); falar(KA.TL('pt', 'ch_desfazer'), KA.T('ch_desfazer')); });
   const fechar = ()=>{ conv.visto = caixa.value; document.removeEventListener('keydown', teclas); tela.classList.remove('show'); tela.style.pointerEvents = 'none'; setTimeout(()=>tela.remove(), 220); if(opts.aoFechar) opts.aoFechar(); };
   const teclas = e=>{ if(e.key === 'Escape' && tela.isConnected){ e.stopPropagation(); fechar(); } };
   document.addEventListener('keydown', teclas);
