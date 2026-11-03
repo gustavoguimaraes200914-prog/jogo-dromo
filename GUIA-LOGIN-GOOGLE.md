@@ -12,14 +12,26 @@ Isso faz a tela do Google dizer **"Continuar para Koda"**, com o logo, em vez do
 4. Preencha:
    - **Nome do app:** `Koda`
    - **E-mail de suporte do usuário:** o seu e-mail
-   - **Logotipo do app:** o ícone do Koda (PNG quadrado, até 1 MB)
+   - **Logotipo do app:** deixe em branco por enquanto (se enviar logo, o Google exige verificação do app, que demora dias)
    - **Domínio da página inicial do app:** o endereço do site (por exemplo `https://koda.gamersite.workers.dev`)
    - **Domínios autorizados:** adicione `gamersite.workers.dev` (e o seu domínio próprio, quando tiver)
    - **E-mail de contato do desenvolvedor:** o seu e-mail
-5. Salve. Se aparecer **"Status da publicação: Em teste"**, toque em **Publicar app** (assim qualquer pessoa pode entrar, não só quem você cadastrou).
-6. Se o Google pedir verificação do app, siga o assistente: para login simples (só nome, e-mail e foto), normalmente é rápido.
+5. Salve. Na parte **Público** (ou "Audience"), se estiver **"Em teste"**, toque em **Publicar app** / **Em produção**. Sem isso, só quem você cadastrou como testador consegue entrar.
+6. Para login simples (só nome, e-mail e foto), o Google não exige verificação. Se pedir, é porque foi enviado logo ou pediram outras permissões.
 
-Depois, abra o site em uma janela anônima e entre com o Google para ver o resultado.
+## Como saber se funcionou
+
+Abra o site em uma **janela anônima**, toque em entrar com o Google e olhe a frase da primeira tela do Google.
+- Antes: "Escolha uma conta para continuar em **jogodromo.firebaseapp.com**"
+- Depois: "Escolha uma conta para continuar em **Koda**"
+
+Às vezes o Google demora alguns minutos (até uma hora) para mostrar a mudança. Se você já estiver com o Google aberto no navegador, teste em janela anônima, porque o navegador guarda o texto antigo.
+
+## Se ainda aparecer o endereço antigo
+
+- Confira se o app está **Em produção** (e não "Em teste").
+- Confira se o projeto escolhido no alto do Google Cloud é o **jogodromo** (o mesmo do Firebase).
+- Tire uma captura da tela do Google e mande para mim: com ela eu vejo exatamente qual parte falta.
 
 ## O que ainda vai aparecer
 
