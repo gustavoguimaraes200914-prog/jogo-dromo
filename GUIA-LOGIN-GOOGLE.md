@@ -4,7 +4,7 @@ Quando a pessoa entra com o Google, aparece o endereço do projeto (`jogodromo.f
 
 ## O que dá para mudar agora (uns 5 minutos)
 
-Isso faz a tela do Google dizer **"Continuar para Koda"**, com o logo, em vez do endereço.
+Isso faz a tela do Google dizer **"Continuar para Koda"** em vez do endereço.
 
 1. Entre em https://console.cloud.google.com com a conta dona do projeto.
 2. No alto da página, escolha o projeto **jogodromo**.
