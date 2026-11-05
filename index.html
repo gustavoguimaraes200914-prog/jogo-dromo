@@ -1356,6 +1356,7 @@
   .kbs-btn.pres{background:linear-gradient(180deg,#ffb3d1,#ff7fae);color:#3a0a18;}
   .kbs-btn svg{width:1.2em !important;height:1.2em !important;vertical-align:-3px !important;}
   .kbs-dlg-x{margin-top:10px;padding:6px 12px;border:none;background:none;cursor:pointer;color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.92rem;text-decoration:underline;}
+  .ugc-denunciar{display:block;margin:2px auto 0;padding:4px 10px;border:none;background:none;cursor:pointer;color:#B3261E;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.82rem;opacity:.85;}
   .kbs-btn:focus-visible,.kbs-dlg-x:focus-visible{outline:3px solid #0b1650;outline-offset:2px;}
   .gift-sure{margin:2px 0 10px;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.98rem;color:inherit;}
   /* visitante (não existe mais o botão no login): aviso de "crie uma conta" e faixa na tela inicial */
@@ -14274,6 +14275,9 @@ async function postComment(gameId, text, parentId){
   if(!FIREBASE_ENABLED) return false;
   const user = fbAuth().currentUser;
   if(!user || !text || !text.trim()) return false;
+  const sr = segAnalisar(text, 'comentario');
+  if(!sr.ok){ segMostrar(sr); return false; }
+  if(sr.ajuda) setTimeout(segMostrarAjuda, 300);
   try{
     const novo = await fbDb().collection('gameComments').add({
       gameId, authorEmail:user.email, authorName:getDisplayName(user), authorAvatar:getDisplayAvatar(user)||null,
@@ -14323,6 +14327,7 @@ async function findOrCreateDirectConversation(otherEmail){
   }
 }
 async function createGroupConversation(name, memberEmails, cover, roles){
+  if(name && !segPode(name, 'nome')) return null;
   if(!FIREBASE_ENABLED) return null;
   const user = fbAuth().currentUser;
   if(!user || !name || !memberEmails || !memberEmails.length) return null;
@@ -14454,6 +14459,7 @@ async function deleteChatMessage(messageId){
 }
 async function editChatMessage(messageId, newText){
   if(!FIREBASE_ENABLED || !newText || !newText.trim()) return false;
+  if(!segPode(newText, 'msg')) return false;
   try{
     await fbDb().collection('messages').doc(messageId).set({
       text: newText.trim().slice(0,1000), edited: true
@@ -14468,6 +14474,13 @@ async function sendChatMessage(conversationId, text, gameRef, agentChatRef, repl
   const user = fbAuth().currentUser;
   const videoRef = extras && extras.videoRef || null;
   if(!user || ((!text || !text.trim()) && !gameRef && !agentChatRef && !imageData && !audioData && !challengeRef && !videoData && !videoRef && !(extras && extras.duplaRef))) return false;
+  /* segurança: palavrão, dados pessoais, links, golpe, perigo... (pedido de ajuda vai, com um aviso carinhoso) */
+  let segAjuda = false;
+  if(text && text.trim()){
+    const sr = segAnalisar(text, 'msg');
+    if(!sr.ok){ segMostrar(sr); return false; }
+    segAjuda = !!sr.ajuda;
+  }
   try{
     const doc = {
       conversationId, senderEmail:user.email, senderName:getDisplayName(user), senderAvatar:getDisplayAvatar(user)||null,
@@ -14485,6 +14498,7 @@ async function sendChatMessage(conversationId, text, gameRef, agentChatRef, repl
       lastMessageAt: Date.now(), lastMessageText: preview, lastMessageBy: user.email
     }, {merge:true});
     try{ msEv('msg', 1); }catch(e){}                       // missões: "mande mensagens"
+    if(segAjuda) segMostrarAjuda();
     return true;
   }catch(e){
     console.error('Koda: erro ao enviar mensagem:', e);
@@ -14778,7 +14792,9 @@ async function openReportsView(){
         </div>
       </div>
       <div class="btn-row-2" style="padding:0 4px 14px;" data-actions-for="${chatListEscape(r.id)}">
-        <button class="g-btn secondary" data-act="view" data-game="${chatListEscape(r.gameId)}">${t('reports_view_game')}</button>
+        ${String(r.gameId || '').indexOf('peca:') === 0
+          ? `<button class="g-btn secondary" data-act="esconder-peca" data-peca="${chatListEscape(String(r.gameId).slice(5))}" data-id="${chatListEscape(r.id)}">${t('ugc_den_esconder')}</button>`
+          : `<button class="g-btn secondary" data-act="view" data-game="${chatListEscape(r.gameId)}">${t('reports_view_game')}</button>`}
         <button class="g-btn secondary" data-act="resolve" data-id="${chatListEscape(r.id)}">${t('reports_resolve')}</button>
       </div>
     `).join('')}</div>`;
@@ -14791,6 +14807,14 @@ async function openReportsView(){
     });
     modalBody.querySelectorAll('[data-act="resolve"]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
+        await resolveReport(btn.dataset.id);
+        draw();
+      });
+    });
+    modalBody.querySelectorAll('[data-act="esconder-peca"]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        btn.disabled = true;
+        try{ await fbDb().collection('pecasCriadas').doc(btn.dataset.peca).update({oculto: true}); }catch(e){}
         await resolveReport(btn.dataset.id);
         draw();
       });
@@ -15071,13 +15095,13 @@ async function openConversationList(opts){
       const otherProfile = otherEmail ? profiles[otherEmail] : null;
       const title = c.isGroup ? c.groupName : nicknameOr((otherProfile && otherProfile.name) || otherEmail || '', otherEmail);
       const avatar = c.isGroup ? (c.groupCover||null) : getContactPhotoFor(otherEmail);
-      let previewText = c.lastMessageText||t('messages_no_messages');
+      let previewText = c.lastMessageText ? segMascarar(c.lastMessageText) : t('messages_no_messages');
       const pedidoNaLista = pedidoPendente(c) && !c.lastMessageText;
       if(pedidoNaLista) previewText = euPedi(c, user.email) ? t('chat_req_sent') : t('chat_req_from', {name: title});
       else if(!c.isGroup && c.requestStatus === 'declined' && !c.lastMessageText) previewText = t('chat_req_declined_you');
       if(c.isGroup && c.lastMessageText && c.lastMessageBy){
         const senderName = c.lastMessageBy===user.email ? t('messages_you_prefix') : nicknameOr((profiles[c.lastMessageBy]&&profiles[c.lastMessageBy].name)||c.lastMessageBy, c.lastMessageBy);
-        previewText = `${senderName}: ${c.lastMessageText}`;
+        previewText = `${senderName}: ${segMascarar(c.lastMessageText)}`;
       }
       const fotoConv = avatar ? `<img src="${avatar}" class="conv-avatar">` : c.isGroup ? `<div class="conv-avatar profile-avatar-blank">${ICONS.people}</div>` : pzAv(otherProfile && otherProfile.avatar, otherEmail, 'conv-avatar');
       return `<div class="conv-row" data-id="${c.id}">
@@ -15515,7 +15539,7 @@ async function openConversationThread(conv){
     const audioHtml = m.audioData ? chatAudioHtml(m, mine) : '';
     const replyQuote = m.replyTo ? `<div class="msg-reply-quote"><b>${chatListEscape(m.replyTo.senderName)}</b>${chatListEscape(m.replyTo.text)}</div>` : '';
     const editedTag = m.edited ? `<span class="msg-edited-tag">${t('msg_edited_tag')}</span>` : '';
-    const textHtml = (m.text || replyQuote) ? `<div class="chat-bubble">${replyQuote}${chatListEscape(m.text||'')}${editedTag}</div>` : '';
+    const textHtml = (m.text || replyQuote) ? `<div class="chat-bubble">${replyQuote}${chatListEscape(segMascarar(m.text||''))}${editedTag}</div>` : '';
     const displayAvatar = (!mine && showHeader) ? getContactPhotoFor(m.senderEmail) : null;
     const avatarHtml = !mine ? (showHeader ? (displayAvatar ? `<img src="${displayAvatar}" class="msg-avatar">` : pzAv(m.senderAvatar, m.senderEmail, 'msg-avatar')) : `<div class="msg-avatar-spacer"></div>`) : '';
     return `<div class="chat-msg ${mine?'user':'agent'}${!mine && !showHeader ? ' grouped' : ''}${isNew ? ' msg-new' : ''}" data-msg-id="${chatListEscape(m.id)}">
@@ -15679,7 +15703,7 @@ async function openConversationThread(conv){
     if(!enviou){
       if(bolha) bolha.remove();
       input.value = text; updateSendMicVisibility();
-      showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : ''));
+      if(!segBloqueouAgora()) showInfo(t('msg_send_error') + (lastSendError ? ` [${t('tech_detail_label')}: ${chatListEscape(lastSendError)}]` : ''));
     }
     draw();
   }
@@ -16550,6 +16574,7 @@ function openProfilePage(){
   if(nameRow) nameRow.addEventListener('click', openSwitchAccountMenu);
   modalBody.querySelector('#profileBioText').addEventListener('click', ()=>{
     showBioPrompt(bio, (newBio)=>{
+      if(newBio && !segPode(newBio, 'bio')) return;
       if(newBio) localStorage.setItem(PROFILE_BIO_KEY, newBio); else localStorage.removeItem(PROFILE_BIO_KEY);
       syncToServer();
       syncPublicProfile();
@@ -16637,6 +16662,7 @@ function openProfileModal(){
     saveBtn.addEventListener('click', ()=>{
       const newNick = bg.querySelector('#profileNickInput').value.trim();
       const nickChanged = !onCooldown && newNick && newNick !== name;
+      if(nickChanged && !segPode(newNick, 'nome')) return;
       const changed = !!pendingAvatar || nickChanged;
       if(!changed){ close(); return; }
       if(nickChanged) localStorage.setItem(PROFILE_NICK_KEY, newNick);
@@ -16775,7 +16801,7 @@ function abrirBoasVindas(user){
     </div>`;
   document.body.appendChild(bg);
   const $ = sel => bg.querySelector(sel);
-  const nickOk = () => nick.trim().length >= 2;
+  const nickOk = () => nick.trim().length >= 2 && segAnalisar(nick, 'nome').ok;
   function pintarPrev(){
     const inicial = esc((nick.trim() || nomeGoogle || user.email || 'K').charAt(0).toUpperCase());
     const cod = pzCodigo(comGenero(gen.heroi));
@@ -16815,7 +16841,7 @@ function abrirBoasVindas(user){
   input.addEventListener('input', ()=>{ nick = input.value; $('#onbErro').textContent = ''; pintarPrev(); });
   input.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); $('#onbNext').click(); } });
   $('#onbNext').addEventListener('click', ()=>{
-    if(passo === 0){ if(!nickOk()){ $('#onbErro').textContent = t('onb_nick_curto'); return; } input.blur(); irPara(1); }
+    if(passo === 0){ if(!nickOk()){ $('#onbErro').textContent = nick.trim().length >= 2 ? t('seg_nome') : t('onb_nick_curto'); return; } input.blur(); irPara(1); }
     else if(passo === 1) irPara(2);
     else concluir();
   });
@@ -17253,6 +17279,7 @@ function renderAuthForm(){
     cad.livre = null; cad.seq++;
     if(!nome){ pintarDica(t('cad_nome_dica')); return; }
     if(!nomeUsuarioValido(nome)){ pintarDica(nome.length >= 3 || /[^a-z0-9_]/i.test(nome) ? t('cad_nome_formato') : t('cad_nome_dica'), nome.length >= 3 || /[^a-z0-9_]/i.test(nome) ? 'ruim' : ''); return; }
+    if(!segAnalisar(nome.replace(/_/g, ' '), 'nome').ok || !segAnalisar(nome, 'nome').ok){ cad.livre = 'palavra'; pintarDica(t('cad_nome_feio'), 'ruim'); return; }
     pintarDica(t('cad_nome_dica'));
     checarNome(nome);
   });
@@ -17311,6 +17338,7 @@ function renderAuthForm(){
     if(p === 'nome'){
       const nome = $('cadNome').value.trim();
       if(!nomeUsuarioValido(nome)){ erroPortao(t('cad_nome_formato')); $('cadNome').focus(); return; }
+      if(!segAnalisar(nome.replace(/_/g, ' '), 'nome').ok || !segAnalisar(nome, 'nome').ok){ erroPortao(t('cad_nome_feio')); $('cadNome').focus(); return; }
       if(cad.livre === null){ $('cadGo').disabled = true; await checarNome(nome); $('cadGo').disabled = false; }
       if(cad.livre === false){ erroPortao(t('cad_nome_usado')); return; }
       if(cad.livre === 'palavra'){ erroPortao(t('cad_nome_feio')); return; }
@@ -18612,7 +18640,7 @@ function openCommentsDrawer(g){
         ${pzAv(c.authorAvatar, c.authorEmail, 'comment-avatar')}
         <div class="comment-body">
           <div class="comment-author">${nomeColorido(chatListEscape(c.authorName||c.authorEmail), nomeDoPerfil({nome:c.authorNome}))}${c.verified ? verifiedBadgeHtml(c.authorEmail) : ''}</div>
-          <div class="comment-text">${chatListEscape(c.text)}</div>
+          <div class="comment-text">${chatListEscape(segMascarar(c.text))}</div>
           <div class="comment-actions">
             <button class="comment-like ${euCurti?'on':''}" data-like="${c.id}">
               ${euCurti ? ICONS.heartFilled : ICONS.heartOutline}<span>${qtd>0?qtd:''}</span>
@@ -18709,7 +18737,7 @@ function openCommentsDrawer(g){
         sendBtn.classList.add('sent-pulse');
         setTimeout(()=>sendBtn.classList.remove('sent-pulse'), 400);
         draw();
-      } else toast(t('code_copy_failed_toast'));
+      } else if(!segBloqueouAgora()) toast(t('code_copy_failed_toast'));
     };
     sendBtn.addEventListener('click', send);
     input.addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
@@ -18741,7 +18769,7 @@ async function openCommentsView(g){
               ${pzAv(c.authorAvatar, c.authorEmail, 'comment-avatar')}
               <div class="comment-body">
                 <div class="comment-author">${nomeColorido(chatListEscape(c.authorName||c.authorEmail), nomeDoPerfil({nome:c.authorNome}))}${c.verified ? verifiedBadgeHtml(c.authorEmail) : ''}</div>
-                <div class="comment-text">${chatListEscape(c.text)}</div>
+                <div class="comment-text">${chatListEscape(segMascarar(c.text))}</div>
               </div>
               ${(myUser && (c.authorEmail===myUser.email || isAdmin())) ? `<button class="comment-delete" data-id="${c.id}">${ICONS.trash}</button>` : ''}
             </div>
@@ -18772,7 +18800,7 @@ async function openCommentsView(g){
         sendBtn.disabled = true;
         const ok = await postComment(g.id, text);
         sendBtn.disabled = false;
-        if(ok) draw(); else toast(t('code_copy_failed_toast'));
+        if(ok) draw(); else if(!segBloqueouAgora()) toast(t('code_copy_failed_toast'));
       };
       sendBtn.addEventListener('click', send);
       input.addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
@@ -21775,6 +21803,420 @@ function containsIllicitContent(text){
   return ILLICIT_CONTENT_PATTERNS.some(re=>re.test(normalized));
 }
 /* ============================================================
+   SEGURANÇA POR CÓDIGO (sem IA paga)
+   Confere todo texto que a pessoa escreve pra outras verem (mensagens,
+   comentários, apelido, recado do perfil, nome de grupo, jogos e roupas):
+   - palavrão, mesmo disfarçado (p.u.t.a, f*ck, merdaaa, 4rr0mb4d0, porra em várias línguas)
+   - conteúdo sexual, ódio e preconceito, ameaça e "vai se matar"
+   - dados pessoais: telefone, e-mail, endereço, escola, CPF, rede social
+   - pedido de dados ("qual seu zap?", "onde você mora?") e de senha
+   - golpe ("robux grátis", "gerador de diamantes") e links de outros sites
+   - perigo: "manda foto sua", "não conta pros seus pais", "vamos nos encontrar"
+   Pedido de ajuda ("quero morrer") não é bloqueado: a mensagem vai e a pessoa
+   vê um aviso carinhoso com onde pedir ajuda.
+   Também esconde (com ***) palavrões que já estavam em mensagens antigas.
+============================================================ */
+var SEG_TXT = {
+  seg_tit: 'Não dá pra enviar isso|You can’t send this|No se puede enviar esto|Non puoi inviarlo|Tu ne peux pas envoyer ça|Das kannst du nicht senden|Dit kun je niet versturen|これは送れません|这个不能发送|이건 보낼 수 없어요',
+  seg_palavrao: 'Tem palavrão. Escreva de outro jeito.|It has a swear word. Write it another way.|Tiene una grosería. Escríbelo de otra forma.|C’è una parolaccia. Scrivilo in un altro modo.|Il y a un gros mot. Écris-le autrement.|Da ist ein Schimpfwort drin. Schreib es anders.|Er staat een scheldwoord in. Schrijf het anders.|わるいことばが入っています。べつの言い方で書いてね。|里面有脏话。换个说法吧。|나쁜 말이 있어요. 다르게 써 주세요.',
+  seg_sexual: 'Esse tipo de conteúdo não é permitido no Koda.|That kind of content is not allowed on Koda.|Ese tipo de contenido no está permitido en Koda.|Questo tipo di contenuto non è permesso su Koda.|Ce genre de contenu n’est pas autorisé sur Koda.|So etwas ist auf Koda nicht erlaubt.|Zulke inhoud is niet toegestaan op Koda.|その内容はKodaでは使えません。|Koda 不允许这类内容。|그런 내용은 Koda에서 허용되지 않아요.',
+  seg_odio: 'Isso ofende as pessoas. No Koda todo mundo é respeitado.|That hurts people. On Koda everyone is respected.|Eso ofende a la gente. En Koda se respeta a todos.|Questo offende le persone. Su Koda si rispettano tutti.|Ça blesse les gens. Sur Koda, tout le monde est respecté.|Das verletzt andere. Auf Koda werden alle respektiert.|Dat kwetst mensen. Op Koda respecteren we iedereen.|人をきずつけることばです。Kodaではみんなを大切にします。|这会伤害别人。在 Koda 大家互相尊重。|다른 사람에게 상처를 줘요. Koda에서는 모두를 존중해요.',
+  seg_ameaca: 'Isso parece uma ameaça ou uma maldade com alguém. Seja gentil.|That looks like a threat or bullying. Please be kind.|Eso parece una amenaza o una maldad. Sé amable.|Sembra una minaccia o una cattiveria. Sii gentile.|Ça ressemble à une menace ou à de la méchanceté. Sois gentil.|Das klingt nach einer Drohung oder Mobbing. Sei freundlich.|Dat lijkt op een bedreiging of pesten. Wees aardig.|おどしやいじわるに見えます。やさしくしてね。|这看起来像威胁或欺负人。请友善一点。|협박이나 괴롭힘처럼 보여요. 친절하게 말해 주세요.',
+  seg_dados: 'Não compartilhe telefone, e-mail, endereço, escola ou rede social. É para a sua segurança.|Don’t share phone numbers, e-mail, address, school or social media. It’s for your safety.|No compartas teléfono, correo, dirección, escuela o redes sociales. Es por tu seguridad.|Non condividere telefono, e-mail, indirizzo, scuola o social. È per la tua sicurezza.|Ne partage pas ton téléphone, e-mail, adresse, école ou réseaux sociaux. C’est pour ta sécurité.|Teile keine Telefonnummer, E-Mail, Adresse, Schule oder Social Media. Das ist zu deiner Sicherheit.|Deel geen telefoonnummer, e-mail, adres, school of social media. Dat is voor je veiligheid.|電話、メール、住所、学校、SNSは書かないでね。あなたを守るためです。|不要分享电话、邮箱、地址、学校或社交账号。这是为了你的安全。|전화번호, 이메일, 주소, 학교, SNS는 공유하지 마세요. 안전을 위해서예요.',
+  seg_pedido_dados: 'Não peça telefone, endereço, escola ou rede social de ninguém.|Don’t ask anyone for their phone, address, school or social media.|No le pidas a nadie su teléfono, dirección, escuela o redes sociales.|Non chiedere a nessuno telefono, indirizzo, scuola o social.|Ne demande à personne son téléphone, son adresse, son école ou ses réseaux.|Frag niemanden nach Telefon, Adresse, Schule oder Social Media.|Vraag niemand om telefoon, adres, school of social media.|だれにも電話、住所、学校、SNSを聞かないでね。|不要向任何人要电话、地址、学校或社交账号。|누구에게도 전화번호, 주소, 학교, SNS를 묻지 마세요.',
+  seg_senha: 'Ninguém do Koda pede a sua senha. Nunca passe a sua senha pra ninguém, nem pra amigos.|Nobody from Koda asks for your password. Never share it, not even with friends.|Nadie de Koda pide tu contraseña. Nunca la compartas, ni con amigos.|Nessuno di Koda chiede la tua password. Non darla mai a nessuno, nemmeno agli amici.|Personne de Koda ne demande ton mot de passe. Ne le donne jamais, même pas à des amis.|Niemand von Koda fragt nach deinem Passwort. Gib es nie weiter, auch nicht an Freunde.|Niemand van Koda vraagt om je wachtwoord. Geef het nooit, ook niet aan vrienden.|Kodaの人がパスワードを聞くことはありません。友だちにも教えないでね。|Koda 的人不会问你的密码。永远不要告诉任何人，朋友也不行。|Koda는 비밀번호를 묻지 않아요. 친구에게도 절대 알려 주지 마세요.',
+  seg_golpe: 'Isso parece golpe. Coisas "grátis" com link costumam roubar contas. Não clique e não passe seus dados.|That looks like a scam. "Free" stuff with links often steals accounts. Don’t click and don’t share your info.|Eso parece una estafa. Las cosas "gratis" con enlace suelen robar cuentas. No hagas clic ni des tus datos.|Sembra una truffa. Le cose "gratis" con link spesso rubano gli account. Non cliccare e non dare i tuoi dati.|Ça ressemble à une arnaque. Les trucs "gratuits" avec un lien volent souvent les comptes. Ne clique pas.|Das sieht nach Betrug aus. "Gratis"-Sachen mit Link stehlen oft Konten. Nicht klicken!|Dat lijkt op oplichting. "Gratis" dingen met een link stelen vaak accounts. Klik niet.|さぎかもしれません。「無料」のリンクはアカウントをぬすむことがあります。おさないでね。|这看起来像骗局。带链接的"免费"东西常常会盗号。不要点。|사기 같아요. "무료" 링크는 계정을 훔치는 경우가 많아요. 누르지 마세요.',
+  seg_link: 'Links de outros sites não podem ser enviados. Pra mandar um jogo, use o botão de compartilhar do jogo.|Links to other sites can’t be sent. To share a game, use the game’s share button.|No se pueden enviar enlaces de otros sitios. Para mandar un juego, usa el botón de compartir.|Non si possono inviare link di altri siti. Per mandare un gioco usa il pulsante condividi.|Les liens vers d’autres sites ne peuvent pas être envoyés. Pour partager un jeu, utilise le bouton partager.|Links zu anderen Seiten können nicht gesendet werden. Teile Spiele mit dem Teilen-Knopf.|Links naar andere sites kun je niet sturen. Deel een spel met de deelknop.|ほかのサイトのリンクは送れません。ゲームはシェアボタンで送ってね。|不能发送其他网站的链接。分享游戏请用分享按钮。|다른 사이트 링크는 보낼 수 없어요. 게임은 공유 버튼으로 보내 주세요.',
+  seg_perigo: 'Isso não pode ser enviado. Nunca mande fotos suas, não guarde segredos com quem você conheceu na internet e não marque encontros. Se alguém te pediu isso, conte pra um adulto de confiança.|This can’t be sent. Never send photos of yourself, don’t keep secrets with people you met online and don’t meet up. If someone asked you this, tell a trusted adult.|Esto no se puede enviar. Nunca mandes fotos tuyas, no guardes secretos con gente que conociste en internet y no quedes en persona. Si alguien te lo pidió, cuéntaselo a un adulto de confianza.|Questo non si può inviare. Non mandare mai foto tue, non tenere segreti con chi hai conosciuto online e non darti appuntamenti. Se qualcuno te l’ha chiesto, dillo a un adulto di fiducia.|Ça ne peut pas être envoyé. N’envoie jamais de photos de toi, ne garde pas de secrets avec des gens rencontrés en ligne et ne donne pas de rendez-vous. Si quelqu’un te l’a demandé, parle à un adulte de confiance.|Das kann nicht gesendet werden. Schick nie Fotos von dir, hab keine Geheimnisse mit Leuten aus dem Internet und triff dich nicht mit ihnen. Wenn jemand das wollte, sag es einem Erwachsenen, dem du vertraust.|Dit kan niet verstuurd worden. Stuur nooit foto’s van jezelf, heb geen geheimen met mensen van internet en spreek niet af. Als iemand dit vroeg, vertel het aan een volwassene die je vertrouwt.|これは送れません。自分の写真は送らないで、ネットで知り合った人とひみつを作ったり、会ったりしないでね。だれかにたのまれたら、信頼できる大人に話してね。|这个不能发送。永远不要发自己的照片，不要和网上认识的人保守秘密，也不要见面。如果有人这样要求你，告诉你信任的大人。|이건 보낼 수 없어요. 내 사진을 보내지 말고, 인터넷에서 만난 사람과 비밀을 만들거나 만나지 마세요. 누가 이런 걸 부탁했다면 믿을 수 있는 어른에게 말해 주세요.',
+  seg_ajuda_tit: 'Você não está sozinho|You are not alone|No estás solo|Non sei solo|Tu n’es pas seul|Du bist nicht allein|Je bent niet alleen|あなたはひとりじゃないよ|你并不孤单|당신은 혼자가 아니에요',
+  seg_ajuda: 'Parece que você não está bem. Converse agora com um adulto de confiança (alguém da família, da escola). No Brasil, o CVV atende de graça pelo telefone 188, a qualquer hora.|It sounds like you’re not okay. Please talk to a trusted adult right now (family or school). You can also call a helpline in your country, any time.|Parece que no estás bien. Habla ahora con un adulto de confianza (familia o escuela). También puedes llamar a una línea de ayuda de tu país, a cualquier hora.|Sembra che tu non stia bene. Parla subito con un adulto di fiducia (famiglia o scuola). Puoi anche chiamare un numero di aiuto del tuo paese, a qualsiasi ora.|On dirait que ça ne va pas. Parle tout de suite à un adulte de confiance (famille, école). Tu peux aussi appeler une ligne d’écoute de ton pays, à toute heure.|Es klingt, als ginge es dir nicht gut. Sprich jetzt mit einem Erwachsenen, dem du vertraust (Familie, Schule). Du kannst auch jederzeit ein Hilfetelefon in deinem Land anrufen.|Het klinkt alsof het niet goed met je gaat. Praat nu met een volwassene die je vertrouwt (familie, school). Je kunt ook altijd een hulplijn in je land bellen.|元気じゃないみたいだね。いますぐ信頼できる大人（家族や学校の人）に話してね。あなたの国の相談電話にも、いつでもかけられます。|你好像不太好。请马上和你信任的大人（家人或老师）说说。你也可以随时拨打你所在国家的求助热线。|힘들어 보여요. 지금 믿을 수 있는 어른(가족이나 학교)에게 말해 주세요. 언제든 우리나라 상담 전화에 걸 수도 있어요.',
+  seg_entendi: 'Entendi|Got it|Entendido|Ho capito|Compris|Verstanden|Begrepen|わかった|知道了|알겠어요',
+  seg_nome: 'Esse nome não pode. Escolha outro, sem palavrão, sem rede social e sem dados pessoais.|That name isn’t allowed. Pick another one without swear words, social media or personal info.|Ese nombre no está permitido. Elige otro sin groserías, redes sociales ni datos personales.|Questo nome non è consentito. Scegline un altro senza parolacce, social o dati personali.|Ce nom n’est pas autorisé. Choisis-en un autre sans gros mots, réseaux sociaux ni infos perso.|Dieser Name ist nicht erlaubt. Wähle einen anderen ohne Schimpfwörter, Social Media oder persönliche Daten.|Die naam mag niet. Kies een andere zonder scheldwoorden, social media of persoonlijke gegevens.|その名前は使えません。わるいことば、SNS、個人情報のない名前にしてね。|这个名字不能用。请换一个，不要有脏话、社交账号或个人信息。|그 이름은 쓸 수 없어요. 나쁜 말, SNS, 개인정보가 없는 이름으로 골라 주세요.',
+  seg_jogo_tit: 'Esse jogo ainda não pode ser publicado|This game can’t be published yet|Este juego todavía no se puede publicar|Questo gioco non può ancora essere pubblicato|Ce jeu ne peut pas encore être publié|Dieses Spiel kann noch nicht veröffentlicht werden|Dit spel kan nog niet gepubliceerd worden|このゲームはまだ公開できません|这个游戏还不能发布|이 게임은 아직 공개할 수 없어요',
+  seg_jogo_texto: 'O jogo tem um texto com {motivo}: "{trecho}".|The game has text with {motivo}: "{trecho}".|El juego tiene un texto con {motivo}: "{trecho}".|Il gioco ha un testo con {motivo}: "{trecho}".|Le jeu contient un texte avec {motivo} : "{trecho}".|Das Spiel hat einen Text mit {motivo}: "{trecho}".|Het spel heeft een tekst met {motivo}: "{trecho}".|ゲームに{motivo}のある文があります：「{trecho}」|游戏里有包含{motivo}的文字："{trecho}"。|게임에 {motivo}이(가) 있는 글이 있어요: "{trecho}"',
+  seg_m_palavrao: 'palavrão|a swear word|una grosería|una parolaccia|un gros mot|einem Schimpfwort|een scheldwoord|わるいことば|脏话|나쁜 말',
+  seg_m_sexual: 'conteúdo impróprio|inappropriate content|contenido inapropiado|contenuto inappropriato|un contenu inapproprié|unangemessenem Inhalt|ongepaste inhoud|ふさわしくない内容|不当内容|부적절한 내용',
+  seg_m_odio: 'ofensa ou preconceito|an insult or hate|un insulto u odio|un insulto o odio|une insulte ou de la haine|einer Beleidigung oder Hass|een belediging of haat|ひどいことば|侮辱或歧视|모욕이나 혐오',
+  seg_jogo_senha: 'O jogo pede senha, e-mail, telefone ou cartão. Jogos do Koda nunca podem pedir isso.|The game asks for a password, e-mail, phone or card. Koda games can never ask for that.|El juego pide contraseña, correo, teléfono o tarjeta. Los juegos de Koda nunca pueden pedir eso.|Il gioco chiede password, e-mail, telefono o carta. I giochi di Koda non possono mai chiederlo.|Le jeu demande un mot de passe, un e-mail, un téléphone ou une carte. Les jeux Koda ne peuvent jamais demander ça.|Das Spiel fragt nach Passwort, E-Mail, Telefon oder Karte. Koda-Spiele dürfen das nie.|Het spel vraagt om wachtwoord, e-mail, telefoon of pas. Koda-spellen mogen dat nooit.|ゲームがパスワード、メール、電話、カードを聞いています。Kodaのゲームでは聞けません。|游戏在要密码、邮箱、电话或银行卡。Koda 的游戏绝不能要这些。|게임이 비밀번호, 이메일, 전화번호, 카드를 묻고 있어요. Koda 게임은 절대 물을 수 없어요.',
+  seg_jogo_link: 'O jogo leva a pessoa pra outro site ({site}). Jogos do Koda não podem mandar ninguém pra fora.|The game sends people to another site ({site}). Koda games can’t send anyone away.|El juego lleva a otro sitio ({site}). Los juegos de Koda no pueden mandar a nadie afuera.|Il gioco porta a un altro sito ({site}). I giochi di Koda non possono mandare nessuno fuori.|Le jeu envoie vers un autre site ({site}). Les jeux Koda ne peuvent envoyer personne ailleurs.|Das Spiel schickt Leute auf eine andere Seite ({site}). Koda-Spiele dürfen das nicht.|Het spel stuurt mensen naar een andere site ({site}). Koda-spellen mogen dat niet.|ゲームがほかのサイト（{site}）に行かせます。Kodaのゲームではできません。|游戏会把人带到别的网站（{site}）。Koda 的游戏不能这样做。|게임이 다른 사이트({site})로 보내요. Koda 게임은 그럴 수 없어요.',
+  seg_jogo_iframe: 'O jogo abre outro site dentro dele ({site}).|The game opens another site inside it ({site}).|El juego abre otro sitio dentro ({site}).|Il gioco apre un altro sito al suo interno ({site}).|Le jeu ouvre un autre site à l’intérieur ({site}).|Das Spiel öffnet eine andere Seite in sich ({site}).|Het spel opent een andere site erin ({site}).|ゲームの中でほかのサイト（{site}）を開いています。|游戏里面打开了别的网站（{site}）。|게임 안에서 다른 사이트({site})를 열어요.',
+  seg_jogo_dica: 'Tire essa parte do código e tente publicar de novo.|Remove that part of the code and try publishing again.|Quita esa parte del código e intenta publicar de nuevo.|Togli quella parte del codice e riprova a pubblicare.|Retire cette partie du code et réessaie de publier.|Entferne diesen Teil des Codes und versuche es erneut.|Haal dat deel van de code weg en probeer opnieuw.|コードのその部分を消して、もう一度公開してね。|删掉那部分代码，再试着发布。|그 부분의 코드를 지우고 다시 공개해 보세요.',
+  ugc_den_btn: 'Denunciar roupa|Report outfit|Denunciar ropa|Segnala vestito|Signaler la tenue|Outfit melden|Kleding melden|ふくを通報|举报服装|옷 신고',
+  ugc_den_q: 'O que tem de errado com essa roupa?|What’s wrong with this outfit?|¿Qué tiene de malo esta ropa?|Cosa c’è che non va in questo vestito?|Qu’est-ce qui ne va pas avec cette tenue ?|Was stimmt mit diesem Outfit nicht?|Wat is er mis met deze kleding?|このふくの何がよくないですか？|这件衣服有什么问题？|이 옷에 어떤 문제가 있나요?',
+  ugc_den_ok: 'Obrigado! A equipe do Koda vai olhar essa roupa.|Thanks! The Koda team will look at this outfit.|¡Gracias! El equipo de Koda revisará esta ropa.|Grazie! Il team di Koda controllerà questo vestito.|Merci ! L’équipe Koda va regarder cette tenue.|Danke! Das Koda-Team schaut sich das Outfit an.|Bedankt! Het Koda-team bekijkt deze kleding.|ありがとう！Kodaのチームが見ます。|谢谢！Koda 团队会查看这件衣服。|고마워요! Koda 팀이 이 옷을 확인할게요.',
+  ugc_den_esconder: 'Esconder a roupa|Hide the outfit|Ocultar la ropa|Nascondi il vestito|Masquer la tenue|Outfit verstecken|Kleding verbergen|ふくをかくす|隐藏服装|옷 숨기기',
+  ugc_foto_q: 'Essa foto mostra o rosto de uma pessoa de verdade (você, um amigo, alguém da família)?|Does this photo show a real person’s face (you, a friend, family)?|¿Esta foto muestra la cara de una persona real (tú, un amigo, tu familia)?|Questa foto mostra il viso di una persona reale (tu, un amico, la famiglia)?|Cette photo montre-t-elle le visage d’une vraie personne (toi, un ami, ta famille) ?|Zeigt das Foto das Gesicht einer echten Person (du, Freunde, Familie)?|Laat deze foto het gezicht van een echt persoon zien (jij, een vriend, familie)?|この写真に、ほんとうの人（自分、友だち、家族）の顔がうつっていますか？|这张照片里有真人的脸吗（你、朋友、家人）？|이 사진에 실제 사람(나, 친구, 가족)의 얼굴이 있나요?',
+  ugc_foto_q_sub: 'Roupas com rosto de pessoas reais não podem ir pra loja, pra proteger todo mundo.|Outfits with real people’s faces can’t go to the shop, to keep everyone safe.|La ropa con caras de personas reales no puede ir a la tienda, para proteger a todos.|I vestiti con volti di persone reali non possono andare nel negozio, per proteggere tutti.|Les tenues avec des visages de vraies personnes ne peuvent pas aller dans la boutique, pour protéger tout le monde.|Outfits mit Gesichtern echter Menschen kommen nicht in den Shop, zum Schutz aller.|Kleding met gezichten van echte mensen mag niet in de winkel, om iedereen te beschermen.|みんなを守るため、ほんとうの人の顔があるふくはお店に出せません。|为了保护大家，有真人脸的衣服不能上架。|모두를 지키기 위해 실제 사람 얼굴이 있는 옷은 상점에 올릴 수 없어요.',
+  ugc_foto_tem: 'Tem rosto|Yes, a face|Sí, tiene cara|Sì, c’è un viso|Oui, un visage|Ja, ein Gesicht|Ja, een gezicht|顔がある|有脸|얼굴이 있어요',
+  ugc_letra_ruim: 'Esse texto não pode ir na roupa. Escreva outro.|That text can’t go on the outfit. Write another one.|Ese texto no puede ir en la ropa. Escribe otro.|Questo testo non può andare sul vestito. Scrivine un altro.|Ce texte ne peut pas aller sur la tenue. Écris-en un autre.|Dieser Text darf nicht aufs Outfit. Schreib einen anderen.|Die tekst mag niet op de kleding. Schrijf iets anders.|その文字はふくに入れられません。べつのにしてね。|这个文字不能放在衣服上。换一个吧。|그 글자는 옷에 넣을 수 없어요. 다른 걸 써 주세요.',
+  ugc_foto_nao: 'Não tem rosto|No face|No tiene cara|Nessun viso|Pas de visage|Kein Gesicht|Geen gezicht|顔はない|没有脸|얼굴이 없어요'
+};
+(function(){
+  if(typeof I18N === 'undefined') return;
+  const ling = ['pt', 'en', 'es', 'it', 'fr', 'de', 'nl', 'ja', 'zh', 'ko'];
+  Object.keys(SEG_TXT).forEach(k=>{ const v = SEG_TXT[k].split('|'); ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; }); });
+})();
+const SEG_PALAVROES = new Set((
+  'porra porras caralho caralhos krl crl caraio karalho puta putas puto putos putinha putinho putona merda merdas merdinha bosta bostas foda fodas foder fodase fodasse fudeu fuder fudido fodido fodida fdp ' +
+  'buceta bucetas boceta bct xoxota xereca xota pepeca cu cuzao cuzinho cuzuda arrombado arrombada arrombados vagabunda vadia vadias punheta punheteiro siririca putaria otario otaria babaca imbecil ' +
+  'desgracado desgracada corno corna filhodaputa filhadaputa pqp vsf vtnc tnc vtmnc tmnc pnc kct piroca pirocudo vtc ' +
+  'fuck fucks fucking fucked fucker fuckers fck fuk fuking motherfucker shit shits shitty bullshit bitch bitches bastard asshole assholes dick dicks dickhead cock cocks cunt cunts whore whores slut sluts twat wanker jerkoff dildo stfu ' +
+  'mierda joder jodido jodida cono carajo cabron cabrona pendejo pendeja pendejos verga chingar chinga chingada chingado culero culo gilipollas malparido malparida hdp ctm ptm conchatumadre hijodeputa putita mamon ' +
+  'cazzo cazzi vaffanculo fanculo stronzo stronza puttana coglione coglioni minchia porcodio diocane troione ' +
+  'merde putain pute salope connard connasse encule enculer nique niquer ntm batard couille couilles chier ' +
+  'scheisse scheiss fick ficken ficker arschloch hure fotze wichser schlampe hurensohn missgeburt ' +
+  'kut kanker godverdomme klootzak lul hoer tering tyfus kankerlijer'
+).split(/\s+/).filter(Boolean));
+const SEG_SEXUAL = new Set(('porno porn porne pornografia pornografico sexo sex sexy sexual transar transando transa nude nudes nudez xvideos pornhub xnxx onlyfans hentai nsfw rule34 boquete tesao tesuda tesudo ' +
+  'orgasmo masturbar masturbacao boobs tits titties blowjob handjob horny milf erotico erotica sexting peladinha peladona penis vagina pussy').split(/\s+/));
+const SEG_ODIO = new Set(('nazi nazis nazista nazistas nazismo hitler heil suastica swastika 1488 viado viadinho traveco sapatao retardado retardada mongoloide crioulo ' +
+  'nigger niggers nigga niggas faggot faggots fag fags tranny retard chink spic kike maricon marica sudaca bicha').split(/\s+/));
+/* começos que já denunciam (putaria, arrombado, masturbação, motherfucker...) */
+const SEG_INICIOS = [['putari', 'palavrao'], ['arromb', 'palavrao'], ['masturb', 'sexual'], ['pornogr', 'sexual'], ['filhadaput', 'palavrao'], ['filhodaput', 'palavrao'], ['vagabund', 'palavrao'],
+  ['motherfuck', 'palavrao'], ['fucking', 'palavrao'], ['punhet', 'palavrao'], ['siriric', 'palavrao'], ['caralh', 'palavrao'], ['bucet', 'palavrao'], ['xvideo', 'sexual'], ['pornhub', 'sexual'],
+  ['hentai', 'sexual'], ['fodid', 'palavrao'], ['fudid', 'palavrao'], ['pendej', 'palavrao'], ['chingad', 'palavrao'], ['gilipoll', 'palavrao'], ['vaffancul', 'palavrao'], ['puttan', 'palavrao'],
+  ['encul', 'palavrao'], ['scheiss', 'palavrao'], ['arschloch', 'palavrao'], ['hurenso', 'palavrao'], ['nigg', 'odio'], ['fagg', 'odio'], ['retardad', 'odio'], ['nazist', 'odio']];
+/* pedaços tão fortes que valem mesmo grudados em outras letras ("vaitomarnocu", "whatthefuck") */
+const SEG_GRUDADOS = [['caralh', 'palavrao'], ['buceta', 'palavrao'], ['fodase', 'palavrao'], ['fodasse', 'palavrao'], ['filhodaput', 'palavrao'], ['filhadaput', 'palavrao'], ['tomarnocu', 'palavrao'],
+  ['motherfuck', 'palavrao'], ['fuck', 'palavrao'], ['putaria', 'palavrao'], ['putaquepariu', 'palavrao'], ['arrombad', 'palavrao'], ['merda', 'palavrao'], ['xvideos', 'sexual'], ['pornhub', 'sexual'],
+  ['nigger', 'odio'], ['nigga', 'odio'], ['faggot', 'odio'], ['vaffancul', 'palavrao'], ['hijodeput', 'palavrao']];
+const SEG_CJK = [['まんこ', 'sexual'], ['ちんこ', 'sexual'], ['ちんぽ', 'sexual'], ['セックス', 'sexual'], ['エロ', 'sexual'], ['死ね', 'ameaca'], ['しね', 'ameaca'], ['殺す', 'ameaca'], ['くそ', 'palavrao'], ['クソ', 'palavrao'],
+  ['傻逼', 'palavrao'], ['操你', 'palavrao'], ['他妈的', 'palavrao'], ['妈的', 'palavrao'], ['鸡巴', 'sexual'], ['婊子', 'palavrao'], ['草泥马', 'palavrao'], ['去死', 'ameaca'], ['色情', 'sexual'],
+  ['씨발', 'palavrao'], ['시발', 'palavrao'], ['병신', 'palavrao'], ['개새끼', 'palavrao'], ['좆', 'palavrao'], ['섹스', 'sexual'], ['지랄', 'palavrao'], ['ㅅㅂ', 'palavrao'], ['ㅂㅅ', 'palavrao'], ['꺼져', 'ameaca'], ['卐', 'odio']];
+function segNorm(s){
+  return String(s == null ? '' : s).toLowerCase().replace(/ß/g, 'ss').normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[​-‏⁠﻿]/g, '');
+}
+const SEG_LEET = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b', '@': 'a', '$': 's', '!': 'i', '|': 'i'};
+/* as palavras do texto, já sem disfarce */
+function segPalavras(s){
+  const base = segNorm(s);
+  const leet = w=>/[a-z]/.test(w) && /[0-9@$!|]/.test(w) && !/^\d+[a-z]{1,2}$/.test(w) ? w.replace(/[0134578@$!|]/g, ch=>SEG_LEET[ch]) : w;
+  const ws = base.split(/[^a-z0-9@$!|*]+/).map(w=>w.replace(/^[^a-z0-9]+|[^a-z0-9*]+$/g, '')).filter(Boolean).map(leet).map(w=>w.replace(/(.)\1{2,}/g, '$1$1'));
+  /* letras soltas viram uma palavra só: "p u t a", "p.u.t.a", "f-u-c-k" */
+  const juntas = [];
+  let soltas = '';
+  base.split(/[\s.\-_,*+~^'"`/\\]+/).forEach(w=>{ if(w.length === 1 && /[a-z0-9@$]/.test(w)) soltas += (SEG_LEET[w] || w); else { if(soltas.length > 1) juntas.push(soltas); soltas = ''; } });
+  if(soltas.length > 1) juntas.push(soltas);
+  return ws.concat(juntas);
+}
+function segPalavraRuim(w){
+  if(!w) return null;
+  const w1 = w.replace(/(.)\1+/g, '$1');
+  for(const x of [w, w1]){
+    if(SEG_PALAVROES.has(x)) return 'palavrao';
+    if(SEG_SEXUAL.has(x)) return 'sexual';
+    if(SEG_ODIO.has(x)) return 'odio';
+  }
+  for(const [c, m] of SEG_INICIOS) if(w.startsWith(c) || w1.startsWith(c)) return m;
+  if(w.length >= 7) for(const [c, m] of SEG_GRUDADOS) if(w.indexOf(c) >= 0 || w1.indexOf(c) >= 0) return m;
+  /* f*ck, p**a, m***a */
+  if(w.indexOf('*') >= 0 && w.replace(/\*/g, '').length >= 2 && w.length >= 3){
+    const re = new RegExp('^' + w.replace(/[^a-z*]/g, '').replace(/\*+/g, m=>'[a-z]{' + m.length + '}') + '$');
+    for(const p of SEG_PALAVROES) if(p.length >= 4 && re.test(p)) return 'palavrao';
+  }
+  return null;
+}
+/* frases (no texto normalizado, palavras separadas por um espaço) */
+const SEG_FRASES = [
+  /* perigo: fotos, segredos, encontros, sozinho em casa, câmera, presente em troca de foto */
+  ['perigo', /\bmand\w*\s+(uma\s+|umas\s+|a\s+|as\s+|me\s+)?(foto|fotos|selfie|video|videos|pic|pics)\s+(sua|tua|de voce|de vc|do seu corpo|do teu corpo|sem roupa|pelad\w*|de calcinha|de cueca|de biquini|de sutia|so de|de pijama)\b/],
+  ['perigo', /\b(manda|mande|me manda|send|send me|envia|envie|mandame)\s+(um\s+|uma\s+|a\s+)?(nude|nudes|nud|nds)\b/],
+  ['perigo', /\bsem roupa\b|\btira (a|sua|tua) roupa\b|\btake off your (clothes|shirt)\b|\bquitate la ropa\b/],
+  ['perigo', /\b(nao|n|nem) (conta|fala|diz|conte|fale|diga|contar|falar|dizer) (isso |nada )?(pra|para|pros|pras|aos|as|a) (ninguem|seus pais|sua mae|seu pai|sua familia|um adulto|seus responsaveis|sua professora)\b/],
+  ['perigo', /\b(nosso|nossa) (segredo|segredinho)\b|\bsegredo (nosso|so nosso)\b|\bentre nos dois\b|\bour (little )?secret\b|\bdont tell (your |ur )?(parents|mom|dad|mum|anyone)\b|\bno le digas a (nadie|tus padres)\b|\bnuestro secreto\b/],
+  ['perigo', /\b(vamos|bora|quer|quero|vamo) (se |nos |te |a gente )?(encontrar|ver pessoalmente|conhecer pessoalmente|se ver)\b(?! (no|na|em) (jogo|koda|sala|online|partida)\b)(?! na praca( do koda)?\s*$)|\bme encontra (na|no|em) (?!jogo|praca|koda|sala)|\bte encontro (na|no|em) (?!jogo|praca|koda|sala)|\b(lets|wanna|want to) meet (up|irl|in person)\b|\bmeet me (at|in|irl)\b|\bnos vemos en persona\b|\bquedamos en (?!el juego)/],
+  ['perigo', /\b(voce|vc|tu|ce) (ta|esta|fica|tá) sozinh\w*( em casa)?\b|\bseus pais (estao|tao|ta|estão) (em casa|ai)\b|\bare you (home )?alone\b|\b(estas|esta) solo en casa\b/],
+  ['perigo', /\b(liga|abre|ligue|abra|ativa) (a |sua |tua )?(camera|webcam|cam)\b|\bturn on (your )?(camera|cam|webcam)\b|\bprende (tu )?camara\b/],
+  ['perigo', /\bte (dou|do|passo|pago|mando) (moedas|diamantes|robux|skins?|presente|presentes)\b.{0,25}\bse (voce|vc|tu) (mandar|me mandar|fizer|ligar|mostrar)\b/],
+  /* senha */
+  ['senha', /\b(passa|manda|me da|me de|fala|diz|qual|qual e|qual eh|me passa|whats|what is|give me|send me|tell me|dame|pasame|cual es|dime)\b.{0,15}\b(senha|password|contrasena|passwd)\b/],
+  ['senha', /\bminha senha (e|eh|:)|\bmy password is\b|\bmi contrasena es\b|\b(quero|preciso|vou) (da |de )?(sua|tua|your) (senha|password)\b/],
+  /* ameaça e "vai se matar" */
+  ['ameaca', /\b(vai|va) se matar\b|\bse mat(a|e)\b(?! (o|a|os|as) )|\bkys\b|\bkill yourself\b|\bgo die\b|\bmatate\b|\bsuicidate\b|\bninguem gosta de (voce|vc|ti)\b|\bnobody likes you\b|\bsei onde (voce|vc|tu) mora\b|\bi know where you live\b|\bse donde vives\b|\bvou (te )?pegar na saida\b|\bvou (te )?bater (em voce |em vc )?na escola\b/],
+  /* pedido de dados */
+  ['pedido_dados', /\b(qual|quais|me passa|me passe|passa|me da|me de|manda|me manda|fala|me fala|whats|what is|give me|send me|tell me|cual es|dame|pasame|dime)\b.{0,20}\b(seu|sua|teu|tua|your|ur|tu)\b.{0,12}\b(telefone|fone|numero|celular|cel|whats|whatsapp|zap|zapzap|endereco|insta|instagram|discord|snap|snapchat|tiktok|email|e-mail|cpf|escola|colegio|sobrenome|nome completo|address|phone|number|cell|school|last name|full name|telefono|direccion|escuela|apellido)\b/],
+  ['pedido_dados', /\bonde (voce|vc|tu|ce) (mora|vive|estuda)\b|\bwhere (do|d) (you|u) (live|go to school)\b|\bdonde (vives|estudias)\b|\bem que (escola|cidade|bairro|rua) (voce|vc|tu) (estuda|mora)\b/],
+  /* dados pessoais */
+  ['dados', /\b(meu|minha|my|mi)\s+(insta|instagram|ig|whats|whatsapp|zap|zapzap|tiktok|discord|snap|snapchat|telegram|face|facebook|kwai|twitter|numero|telefone|celular|phone number|address|endereco|email|e-mail|cpf|telefono|direccion)\b\s*(e|eh|:|=|is|es|ta)?\s*@?[a-z0-9._]{3,}/],
+  ['dados', /\b(me |chama|add|adiciona|segue|follow me|sigueme|agregame)\b.{0,15}\b(no|na|on|en)\s+(insta|instagram|whats|whatsapp|zap|tiktok|discord|snap|snapchat|telegram|face|facebook|kwai|twitter)\b/],
+  ['dados', /\b(moro|eu moro|i live|vivo)\b.{0,12}\b(na|no|em|on|at|en)\s+(rua|avenida|av|travessa|alameda|estrada|rodovia|bairro|condominio|predio|apartamento|apto|street|st|avenue|ave|road|calle|barrio)\b/],
+  ['dados', /\b(rua|avenida|travessa|alameda|street|avenue|calle)\s+[a-z][a-z ]{2,30}\s(n|no|numero)?\s?\d{1,5}\b/],
+  ['dados', /\bestudo n[oa] (escola|colegio|emef|emei|ee)\b|\bminha escola (e|eh|se chama|fica)\b|\bmy school is\b|\bmi (escuela|colegio) (es|se llama)\b/],
+  /* golpe */
+  ['golpe', /\b(robux|vbucks|v bucks)\b.{0,20}\b(gratis|de graca|free|infinit\w*|gerador|generator|hack)\b|\b(gratis|free|gerador|generator|hack|ganhe)\b.{0,15}\b(robux|vbucks|v bucks)\b/],
+  ['golpe', /\b(diamantes?|moedas?|gemas?|skins?|coins?|diamonds?|monedas?)\s+(gratis|de graca|infinit\w*|free|ilimitad\w*)\b.{0,40}\b(link|site|clica|clique|acessa|acesse|entra|http|www|com|click)\b/],
+  ['golpe', /\b(gerador|generator|hack|hacker)\s+(de\s+)?(diamantes|moedas|coins|diamonds|monedas|gemas)\b/],
+  /* ódio (frases) */
+  ['odio', /\b(preto|preta|negro|negra|macaco|macaca|favelado|favelada|nordestino|nordestina)\s+(fedid|imund|nojent|sujo|suja|lixo)\w*|\bvolta pra africa\b|\b(gay|gays|lesbica|lesbicas|trans)\s+(nojent\w*|lixo|doente|tem que morrer|deveria morrer)\b|\bmorte aos? (gays|negros|judeus|pretos)\b|\bsieg heil\b|\bku klux\b/]
+];
+/* pedido de ajuda (a pessoa fala de se machucar): não bloqueia, mostra apoio */
+const SEG_AJUDA = /\b(quero|vou|vo|to pensando em|penso em|pensando em|tenho vontade de|queria)\s+(me matar|me suicidar|sumir do mundo|me cortar|me machucar|tirar minha vida|morrer)\b(?! (de rir|de fome|de sono|de tedio|de vergonha|de calor|de frio|de medo|no jogo|na fase|nessa fase|kk))|\bnao quero mais viver\b|\bi (want to|wanna|am going to|m gonna|will|feel like i want to) (die|kill myself|hurt myself|end it all)\b|\bkill myself\b|\b(me quiero|quiero) (morir|matarme|lastimarme)\b(?! de risa)|\bme corto\b/;
+const SEG_DOMINIOS_OK = /(^|\.)(koda\.site|gamersite\.workers\.dev)$/;
+const SEG_TLD = 'com|net|org|br|gg|io|xyz|ly|me|tv|app|site|online|link|info|co|ru|cn|tk|ml|ga|cf|gq|top|club|shop|store|live|fun|games|game|page|dev|biz|us|uk|pt|es|fr|de|it|nl|jp|kr|vip|win|pro|click|cc|ws|to|gl|bit';
+function segLinks(orig){
+  const s = segNorm(orig), achados = [];
+  const re = new RegExp('\\b(?:https?:\\/\\/|www\\.)[^\\s<>"]+|\\b(?:[a-z0-9-]{2,60}\\.)+(?:' + SEG_TLD + ')(?:\\.[a-z]{2})?(?:\\/[^\\s<>"]*)?(?=$|[\\s,;!?)])', 'gi');
+  let m;
+  while((m = re.exec(s))){
+    const url = m[0].replace(/[.,;!?)]+$/, '');
+    const host = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[\/?#:]/)[0];
+    if(!host || SEG_DOMINIOS_OK.test(host)) continue;
+    if(!/^(https?:\/\/|www\.)/.test(url) && /^[a-z0-9-]+\.io$/.test(host) && url === host) continue;   // nome de jogo: slither.io, agar.io
+    if(/^\d+(\.\d+)+$/.test(host) && !/^https?:/.test(url)) continue;   // 3.14, 1.2.3
+    achados.push(host);
+  }
+  return achados;
+}
+function segTelefone(orig){
+  const s = String(orig);
+  const re = /(?:\+?\d[\s().\-]{0,3}){8,}/g;
+  let m;
+  while((m = re.exec(s))){
+    const bloco = m[0].trim(), dig = bloco.replace(/\D/g, '');
+    if(dig.length < 8 || dig.length > 15) continue;
+    if(/^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$|^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}$/.test(bloco)) continue;   // data
+    const antes = segNorm(s.slice(Math.max(0, m.index - 30), m.index));
+    if(/(pontos|pontuacao|score|recorde|record|puntos|moedas|coins|diamantes|xp|nivel|level|id do jogo|codigo)\s*:?\s*$/.test(antes)) continue;
+    const contexto = /(zap|whats|telefone|tel|cel|celular|numero|number|phone|call|liga|ligar|fone|telefono|llama)/.test(segNorm(s));
+    const formato = /\d{4,5}[\s.\-]\d{4}\b/.test(bloco) || /^\+/.test(bloco) || /\(\d{2,3}\)/.test(bloco);
+    if(contexto || formato || dig.length >= 10) return bloco;
+  }
+  return null;
+}
+/* o resultado: {ok:true} | {ok:true, ajuda:true} | {ok:false, motivo, trecho} */
+function segAnalisar(texto, onde){
+  const orig = String(texto == null ? '' : texto);
+  if(!orig.trim()) return {ok: true};
+  onde = onde || 'msg';
+  for(const [p, m] of SEG_CJK) if(orig.indexOf(p) >= 0) return {ok: false, motivo: m, trecho: p};
+  for(const w of segPalavras(orig)){ const m = segPalavraRuim(w); if(m) return {ok: false, motivo: m, trecho: w}; }
+  const nf = ' ' + segNorm(orig).replace(/[^a-z0-9@]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  for(const [m, re] of SEG_FRASES){
+    if(onde === 'jogo' && (m === 'dados' || m === 'pedido_dados' || m === 'perigo' || m === 'senha')) continue;   // jogo tem verificação própria
+    const x = re.exec(nf);
+    if(x && m === 'senha' && /\b(nunca|nao|jamais|never|dont|do not|no|nunca le)\s*(\w+\s*){0,2}$/.test(nf.slice(Math.max(0, x.index - 25), x.index))) continue;   // "nunca passe sua senha" é conselho
+    if(x) return {ok: false, motivo: m, trecho: x[0].trim()};
+  }
+  if(onde !== 'jogo'){
+    if(/[a-z0-9._%+\-]+@[a-z0-9\-]+(\.[a-z0-9\-]+)*\.[a-z]{2,}/i.test(orig)) return {ok: false, motivo: 'dados', trecho: 'e-mail'};
+    const tel = segTelefone(orig);
+    if(tel) return {ok: false, motivo: 'dados', trecho: tel};
+    if(/\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/.test(orig) || /\bcpf\b.{0,6}\d{11}/.test(segNorm(orig))) return {ok: false, motivo: 'dados', trecho: 'cpf'};
+    if(/\bcep\b.{0,5}\d{5}-?\d{3}\b/.test(segNorm(orig))) return {ok: false, motivo: 'dados', trecho: 'cep'};
+    const ln = onde === 'nome' ? (/https?:\/\/|www\./i.test(orig) ? segLinks(orig) : []) : segLinks(orig);
+    if(ln.length) return {ok: false, motivo: 'link', trecho: ln[0]};
+  }
+  if(onde === 'msg' || onde === 'comentario' || onde === 'bio'){
+    if(SEG_AJUDA.test(nf)) return {ok: true, ajuda: true};
+  }
+  return {ok: true};
+}
+/* palavrões de mensagens antigas aparecem como p**** */
+function segMascarar(texto){
+  const s = String(texto == null ? '' : texto);
+  if(!s) return s;
+  let r = s.replace(/[^\s.,!?;:()"'\[\]{}<>]+/g, w=>{
+    const ws = segPalavras(w);
+    return ws.some(x=>{ const m = segPalavraRuim(x); return m === 'palavrao' || m === 'sexual' || m === 'odio'; }) ? w.charAt(0) + '*'.repeat(Math.max(3, w.length - 1)) : w;
+  });
+  for(const [p] of SEG_CJK) if(r.indexOf(p) >= 0) r = r.split(p).join('*'.repeat(p.length));
+  return r;
+}
+/* ---------- jogos: o que aparece na tela, pedido de senha e links pra fora ---------- */
+function segTextosDoJogo(codigo){
+  const c = String(codigo || ''), r = [];
+  /* texto escrito no HTML (fora de script, estilo e comentário) */
+  const html = c.replace(/<script\b[\s\S]*?(<\/script\s*>|$)/gi, ' ').replace(/<style\b[\s\S]*?(<\/style\s*>|$)/gi, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
+  html.replace(/>([^<>]+)</g, (m0, x)=>{ if(/[A-Za-zÀ-ÿ぀-ヿ一-鿿가-힯]/.test(x)) r.push(x.trim()); return m0; });
+  html.replace(/\b(?:title|placeholder|alt|value|aria-label)\s*=\s*["']([^"']+)["']/gi, (m0, x)=>{ r.push(x); return m0; });
+  /* textos entre aspas dentro dos scripts (só o que parece texto de gente, não código) */
+  const scripts = c.match(/<script\b[^>]*>[\s\S]*?(<\/script\s*>|$)/gi) || [];
+  scripts.forEach(sc=>{
+    if(/\bsrc\s*=/.test(sc.slice(0, sc.indexOf('>')))) return;
+    const corpo = sc.replace(/^<script\b[^>]*>/i, '').replace(/<\/script\s*>$/i, '')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:\\'"`])\/\/[^\n]*/g, '$1');
+    corpo.replace(/(['"`])((?:\\.|(?!\1)[^\\\n])*)\1/g, (m0, q, x)=>{
+      if(!x || x.length > 300 || /^data:|^[A-Za-z0-9+/=]{40,}$/.test(x)) return m0;
+      if(!/[A-Za-zÀ-ÿ぀-ヿ一-鿿가-힯]/.test(x)) return m0;
+      r.push(x.replace(/\$\{[^}]*\}/g, ' '));
+      return m0;
+    });
+  });
+  return r;
+}
+function segHostDe(url){ return String(url || '').replace(/^\s*(https?:)?\/\//i, '').replace(/^www\./i, '').split(/[\/?#:'"\s]/)[0].toLowerCase(); }
+function segConferirJogo(codigo){
+  const c = String(codigo || ''), problemas = [], vistos = {};
+  const add = (tipo, extra)=>{ const k = tipo + ':' + (extra && (extra.trecho || extra.site) || ''); if(vistos[k] || problemas.length >= 6) return; vistos[k] = 1; problemas.push(Object.assign({tipo}, extra || {})); };
+  /* 1) o que está escrito no jogo */
+  segTextosDoJogo(c).forEach(x=>{
+    const a = segAnalisar(x, 'jogo');
+    if(!a.ok && /^(palavrao|sexual|odio|ameaca|golpe)$/.test(a.motivo)) add('texto', {motivo: a.motivo === 'ameaca' || a.motivo === 'golpe' ? 'odio' : a.motivo, trecho: String(x).trim().slice(0, 60)});
+  });
+  /* 2) pedir senha, e-mail, telefone, cartão */
+  const pede = /(senha|password|passwd|contrase[nñ]a|mot de passe|passwort|wachtwoord|e-?mail|telefone|celular|phone number|tel[eé]fono|cpf|cart[aã]o de cr[eé]dito|credit card|card number|n[uú]mero do cart[aã]o|tarjeta|c[oó]digo de seguran[cç]a|cvv)/i;
+  if(/<input\b[^>]*\btype\s*=\s*["']?(password|email|tel)\b/i.test(c) || /\bautocomplete\s*=\s*["']?(cc-|current-password|new-password)/i.test(c)) add('senha');
+  (c.match(/<input\b[^>]*>/gi) || []).forEach(inp=>{ if(pede.test(inp)) add('senha'); });
+  (c.match(/\b(prompt|confirm)\s*\(\s*(['"`])([^'"`]{0,200})\2/g) || []).forEach(p=>{ if(pede.test(p)) add('senha'); });
+  (c.match(/<label\b[^>]*>[^<]{0,80}</gi) || []).forEach(l=>{ if(pede.test(l)) add('senha'); });
+  /* 3) levar pra outro site ou abrir outro site dentro */
+  const fora = url=>{ const h = segHostDe(url); return h && !SEG_DOMINIOS_OK.test(h) ? h : null; };
+  let m;
+  const reNav = /\b(?:location(?:\.href)?\s*=|location\.(?:assign|replace)\s*\(|window\.open\s*\(|top\.location\s*=|parent\.location\s*=)\s*['"`](https?:\/\/[^'"`\s]+)/gi;
+  while((m = reNav.exec(c))){ const h = fora(m[1]); if(h) add('link', {site: h}); }
+  const reA = /<a\b[^>]*\bhref\s*=\s*["']?(https?:\/\/[^"'\s>]+)/gi;
+  while((m = reA.exec(c))){ const h = fora(m[1]); if(h) add('link', {site: h}); }
+  const reForm = /<form\b[^>]*\baction\s*=\s*["']?(https?:\/\/[^"'\s>]+)/gi;
+  while((m = reForm.exec(c))){ const h = fora(m[1]); if(h) add('link', {site: h}); }
+  const reMeta = /<meta\b[^>]*http-equiv\s*=\s*["']?refresh[^>]*url\s*=\s*(https?:\/\/[^"'\s>;]+)/gi;
+  while((m = reMeta.exec(c))){ const h = fora(m[1]); if(h) add('link', {site: h}); }
+  const reIf = /<(?:iframe|frame|embed|object)\b[^>]*\b(?:src|data)\s*=\s*["']?(https?:\/\/[^"'\s>]+)/gi;
+  while((m = reIf.exec(c))){ const h = fora(m[1]); if(h) add('iframe', {site: h}); }
+  return problemas;
+}
+
+/* ---------- avisos na tela ---------- */
+let segUltimoBloqueio = 0;
+function segBloqueouAgora(){ return Date.now() - segUltimoBloqueio < 4000; }
+function segJanela(titulo, linhas, icone){
+  const bg = document.createElement('div');
+  bg.className = 'confirm-bg';
+  bg.style.zIndex = '4000';
+  bg.innerHTML = `<div class="confirm-card lei-card" role="alertdialog">
+      <div class="lei-icone">${icone || '!'}</div>
+      <h3 class="lei-titulo">${chatListEscape(titulo)}</h3>
+      ${linhas.map((l, i)=>`<p class="${i ? 'lei-det' : 'lei-msg'}">${chatListEscape(l)}</p>`).join('')}
+      <div class="confirm-actions"><button class="confirm-ok" type="button" style="width:100%;">${chatListEscape(t('seg_entendi'))}</button></div>
+    </div>`;
+  document.body.appendChild(bg);
+  const fechar = ()=>{ if(bg.parentNode) bg.parentNode.removeChild(bg); };
+  bg.addEventListener('click', e=>{ if(e.target === bg) fechar(); });
+  bg.querySelector('.confirm-ok').addEventListener('click', ()=>{ try{ playSound('click'); }catch(e){} fechar(); });
+  try{ bg.querySelector('.confirm-ok').focus({preventScroll: true}); }catch(e){}
+}
+/* o texto foi barrado: mostra por quê, do jeito que criança entende */
+function segMostrar(r, onde){
+  segUltimoBloqueio = Date.now();
+  const k = onde === 'nome' ? 'seg_nome' : 'seg_' + (r && r.motivo || 'palavrao');
+  segJanela(t('seg_tit'), [t(k)]);
+}
+function segMostrarAjuda(){ segJanela(t('seg_ajuda_tit'), [t('seg_ajuda')], (typeof ICONS !== 'undefined' && ICONS.heartOutline) || '!'); }
+function segMostrarJogo(problemas){
+  segUltimoBloqueio = Date.now();
+  const linhas = problemas.slice(0, 4).map(p=>{
+    if(p.tipo === 'texto') return t('seg_jogo_texto', {motivo: t('seg_m_' + p.motivo), trecho: segMascarar(p.trecho)});
+    if(p.tipo === 'senha') return t('seg_jogo_senha');
+    if(p.tipo === 'iframe') return t('seg_jogo_iframe', {site: p.site});
+    return t('seg_jogo_link', {site: p.site});
+  });
+  linhas.push(t('seg_jogo_dica'));
+  segJanela(t('seg_jogo_tit'), linhas);
+}
+/* confere e já avisa: true = pode seguir */
+function segPode(texto, onde){
+  const r = segAnalisar(texto, onde);
+  if(!r.ok){ segMostrar(r, onde); return false; }
+  return true;
+}
+
+/* ---------- roupas: símbolo de ódio desenhado e texto carimbado ---------- */
+/* a suástica (nos dois sentidos) em qualquer cor, de 5x5 até 9x9 quadradinhos, em 1x, 2x ou 3x */
+function segSuasticaNoDesenho(px, W, H){
+  if(!px || !px.length) return false;
+  const cores = {};
+  for(let k = 0; k < px.length; k++) if(px[k]) cores[String(px[k]).toLowerCase()] = 1;
+  const formas = [];
+  [5, 7, 9].forEach(n=>{
+    const c = (n - 1) / 2, f = [];
+    for(let y = 0; y < n; y++){ const linha = []; for(let x = 0; x < n; x++){
+      const sim = x === c || y === c || (y === 0 && x >= c) || (x === n - 1 && y >= c) || (y === n - 1 && x <= c) || (x === 0 && y <= c);
+      linha.push(sim ? 1 : 0); } f.push(linha); }
+    formas.push(f, f.map(l=>l.slice().reverse()));
+  });
+  for(const cor of Object.keys(cores)){
+    const tem = (x, y)=>x >= 0 && y >= 0 && x < W && y < H && String(px[y * W + x] || '').toLowerCase() === cor;
+    for(const f of formas){
+      const n = f.length;
+      for(const s of [1, 2, 3]){
+        if(n * s > Math.min(W, H)) continue;
+        for(let oy = 0; oy + n * s <= H; oy++) for(let ox = 0; ox + n * s <= W; ox++){
+          let ok = true;
+          for(let y = 0; y < n && ok; y++) for(let x = 0; x < n && ok; x++){
+            for(let dy = 0; dy < s && ok; dy++) for(let dx = 0; dx < s && ok; dx++){
+              if(tem(ox + x * s + dx, oy + y * s + dy) !== !!f[y][x]) ok = false;
+            }
+          }
+          if(ok) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+function ugcTextoProibido(texto){
+  const s = String(texto || '').trim();
+  if(!s) return false;
+  if(/^(1488|14|88|ss|heil|kkk|nazi|hitler|sieg)$/i.test(s)) return true;
+  return !segAnalisar(s, 'nome').ok;
+}
+/* pele demais na foto? (uma conta simples de cor; quem decide é a pessoa, respondendo a pergunta) */
+async function ugcFotoTemPele(fotos){
+  const fs = [fotos && fotos.foto, fotos && fotos.fotoC].filter(Boolean);
+  for(const F of fs){
+    const im = await ugcCarregarImagem(F.s);
+    if(!im) continue;
+    try{
+      if(typeof FaceDetector !== 'undefined'){
+        const det = await new FaceDetector({fastMode: true, maxDetectedFaces: 3}).detect(im);
+        if(det && det.length) return 'rosto';
+      }
+    }catch(e){}
+    const c = document.createElement('canvas'), L = 64;
+    c.width = L; c.height = L;
+    const x = c.getContext('2d');
+    x.drawImage(im, 0, 0, L, L);
+    const d = x.getImageData(0, 0, L, L).data;
+    let pele = 0, total = 0;
+    for(let i = 0; i < d.length; i += 4){
+      if(d[i + 3] < 128) continue;
+      total++;
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      const Y = 0.299 * r + 0.587 * g + 0.114 * b, cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b, cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+      if(Y > 40 && cb >= 77 && cb <= 127 && cr >= 135 && cr <= 173 && r > g && r > b) pele++;
+    }
+    if(total && pele / total >= 0.18) return 'talvez';
+  }
+  return null;
+}
+function ugcPerguntarRosto(){
+  return new Promise(ok=>{
+    const bg = document.createElement('div');
+    bg.className = 'confirm-bg';
+    bg.style.zIndex = '4000';
+    bg.innerHTML = `<div class="confirm-card" role="alertdialog">
+        <p class="confirm-msg"><b>${chatListEscape(t('ugc_foto_q'))}</b></p>
+        <p class="confirm-msg" style="font-size:.9em;opacity:.8">${chatListEscape(t('ugc_foto_q_sub'))}</p>
+        <div class="confirm-actions"><button class="confirm-cancel" type="button" data-tem>${chatListEscape(t('ugc_foto_tem'))}</button><button class="confirm-ok" type="button" data-nao>${chatListEscape(t('ugc_foto_nao'))}</button></div>
+      </div>`;
+    document.body.appendChild(bg);
+    const fim = v=>{ if(bg.parentNode) bg.parentNode.removeChild(bg); ok(v); };
+    bg.querySelector('[data-tem]').addEventListener('click', ()=>fim(true));
+    bg.querySelector('[data-nao]').addEventListener('click', ()=>fim(false));
+  });
+}
+/* denunciar uma roupa da loja (vai pra mesma lista de denúncias dos jogos) */
+function ugcDenunciar(id){
+  const m = ugcMeta(id);
+  if(!m) return;
+  if(souVisitante() || !FIREBASE_ENABLED || !fbAuth().currentUser){ toast(t('ugc_sem_conta')); return; }
+  showBioPromptGeneric(t('ugc_den_q'), '', async motivo=>{
+    if(!motivo || !motivo.trim()) return;
+    const ok = await submitGameReport('peca:' + id, 'Roupa: ' + (m.nome || id), motivo);
+    toast(ok ? t('ugc_den_ok') : t('msg_send_error'));
+  });
+}
+
+/* ============================================================
    ANÁLISE ANTES DE PUBLICAR
    Publicar não põe mais o jogo direto no catálogo: ele vai para
    "gameSubmissions" (em análise) e o servidor da IA analisa tudo.
@@ -22295,7 +22737,8 @@ document.addEventListener('click', e=>{ const b = e.target && e.target.closest &
 function publishGame(name, code, coverDataUri, editingId, category, hasDifficulty, multiplayerCounts, shape, loja, notas){
   if(!name){ toast(t('code_form_name_needed')); return false; }
   notas = String(notas || '').trim().slice(0, 140);
-  if(notas && (ugcPalavraRuim(notas) || containsIllicitContent(notas))){ toast(t('nv_notas_ruim')); return false; }
+  if(notas && (ugcPalavraRuim(notas) || containsIllicitContent(notas) || !segAnalisar(notas, 'bio').ok)){ toast(t('nv_notas_ruim')); return false; }
+  if(!segPode(name, 'nome')) return false;
   const brutoDoJogo = code;
   code = prepararCodigoDoJogo(code);   // qualquer IA: tira a conversa, junta html/css/js, vira uma página só
   const diag = jogoDiagnostico(brutoDoJogo, code);
@@ -22305,6 +22748,9 @@ function publishGame(name, code, coverDataUri, editingId, category, hasDifficult
     mostrarContraLeis(t('illicit_content_blocked'));
     return false;
   }
+  /* segurança por código: textos do jogo, pedido de senha, links pra fora */
+  const segProb = segConferirJogo(code);
+  if(segProb.length){ segMostrarJogo(segProb); return false; }
   multiplayerCounts = multiplayerCounts || [];
   if(editingId){
     const list = loadCustomGames();
@@ -22722,6 +23168,9 @@ function publicarDupla(projId, proj, name, codigo, cover, shape){
   if(diag && (diag.tipo !== 'arquivo' || diag.arquivos.some(a=>/\.(js|mjs|jsx|ts|tsx)$/i.test(a)))){ jogoMostrarDiagnostico(diag); return false; }
   if(!code || code.trim().length < 20 || !code.includes('<')){ toast(t('code_form_code_incomplete')); return false; }
   if(containsIllicitContent(name) || containsIllicitContent(code)){ mostrarContraLeis(t('illicit_content_blocked')); return false; }
+  if(!segPode(name, 'nome')) return false;
+  const segProb = segConferirJogo(code);
+  if(segProb.length){ segMostrarJogo(segProb); return false; }
   const gid = 'dupla_' + projId, list = loadCustomGames(), idx = list.findIndex(r=>r.id === gid);
   const antes = idx >= 0 ? list[idx] : null;
   const codeB64 = utf8ToB64(code), mudou = !antes || antes.codeB64 !== codeB64;
@@ -24116,10 +24565,10 @@ function lojaCriar(codigo, opts){
   var itens = [], efeitos = {}, usados = {};
   if(opts.itens && opts.itens.length){
     opts.itens.forEach(function(p){
-      var ef = p.efeito || efeitoDoNome(p.nome);
+      var ef = p.semEfeito ? null : (p.efeito || efeitoDoNome(p.nome));
       if(ef && CONCEITOS[ef] && !at[ef]) ef = null;
       var base = ef ? itemDoEfeito(ef, lj, genero, at[ef] ? passoDaSoma(at[ef][0]) : 1) : null;
-      var it = {id: idDoNome(p.nome || (base && base.id), usados), nome: p.nome ? capitalizar(p.nome) : base.nome, desc: p.desc || (base ? base.desc : ''), preco: 0, moeda: p.moeda || opts.moeda || 'c', unico: p.unico != null ? p.unico : true};
+      var it = {id: p.id && !usados[p.id] ? idLimpo(p.id) : idDoNome(p.nome || (base && base.id), usados), nome: p.nome ? capitalizar(p.nome) : base.nome, desc: p.desc || (base ? base.desc : ''), preco: 0, moeda: p.moeda || opts.moeda || 'c', unico: p.unico != null ? p.unico : true};
       it.preco = p.preco ? limitar(Math.round(p.preco), 1, maxDe(it.moeda)) : (it.moeda === 'd' ? paraDiamantes(base ? base.preco : 300) : (base ? base.preco : 300));
       usados[it.id] = 1;
       itens.push(it);
@@ -28741,7 +29190,7 @@ function fazerNumero(codigo, conceito, o){
     if(a === b && T[a - 1] && T[a - 1].v === '-' && s.lit < 0) ini = s.js.base + T[a - 1].s;
     ed.trocar(ini, fim, formatarNumero(novo));
     var k = s.nome + ':' + lit;
-    if(!vistos[k]){ vistos[k] = 1; mud.push({nome: (s.dono && s.tipo !== 'decl' ? s.dono + '.' : '') + s.nome, de: lit, para: novo}); }
+    if(!vistos[k]){ vistos[k] = 1; mud.push({nome: (s.dono && s.tipo !== 'decl' ? s.dono + '.' : '') + s.nome, de: lit, para: novo, conceito: conceito}); }
   });
   if(!mud.length) return {erro: 'nao_achei'};
   var novoCod = ed.aplicar();
@@ -30467,7 +30916,7 @@ var TXL_DADOS2 = {
   lg_es: "spagnolo|espagnol|Spanische|Spaans|スペイン語|西班牙语|스페인어",
   md_troca_ok: "Fatto! Ho sostituito «{de}» con «{para}» ({n} posto/i).|Voilà ! J'ai remplacé « {de} » par « {para} » ({n} endroit(s)).|Fertig! Ich habe „{de}“ durch „{para}“ ersetzt ({n} Stelle(n)).|Klaar! Ik heb „{de}” vervangen door „{para}” ({n} plek(ken)).|「{de}」を「{para}」に変えました（{n}か所）。|好了！我把“{de}”换成了“{para}”（{n}处）。|'{de}'을(를) '{para}'(으)로 바꿨어 ({n}곳).",
   md_hud_ok: "Fatto! Ora i punti compaiono sullo schermo, in alto a sinistra (uso la variabile «{v}» del tuo gioco).|Voilà ! Les points s'affichent maintenant à l'écran, en haut à gauche (j'utilise la variable « {v} » de ton jeu).|Fertig! Die Punkte erscheinen jetzt auf dem Bildschirm, oben links (ich nutze die Variable „{v}“ deines Spiels).|Klaar! De punten staan nu op het scherm, linksboven (ik gebruik de variabele „{v}” van je spel).|できました！得点が画面の左上に出ます（ゲームの変数「{v}」を使っています）。|好了！现在分数会显示在屏幕左上角（我用的是你游戏里的变量“{v}”）。|완료! 이제 점수가 화면 왼쪽 위에 나와 (게임의 변수 '{v}'를 써).",
-  on_ok_direto: "Fatto! Ho reso il tuo gioco online nel modo possibile senza rompere nulla: chi gioca lo stesso gioco nella stessa stanza di Koda vede i punti di tutti dal vivo (uso la variabile «{v}») e il gioco compare sulle panchine della Piazza. Vedere gli altri personaggi nella stessa scena (vero multiplayer) cambia tutta la logica del gioco: per quello preparo la richiesta per l'IA che ha fatto il gioco.|Voilà ! J'ai mis ton jeu en ligne comme je peux sans rien casser : ceux qui jouent au même jeu dans la même salle Koda voient les points de tous en direct (j'utilise la variable « {v} ») et le jeu apparaît sur les bancs de la Place. Voir les autres personnages dans la même scène (vrai multijoueur) change toute la logique du jeu : pour ça, je prépare la demande pour l'IA qui a fait le jeu.|Fertig! Ich habe dein Spiel so online gemacht, wie es ohne etwas kaputt zu machen geht: Wer dasselbe Spiel im selben Koda-Raum spielt, sieht die Punkte aller live (ich nutze die Variable „{v}“), und das Spiel erscheint auf den Bänken der Plaza. Die anderen Figuren in derselben Szene zu sehen (echter Multiplayer) ändert die ganze Spiellogik: dafür schreibe ich die Anfrage für die KI, die das Spiel gemacht hat.|Klaar! Ik heb je spel online gemaakt voor zover dat kan zonder iets kapot te maken: wie hetzelfde spel in dezelfde Koda-kamer speelt, ziet ieders punten live (ik gebruik de variabele „{v}”) en het spel verschijnt op de bankjes van het Plein. De andere personages in hetzelfde tafereel zien (echte multiplayer) verandert de hele spellogica: daarvoor schrijf ik het verzoek voor de AI die het spel maakte.|ゲームを、こわさずにできる形でオンラインにしました。同じKodaの部屋で同じゲームを遊ぶ人の得点がリアルタイムで見え（変数「{v}」を使っています）、広場のベンチにも出ます。ほかのキャラを同じ場面で見る（本物のマルチプレイ）にはゲーム全体の作り直しが必要なので、ゲームを作ったAIへのお願い文を作ります。|我用不会弄坏游戏的方式让它联网了：在同一个Koda房间玩同一款游戏的人能实时看到大家的分数（我用的是变量“{v}”），游戏也会出现在广场的长椅上。要在同一个场景里看到其他角色（真正的多人游戏）需要改动整个游戏逻辑：这需要我为做这个游戏的AI写一份请求。|게임을 망가뜨리지 않는 선에서 온라인으로 만들었어. 같은 Koda 방에서 같은 게임을 하는 사람들의 점수를 실시간으로 볼 수 있고(변수 '{v}'를 써), 광장 벤치에도 나와. 같은 장면에서 다른 캐릭터를 보는 진짜 멀티플레이는 게임 전체를 바꿔야 해서, 게임을 만든 AI에게 보낼 요청을 만들어 줄게.",
+  on_ok_direto: "Fatto! Il tuo gioco è online: chi gioca nello stesso momento vede i punti di tutti, e il gioco appare sulle panchine della Piazza. Per vedere gli altri giocatori muoversi dentro il gioco serve un’altra IA: tocca il pulsante della richiesta di gioco online.|C’est fait ! Ton jeu est en ligne : ceux qui jouent en même temps voient les points de tout le monde, et le jeu apparaît sur les bancs de la Place. Pour voir les autres joueurs bouger dans le jeu, il faut une autre IA : touche le bouton de la demande de jeu en ligne.|Fertig! Dein Spiel ist online: Wer gleichzeitig spielt, sieht die Punkte von allen, und das Spiel erscheint auf den Bänken am Platz. Um die anderen Spieler im Spiel laufen zu sehen, braucht es eine andere KI: Tippe auf den Knopf für die Online-Spiel-Anfrage.|Klaar! Je spel is online: wie tegelijk speelt, ziet ieders punten, en het spel staat op de bankjes van het Plein. Om de andere spelers in het spel te zien bewegen, heb je een andere AI nodig: tik op de knop voor het online-spelverzoek.|できた！ゲームがオンラインになったよ。同じ時間に遊んでいる人はみんなのポイントが見えて、ゲームは広場のベンチに出ます。ゲームの中でほかの人が動くのを見るには、ほかのAIが必要です。オンラインゲームの依頼ボタンをおしてね。|好了！你的游戏已经上线：同时在玩的人能看到所有人的分数，游戏也会出现在广场的长椅上。要在游戏里看到其他玩家走动，需要另一个 AI：点一下“在线游戏请求”按钮。|완료! 게임이 온라인이 됐어요. 같은 시간에 하는 사람들은 모두의 점수를 볼 수 있고, 게임이 광장 벤치에 나와요. 게임 안에서 다른 플레이어가 움직이는 걸 보려면 다른 AI가 필요해요. 온라인 게임 요청 버튼을 눌러 주세요.",
   on_ok_sem_var: "Fatto! Ho reso il tuo gioco online: entra in una stanza di Koda (fino a 16 persone), mostra nell'angolo chi gioca insieme e i punti di ciascuno, e compare sulle panchine della Piazza. Non ho trovato la variabile dei punti, quindi la classifica usa ciò che il gioco manda alla classifica generale (KODA.pontuar).|Voilà ! J'ai mis ton jeu en ligne : il entre dans une salle Koda (jusqu'à 16 personnes), affiche dans le coin qui joue avec toi et les points de chacun, et apparaît sur les bancs de la Place. Je n'ai pas trouvé la variable des points, donc le tableau utilise ce que le jeu envoie au classement (KODA.pontuar).|Fertig! Ich habe dein Spiel online gemacht: Es betritt einen Koda-Raum (bis zu 16 Personen), zeigt in der Ecke, wer mitspielt, und die Punkte jedes Spielers, und erscheint auf den Bänken der Plaza. Ich habe die Punktevariable nicht gefunden, deshalb nutzt die Anzeige, was das Spiel an die Rangliste sendet (KODA.pontuar).|Klaar! Ik heb je spel online gemaakt: het gaat een Koda-kamer in (tot 16 personen), toont in de hoek wie meespeelt en ieders punten, en verschijnt op de bankjes van het Plein. Ik vond de puntenvariabele niet, dus het scorebord gebruikt wat het spel naar de ranglijst stuurt (KODA.pontuar).|ゲームをオンラインにしました。Kodaの部屋（最大16人）に入り、いっしょに遊ぶ人と全員の得点をすみに表示し、広場のベンチにも出ます。得点の変数が見つからなかったので、ゲームがランキングに送る得点（KODA.pontuar）を使います。|我让游戏联网了：它会进入一个Koda房间（最多16人），在角落显示一起玩的人和每个人的分数，也会出现在广场的长椅上。我没找到分数变量，所以排行榜用的是游戏发给排行榜的分数（KODA.pontuar）。|게임을 온라인으로 만들었어. Koda 방(최대 16명)에 들어가서, 같이 하는 사람과 모두의 점수를 구석에 보여 주고, 광장 벤치에도 나와. 점수 변수를 못 찾아서, 게임이 랭킹으로 보내는 점수(KODA.pontuar)를 사용해.",
   gi_ok: "Fatto! Quando qualcuno apre il gioco su telefono o tablet in verticale, compare un'animazione di un telefono che si gira con «Gira lo schermo per giocare». Il gioco aspetta fermo finché lo giri. Sul computer l'avviso non compare.|Voilà ! Quand quelqu'un ouvre le jeu sur téléphone ou tablette en portrait, une animation d'un téléphone qui tourne apparaît avec « Tourne ton écran pour jouer ». Le jeu attend à l'arrêt jusqu'à ce qu'on le tourne. Sur ordinateur, l'avis n'apparaît pas.|Fertig! Wenn jemand das Spiel auf Handy oder Tablet hochkant öffnet, erscheint eine Animation eines sich drehenden Handys mit „Dreh den Bildschirm zum Spielen“. Das Spiel wartet angehalten, bis gedreht wird. Am Computer erscheint der Hinweis nicht.|Klaar! Als iemand het spel staand op een telefoon of tablet opent, verschijnt een animatie van een draaiende telefoon met „Draai je scherm om te spelen”. Het spel wacht stil tot je draait. Op een computer verschijnt het bericht niet.|スマホやタブレットを縦に持ってゲームを開くと、スマホが横に回るアニメーションと「画面を横にしてね」が出ます。画面を回すまでゲームは止まります。パソコンでは出ません。|有人用手机或平板竖着打开游戏时，会出现手机转成横屏的动画和“请把屏幕横过来玩”。在转屏之前游戏会暂停。在电脑上不会出现这个提示。|스마트폰이나 태블릿을 세로로 들고 게임을 열면 폰이 가로로 돌아가는 애니메이션과 '화면을 가로로 돌려서 하세요'가 나와. 화면을 돌릴 때까지 게임은 멈춰 있어. 컴퓨터에서는 안 나와.",
   gi_ok_empe: "Fatto! Quando qualcuno apre il gioco su telefono o tablet in orizzontale, compare un'animazione di un telefono che si raddrizza con «Tieni lo schermo in verticale per giocare». Il gioco aspetta fermo finché lo giri.|Voilà ! Quand quelqu'un ouvre le jeu sur téléphone ou tablette en paysage, une animation d'un téléphone qui se redresse apparaît avec « Mets ton écran à la verticale pour jouer ». Le jeu attend à l'arrêt jusqu'à ce qu'on le tourne.|Fertig! Wenn jemand das Spiel auf Handy oder Tablet im Querformat öffnet, erscheint eine Animation eines sich aufrichtenden Handys mit „Halte den Bildschirm hochkant zum Spielen“. Das Spiel wartet angehalten, bis gedreht wird.|Klaar! Als iemand het spel liggend op een telefoon of tablet opent, verschijnt een animatie van een rechtop komende telefoon met „Houd je scherm rechtop om te spelen”. Het spel wacht stil tot je draait.|スマホやタブレットを横に持ってゲームを開くと、スマホが縦になるアニメーションと「画面を縦にしてね」が出ます。画面を回すまでゲームは止まります。|有人用手机或平板横着打开游戏时，会出现手机转成竖屏的动画和“请把屏幕竖过来玩”。在转屏之前游戏会暂停。|스마트폰이나 태블릿을 가로로 들고 게임을 열면 폰이 세로로 서는 애니메이션과 '화면을 세로로 세워서 하세요'가 나와. 화면을 돌릴 때까지 게임은 멈춰 있어.",
@@ -30576,6 +31025,1153 @@ Object.keys(TXL_DADOS4).forEach(function(k){
   var p = TXL_DADOS4[k].split('|');
   LINGUAS_EXTRA.forEach(function(l, i){ (TXL[l] = TXL[l] || {})[k] = p[i]; });
 });
+/* ====================================================================
+   MOEDAS DO JOGO
+   Acha qualquer dinheiro que o jogo tenha (coins, ouro, gemas, cristais,
+   dinheiro, fichas, estrelas ou pontos que compram coisas...) e as compras
+   feitas com ele. Depois troca do jeito que o criador escolher:
+   - pelas moedas ou pelos diamantes do Koda: cada compra do jogo vira um
+     item da loja do Koda, e quem joga paga com o saldo da conta;
+   - ou só pelo nome que aparece na tela (ouro vira estrelas).
+   As moedas que a pessoa pega no jogo NÃO viram moedas do Koda (senão
+   daria pra ganhar moedas infinitas): só as compras mudam.
+==================================================================== */
+var MOEDA_FORTE = lista('coin,coins,moeda,moedas,moneda,monedas,gold,ouro,oro,gem,gems,gema,gemas,joia,joias,jewel,jewels,diamond,diamonds,diamante,diamantes,crystal,crystals,cristal,cristais,cristales,ruby,rubies,rubi,rubis,emerald,emeralds,esmeralda,esmeraldas,money,dinheiro,dinero,grana,cash,buck,bucks,dollar,dollars,dolar,dolares,token,tokens,ficha,fichas,credit,credits,credito,creditos,pearl,pearls,perola,perolas,currency,saldo,monete,moneta,soldi,geld,munten,argent,pieces,doubloons,dobroes,gil,zenny,rupees,rupias,bits,bolts,parafusos,scrap,sucata');
+var MOEDA_MEDIA = lista('star,stars,estrela,estrelas,estrella,estrellas,shell,shells,concha,conchas,orb,orbs,orbe,orbes,seed,seeds,sementes,leaf,leaves,folhas,candy,candies,doces,bone,bones,ossos,souls,almas,acorns,bolotas,points,ponto,pontos,score,puntos,puntaje,pts,pontuacao,xp,exp');
+var MOEDA_FRACA = lista('points,ponto,pontos,score,puntos,puntaje,pts,pontuacao,xp,exp');
+/* palavras que dizem que a variável NÃO é o saldo (é a lista de moedas na tela, o preço, a meta, o recorde...) */
+var MOEDA_NAO = lista('list,lista,arr,array,img,image,imagem,imgs,sprite,sprites,sound,som,snd,sfx,audio,color,cor,colour,x,y,z,size,tamanho,radius,raio,r,spawn,spawner,timer,speed,vel,velocidade,icon,icone,el,elem,element,div,span,text,txt,texto,label,pos,rect,w,h,anim,frame,frames,max,min,cost,costs,custo,custos,price,prices,preco,precos,precio,precios,value,valor,rate,chance,interval,needed,need,required,requerido,goal,meta,objetivo,target,alvo,multiplier,mult,bonus,per,display,shown,hud,node,btn,button,botao,ui,str,fmt,format,pool,group,grupo,layer,info,obj,objs,objects,entities,items,itens,high,best,record,recorde,melhor,top,last,prev,old,anterior,start,starting,initial,inicial,inicio,reward,recompensa,premio,drop,drops,chance,pickup,pickups,particle,particles,particulas,anim,animation,width,height,offset,angle,rot,spin,glow,sparkle,shine,brilho,font,fonte,key,keys,storage,saved,save,salvo,save,earned,total_earned,lifetime,mesh,geo,material,texture,tex,pattern,canvas,ctx,svg,path,map,mapa,grid,tile,tiles,row,col,count_el,meter,bar,barra,pct,percent,ratio');
+function lista(s){ var o = {}; s.split(',').forEach(function(w){ if(w) o[w] = 1; }); return o; }
+function palavrasDoId(id){
+  return semAcento(String(id)).replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+}
+/* 3 = com certeza é dinheiro (coins, ouro, gemas), 2 = talvez (estrelas, conchas), 1 = pontos que às vezes compram coisas */
+function forcaDeMoeda(nome, ensinado){
+  if(ensinado && String(nome).toLowerCase() === String(ensinado).toLowerCase()) return 3;
+  var ws = palavrasDoId(nome);
+  if(!ws.length || ws.some(function(w){ return MOEDA_NAO[w]; })) return 0;
+  if(ws.some(function(w){ return MOEDA_FORTE[w]; })) return 3;
+  if(ws.some(function(w){ return MOEDA_FRACA[w]; })) return 1;
+  if(ws.some(function(w){ return MOEDA_MEDIA[w]; })) return 2;
+  return 0;
+}
+
+/* o caminho que termina no pedaço j (coins, state.money, this.gems, player.gold); null se for complicado (lista[i].ouro) */
+function caminhoAte(T, j){
+  if(!T[j] || T[j].t !== 'id') return null;
+  var partes = [T[j].v], k = j;
+  while(T[k - 1] && T[k - 1].v === '.' && T[k - 2] && (T[k - 2].t === 'id')){ partes.unshift(T[k - 2].v); k -= 2; }
+  if(T[k - 1] && (T[k - 1].v === '.' || T[k - 1].v === '?.')) return null;   /* algo[i].ouro, f().ouro */
+  if(/^(var|let|const|function|class|new|typeof|return|case|in|of)$/.test(partes[0]) && partes.length === 1) return null;
+  return {txt: partes.join('.'), ini: k, fim: j, ultimo: T[j].v};
+}
+/* o caminho que COMEÇA no pedaço k (pra ler "this.upgradeCost" a partir do this) */
+function caminhoDesde(T, k){
+  if(!T[k] || T[k].t !== 'id') return null;
+  var j = k;
+  while(T[j + 1] && T[j + 1].v === '.' && T[j + 2] && T[j + 2].t === 'id') j += 2;
+  return caminhoAte(T, j);
+}
+function textoDosToks(js, a, b){ return a > b ? '' : js.sc.corpo.slice(js.T[a].s, js.T[b].e); }
+function abreDoBloco(T, s){
+  var d = 0;
+  for(var k = s - 1; k >= 0; k--){
+    if(T[k].t !== 'p') continue;
+    if(T[k].v === '}') d++;
+    else if(T[k].v === '{'){ if(d === 0) return k; d--; }
+  }
+  return -1;
+}
+function parAntes(T, k){
+  var fecha = T[k].v, abre = fecha === ')' ? '(' : fecha === ']' ? '[' : '{', d = 0;
+  for(var j = k; j >= 0; j--){
+    if(T[j].t !== 'p') continue;
+    if(T[j].v === fecha) d++;
+    else if(T[j].v === abre){ d--; if(d === 0) return j; }
+  }
+  return -1;
+}
+/* começa uma frase em s? */
+function inicioDeFrase(T, s){
+  var a = T[s - 1];
+  if(!a) return true;
+  if(a.v === '{' || a.v === '}' || a.v === ';' || a.v === 'else') return true;
+  if(a.v === ')'){ var p = parAntes(T, s - 1); return p > 0 && /^(if|while|for)$/.test(T[p - 1].v); }
+  return !!(T[s].nl && podeTerminar(a));
+}
+
+/* ---- achar as moedas ---- */
+function moedasDoJogo(codigo, opts){
+  opts = opts || {};
+  var doc = opts.doc || lerDocumento(codigo), porNome = {};
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T;
+    for(var j = 0; j < T.length; j++){
+      if(T[j].t !== 'id') continue;
+      var nx = T[j + 1];
+      if(nx && (nx.v === '.' || nx.v === '?.' || nx.v === '(')) continue;
+      var f = forcaDeMoeda(T[j].v, opts.ensinado);
+      if(!f) continue;
+      var c = caminhoAte(T, j);
+      if(!c) continue;
+      var m = porNome[c.txt] || (porNome[c.txt] = {caminho: c.txt, nome: c.ultimo, forca: f, ganha: [], gasta: [], compara: 0, lista: false, numero: false, usos: 0});
+      m.usos++;
+      var antes = T[c.ini - 1], op = nx ? nx.v : '';
+      if(op === '[' ) m.lista = true;
+      if(nx && nx.v === '.' ) m.lista = true;
+      if(op === '+=' || op === '++' || (antes && antes.v === '++' && !(T[c.ini - 2] && podeTerminar(T[c.ini - 2]) && !T[c.ini - 1].nl))) m.ganha.push({js: js, k: j});
+      else if(op === '-=' || op === '--' || (antes && antes.v === '--')) m.gasta.push({js: js, ini: (antes && antes.v === '--') ? c.ini - 1 : c.ini, fim: j, op: (antes && antes.v === '--') ? '--pre' : op});
+      else if(op === '='){
+        var r0 = T[j + 2];
+        if(r0 && (r0.v === '[' || r0.v === '{' || r0.v === 'new')) m.lista = true;
+        else if(r0 && r0.t === 'num') m.numero = true;
+        else {
+          var c2 = caminhoDesde(T, j + 2);
+          if(c2 && c2.txt === c.txt && T[c2.fim + 1]){
+            if(T[c2.fim + 1].v === '+') m.ganha.push({js: js, k: j});
+            else if(T[c2.fim + 1].v === '-') m.gasta.push({js: js, ini: c.ini, fim: j, op: '=-', rhs: c2.fim + 2});
+          }
+        }
+      }
+      else if(op === ':' && antes && (antes.v === '{' || antes.v === ',')){ if(T[j + 2] && T[j + 2].t === 'num') m.numero = true; else if(T[j + 2] && (T[j + 2].v === '[' || T[j + 2].v === '{')) m.lista = true; }
+      if(/^(>=|>|<|<=)$/.test(op) || (antes && /^(>=|>|<|<=)$/.test(antes.v))) m.compara++;
+    }
+  });
+  var moedas = [];
+  Object.keys(porNome).forEach(function(k){
+    var m = porNome[k];
+    if(m.lista) return;
+    m.compras = []; m.perdas = 0; m.semConverter = [];
+    m.gasta.forEach(function(g){
+      var cp = compraDoGasto(doc, g, m);
+      if(cp) m.compras.push(cp); else if(g.op !== '=-') m.perdas++;
+    });
+    var temCompra = m.compras.length > 0;
+    if(m.forca >= 3 && (m.ganha.length || m.gasta.length || m.numero)) moedas.push(m);
+    else if(m.forca >= 1 && temCompra) moedas.push(m);
+  });
+  /* "state.money" e "money" no mesmo jogo: fica o que tem compra */
+  moedas.sort(function(a, b){ return (b.compras.length - a.compras.length) || (b.forca - a.forca) || (b.usos - a.usos); });
+  var vistos = {};
+  moedas = moedas.filter(function(m){ var k = m.nome.toLowerCase(); if(vistos[k] && !m.compras.length) return false; vistos[k] = 1; return true; });
+  moedas.forEach(function(m){
+    m.rotulo = rotuloDaMoeda(doc, m);
+    m.convertidas = m.compras.filter(function(c){ return c.convertida; }).length;
+  });
+  return moedas;
+}
+
+/* ---- uma compra: o gasto com a conferência de saldo antes ---- */
+function compraDoGasto(doc, g, m){
+  var js = g.js, T = js.T, s = g.ini;
+  var cp = {js: js, moeda: m, gIni: s, gFim: g.fim, op: g.op};
+  /* o fim da frase do gasto e o preço */
+  if(g.op === '-='){ cp.pIni = g.fim + 2; cp.pFim = fimDaExpr(T, cp.pIni); cp.fFim = cp.pFim; }
+  else if(g.op === '=-'){ cp.pIni = g.rhs; cp.pFim = fimDaExpr(T, g.rhs); cp.fFim = cp.pFim; }
+  else { cp.pIni = -1; cp.fFim = g.op === '--pre' ? g.fim : g.fim + 1; }
+  if(cp.pIni >= 0 && cp.pFim < cp.pIni) return null;
+  if(!inicioDeFrase(T, s)) return null;
+  var dep = T[cp.fFim + 1];
+  cp.temPv = !!(dep && dep.v === ';');
+  if(dep && dep.v === ',') return null;
+  if(dep && !cp.temPv && dep.v !== '}' && !dep.nl) return null;
+  cp.sFim = cp.temPv ? cp.fFim + 1 : cp.fFim;
+  cp.precoTxt = cp.pIni >= 0 ? textoDosToks(js, cp.pIni, cp.pFim).replace(/\s+/g, ' ') : '1';
+  var guarda = acharGuarda(js, cp, m);
+  if(!guarda) return null;
+  cp.guarda = guarda;
+  cp.convertida = guarda.viaKoda || (guarda.condIni != null && /kodaLojaAtiva/.test(textoDosToks(js, guarda.condIni, guarda.condFim))) || (guarda.tipo === 'retorno' && antesTemKoda(js, guarda.ifK));
+  cp.preco = precoDaCompra(doc, js, cp);
+  if(!cp.preco) return null;
+  cp.nome = nomeDaCompra(doc, js, cp);
+  return cp;
+}
+/* logo antes da guarda já tem o "if (kodaLojaAtiva()) { kodaPagar(...); return; }" que a IA pôs? */
+function antesTemKoda(js, k){
+  var T = js.T, f = k - 1;
+  if(!T[f] || T[f].v !== '}') return false;
+  var a = parAntes(T, f);
+  if(a < 1 || T[a - 1].v !== ')') return false;
+  var p = parAntes(T, a - 1);
+  return p > 0 && T[p - 1].v === 'if' && /kodaLojaAtiva/.test(textoDosToks(js, p + 1, a - 2));
+}
+/* a conferência "tem dinheiro?": if(ouro >= 10){...}, if(ouro < preco) return;, if(ouro < p){...} else {...} */
+function acharGuarda(js, cp, m){
+  var T = js.T;
+  function comparacao(a, b, sentido){
+    /* procura "caminho >= X" / "X <= caminho" (sentido 'tem') ou "caminho < X" / "X > caminho" (sentido 'falta') entre a e b */
+    for(var k = a; k <= b; k++){
+      if(T[k].t !== 'id') continue;
+      if(T[k + 1] && (T[k + 1].v === '.' || T[k + 1].v === '?.')) continue;
+      var c = caminhoAte(T, k);
+      if(!c || c.txt !== m.caminho || c.ini < a) continue;
+      var op = T[k + 1] && T[k + 1].v, opA = T[c.ini - 1] && T[c.ini - 1].v;
+      var quer = sentido === 'tem' ? /^(>=|>)$/ : /^(<|<=)$/, querA = sentido === 'tem' ? /^(<=|<)$/ : /^(>|>=)$/;
+      if(op && quer.test(op)){
+        var fim = k + 2, d = 0;
+        for(; fim <= b; fim++){ var v = T[fim].v; if(T[fim].t === 'p'){ if(v === '(' || v === '[') d++; else if(v === ')' || v === ']'){ if(d === 0) break; d--; } else if(d === 0 && /^(&&|\|\||\?|,|\?\?)$/.test(v)) break; } }
+        return {cIni: c.ini, cFim: fim - 1, xIni: k + 2, xFim: fim - 1};
+      }
+      if(opA && querA.test(opA)){
+        var ini = c.ini - 2, d2 = 0;
+        for(; ini >= a; ini--){ var v2 = T[ini].v; if(T[ini].t === 'p'){ if(v2 === ')' || v2 === ']') d2++; else if(v2 === '(' || v2 === '['){ if(d2 === 0) break; d2--; } else if(d2 === 0 && /^(&&|\|\||\?|,|!|\?\?)$/.test(v2)) break; } }
+        return {cIni: ini + 1, cFim: k, xIni: ini + 1, xFim: c.ini - 2};
+      }
+    }
+    return null;
+  }
+  /* 1) dentro de um if que confere o saldo (até 3 blocos pra fora) */
+  var b = abreDoBloco(T, cp.gIni), voltas = 0, viaKoda = false;
+  while(b > 0 && voltas < 4){
+    voltas++;
+    var antes = T[b - 1];
+    if(antes && antes.v === ')'){
+      var p = parAntes(T, b - 1);
+      if(p > 0 && T[p - 1].v === 'if'){
+        var cmp = comparacao(p + 1, b - 2, 'tem');
+        if(cmp) return {tipo: 'bloco', ifK: p - 1, abre: b, fecha: par(T, b), cIni: cmp.cIni, cFim: cmp.cFim, xIni: cmp.xIni, xFim: cmp.xFim, condIni: p + 1, condFim: b - 2, viaKoda: viaKoda};
+      } else if(p > 0 && /^(function|while|for|switch|catch)$/.test(T[p - 1].v)) break;
+      else if(p > 0 && T[p - 2] && T[p - 2].v === 'function') break;
+      else if(p > 0 && T[p - 1].t === 'id' && !/^(if)$/.test(T[p - 1].v)) break;   /* método de classe: comprar(){ */
+    } else if(antes && antes.v === 'else' && T[b - 2] && T[b - 2].v === '}'){
+      /* if(ouro < preco){ ... } else { ouro -= preco; ... } */
+      var a2 = parAntes(T, b - 2), f2 = T[a2 - 1];
+      if(f2 && f2.v === ')'){
+        var p2 = parAntes(T, a2 - 1);
+        /* já trocada: if (kodaLojaAtiva()) { kodaPagar(...) } else { ouro -= preco; ... } -> a conferência de verdade fica um bloco pra fora */
+        if(p2 > 0 && T[p2 - 1].v === 'if' && /kodaLojaAtiva/.test(textoDosToks(js, p2 + 1, a2 - 2))){ viaKoda = true; b = abreDoBloco(T, p2 - 1); continue; }
+        if(p2 > 0 && T[p2 - 1].v === 'if'){
+          var cmp2 = comparacao(p2 + 1, a2 - 2, 'falta');
+          if(cmp2) return {tipo: 'senao', ifK: p2 - 1, abre: b, fecha: par(T, b), cIni: cmp2.cIni, cFim: cmp2.cFim, xIni: cmp2.xIni, xFim: cmp2.xFim, condIni: p2 + 1, condFim: a2 - 2, viaKoda: viaKoda};
+        }
+      }
+      break;
+    } else if(antes && antes.v === '=>') break;
+    else if(!antes || antes.v === '(' || antes.v === ',' || antes.v === '=' || antes.v === ':') break;
+    b = abreDoBloco(T, b);
+  }
+  /* 2) uma guarda antes, no mesmo bloco: if(ouro < preco) return; */
+  var b0 = abreDoBloco(T, cp.gIni);
+  for(var k = cp.gIni - 1; k > b0; k--){
+    if(T[k].v !== 'if' || T[k].t !== 'id') continue;
+    if(abreDoBloco(T, k) !== b0) continue;
+    var pa = k + 1; if(!T[pa] || T[pa].v !== '(') continue;
+    var pf = par(T, pa); if(pf < 0) continue;
+    var cmp3 = comparacao(pa + 1, pf - 1, 'falta');
+    if(!cmp3) continue;
+    /* o que vem depois do if precisa sair (return/throw) */
+    var corpoIni = pf + 1, corpoFim;
+    if(T[corpoIni] && T[corpoIni].v === '{'){ corpoFim = par(T, corpoIni); }
+    else corpoFim = fimDaFrase(T, corpoIni);
+    if(corpoFim < 0 || corpoFim >= cp.gIni) continue;
+    var sai = false;
+    for(var q = corpoIni; q <= corpoFim; q++) if(T[q].v === 'return' || T[q].v === 'throw'){ sai = true; break; }
+    if(!sai) continue;
+    if(T[corpoFim + 1] && T[corpoFim + 1].v === 'else') continue;
+    return {tipo: 'retorno', ifK: k, gFim: corpoFim, bloco: b0, fecha: par(T, b0), cIni: cmp3.cIni, cFim: cmp3.cFim, xIni: cmp3.xIni, xFim: cmp3.xFim};
+  }
+  return null;
+}
+function fimDaFrase(T, k){
+  var e = fimDaExpr(T, k);
+  if(T[k] && /^(return|throw)$/.test(T[k].v)) e = T[k + 1] && T[k + 1].v !== ';' && !T[k + 1].nl ? fimDaExpr(T, k + 1) : k;
+  return T[e + 1] && T[e + 1].v === ';' ? e + 1 : e;
+}
+
+/* ---- o preço: número, variável com número, item de uma lista ({nome, preco}) ou tabela ({speed: 20}) ---- */
+var PROPS_PRECO = lista('cost,price,preco,custo,precio,coste,valor,value,prix,kosten,prezzo,costo,amount');
+var PROPS_NOME = ['nome', 'name', 'titulo', 'title', 'label', 'nombre', 'id', 'tipo', 'type', 'key'];
+function numeroInicial(doc, caminho){
+  var achou = null, mudaDepois = 0;
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T;
+    for(var j = 0; j < T.length; j++){
+      if(T[j].t !== 'id') continue;
+      var c = caminhoAte(T, j);
+      if(!c || c.txt !== caminho && !(caminho.indexOf('.') < 0 && c.ultimo === caminho && c.txt === caminho)) continue;
+      if(T[j + 1] && /^(=|\*=|\+=|-=|\/=)$/.test(T[j + 1].v) && !(T[j + 1].v === '=' && T[j + 2] && T[j + 2].v === '=')){
+        if(T[j + 1].v === '=' && T[j + 2] && T[j + 2].t === 'num' && achou == null) achou = Number(T[j + 2].v);
+        else mudaDepois++;
+      }
+      if(T[j + 1] && T[j + 1].v === ':' && T[j - 1] && (T[j - 1].v === '{' || T[j - 1].v === ',') && T[j + 2] && T[j + 2].t === 'num' && achou == null && caminho.split('.').pop() === T[j].v) achou = Number(T[j + 2].v);
+    }
+  });
+  return achou == null ? null : {v: achou, muda: mudaDepois > 0};
+}
+/* listas e tabelas escritas no código: [{nome:'Espada', custo:50}, ...] e {speed: 20, magnet: 40} */
+function tabelasDoJogo(doc){
+  if(doc._tabelas) return doc._tabelas;
+  var r = [];
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T;
+    for(var j = 0; j + 2 < T.length; j++){
+      if(T[j].t !== 'id' || T[j + 1].v !== '=' || !T[j + 2] || (T[j + 2].v !== '[' && T[j + 2].v !== '{')) continue;
+      var c = caminhoAte(T, j); if(!c) continue;
+      var fim = par(T, j + 2); if(fim < 0) continue;
+      var v = valorLiteral(T, j + 2, fim);
+      if(!v.ok) continue;
+      r.push({nome: c.txt, ultimo: c.ultimo, v: v.v, js: js, k: j + 2, f: fim});
+    }
+  });
+  return (doc._tabelas = r);
+}
+function precoDaCompra(doc, js, cp){
+  var T = js.T;
+  if(cp.pIni < 0) return {tipo: 'num', v: 1};
+  var a = cp.pIni, b = cp.pFim;
+  return precoDaExpr(doc, js, a, b, cp, 0);
+}
+function precoDaExpr(doc, js, a, b, cp, fundo){
+  var T = js.T;
+  if(a === b && T[a].t === 'num') return {tipo: 'num', v: Number(T[a].v)};
+  /* um caminho: variável com número (shieldCost, this.upgradeCost) ou item.custo */
+  var c = caminhoDesde(T, a);
+  if(c && c.fim === b){
+    var partes = c.txt.split('.'), prop = partes[partes.length - 1];
+    if(partes.length >= 2 && PROPS_PRECO[prop.toLowerCase()]){
+      var tab = tabelasDoJogo(doc).filter(function(t){ return Array.isArray(t.v) && t.v.length && t.v.every(function(o){ return o && typeof o === 'object' && typeof o[prop] === 'number'; }); });
+      if(tab.length){
+        var t0 = tab[0], campo = PROPS_NOME.filter(function(n){ return t0.v.every(function(o){ return typeof o[n] === 'string' && o[n].trim(); }); })[0];
+        if(campo) return {tipo: 'lista', tabela: t0, prop: prop, campo: campo, obj: partes.slice(0, -1).join('.'), itens: t0.v.map(function(o){ return {nome: o[campo], preco: o[prop], unico: o.comprado != null || o.owned != null || o.bought != null || o.unlocked != null || o.desbloqueado != null}; })};
+      }
+    }
+    var n0 = numeroInicial(doc, c.txt);
+    if(n0) return {tipo: 'num', v: n0.v, muda: n0.muda, variavel: c.txt};
+    /* uma variável local que veio de outra coisa: const price = PRICES[type] */
+    if(fundo < 1 && partes.length === 1){
+      for(var k = cp.gIni - 1; k >= 0; k--){
+        if(T[k].t === 'id' && T[k].v === c.txt && T[k + 1] && T[k + 1].v === '=' && T[k - 1] && /^(var|let|const)$/.test(T[k - 1].v)){
+          var e = fimDaExpr(T, k + 2);
+          var r = precoDaExpr(doc, js, k + 2, e, cp, fundo + 1);
+          if(r) return r;
+          break;
+        }
+      }
+    }
+  }
+  /* tabela de objetos: shop[key].cost, ou const u = shop[key]; ... u.cost */
+  function tabelaDeObjetos(nomeMapa, prop){
+    return tabelasDoJogo(doc).filter(function(t){ return (t.nome === nomeMapa || t.ultimo === nomeMapa) && t.v && !Array.isArray(t.v) && typeof t.v === 'object' && Object.keys(t.v).length && Object.keys(t.v).every(function(k2){ return t.v[k2] && typeof t.v[k2] === 'object' && typeof t.v[k2][prop] === 'number'; }); })[0];
+  }
+  function comoTabela(tb, prop, chaveTxt){
+    return {tipo: 'tabela', tabela: tb, chave: chaveTxt, itens: Object.keys(tb.v).map(function(k2){ var o = tb.v[k2], nm = PROPS_NOME.filter(function(n2){ return typeof o[n2] === 'string' && o[n2].trim(); })[0]; return {nome: nm ? o[nm] : k2, chave: k2, preco: o[prop], doCodigo: !nm}; })};
+  }
+  if(T[a].t === 'id' && T[a + 1] && T[a + 1].v === '['){
+    var pf0 = par(T, a + 1);
+    if(pf0 > 0 && T[pf0 + 1] && T[pf0 + 1].v === '.' && pf0 + 2 === b && PROPS_PRECO[String(T[b].v).toLowerCase()]){
+      var tb0 = tabelaDeObjetos(T[a].v, T[b].v);
+      if(tb0) return comoTabela(tb0, T[b].v, textoDosToks(js, a + 2, pf0 - 1));
+    }
+  }
+  if(c && c.fim === b && c.txt.split('.').length === 2 && PROPS_PRECO[c.ultimo.toLowerCase()] && fundo < 1){
+    var base = c.txt.split('.')[0];
+    for(var k3 = cp.gIni - 1; k3 >= 0; k3--){
+      if(T[k3].t === 'id' && T[k3].v === base && T[k3 + 1] && T[k3 + 1].v === '=' && T[k3 - 1] && /^(var|let|const)$/.test(T[k3 - 1].v)){
+        var m0 = k3 + 2;
+        if(T[m0] && T[m0].t === 'id' && T[m0 + 1] && T[m0 + 1].v === '['){
+          var pf1 = par(T, m0 + 1), tb1 = pf1 > 0 ? tabelaDeObjetos(T[m0].v, c.ultimo) : null;
+          if(tb1 && fimDaExpr(T, m0) === pf1) return comoTabela(tb1, c.ultimo, textoDosToks(js, m0 + 2, pf1 - 1));
+        }
+        break;
+      }
+    }
+  }
+  /* tabela[chave]: PRICES[type] */
+  if(T[a].t === 'id' && T[a + 1] && T[a + 1].v === '[' && par(T, a + 1) === b){
+    var tb = tabelasDoJogo(doc).filter(function(t){ return (t.nome === T[a].v || t.ultimo === T[a].v) && t.v && !Array.isArray(t.v) && typeof t.v === 'object'; })[0];
+    if(tb){
+      var ks = Object.keys(tb.v);
+      if(ks.length && ks.every(function(k2){ return typeof tb.v[k2] === 'number'; })) return {tipo: 'tabela', tabela: tb, chave: textoDosToks(js, a + 2, b - 1), itens: ks.map(function(k2){ return {nome: k2, chave: k2, preco: tb.v[k2], doCodigo: true}; })};
+    }
+  }
+  return null;
+}
+
+/* ---- o nome de cada compra ---- */
+var NOME_ITEM = {
+  sword: 'Espada|Sword|Espada', shield: 'Escudo|Shield|Escudo', potion: 'Poção|Potion|Poción', life: 'Vida extra|Extra life|Vida extra', lives: 'Vida extra|Extra life|Vida extra', live: 'Vida extra|Extra life|Vida extra',
+  heart: 'Coração|Heart|Corazón', hearts: 'Coração|Heart|Corazón', health: 'Vida|Health|Vida', hp: 'Vida|Health|Vida', speed: 'Turbo|Speed boost|Turbo', boots: 'Botas|Boots|Botas', shoes: 'Tênis|Shoes|Zapatillas',
+  jump: 'Super pulo|Super jump|Súper salto', magnet: 'Ímã|Magnet|Imán', armor: 'Armadura|Armor|Armadura', armour: 'Armadura|Armor|Armadura', bow: 'Arco|Bow|Arco', arrows: 'Flechas|Arrows|Flechas', arrow: 'Flechas|Arrows|Flechas',
+  hat: 'Chapéu|Hat|Sombrero', helmet: 'Capacete|Helmet|Casco', wings: 'Asas|Wings|Alas', wing: 'Asas|Wings|Alas', pet: 'Bichinho|Pet|Mascota', bomb: 'Bomba|Bomb|Bomba', bombs: 'Bomba|Bomb|Bomba',
+  key: 'Chave|Key|Llave', keys: 'Chave|Key|Llave', ammo: 'Munição|Ammo|Munición', bullets: 'Munição|Ammo|Munición', damage: 'Mais força|More power|Más fuerza', power: 'Poder|Power|Poder', strength: 'Mais força|More power|Más fuerza',
+  fire: 'Fogo|Fire|Fuego', double: 'Dobro|Double|Doble', time: 'Mais tempo|More time|Más tiempo', pickaxe: 'Picareta|Pickaxe|Pico', axe: 'Machado|Axe|Hacha', hammer: 'Martelo|Hammer|Martillo',
+  upgrade: 'Melhoria|Upgrade|Mejora', skin: 'Visual novo|New look|Aspecto nuevo', car: 'Carro|Car|Coche', rocket: 'Foguete|Rocket|Cohete', laser: 'Laser|Laser|Láser', cannon: 'Canhão|Cannon|Cañón', cape: 'Capa|Cape|Capa',
+  crown: 'Coroa|Crown|Corona', ring: 'Anel|Ring|Anillo', boost: 'Turbo|Boost|Turbo', dash: 'Impulso|Dash|Impulso', revive: 'Reviver|Revive|Revivir', slow: 'Câmera lenta|Slow motion|Cámara lenta', freeze: 'Congelar|Freeze|Congelar',
+  invincible: 'Invencível|Invincible|Invencible', invincibility: 'Invencível|Invincible|Invencible', star: 'Estrela|Star|Estrella', multiplier: 'Multiplicador|Multiplier|Multiplicador', hint: 'Dica|Hint|Pista', energy: 'Energia|Energy|Energía',
+  fuel: 'Combustível|Fuel|Combustible', tower: 'Torre|Tower|Torre', turret: 'Torre|Turret|Torreta', weapon: 'Arma|Weapon|Arma', gun: 'Arma|Gun|Arma', ball: 'Bola|Ball|Pelota', trail: 'Rastro|Trail|Estela', extra: 'Extra|Extra|Extra',
+  vida: 'Vida extra|Extra life|Vida extra', vidas: 'Vida extra|Extra life|Vida extra', escudo: 'Escudo|Shield|Escudo', espada: 'Espada|Sword|Espada', pulo: 'Super pulo|Super jump|Súper salto', turbo: 'Turbo|Turbo|Turbo',
+  forca: 'Mais força|More power|Más fuerza', bomba: 'Bomba|Bomb|Bomba', bombas: 'Bomba|Bomb|Bomba', asas: 'Asas|Wings|Alas', tiro: 'Tiro|Shot|Disparo', tiros: 'Tiro duplo|Double shot|Disparo doble', ima: 'Ímã|Magnet|Imán',
+  vel: 'Turbo|Speed boost|Turbo', velocidade: 'Turbo|Speed boost|Turbo', tempo: 'Mais tempo|More time|Más tiempo', chave: 'Chave|Key|Llave', pocao: 'Poção|Potion|Poción', armadura: 'Armadura|Armor|Armadura', capacete: 'Capacete|Helmet|Casco',
+  pocoes: 'Poção|Potion|Poción', coracao: 'Coração|Heart|Corazón', municao: 'Munição|Ammo|Munición', dano: 'Mais força|More power|Más fuerza', poder: 'Poder|Power|Poder', picareta: 'Picareta|Pickaxe|Pico'
+};
+var PREFIXOS_FLAG = lista('has,have,had,tem,is,got,possui,com,own,owned,unlocked,desbloqueado,comprou,bought,with,can,pode,enable,enabled,ativo,active,on,use,usa,usar,buy,comprar,purchase,get,pegar');
+function nomeDasPalavras(ws, lj){
+  var i = lj === 'en' ? 1 : lj === 'es' ? 2 : 0;
+  ws = ws.filter(function(w){ return !PREFIXOS_FLAG[w] && !/^\d+$/.test(w) && !MOEDA_FORTE[w]; });
+  if(!ws.length) return '';
+  for(var k = 0; k < ws.length; k++) if(NOME_ITEM[ws[k]] && ws.length === 1) return NOME_ITEM[ws[k]].split('|')[i];
+  /* duas palavras: a que tem tradução é a principal (pickaxePower -> Picareta) */
+  var conhecida = ws.filter(function(w){ return NOME_ITEM[w] && !/^(power|upgrade|extra|double)$/.test(w); })[0] || ws.filter(function(w){ return NOME_ITEM[w]; })[0];
+  if(conhecida) return NOME_ITEM[conhecida].split('|')[i];
+  return capitalizar(ws.join(' '));
+}
+function nomeDaCompra(doc, js, cp){
+  var T = js.T, lj = cp.lj || linguaDoJogo(doc), g = cp.guarda;
+  if(cp.preco.tipo === 'lista' || cp.preco.tipo === 'tabela') return '';
+  /* o que a compra muda: vidas++, hasShield = true, this.pickaxePower += 1 */
+  var a = g.tipo === 'retorno' ? g.gFim + 1 : g.abre + 1, b = g.tipo === 'retorno' ? g.fecha - 1 : g.fecha - 1, alvos = [];
+  for(var k = a; k <= b; k++){
+    if(k >= cp.gIni && k <= cp.sFim) continue;
+    if(T[k].t !== 'id') continue;
+    var op = T[k + 1] && T[k + 1].v, opA = T[k - 1] && T[k - 1].v;
+    if(T[k + 1] && T[k + 1].v === '.') continue;
+    var c = caminhoAte(T, k);
+    if(!c) continue;
+    if(op === '++' || op === '+=' || op === '*=' || opA === '++' || (op === '=' && T[k + 2] && T[k + 2].v === 'true') || (op === '=' && T[k + 2] && T[k + 2].t === 'num')){
+      if(/^(msg|message|mensagem|aviso|texto|text|info|status|toast|flash)$/i.test(c.ultimo)) continue;
+      if(c.txt === cp.moeda.caminho) continue;
+      alvos.push({nome: c.ultimo, flag: op === '=' && T[k + 2].v === 'true'});
+    }
+  }
+  var n = '';
+  for(var q = 0; q < alvos.length && !n; q++){
+    var cc = conceitoDoNome(alvos[q].nome);
+    if(cc && !alvos[q].flag && TX['it_' + cc]) n = TL(lj, 'it_' + cc);
+    else n = nomeDasPalavras(palavrasDoId(alvos[q].nome), lj);
+  }
+  /* o nome da função: buySword(), comprarEscudo(), buyUpgrade() */
+  var fn = nomeDaFuncao(T, cp.gIni), dofn = fn ? nomeDasPalavras(palavrasDoId(fn), lj) : '';
+  if(dofn && (!n || /^(Melhoria|Upgrade|Mejora)$/.test(dofn) === false && !alvos.length)) n = dofn;
+  else if(dofn && /^(Melhoria|Upgrade|Mejora)$/.test(dofn) && n && n !== dofn) n = dofn + ': ' + n;
+  return n;
+}
+function nomeDaFuncao(T, k){
+  var b = abreDoBloco(T, k);
+  for(var v = 0; b > 0 && v < 6; v++){
+    var antes = T[b - 1];
+    if(antes && antes.v === ')'){
+      var p = parAntes(T, b - 1);
+      if(p > 0 && T[p - 1].t === 'id' && !/^(if|for|while|switch|catch|function)$/.test(T[p - 1].v)) return T[p - 1].v;
+      if(p > 0 && T[p - 1].v === 'function' && T[p - 2] && T[p - 2].v === '=') { var c = caminhoAte(T, p - 3); if(c) return c.ultimo; }
+      if(p > 0 && T[p - 1].v === 'function') return null;
+    }
+    if(antes && antes.v === '=>'){
+      var e = b - 2;
+      if(T[e] && T[e].v === ')') e = parAntes(T, e) - 1;
+      if(T[e] && T[e].v === '=' && T[e - 1] && T[e - 1].t === 'id') return T[e - 1].v;
+      return null;
+    }
+    b = abreDoBloco(T, b);
+  }
+  return null;
+}
+
+/* o nome que aparece na tela (Coins, Ouro, $...) */
+var FAMILIAS_MOEDA = [
+  'coin,coins,moeda,moedas,moneda,monedas', 'gold,ouro,oro', 'gem,gems,gema,gemas', 'diamond,diamonds,diamante,diamantes', 'crystal,crystals,cristal,cristais,cristales',
+  'money,dinheiro,dinero,cash,grana', 'star,stars,estrela,estrelas,estrella,estrellas', 'token,tokens,ficha,fichas', 'ruby,rubies,rubi,rubis', 'pearl,pearls,perola,perolas',
+  'score,points,pontos,puntos,pts,pontuacao', 'jewel,jewels,joia,joias', 'credit,credits,credito,creditos', 'shell,shells,concha,conchas'
+].map(function(s){ return s.split(','); });
+function familiaDe(w){ w = semAcento(String(w)).toLowerCase(); for(var i = 0; i < FAMILIAS_MOEDA.length; i++) if(FAMILIAS_MOEDA[i].indexOf(w) >= 0) return FAMILIAS_MOEDA[i]; return [w]; }
+function rotuloDaMoeda(doc, m){
+  var ws = palavrasDoId(m.nome).filter(function(w){ return MOEDA_FORTE[w] || MOEDA_MEDIA[w] || MOEDA_FRACA[w]; });
+  var fam = ws.length ? familiaDe(ws[0]) : [];
+  var vis = textosDaTela(doc), achado = null;
+  vis.forEach(function(s){
+    if(achado) return;
+    var re = /[A-Za-zÀ-ÿ]+/g, x;
+    while((x = re.exec(s))){ if(fam.indexOf(semAcento(x[0]).toLowerCase()) >= 0){ achado = x[0]; break; } }
+  });
+  if(!achado && vis.some(function(s){ return /\$\s*$|^\s*\$/.test(s); }) && fam.indexOf('money') >= 0) achado = '$';
+  return {tela: achado, palavras: fam, nome: achado || (ws[0] || m.nome)};
+}
+function textosDaTela(doc){
+  if(doc._tela) return doc._tela;
+  var r = [];
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var vis = literaisVisiveis(js);
+    js.T.forEach(function(t, j){ if(vis[j] && (t.t === 'str' || t.t === 'tpl')) r.push(t.t === 'str' ? valorDoTexto(t.v) : t.v.slice(1, -1).replace(/\$\{[^}]*\}/g, ' ')); });
+  });
+  var semScript = doc.codigo.replace(/<script\b[\s\S]*?(<\/script\s*>|$)/gi, ' ').replace(/<style\b[\s\S]*?(<\/style\s*>|$)/gi, ' ');
+  semScript.replace(/>([^<>]+)</g, function(m0, t){ if(t.trim()) r.push(t.trim()); return m0; });
+  return (doc._tela = r);
+}
+
+/* ---- trocar as compras pela loja do Koda ---- */
+var ID_DO_NOME_RT = 'function(s){ return String(s == null ? \'\' : s).normalize(\'NFD\').replace(/[\\u0300-\\u036f]/g, \'\').toLowerCase().replace(/[^a-z0-9]+/g, \'_\').replace(/^_+|_+$/g, \'\').slice(0, 30) || \'item\'; }';
+function idDaCompra(nome){ return semAcento(String(nome == null ? '' : nome)).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) || 'item'; }
+function kodaMoedasNoJogo(){
+  window.kodaLojaAtiva = function(){
+    try{ var L = window.KODA && window.KODA.loja; return !!(L && typeof L.comprar === 'function' && (typeof L.ligada !== 'function' || L.ligada())); }catch(e){ return false; }
+  };
+  window.kodaIdDoNome = KODA_ID_DO_NOME;
+  /* paga com o saldo do Koda; se a pessoa já tinha o item (comprou na loja do Koda), usa sem cobrar de novo */
+  window.kodaPagar = function(id, unico, efeito){
+    var L = window.KODA.loja, feito = false;
+    function aplicar(){ if(feito) return; feito = true; try{ efeito(); }catch(e){ setTimeout(function(){ throw e; }); } }
+    try{
+      if(unico ? L.tem(id) : L.usar(id, 1)){ aplicar(); return; }
+      L.comprar(id).then(function(ok){ if(ok && (unico || L.usar(id, 1))) aplicar(); });
+    }catch(e){}
+  };
+}
+function escreverAjudanteMoedas(lj){
+  return '<script data-koda-moedas="1">\n/* ' + TL(lj, 'dj_comentario') + ' */\nvar KODA_ID_DO_NOME = ' + ID_DO_NOME_RT + ';\n(' + kodaMoedasNoJogo.toString() + ')();\n<\/script>';
+}
+var SE_KODA = '(window.kodaLojaAtiva && kodaLojaAtiva())';
+/* os nomes de "var" de laços em volta (for(var i...)) que o código adiado usa: viram parâmetros pra não mudar depois */
+function varsDeLaco(T, k, a, b){
+  var r = [];
+  for(var j = k - 1; j >= 0; j--){
+    if(T[j].v !== 'for' || T[j + 1].v !== '(') continue;
+    var pf = par(T, j + 1); if(pf < 0) continue;
+    var corpoFim = T[pf + 1] && T[pf + 1].v === '{' ? par(T, pf + 1) : fimDaFrase(T, pf + 1);
+    if(corpoFim < k) continue;
+    var nome = T[j + 2] && T[j + 2].v === 'var' ? T[j + 3] && T[j + 3].v : (T[j + 2] && T[j + 2].t === 'id' && !/^(let|const)$/.test(T[j + 2].v) && T[j + 3] && T[j + 3].v === '=' ? T[j + 2].v : null);
+    if(!nome) continue;
+    for(var q = a; q <= b; q++) if(T[q].t === 'id' && T[q].v === nome && !(T[q - 1] && T[q - 1].v === '.')){ if(r.indexOf(nome) < 0) r.push(nome); break; }
+  }
+  return r;
+}
+/* o código que roda depois de pagar (sem a linha que gasta o dinheiro do jogo) */
+function codigoAdiado(js, cp, a, b){
+  var T = js.T;
+  if(b < a) return {txt: '', ok: true};
+  var antes = a <= cp.gIni - 1 ? js.sc.corpo.slice(T[a].s, T[cp.gIni - 1].e) : '';
+  var depois = cp.sFim + 1 <= b ? js.sc.corpo.slice(T[cp.sFim + 1].s, T[b].e) : '';
+  var dentro = cp.gIni >= a && cp.sFim <= b;
+  var txt = dentro ? (antes + (antes && depois ? '\n' : '') + depois) : js.sc.corpo.slice(T[a].s, T[b].e);
+  /* break/continue soltos não funcionam dentro de uma função */
+  var laco = 0, ok = true, temReturn = false, temAwait = false, temYield = false;
+  for(var q = a; q <= b; q++){
+    if(dentro && q >= cp.gIni && q <= cp.sFim) continue;
+    var v = T[q].v;
+    if(T[q].t !== 'id') continue;
+    if(/^(for|while|do|switch)$/.test(v)) laco++;
+    if((v === 'break' || v === 'continue') && !laco) ok = false;
+    if(v === 'return') temReturn = true;
+    if(v === 'await') temAwait = true;
+    if(v === 'yield') temYield = true;
+  }
+  if(temYield) ok = false;
+  return {txt: txt.trim(), ok: ok, temReturn: temReturn, temAwait: temAwait};
+}
+function idsDaCompra(cp){
+  var P = cp.preco;
+  if(P.tipo === 'lista') return {expr: 'kodaIdDoNome(' + P.obj + '.' + P.campo + ')', itens: P.itens.map(function(it){ return {id: idDaCompra(it.nome), nome: String(it.nome).slice(0, 40), preco: it.preco, unico: it.unico}; })};
+  if(P.tipo === 'tabela') return {expr: 'kodaIdDoNome(' + P.chave + ')', itens: P.itens.map(function(it){ var nm = it.doCodigo === false ? String(it.nome).slice(0, 40) : (nomeDasPalavras(palavrasDoId(it.nome), cp.lj) || capitalizar(it.nome)); return {id: idDaCompra(it.chave), nome: nm, preco: it.preco, unico: false}; })};
+  var nome = cp.nome || '', id = idDaCompra(nome || ('compra ' + cp.n));
+  return {expr: textoJs(id, "'"), itens: [{id: id, nome: nome || TL(cp.lj, 'dj_compra_n', {n: cp.n}), preco: P.v, unico: cp.unico}]};
+}
+/* o recuo (espaços do começo) da linha onde fica a posição p */
+function recuoDaLinha(src, p){ var a = src.lastIndexOf('\n', p - 1) + 1, m = /^[ \t]*/.exec(src.slice(a, p)); return m ? m[0] : ''; }
+/* põe o texto todo com o recuo r (tirando o recuo que as linhas já tinham em comum) */
+function recuar(txt, r){
+  var ls = String(txt).split('\n'), min = null;
+  ls.slice(1).forEach(function(l){ if(!l.trim()) return; var k = /^[ \t]*/.exec(l)[0].length; if(min == null || k < min) min = k; });
+  return ls.map(function(l, i){ if(!l.trim()) return ''; return r + (i === 0 ? l.replace(/^[ \t]*/, '') : l.slice(Math.min(min || 0, /^[ \t]*/.exec(l)[0].length))); }).join('\n');
+}
+function compraUnica(js, cp, a, b){
+  /* só liga coisas (temEscudo = true / it.comprado = true) = fica pra sempre */
+  var T = js.T, temFlag = false, temOutro = false;
+  for(var k = a; k <= b; k++){
+    if(k >= cp.gIni && k <= cp.sFim) continue;
+    var op = T[k] && T[k].v;
+    if(op === '=' && T[k + 1] && T[k + 1].v === 'true') temFlag = true;
+    else if(/^(\+\+|--|\+=|-=|\*=|\/=)$/.test(op)) temOutro = true;
+    else if(op === '=' && T[k - 1] && T[k - 1].t === 'id' && !/^(msg|message|mensagem|aviso|texto|text|status)$/i.test(T[k - 1].v) && T[k + 1] && T[k + 1].v !== 'true' && T[k + 1].t !== 'str') temOutro = true;
+  }
+  return temFlag && !temOutro;
+}
+function converterMoedas(codigo, opts){
+  opts = opts || {};
+  var doc = lerDocumento(codigo), lj = opts.lingua || linguaDoJogo(doc), moeda = opts.moeda === 'd' ? 'd' : 'c';
+  var moedas = moedasDoJogo(codigo, {doc: doc, ensinado: opts.ensinado});
+  if(opts.alvo) moedas = moedas.filter(function(m){ return m.caminho === opts.alvo || m.nome === opts.alvo; });
+  var compras = [];
+  moedas.forEach(function(m){ m.compras.forEach(function(c){ if(!c.convertida) compras.push(c); }); });
+  if(!compras.length) return {erro: moedas.length ? (moedas.some(function(m){ return m.convertidas; }) ? 'ja' : 'sem_compras') : 'sem_moeda', moedas: moedas};
+  var ed = new Edicao(codigo), itens = [], usados = {}, falhas = [], feitas = [], ocupado = [];
+  compras.forEach(function(cp, n){
+    cp.n = n + 1; cp.lj = lj;
+    if(!cp.nome && cp.preco.tipo === 'num') cp.nome = nomeDaCompra(doc, cp.js, cp);
+    var js = cp.js, T = js.T, g = cp.guarda;
+    var a, b;
+    if(g.tipo === 'retorno'){ a = g.gFim + 1; b = g.fecha - 1; }
+    else { a = g.abre + 1; b = g.fecha - 1; }
+    var ad = codigoAdiado(js, cp, a, b);
+    var rIni = js.base + T[g.tipo === 'retorno' ? g.ifK : g.abre].s, rFim = js.base + T[g.tipo === 'retorno' ? g.gFim : g.fecha].e;
+    if(!ad.ok || !ad.txt || ocupado.some(function(o){ return !(rFim <= o[0] || rIni >= o[1]); })){ falhas.push(cp); return; }
+    cp.unico = cp.preco.tipo === 'num' ? compraUnica(js, cp, a, b) : false;
+    var ids = idsDaCompra(cp);
+    var lv = varsDeLaco(T, cp.gIni, a, b);
+    var unicoTxt = cp.preco.tipo === 'lista' ? (ids.itens.some(function(i){ return i.unico; }) ? 'true' : 'false') : String(!!cp.unico);
+    var chamada = 'kodaPagar(' + ids.expr + ', ' + unicoTxt + ', ' + (ad.temAwait ? 'async ' : '') + '() => {\n' + recuar(ad.txt, '  ') + '\n})';
+    if(lv.length) chamada = '((' + lv.join(', ') + ') => ' + chamada + ')(' + lv.join(', ') + ')';
+    var cmpTxt = js.sc.corpo.slice(T[g.cIni].s, T[g.cFim].e);
+    var ind = recuoDaLinha(js.sc.corpo, T[g.ifK].s), dentro = ind + '  ';
+    if(g.tipo === 'bloco' || g.tipo === 'senao'){
+      var corpo = js.sc.corpo.slice(T[g.abre].e, T[g.fecha].s);
+      ed.trocar(js.base + T[g.cIni].s, js.base + T[g.cFim].e, g.tipo === 'bloco' ? '(' + SE_KODA + ' || ' + cmpTxt + ')' : '(!' + SE_KODA + ' && ' + cmpTxt + ')');
+      ed.trocar(js.base + T[g.abre].e, js.base + T[g.fecha].s, '\n' + dentro + 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro + '  ') + ';' + (ad.temReturn ? '\n' + dentro + '  return;' : '') + '\n' + dentro + '} else {' + corpo.replace(/\s+$/, '').replace(/\n/g, '\n  ') + '\n' + dentro + '}\n' + ind);
+    } else {
+      ed.inserir(js.base + T[g.ifK].s, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro) + ';\n' + dentro + 'return;\n' + ind + '}\n' + ind);
+    }
+    ocupado.push([rIni, rFim]);
+    ids.itens.forEach(function(it){
+      if(usados[it.id]) return;
+      usados[it.id] = 1;
+      var p = Math.max(1, Math.round(Number(it.preco) || 1));
+      itens.push({id: it.id, nome: it.nome, preco: moeda === 'd' ? paraDiamantes(p) : Math.min(p, DEP.maxC), precoJogo: p, moeda: moeda, unico: !!it.unico, semEfeito: true, desc: ''});
+    });
+    feitas.push(cp);
+  });
+  if(!feitas.length) return {erro: 'nao_deu', moedas: moedas, falhas: falhas};
+  if(!/data-koda-moedas/.test(codigo)) ed.inserir(pontoDeEntrada(codigo, doc), '\n' + escreverAjudanteMoedas(lj) + '\n');
+  var novo = ed.aplicar();
+  if(novo == null) return {erro: 'edicao', moedas: moedas};
+  var ok = conferirDepois(codigo, novo, {});
+  if(ok.erro) return {erro: 'quebrou', moedas: moedas};
+  /* os itens vão pra loja do Koda (cria a loja ou junta na que já existe) */
+  var L = lojaLer(novo), r2;
+  if(L.tipo === 'nenhuma') r2 = lojaCriar(novo, {itens: itens, moeda: moeda, lingua: lj});
+  else {
+    var jaTem = {}; L.itens.forEach(function(i){ jaTem[i.idSite] = 1; });
+    var novos = itens.filter(function(i){ return !jaTem[i.id]; });
+    r2 = novos.length ? lojaMudar(novo, novos.map(function(i){ return {tipo: 'novo', item: i}; }), {lingua: lj}) : {codigo: novo};
+  }
+  if(!r2 || r2.erro || !r2.codigo) return {erro: 'loja', moedas: moedas, detalhe: r2 && r2.erro};
+  return {codigo: r2.codigo, itens: itens, feitas: feitas, falhas: falhas, moedas: moedas, moeda: moeda, lingua: lj};
+}
+
+/* ---- trocar só o nome que aparece na tela ---- */
+function singularDe(w){ return /ões$/.test(w) ? w.replace(/ões$/, 'ão') : /ais$/.test(w) ? w.replace(/ais$/, 'al') : /eis$/.test(w) ? w.replace(/eis$/, 'el') : /ies$/.test(w) ? w.replace(/ies$/, 'y') : /s$/.test(w) && !/ss$/.test(w) ? w.slice(0, -1) : w; }
+function comCaixa(modelo, novo){
+  if(modelo === modelo.toUpperCase() && modelo.length > 1) return novo.toUpperCase();
+  if(modelo.charAt(0) === modelo.charAt(0).toUpperCase()) return capitalizar(novo);
+  return novo.toLowerCase();
+}
+function renomearMoeda(codigo, m, novo){
+  var fam = m.rotulo.palavras.length ? m.rotulo.palavras : [semAcento(m.nome).toLowerCase()];
+  var plural = novo.trim(), sing = singularDe(plural);
+  var r = trocarTextosDoJogo(codigo, function(s){
+    /* só texto de verdade: nada de id, chave, nome de arquivo, cor ou endereço */
+    if(/^\s*[\w$-]+\s*$/.test(s) || /\.(png|jpe?g|gif|svg|mp3|wav|ogg|webp|json|js|css)\b|https?:|\/\/|#[0-9a-f]{3,8}\b/i.test(s)) return null;
+    var ns = s.replace(/[A-Za-zÀ-ÿ]+/g, function(w){
+      var k = semAcento(w).toLowerCase();
+      if(fam.indexOf(k) < 0) return w;
+      /* singular só quando a família tem o plural (moeda/moedas, coin/coins); ouro, gold, dinheiro ficam no plural */
+      var temPlural = fam.some(function(o){ return o !== k && (o === k + 's' || o === k + 'es' || singularDe(o) === k); });
+      return comCaixa(w, temPlural ? sing : plural);
+    });
+    if(m.rotulo.tela === '$') ns = ns.replace(/\$(?=\s*$)/, capitalizar(plural) + ': ').replace(/^(\s*)\$/, '$1' + capitalizar(plural) + ': ');
+    return ns;
+  }, false);
+  return r;
+}
+
+/* ---- conversa ---- */
+Object.assign(TX, {
+  dj_comentario: 'MOEDAS DO JOGO (Agente Koda): as compras do jogo usam as moedas ou os diamantes do Koda.|GAME CURRENCY (Koda Agent): the game\'s purchases use Koda coins or diamonds.|MONEDAS DEL JUEGO (Agente Koda): las compras del juego usan las monedas o los diamantes de Koda.',
+  dj_marca: 'compra pela loja do Koda|purchase through the Koda shop|compra con la tienda de Koda',
+  dj_compra_n: 'Compra {n}|Purchase {n}|Compra {n}',
+  dj_uma: 'Achei a moeda do seu jogo: "{nome}".|I found your game\'s currency: "{nome}".|Encontré la moneda de tu juego: "{nome}".',
+  dj_varias: 'Achei {n} moedas no seu jogo: {nomes}.|I found {n} currencies in your game: {nomes}.|Encontré {n} monedas en tu juego: {nomes}.',
+  dj_compra1: 'Com ela a pessoa compra 1 coisa: {lista}.|With it the player buys 1 thing: {lista}.|Con ella se compra 1 cosa: {lista}.',
+  dj_comprasN: 'Com ela a pessoa compra {n} coisas: {lista}.|With it the player buys {n} things: {lista}.|Con ella se compran {n} cosas: {lista}.',
+  dj_sem_compra: 'Ela só é juntada no jogo: nada é comprado com ela.|It is only collected: nothing is bought with it.|Solo se junta en el juego: no se compra nada con ella.',
+  dj_pergunta: 'Quer que essas compras usem as moedas ou os diamantes do Koda? Assim quem joga paga com o saldo da conta.|Do you want these purchases to use Koda coins or diamonds? Then players pay with their account balance.|¿Quieres que esas compras usen las monedas o los diamantes de Koda? Así se paga con el saldo de la cuenta.',
+  dj_pergunta_sem: 'Quer mudar o nome dela na tela? Por exemplo: "troca o ouro por cristais".|Do you want to change its name on screen? For example: "change gold to crystals".|¿Quieres cambiar su nombre en la pantalla? Por ejemplo: "cambia el oro por cristales".',
+  dj_nenhuma: 'Não achei nenhuma moeda no seu jogo (procurei coins, ouro, gemas, cristais, dinheiro, fichas...). Se ela tiver outro nome no código, me diga assim: "a moeda do jogo é estrelas".|I did not find a currency in your game (I looked for coins, gold, gems, crystals, money, tokens...). If it has another name in the code, tell me: "the game currency is stars".|No encontré ninguna moneda en tu juego (busqué coins, oro, gemas, cristales, dinero, fichas...). Si tiene otro nombre en el código, dime: "la moneda del juego es estrellas".',
+  dj_feito: 'Pronto! As compras do jogo agora usam {moeda} do Koda:|Done! The game\'s purchases now use Koda {moeda}:|¡Listo! Las compras del juego ahora usan {moeda} de Koda:',
+  dj_feito_como: 'Quem joga compra do mesmo jeito, e o Koda pergunta se quer pagar.|Players buy the same way, and Koda asks if they want to pay.|Se compra igual, y Koda pregunta si quiere pagar.',
+  dj_feito_sobra: 'O "{nome}" que a pessoa pega no jogo continua lá, mas não compra mais nada (ele não vira moeda do Koda, senão daria pra ganhar moedas sem fim).|The "{nome}" collected in the game is still there, but no longer buys anything (it does not turn into Koda coins, or anyone could get endless coins).|El "{nome}" que se junta en el juego sigue ahí, pero ya no compra nada (no se convierte en monedas de Koda, si no se podrían ganar monedas sin fin).',
+  dj_feito_teste: 'No Testar a compra é de mentirinha (nada é cobrado).|In Test, purchases are pretend (nothing is charged).|En Probar la compra es de mentira (no se cobra nada).',
+  dj_falhas: 'Não consegui trocar {n} compra(s), porque o código delas é diferente demais. Elas continuam usando "{nome}".|I could not change {n} purchase(s) because their code is too different. They still use "{nome}".|No pude cambiar {n} compra(s) porque su código es muy distinto. Siguen usando "{nome}".',
+  dj_ja: 'As compras desse jogo já usam a loja do Koda. Pra mudar preço ou moeda, é só falar: "deixa tudo em diamantes" ou "a espada custa 20 moedas".|This game\'s purchases already use the Koda shop. To change a price or currency, just say: "make everything diamonds" or "the sword costs 20 coins".|Las compras de este juego ya usan la tienda de Koda. Para cambiar precio o moneda, di: "pon todo en diamantes" o "la espada cuesta 20 monedas".',
+  dj_sem_compras: 'A moeda "{nome}" não compra nada no jogo, então não tem compra pra trocar. Quer uma loja com moedas do Koda?|The "{nome}" currency does not buy anything in the game, so there is nothing to change. Do you want a shop with Koda coins?|La moneda "{nome}" no compra nada en el juego, así que no hay compra para cambiar. ¿Quieres una tienda con monedas de Koda?',
+  dj_nao_deu: 'Achei as compras, mas não consegui trocar nenhuma sem arriscar estragar o jogo. Posso montar o pedido pra outra IA fazer isso.|I found the purchases but could not change any without risking breaking the game. I can write the request for another AI to do it.|Encontré las compras, pero no pude cambiar ninguna sin arriesgar romper el juego. Puedo armar el pedido para otra IA.',
+  dj_nome_qual: 'Qual nome você quer pra moeda "{nome}"? Por exemplo: estrelas, cristais, rubis.|What name do you want for the "{nome}" currency? For example: stars, crystals, rubies.|¿Qué nombre quieres para la moneda "{nome}"? Por ejemplo: estrellas, cristales, rubíes.',
+  dj_nome_feito: 'Pronto! Troquei "{de}" por "{para}" em {n} texto(s) do jogo. O código continua igual por dentro.|Done! I changed "{de}" to "{para}" in {n} game text(s). The code works the same inside.|¡Listo! Cambié "{de}" por "{para}" en {n} texto(s) del juego. El código sigue igual por dentro.',
+  dj_nome_nada: 'Não achei o nome "{de}" escrito na tela do jogo, então não tinha o que trocar.|I did not find the name "{de}" written on the game screen, so there was nothing to change.|No encontré el nombre "{de}" escrito en la pantalla del juego, así que no había nada que cambiar.',
+  dj_qual: 'Seu jogo tem {n} moedas: {nomes}. Qual delas?|Your game has {n} currencies: {nomes}. Which one?|Tu juego tiene {n} monedas: {nomes}. ¿Cuál?',
+  dj_diamante_ou_nome: 'Se você queria só mudar o nome na tela (sem usar diamantes do Koda), toque em "Desfazer" e depois em "Só mudar o nome".|If you only wanted to change the name on screen (without Koda diamonds), tap "Undo" and then "Only change the name".|Si solo querías cambiar el nombre en la pantalla (sin diamantes de Koda), toca "Deshacer" y luego "Solo cambiar el nombre".',
+  dj_sugestao: 'Seu jogo tem uma moeda própria ("{nome}") que compra {coisas}. Quer que essas compras usem moedas ou diamantes do Koda?|Your game has its own currency ("{nome}") that buys {coisas}. Do you want those purchases to use Koda coins or diamonds?|Tu juego tiene una moneda propia ("{nome}") que compra {coisas}. ¿Quieres que esas compras usen monedas o diamantes de Koda?',
+  dj_coisa1: '1 coisa|1 thing|1 cosa', dj_coisasN: '{n} coisas|{n} things|{n} cosas',
+  dj_ensinou: 'Entendi: a moeda do jogo é "{nome}".|Got it: the game currency is "{nome}".|Entendido: la moneda del juego es "{nome}".',
+  ch_dj_moedas: 'Usar moedas do Koda|Use Koda coins|Usar monedas de Koda',
+  ch_dj_diamantes: 'Usar diamantes do Koda|Use Koda diamonds|Usar diamantes de Koda',
+  ch_dj_nome: 'Só mudar o nome|Only change the name|Solo cambiar el nombre',
+  ch_dj_deixar: 'Deixar como está|Leave it as it is|Dejar como está',
+  ch_dj_ver: 'Achar as moedas do jogo|Find the game currency|Buscar las monedas del juego',
+  w_moedas_koda: 'moedas|coins|monedas',
+  w_diamantes_koda: 'diamantes|diamonds|diamantes'
+});
+/* as moedas do jogo que está na caixa (guardadas no contexto da mensagem) */
+function moedasDoCtx(ctx){
+  if(!ctx || !ctx.codigo) return [];
+  if(ctx._moedas) return ctx._moedas;
+  var est = ctx.estado || {};
+  try{ ctx._moedas = moedasDoJogo(ctx.codigo, {ensinado: est.moedaEnsinada}); }catch(e){ ctx._moedas = []; }
+  return ctx._moedas;
+}
+function nomeDaMoeda(m, est){ if(est && est.nomesDeMoeda && est.nomesDeMoeda[m.caminho]) return est.nomesDeMoeda[m.caminho]; return m.rotulo && m.rotulo.tela && m.rotulo.tela !== '$' ? m.rotulo.tela : (m.rotulo && m.rotulo.nome) || m.nome; }
+function listaDeCompras(m){
+  var nomes = [];
+  m.compras.forEach(function(c){
+    if(c.preco.tipo === 'lista' || c.preco.tipo === 'tabela') c.preco.itens.forEach(function(i){ nomes.push((c.preco.tipo === 'tabela' ? (nomeDasPalavras(palavrasDoId(i.nome), LING) || i.nome) : i.nome) + ' (' + milhar(i.preco) + ')'); });
+    else nomes.push((c.nome || T('dj_compra_n', {n: nomes.length + 1})) + ' (' + milhar(c.preco.v) + ')');
+  });
+  return nomes;
+}
+var RE_MOEDA_FALA = /\b(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|cash|ouro|gold|oro|gema|gemas|gem|gems|cristal|cristais|crystal|crystals|cristales|diamante|diamantes|diamond|diamonds|ficha|fichas|token|tokens|rubi|rubis|ruby|rubies|joia|joias|jewel|jewels|currency|estrela|estrelas|star|stars|pontos|points|score)\b/;
+function entenderMoedaDoJogo(P, ctx){
+  var n = ' ' + P.n + ' ', est = ctx.estado || {};
+  /* ensinar: "a moeda do jogo é stars" */
+  var ens = /\b(?:a moeda|o dinheiro|the currency|the money|la moneda|el dinero)(?: do jogo| of the game| del juego)? (?:e|eh|se chama|chama|is|called|es|se llama) ["']?([a-z_$][\w$]*)/i.exec(P.orig.normalize ? semAcento(P.orig).toLowerCase() : P.n);
+  if(ens && ctx.codigo) return {int: 'moeda_ensinar', nome: ens[1]};
+  /* o botão "Só mudar o nome" */
+  if(/^ *(so |apenas )?(mudar|muda|trocar|troca) (o )?nome( da moeda)? *$|^ *only change the name *$|^ *solo cambiar el nombre *$/.test(P.n) && moedasDoCtx(ctx).length) return {int: 'moeda_renomear', nome: null};
+  var falaMoeda = RE_MOEDA_FALA.test(n);
+  var md = moedasDoCtx(ctx);
+  var rotulos = [];
+  md.forEach(function(m){ (m.rotulo.palavras || []).concat([semAcento(m.nome).toLowerCase()]).forEach(function(w){ if(w && w.length > 2) rotulos.push(w); }); });
+  var falaDoJogo = rotulos.some(function(w){ return n.indexOf(' ' + w + ' ') >= 0; });
+  if(!falaMoeda && !falaDoJogo) return null;
+  var doJogo = /\b(do|da|no|na|of the|of my|in the|in my|del|de mi|en el|en mi) (meu |minha |my |mi )?(jogo|game|juego)\b/.test(n) || /\b(moeda propria|moedas proprias|own currency|moneda propia|qualquer moeda|qualquer tipo de moeda|any currency|cualquier moneda)\b/.test(n);
+  var semCompraFeita = md.some(function(m){ return m.compras.some(function(c){ return !c.convertida; }); });
+  var temLojaKoda = ctx.loja && ctx.loja.tipo !== 'nenhuma';
+  /* sem moeda própria no jogo: só responde se a pessoa falou claramente da moeda do jogo */
+  if(!md.length){
+    if(doJogo && /\b(acha|achar|encontra|encontrar|detecta|detectar|quais|qual|tem|mostra|transforma|transformar|converte|converter|troca|trocar|find|detect|which|convert|turn|change|encuentra|detecta|cuales|convierte|cambia)\b/.test(n)) return {int: 'moeda_ver'};
+    return null;
+  }
+  var ver = /\b(acha|achar|ache|encontra|encontrar|detecta|detectar|detecte|quais|qual e|tem moeda|tem alguma|mostra|lista|find|detect|which|show me|list|encuentra|detecta|cuales|hay)\b/.test(n);
+  var conv = /\b(virem|viram|virou|seja|sejam|become|becomes|sea|sean|transforma|transformar|transforme|transformem|converte|converter|converta|troca|trocar|troque|muda|mudar|mude|vira|virar|vire|passa|passar|passe|usa|usar|use|usem|deixa|deixar|deixe|faz|faca|fazer|bota|coloca|turn|convert|change|switch|swap|make|replace|convierte|convertir|cambia|cambiar|pasa|pasar|reemplaza|haz|pon)\b/.test(n);
+  if(!(falaDoJogo || doJogo || (semCompraFeita && !temLojaKoda))) return null;
+  if(temLojaKoda && !falaDoJogo && !doJogo) return null;
+  /* para onde? (o que vem depois do último "em/por/pra/into/to/en") */
+  var partes = n.split(/\b(?:em|por|pra|para|pelas|pelos|pela|pelo|into|to|for|en|by|with|com|con|vira|vire|virar|virem|virou|seja|sejam|become|becomes|sea|sean)\b/);
+  var depois = partes.length > 1 ? partes[partes.length - 1] : '';
+  var querKoda = /\bkoda\b/.test(n);
+  var para = null, nomeNovo = null;
+  if(/\b(diamante|diamantes|diamond|diamonds) (do |de |from )?koda\b|\bkoda (diamonds|diamantes)\b/.test(n)) para = 'd';
+  else if(/\b(moeda|moedas|coin|coins|moneda|monedas) (do |de |from )?koda\b|\bkoda (coins|moedas|monedas)\b/.test(n)) para = 'c';
+  else if(/\b(diamante|diamantes|diamond|diamonds)\b/.test(depois) || (querKoda && /\b(diamante|diamantes|diamond|diamonds)\b/.test(n))) para = 'd';
+  else if(/\b(moeda|moedas|coin|coins|moneda|monedas)\b/.test(depois) && (querKoda || !rotulos.some(function(w){ return /^(moeda|moedas|coin|coins|moneda|monedas)$/.test(w); }) || /\bkoda\b/.test(depois))) para = 'c';
+  else if(querKoda) para = 'pergunta';
+  else if(depois){
+    var cand = depois.replace(/\b(koda)\b/g, ' ').replace(/\b(o|a|os|as|the|el|la|los|las|um|uma|uns|umas|some|unos|unas|nome|name|nombre|de|do|da|dos|das|of|tela|screen|pantalla|jogo|game|juego|favor|pfv|please)\b/g, ' ').trim().split(/\s+/).filter(function(w){ return w && w.length > 2 && !RE_EDUCADO_W.test(w); });
+    cand = cand.filter(function(w){ return rotulos.indexOf(w) < 0; });
+    if(cand.length && cand.length <= 2) nomeNovo = cand.join(' ');
+  }
+  var alvo = null;
+  md.forEach(function(m){ if(!alvo && (m.rotulo.palavras || []).concat([semAcento(m.nome).toLowerCase()]).some(function(w){ return n.indexOf(' ' + w + ' ') >= 0; })) alvo = m.caminho; });
+  if(nomeNovo && conv) return {int: 'moeda_renomear', nome: nomeNovo, alvo: alvo};
+  if(para && para !== 'pergunta' && (conv || /\b(com|with|con|usando|using)\b/.test(n))) return {int: 'moeda_converter', para: para, alvo: alvo, doNome: para === 'd' && !querKoda};
+  if(conv || para === 'pergunta') return {int: 'moeda_ver', perguntar: true, alvo: alvo};
+  if(ver || doJogo || falaDoJogo) return {int: 'moeda_ver', alvo: alvo};
+  return null;
+}
+var RE_EDUCADO_W = /^(por|favor|pfv|pf|pls|please|ai|aí)$/;
+function descreverMoedas(r, md, est){
+  if(md.length === 1) diz(r, T('dj_uma', {nome: nomeDaMoeda(md[0], est)}));
+  else diz(r, T('dj_varias', {n: md.length, nomes: md.map(function(m){ return '"' + nomeDaMoeda(m, est) + '"'; }).join(', ')}));
+  md.forEach(function(m){
+    var l = listaDeCompras(m);
+    if(md.length > 1) diz(r, '"' + nomeDaMoeda(m, est) + '": ' + (l.length ? l.join(', ') : T('dj_sem_compra')));
+    else if(l.length) diz(r, T(l.length === 1 ? 'dj_compra1' : 'dj_comprasN', {n: l.length, lista: l.join(', ')}));
+    else diz(r, T('dj_sem_compra'));
+  });
+}
+H.moeda_ver = function(it, ctx, est){
+  var r = novaResp();
+  if(precisaCodigo(ctx, r)) return r;
+  var md = moedasDoCtx(ctx);
+  if(it.alvo) md = md.filter(function(m){ return m.caminho === it.alvo; }).concat(md.filter(function(m){ return m.caminho !== it.alvo; })).slice(0, md.length);
+  if(!md.length){ diz(r, T('dj_nenhuma')); chip(r, T('ch_loja')); return r; }
+  descreverMoedas(r, md, est);
+  var comCompra = md.filter(function(m){ return m.compras.some(function(c){ return !c.convertida; }); });
+  if(comCompra.length){
+    diz(r, T('dj_pergunta'));
+    est.pendente = {tipo: 'mod_moeda', alvo: it.alvo || null};
+    chip(r, T('ch_dj_moedas')); chip(r, T('ch_dj_diamantes')); chip(r, T('ch_dj_nome')); chip(r, T('ch_dj_deixar'));
+  } else if(md.some(function(m){ return m.convertidas; })){
+    diz(r, T('dj_ja'));
+  } else {
+    diz(r, T('dj_pergunta_sem'));
+    est.pendente = {tipo: 'mod_moeda', alvo: it.alvo || null, soNome: true};
+    chip(r, T('ch_dj_nome')); chip(r, T('ch_loja'));
+  }
+  return r;
+};
+H.moeda_converter = function(it, ctx, est){
+  var r = novaResp();
+  if(precisaCodigo(ctx, r)) return r;
+  var res = converterMoedas(ctx.codigo, {moeda: it.para, alvo: it.alvo, ensinado: est.moedaEnsinada});
+  if(res.erro){
+    var md = res.moedas || [], m0 = md[0];
+    if(res.erro === 'sem_moeda'){ diz(r, T('dj_nenhuma')); return r; }
+    if(res.erro === 'ja'){ diz(r, T('dj_ja')); return r; }
+    if(res.erro === 'sem_compras'){ diz(r, T('dj_sem_compras', {nome: nomeDaMoeda(m0, est)})); est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar', moeda: it.para, confirmado: true}}; chip(r, T('ch_sim')); chip(r, T('ch_nao')); return r; }
+    diz(r, T('dj_nao_deu'));
+    chip(r, T('ch_pedido'));
+    return r;
+  }
+  var m = res.moedas.filter(function(x){ return x.compras.length; })[0] || res.moedas[0];
+  diz(r, T('dj_feito', {moeda: T(res.moeda === 'd' ? 'w_diamantes_koda' : 'w_moedas_koda')}) + '\n' + res.itens.map(function(i){ return '- ' + i.nome + ': ' + precoTxt(i.preco, i.moeda); }).join('\n'));
+  diz(r, T('dj_feito_como') + ' ' + T('dj_feito_sobra', {nome: nomeDaMoeda(m, est)}) + ' ' + T('dj_feito_teste'));
+  if(res.falhas.length) diz(r, T('dj_falhas', {n: res.falhas.length, nome: nomeDaMoeda(m, est)}));
+  if(res.moeda === 'd' && it.doNome) diz(r, T('dj_diamante_ou_nome'));
+  chip(r, T('ch_testar')); chip(r, T(res.moeda === 'd' ? 'ch_so_moedas' : 'ch_so_diamantes')); chip(r, T('ch_mais_barato'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('dj_desc', {moeda: T(res.moeda === 'd' ? 'w_diamantes_koda' : 'w_moedas_koda')}));
+};
+H.moeda_renomear = function(it, ctx, est){
+  var r = novaResp();
+  if(precisaCodigo(ctx, r)) return r;
+  var md = moedasDoCtx(ctx);
+  var m = md.filter(function(x){ return x.caminho === it.alvo; })[0] || md[0];
+  if(!m){ diz(r, T('dj_nenhuma')); return r; }
+  if(!it.nome){ est.pendente = {tipo: 'mod_moeda', alvo: m.caminho, querNome: true}; diz(r, T('dj_nome_qual', {nome: nomeDaMoeda(m, est)})); return r; }
+  /* "troca o ouro por diamantes": diamantes também é moeda do Koda — se as compras ainda não foram trocadas, usa os diamantes do Koda */
+  var res = renomearMoeda(ctx.codigo, m, it.nome);
+  if(!res.n){ diz(r, T('dj_nome_nada', {de: nomeDaMoeda(m, est)})); return r; }
+  var antesNome = nomeDaMoeda(m, est);
+  diz(r, T('dj_nome_feito', {de: nomeDaMoeda(m, est), para: it.nome, n: res.n}));
+  est.nomesDeMoeda = est.nomesDeMoeda || {}; est.nomesDeMoeda[m.caminho] = it.nome;
+  if(m.compras.some(function(c){ return !c.convertida; })){ diz(r, T('dj_pergunta')); chip(r, T('ch_dj_moedas')); chip(r, T('ch_dj_diamantes')); }
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('dj_nome_desc', {de: antesNome, para: it.nome}));
+};
+H.moeda_ensinar = function(it, ctx, est){
+  est.moedaEnsinada = it.nome;
+  ctx._moedas = null;
+  var r = H.moeda_ver({}, ctx, est);
+  r.blocos.unshift({t: 'txt', s: T('dj_ensinou', {nome: it.nome})});
+  return r;
+};
+Object.assign(TX, {
+  dj_desc: 'as compras do jogo com {moeda} do Koda|the game purchases with Koda {moeda}|las compras del juego con {moeda} de Koda',
+  dj_nome_desc: 'o nome da moeda ("{de}" virou "{para}")|the currency name ("{de}" became "{para}")|el nombre de la moneda ("{de}" pasó a "{para}")'
+});
+/* a resposta pra pergunta "moedas ou diamantes do Koda?" */
+function responderMoedaPendente(P, ctx, est){
+  var p = est.pendente;
+  if(!p || p.tipo !== 'mod_moeda') return null;
+  var n = ' ' + P.n + ' ';
+  if(P.ws.length > 7 || P.interrogacao || /^(quais|qual|que|o que|oque|como|onde|tem|quanto|which|what|how|where|cuales|cual|donde|cuanto|hay)\b/.test(P.n.trim())) return null;
+  if(p.querNome){
+    var nm = P.orig.replace(/^\s*(pode ser|quero|coloca|bota|poe|põe|use|usa|chama de|the name is|el nombre es)\s+/i, '').replace(/[."!?]+$/, '').trim();
+    if(nm && nm.split(/\s+/).length <= 3) return {int: 'moeda_renomear', nome: nm.toLowerCase(), alvo: p.alvo};
+    return null;
+  }
+  var RESP = /^ *(sim |yes |si |pode |quero |usar |use |usa |usem |com |em |pra |para |por |pelas? |nas? |as |os |with |in |to |con |en |a )*(as |os |the |las |los )?/;
+  var resto = P.n.replace(RESP, '').replace(/\b(do|de|da|of|the|el|del) (koda)\b/g, 'koda').trim();
+  if(/^(diamante|diamantes|diamond|diamonds)( koda)?( por favor| pfv| please)?$|^koda (diamonds|diamantes)$/.test(resto)) return {int: 'moeda_converter', para: 'd', alvo: p.alvo};
+  if(/^(moeda|moedas|coin|coins|moneda|monedas)( koda)?( por favor| pfv| please)?$|^koda (coins|monedas|moedas)$/.test(resto)) return {int: 'moeda_converter', para: 'c', alvo: p.alvo};
+  if(/\b(nome|name|nombre|renomear|rename|renombrar)\b/.test(n)) return {int: 'moeda_renomear', nome: null, alvo: p.alvo};
+  if(/^ *(nao|no|nope|nada|deixa assim|deixa como esta|deixar como esta|deixa quieto|deixa do jeito que esta|nao precisa|leave it|leave it as it is|keep it|dejalo|dejar como esta|asi esta bien) *$/.test(P.n)) return {int: 'negou'};
+  if(/\b(loja|shop|tienda)\b/.test(n)) return {int: 'loja_criar', confirmado: true};
+  return null;
+}
+/* ====================================================================
+   MAIS CLARO E ENTENDE MAIS
+   - respostas curtas, sem nome de variável nem código no meio da frase
+   - "não entendi" / "tá confuso": explica de novo, simples
+   - conversa de gente: nome, "tudo bem?", xingamento, "o que você mudou?"
+   - perguntas sobre o Koda que antes viravam outra coisa
+     ("como funciona o ranking?", "o que é diamante?", "quanto custa publicar?")
+   - pedidos que eram entendidos errado ("o personagem voa", "vender coisas")
+   - a moeda própria do jogo (ver 20-moedas.js)
+==================================================================== */
+Object.assign(TX, {
+  /* textos que ficaram mais curtos e sem código */
+  lj_sem_efeito: 'O item "{item}" ainda não faz nada no jogo. O que ele faz? Por exemplo: "{item} dá vida extra".|The item "{item}" does not do anything in the game yet. What does it do? For example: "{item} gives an extra life".|El artículo "{item}" todavía no hace nada en el juego. ¿Qué hace? Por ejemplo: "{item} da vida extra".',
+  lj_sem_efeito_varios: 'Os itens {itens} ainda não fazem nada no jogo. O que cada um faz? Por exemplo: "{item} dá vida extra".|The items {itens} do not do anything in the game yet. What does each one do? For example: "{item} gives an extra life".|Los artículos {itens} todavía no hacen nada en el juego. ¿Qué hace cada uno? Por ejemplo: "{item} da vida extra".',
+  lj_dica_diamante: '1 diamante vale muito mais que 1 moeda, por isso o preço em diamantes fica menor. Quer outro preço? Fale assim: "{item} por 5 diamantes".|1 diamond is worth much more than 1 coin, so diamond prices are smaller. Want another price? Say: "{item} for 5 diamonds".|1 diamante vale mucho más que 1 moneda, por eso el precio en diamantes es menor. ¿Otro precio? Di: "{item} por 5 diamantes".',
+  lj_botao_dica: 'Apareceu um botão "{botao}" no canto do jogo que abre a loja. No Testar, comprar é de mentirinha.|A "{botao}" button showed up in the corner of the game to open the shop. In Test, buying is pretend.|Apareció un botón "{botao}" en la esquina del juego que abre la tienda. En Probar, comprar es de mentira.',
+  sv_nao: 'Não achei o que salvar no seu jogo (fase, recorde ou moedas). Outra IA consegue fazer isso: diga "monta o pedido".|I did not find anything to save in your game (level, high score or coins). Another AI can do it: say "write the request".|No encontré qué guardar en tu juego (nivel, récord o monedas). Otra IA puede hacerlo: di "arma el pedido".',
+  pt_nao: 'Pra mandar os pontos pro ranking, preciso achar onde a partida acaba, e não achei no seu jogo. Se você mexe no código, coloque esta linha nesse lugar:|To send the points to the ranking I need to find where the round ends, and I could not find it. If you edit the code, put this line there:|Para mandar los puntos al ranking necesito encontrar dónde termina la partida, y no lo encontré. Si editas el código, pon esta línea ahí:',
+  on_ja: 'Seu jogo já é online! Ele aparece nos bancos da Praça.|Your game is already online! It shows up on the Plaza benches.|¡Tu juego ya es online! Aparece en los bancos de la Plaza.',
+  on_ok_direto: 'Pronto! Seu jogo ficou online: quem estiver jogando ao mesmo tempo vê os pontos de todo mundo, e o jogo aparece nos bancos da Praça. Pra ver os outros jogadores andando dentro do jogo, precisa de outra IA: toque em "Monta o pedido de jogo online".|Done! Your game is online: people playing at the same time see everyone\'s points, and the game shows up on the Plaza benches. To see the other players moving inside the game you need another AI: tap "Write the online game request".|¡Listo! Tu juego quedó online: quien juegue al mismo tiempo ve los puntos de todos, y el juego aparece en los bancos de la Plaza. Para ver a los demás jugadores moviéndose dentro del juego, hace falta otra IA: toca "Arma el pedido de juego online".',
+  oi_outra_ia: 'Isso eu ainda não consigo fazer aqui. Mas outra IA consegue! Copie o pedido abaixo{com_codigo} e cole no ChatGPT, Gemini ou Claude. Quando ela devolver o código novo, cole aqui e diga "adapta pro Koda".|I cannot do that here yet. But another AI can! Copy the request below{com_codigo} and paste it into ChatGPT, Gemini or Claude. When it gives back the new code, paste it here and say "adapt it for Koda".|Eso todavía no puedo hacerlo aquí. ¡Pero otra IA sí! Copia el pedido de abajo{com_codigo} y pégalo en ChatGPT, Gemini o Claude. Cuando te devuelva el código nuevo, pégalo aquí y di "adáptalo para Koda".',
+  md_palpite: 'Não entendi direito. Você quis dizer alguma dessas?|I did not quite get it. Did you mean one of these?|No entendí bien. ¿Quisiste decir alguna de estas?',
+  md_num_linha2: '{oque}: de {de} para {para}.|{oque}: from {de} to {para}.|{oque}: de {de} a {para}.',
+  md_num_mais: ' (e mais {n} parecido)| (and {n} more like it)| (y {n} más parecido)',
+  rt_vidas: 'Vidas|Lives|Vidas', rt_velocidade: 'Velocidade|Speed|Velocidad', rt_pulo: 'Pulo|Jump|Salto', rt_gravidade: 'Gravidade|Gravity|Gravedad', rt_tempo: 'Tempo|Time|Tiempo', rt_municao: 'Munição|Ammo|Munición', rt_dano: 'Força|Power|Fuerza', rt_escudo: 'Escudo|Shield|Escudo', rt_cadencia: 'Tiros|Shots|Disparos',
+  /* saudação curta */
+  oi2_com_codigo: 'Oi! Eu sou {agente}. Olhei seu jogo: parece um jogo de {genero}.{loja}|Hi! I am {agente}. I looked at your game: it looks like a {genero} game.{loja}|¡Hola! Soy {agente}. Miré tu juego: parece un juego de {genero}.{loja}',
+  oi2_sem_genero: 'Oi! Eu sou {agente}. Já olhei seu jogo.{loja}|Hi! I am {agente}. I already looked at your game.{loja}|¡Hola! Soy {agente}. Ya miré tu juego.{loja}',
+  oi2_loja: ' Ele já tem uma loja com {n} {itens}.| It already has a shop with {n} {itens}.| Ya tiene una tienda con {n} {itens}.',
+  oi2_fim: 'Me diga o que quer mudar, do seu jeito, ou toque numa opção aqui embaixo.|Tell me what you want to change, in your own words, or tap an option below.|Dime qué quieres cambiar, a tu manera, o toca una opción aquí abajo.',
+  oi2_adaptar: 'Esse jogo parece ter vindo de outra IA. Quer que eu deixe ele com a cara do Koda (seu personagem, ranking e jornada salva)?|This game seems to come from another AI. Want me to give it the Koda touch (your character, ranking and saved progress)?|Este juego parece venir de otra IA. ¿Quieres que le dé el toque de Koda (tu personaje, ranking y partida guardada)?',
+  oi2_girar: 'Ele foi feito pra tela {modo}. Quer que eu mostre um aviso pra pessoa {acao}?|It was made for a {modo} screen. Want me to show a message asking people to {acao}?|Fue hecho para pantalla {modo}. ¿Quieres que muestre un aviso para {acao}?',
+  /* não entendi */
+  cf_intro: 'Sem problema, explico de um jeito mais simples:|No problem, let me explain it more simply:|No hay problema, te lo explico más simple:',
+  cf_pergunta: 'Eu te fiz uma pergunta e estou esperando a resposta. É só tocar num dos botões aqui embaixo (ou escrever do seu jeito).|I asked you a question and I am waiting for the answer. Just tap one of the buttons below (or write it your way).|Te hice una pregunta y estoy esperando la respuesta. Solo toca uno de los botones de abajo (o escríbelo a tu manera).',
+  cf_loja: 'Seu jogo agora tem uma lojinha. Quem jogar pode comprar coisas com as moedas do Koda. Pra mudar, fale tipo: "a espada custa 20 moedas" ou "tira o escudo".|Your game now has a little shop. Players can buy things with Koda coins. To change it, say things like: "the sword costs 20 coins" or "remove the shield".|Tu juego ahora tiene una tiendita. Quien juegue puede comprar cosas con las monedas de Koda. Para cambiarla, di algo como: "la espada cuesta 20 monedas" o "quita el escudo".',
+  cf_moeda: 'Seu jogo tinha um dinheiro só dele (tipo ouro). Agora, pra comprar as coisas, quem joga usa as moedas do Koda, as mesmas que ganha jogando no Koda.|Your game had its own money (like gold). Now, to buy things, players use Koda coins, the same ones they earn playing on Koda.|Tu juego tenía un dinero propio (como oro). Ahora, para comprar cosas, se usan las monedas de Koda, las mismas que se ganan jugando en Koda.',
+  cf_numero: 'Eu mudei um número do jogo (tipo a velocidade ou as vidas). Toque em "Testa meu jogo" pra ver como ficou. Não gostou? Toque em "Desfazer".|I changed a number in the game (like speed or lives). Tap "Test my game" to see it. Did not like it? Tap "Undo".|Cambié un número del juego (como la velocidad o las vidas). Toca "Prueba mi juego" para verlo. ¿No te gustó? Toca "Deshacer".',
+  cf_visual: 'Eu mudei a aparência do jogo (cores, botões ou música). Toque em "Testa meu jogo" pra ver. Não gostou? Toque em "Desfazer".|I changed how the game looks (colors, buttons or music). Tap "Test my game" to see it. Did not like it? Tap "Undo".|Cambié cómo se ve el juego (colores, botones o música). Toca "Prueba mi juego" para verlo. ¿No te gustó? Toca "Deshacer".',
+  cf_online: 'Agora quem joga o seu jogo ao mesmo tempo vê os pontos dos outros, ao vivo.|Now people playing your game at the same time see each other\'s points, live.|Ahora quien juega tu juego al mismo tiempo ve los puntos de los demás, en vivo.',
+  cf_skin: 'Agora quem jogar usa o próprio personagem do Koda dentro do jogo, com a roupa que escolheu.|Now players use their own Koda character inside the game, with the outfit they picked.|Ahora quien juegue usa su propio personaje de Koda dentro del juego, con la ropa que eligió.',
+  cf_outra_ia: 'Isso eu não consigo fazer sozinho. Mas você pode copiar o texto que eu montei e colar em outra IA (como o ChatGPT). Ela faz a mudança e te devolve o código novo. Aí é só colar aqui.|I cannot do that by myself. But you can copy the text I wrote and paste it into another AI (like ChatGPT). It makes the change and gives you the new code. Then just paste it here.|Eso no lo puedo hacer solo. Pero puedes copiar el texto que armé y pegarlo en otra IA (como ChatGPT). Ella hace el cambio y te devuelve el código nuevo. Luego solo pégalo aquí.',
+  cf_verificar: 'Eu li o código do jogo e coloquei um robozinho pra jogar, pra achar problemas.|I read the game code and had a little robot play it to find problems.|Leí el código del juego y puse un robotito a jugar para encontrar problemas.',
+  cf_geral: 'Eu sou um ajudante que mexe no seu jogo. Você escreve o que quer, do seu jeito, e eu faço. Por exemplo: "deixa mais rápido", "coloca música" ou "põe uma loja".|I am a helper that changes your game. You write what you want, your way, and I do it. For example: "make it faster", "add music" or "add a shop".|Soy un ayudante que cambia tu juego. Escribes lo que quieres, a tu manera, y lo hago. Por ejemplo: "hazlo más rápido", "pon música" o "pon una tienda".',
+  cf_sem_codigo: 'Eu ajudo a criar jogos. Cole o código do seu jogo na caixa, ou me peça ideias, que eu te ajudo.|I help make games. Paste your game code in the box, or ask me for ideas, and I will help.|Ayudo a crear juegos. Pega el código de tu juego en la caja, o pídeme ideas, y te ayudo.',
+  /* conversa */
+  pp_tudo_bem: 'Tudo ótimo por aqui! E com você? Bora deixar seu jogo ainda mais legal?|All good here! How about you? Shall we make your game even cooler?|¡Todo bien por aquí! ¿Y tú? ¿Hacemos tu juego todavía mejor?',
+  pp_xingou: 'Poxa, desculpa! Ainda estou aprendendo. Tenta me falar de outro jeito, com poucas palavras. Por exemplo: "deixa mais rápido" ou "coloca música".|Oops, sorry! I am still learning. Try telling me another way, with few words. For example: "make it faster" or "add music".|¡Ups, perdón! Todavía estoy aprendiendo. Prueba decírmelo de otra forma, con pocas palabras. Por ejemplo: "hazlo más rápido" o "pon música".',
+  pp_historico: 'Nessa conversa eu já mudei:|In this chat I already changed:|En esta charla ya cambié:',
+  pp_historico_nada: 'Ainda não mudei nada no seu jogo nessa conversa.|I have not changed anything in your game in this chat yet.|Todavía no cambié nada en tu juego en esta charla.',
+  pp_historico_desfazer: 'Pra voltar a última mudança, toque em "Desfazer".|To undo the last change, tap "Undo".|Para volver el último cambio, toca "Deshacer".',
+  /* pedidos que eram entendidos errado */
+  lj_quais: 'O que você quer vender na loja? Escolha uma ideia ou escreva o nome do item (por exemplo: "uma espada por 50 moedas").|What do you want to sell in the shop? Pick an idea or write the item name (for example: "a sword for 50 coins").|¿Qué quieres vender en la tienda? Elige una idea o escribe el nombre del artículo (por ejemplo: "una espada por 50 monedas").',
+  bn_opcoes: 'Posso deixar o jogo mais bonito de vários jeitos. Qual você quer?|I can make the game prettier in several ways. Which one do you want?|Puedo hacer el juego más bonito de varias formas. ¿Cuál quieres?',
+  mo_moedas_quer: 'Moedas de que jeito?|Coins in which way?|¿Monedas de qué forma?',
+  mo_moedas_opcoes: 'Posso colocar uma loja onde quem joga compra coisas com as moedas do Koda. Moedas pra pegar dentro do jogo (como no Mario) outra IA consegue fazer.|I can add a shop where players buy things with Koda coins. Coins to collect inside the game (like in Mario) another AI can do.|Puedo poner una tienda donde se compran cosas con las monedas de Koda. Monedas para recoger dentro del juego (como en Mario) las puede hacer otra IA.',
+  ch_mo_loja: 'Loja com moedas do Koda|Shop with Koda coins|Tienda con monedas de Koda',
+  ch_mo_pegar: 'Moedas pra pegar no jogo|Coins to collect in the game|Monedas para recoger',
+  ch_bn_colorido: 'Deixa mais colorido|Make it more colorful|Hazlo más colorido',
+  ch_bn_fundo: 'Muda a cor do fundo|Change the background color|Cambia el color del fondo',
+  ch_bn_musica: 'Coloca música alegre|Add cheerful music|Pon música alegre',
+  ch_bn_medalhas: 'Medalhas com confete|Medals with confetti|Medallas con confeti',
+  ch_bn_inicio: 'Tela inicial com "Jogar"|Start screen with "Play"|Pantalla de inicio con "Jugar"',
+  ch_outra_coisa: 'Quero outra coisa|I want something else|Quiero otra cosa',
+  /* perguntas sobre o Koda */
+  faq_publicar2: 'Publicar é de graça! No Koda Studio, toque em Publicar, dê um nome e escolha a capa. O Koda confere o jogo na hora (palavrões, conteúdo impróprio, pedido de senha) e, se estiver tudo certo, ele já aparece pra todo mundo e no seu perfil.|Publishing is free! In Koda Studio, tap Publish, give it a name and pick a cover. Koda checks the game right away (bad words, inappropriate content, password requests) and, if everything is fine, it shows up for everyone and on your profile.|¡Publicar es gratis! En Koda Studio, toca Publicar, ponle un nombre y elige la portada. Koda revisa el juego al momento (groserías, contenido inapropiado, pedidos de contraseña) y, si todo está bien, aparece para todos y en tu perfil.',
+  faq_recusado2: 'Quando o Koda não deixa publicar, ele mostra o motivo na hora. Os mais comuns: palavrão ou texto impróprio no jogo, o jogo pedir senha, e-mail ou telefone, ou mandar a pessoa pra outro site. Tire essa parte do código e publique de novo.|When Koda does not let you publish, it shows the reason right away. The most common: a bad word or inappropriate text in the game, the game asking for a password, e-mail or phone, or sending people to another site. Remove that part of the code and publish again.|Cuando Koda no deja publicar, muestra el motivo al momento. Los más comunes: una grosería o texto inapropiado en el juego, que el juego pida contraseña, correo o teléfono, o que mande a la persona a otro sitio. Quita esa parte del código y publica de nuevo.',
+  faq_criador: 'Você ganha moedas com seus jogos: cada curtida, salvo, comentário e visita de outra pessoa rende 3 moedas pra você. E se o jogo tiver loja, quem compra paga com moedas ou diamantes do Koda. Dinheiro de verdade, não: no Koda tudo é com moedas e diamantes.|You earn coins with your games: each like, save, comment and visit from another person gives you 3 coins. And if the game has a shop, players pay with Koda coins or diamonds. Not real money: on Koda everything uses coins and diamonds.|Ganas monedas con tus juegos: cada me gusta, guardado, comentario y visita de otra persona te da 3 monedas. Y si el juego tiene tienda, se paga con monedas o diamantes de Koda. Dinero real, no: en Koda todo es con monedas y diamantes.',
+  faq_diamante_oque: 'Moedas e diamantes são o dinheiro do Koda. As moedas você ganha jogando, nas missões, na roleta e no baú. O diamante é mais raro e vale bem mais que a moeda. Os dois servem pra comprar roupas, temas, o Koda Pass e coisas dentro dos jogos.|Coins and diamonds are Koda\'s money. You earn coins by playing, in missions, on the wheel and in chests. Diamonds are rarer and worth much more than coins. Both buy clothes, themes, the Koda Pass and things inside games.|Las monedas y los diamantes son el dinero de Koda. Las monedas se ganan jugando, en misiones, en la ruleta y en el cofre. El diamante es más raro y vale mucho más que la moneda. Los dos sirven para comprar ropa, temas, el Koda Pass y cosas dentro de los juegos.'
+});
+/* as linhas dos números com o nome do que mudou (Velocidade: de 4 para 5,2), sem nome de variável */
+linhasDeNumeros = function(mud){
+  var porConceito = {}, ordem = [];
+  mud.forEach(function(m){ var c = m.conceito || '?'; if(!porConceito[c]){ porConceito[c] = []; ordem.push(c); } porConceito[c].push(m); });
+  return ordem.slice(0, 4).map(function(c){
+    var ms = porConceito[c], m = ms[0];
+    var oque = c !== '?' && TX['rt_' + c] ? T('rt_' + c) : capitalizar(palavrasDoId(String(m.nome).split('.').pop()).join(' '));
+    return T('md_num_linha2', {oque: oque, de: formatarNumero(m.de), para: formatarNumero(m.para)}).replace(/\.$/, (ms.length > 1 ? T('md_num_mais', {n: ms.length - 1}) : '') + '.');
+  }).join(' ');
+};
+
+/* ---- saudação curta: 1 frase sobre o jogo + 1 sugestão (a mais importante) + até 6 botões ---- */
+saudar = function(est, bruto, deNovo){
+  var ctx = contexto(est, bruto), r = novaResp();
+  if(!ctx.temCodigo || !ctx.codigo){
+    diz(r, deNovo && est.turnos > 1 ? T('oi_de_novo') : T('oi_sem_codigo'));
+    chip(r, T('ch_como_criar')); chip(r, T('ch_ideias')); chip(r, T('ch_pedido'));
+    return r;
+  }
+  var doc = lerDocumento(ctx.codigo), g = generoDoJogo(doc), L = ctx.loja;
+  if(deNovo && est.turnos > 1){ diz(r, T('oi_de_novo')); chipsDeOferta(r, bruto); r.chips = r.chips.slice(0, 6); return r; }
+  var sl = L.tipo !== 'nenhuma' && L.itens.length ? T('oi2_loja', {n: L.itens.length, itens: plural(L.itens.length, 'w_item', 'w_itens')}) : '';
+  diz(r, /^(jogo|game|juego|um jogo|a game|un juego)$/i.test(String(g.nome || '').trim()) || !g.nome ? T('oi2_sem_genero', {loja: sl}) : T('oi2_com_codigo', {genero: g.nome, loja: sl}));
+  chipsDeOferta(r, bruto);
+  var primeiro = null, c = ctx.codigo;
+  try{
+    var md = moedasDoCtx(ctx).filter(function(m){ return m.compras.some(function(x){ return !x.convertida; }); });
+    if(md.length){
+      var n = md[0].compras.reduce(function(s, x){ return s + (x.preco.itens ? x.preco.itens.length : 1); }, 0);
+      diz(r, T('dj_sugestao', {nome: nomeDaMoeda(md[0], est), coisas: n === 1 ? T('dj_coisa1') : T('dj_coisasN', {n: n})}));
+      primeiro = [{txt: T('ch_dj_moedas'), msg: TL('pt', 'ch_dj_moedas'), rot: T('ch_dj_moedas')}, {txt: T('ch_dj_diamantes'), msg: TL('pt', 'ch_dj_diamantes'), rot: T('ch_dj_diamantes')}];
+      est.pendente = {tipo: 'mod_moeda', alvo: md[0].caminho};
+    }
+  }catch(e){}
+  if(!primeiro && !/KODA\s*\.|data-koda-/.test(c) && c.length > 300){ diz(r, T('oi2_adaptar')); primeiro = [{txt: T('ch_adaptar'), msg: TL('pt', 'ch_adaptar'), rot: T('ch_adaptar')}]; }
+  if(!primeiro){
+    try{
+      var o = orientacaoDoJogo(c), cfg = lerConfig(c, 'data-koda-painel') || {};
+      if(o && !cfg.orientacao){ diz(r, T('oi2_girar', {modo: T('gi_' + o), acao: T('gi_acao_' + o)})); primeiro = [{txt: T('ch_girar'), msg: TL('pt', 'ch_girar'), rot: T('ch_girar')}]; }
+    }catch(e){}
+  }
+  diz(r, T('oi2_fim'));
+  if(primeiro) r.chips = primeiro.concat(r.chips.filter(function(x){ return !primeiro.some(function(p){ return p.txt === x.txt; }); }));
+  r.chips = r.chips.slice(0, 6);
+  return r;
+};
+
+/* ---- guardar a última resposta (pra explicar de novo quando a pessoa não entender) ---- */
+var responderUmAntes = responderUm;
+responderUm = function(est, texto, bruto){
+  var r = responderUmAntes(est, texto, bruto);
+  if(r && r.intencao && r.intencao !== 'confuso'){ est.ultimaInt = r.intencao; est.ultimosChips = (r.chips || []).slice(0, 6); }
+  return r;
+};
+var GRUPO_CONFUSO = [
+  [/^(loja_|escolheu_item|efeito_curto)/, 'cf_loja'], [/^moeda_/, 'cf_moeda'], [/^(mod_numero|mod_dificuldade|dificuldade)$/, 'cf_numero'],
+  [/^(mod_fundo|mod_filtro|mod_cor_jogador|mod_painel|mod_musica|mod_hud|mod_girar|mod_conquistas|mudar_tema|mod_texto|mod_traduzir)$/, 'cf_visual'],
+  [/^(online|online_placar)$/, 'cf_online'], [/^skin$/, 'cf_skin'], [/^(nada|outra_ia|pedido)$/, 'cf_outra_ia'], [/^(verificar|avaliar|consertar)$/, 'cf_verificar']
+];
+H.confuso = function(it, ctx, est){
+  var r = novaResp();
+  if(est.pendente){ diz(r, T('cf_pergunta')); (est.ultimosChips || []).forEach(function(c){ r.chips.push(c); }); return r; }
+  var k = null;
+  GRUPO_CONFUSO.forEach(function(g){ if(!k && est.ultimaInt && g[0].test(est.ultimaInt)) k = g[1]; });
+  diz(r, T('cf_intro') + ' ' + T(k || (ctx.temCodigo ? 'cf_geral' : 'cf_sem_codigo')));
+  if(k === 'cf_numero' || k === 'cf_visual'){ chip(r, T('ch_testar')); chip(r, T('ch_desfazer')); }
+  else if(!k){ chip(r, T('ch_ve_ajuda')); }
+  return r;
+};
+H.tudo_bem = function(it, ctx, est){ var r = diz(novaResp(), T('pp_tudo_bem')); if(ctx.temCodigo) chipsDeOferta(r, ctx.codigoBruto); r.chips = r.chips.slice(0, 5); return r; };
+H.xingou = function(it, ctx, est){
+  var r = diz(novaResp(), T('pp_xingou'));
+  if(ctx.temCodigo){ chip(r, T('ch_mais_rapido_simples')); chip(r, T('ch_bn_musica')); chip(r, T('ch_loja')); }
+  chip(r, T('ch_ve_ajuda'));
+  return r;
+};
+H.historico = function(it, ctx, est){
+  var r = novaResp(), h = (est.historico || []).filter(function(x){ return x && x.desc; });
+  if(!h.length) return diz(r, T('pp_historico_nada'));
+  diz(r, T('pp_historico') + '\n' + h.slice(-8).map(function(x){ return '- ' + x.desc; }).join('\n'));
+  diz(r, T('pp_historico_desfazer'));
+  chip(r, T('ch_desfazer')); chip(r, T('ch_testar'));
+  return r;
+};
+H.loja_quais = function(it, ctx, est){
+  var r = diz(novaResp(), T('lj_quais'));
+  est.pendente = null;
+  var semCodigo = !ctx.temCodigo;
+  [['ch_lq_vida', 'coloca uma vida extra por 100 moedas'], ['ch_lq_turbo', 'coloca um turbo por 200 moedas'], ['ch_lq_escudo', 'coloca um escudo por 300 moedas'], ['ch_lq_visual', 'coloca um visual dourado por 2 diamantes']].forEach(function(k){ chip(r, T(k[0]), k[1]); });
+  if(semCodigo) r.chips = [];
+  return r;
+};
+H.bonito = function(it, ctx, est){
+  var r = diz(novaResp(), T('bn_opcoes'));
+  ['ch_bn_colorido', 'ch_bn_fundo', 'ch_bn_musica', 'ch_bn_medalhas', 'ch_bn_inicio'].forEach(function(k){ chip(r, T(k), TL('pt', k)); });
+  return r;
+};
+H.moedas_quer = function(it, ctx, est){
+  var r = diz(novaResp(), T('mo_moedas_quer') + ' ' + T('mo_moedas_opcoes'));
+  chip(r, T('ch_mo_loja'), 'coloca uma loja com moedas do koda'); chip(r, T('ch_mo_pegar'), 'quero moedas pra pegar dentro do jogo');
+  return r;
+};
+Object.assign(TX, {
+  ch_mais_rapido_simples: 'Deixa mais rápido|Make it faster|Hazlo más rápido',
+  ch_lq_vida: 'Vida extra por 100 moedas|Extra life for 100 coins|Vida extra por 100 monedas',
+  ch_lq_turbo: 'Turbo por 200 moedas|Speed boost for 200 coins|Turbo por 200 monedas',
+  ch_lq_escudo: 'Escudo por 300 moedas|Shield for 300 coins|Escudo por 300 monedas',
+  ch_lq_visual: 'Visual dourado por 2 diamantes|Golden look for 2 diamonds|Aspecto dorado por 2 diamantes',
+  quem_r: 'Eu sou {agente}, o seu ajudante aqui no Koda. Sou uma IA feita só de código: leio o seu jogo, entendo o que você pede e faço as mudanças. Também testo o jogo com um robozinho pra achar problemas.|I am {agente}, your helper here on Koda. I am an AI made only of code: I read your game, understand what you ask and make the changes. I also test the game with a little robot to find problems.|Soy {agente}, tu ayudante aquí en Koda. Soy una IA hecha solo de código: leo tu juego, entiendo lo que pides y hago los cambios. También pruebo el juego con un robotito para encontrar problemas.'
+});
+H.faq_texto = function(it){ return diz(novaResp(), T(it.k)); };
+
+/* ---- antes do resto: frases curtas que confundiam o agente ---- */
+var F_CONFUSO = ['nao entendi', 'nao entendo', 'nao to entendendo', 'nao estou entendendo', 'nao entendi nada', 'ta confuso', 'muito confuso', 'ficou confuso', 'que confuso', 'confuso', 'como assim', 'explica melhor', 'explica de novo', 'explica direito', 'fala mais simples', 'mais simples', 'nao saquei', 'nao captei', 'i dont understand', 'i do not understand', 'confusing', 'what do you mean', 'explain again', 'explain better', 'no entiendo', 'no entendi', 'que confuso', 'explica mejor', 'como asi'];
+var F_TUDO_BEM = ['tudo bem', 'td bem', 'tudo bom', 'td bom', 'como vai', 'como voce esta', 'como vc ta', 'como vc esta', 'how are you', 'whats up', 'que tal', 'como estas', 'como te va'];
+var F_HISTORICO = ['o que mudou', 'oq mudou', 'o que voce mudou', 'o que vc mudou', 'o que voce fez', 'o que vc fez', 'o que voce ja fez', 'o que ja mudou', 'quais mudancas', 'what did you change', 'what changed', 'what did you do', 'que cambiaste', 'que cambio', 'que hiciste'];
+var F_NOME = ['qual seu nome', 'qual o seu nome', 'qual e seu nome', 'qual e o seu nome', 'como voce se chama', 'como vc se chama', 'seu nome', 'whats your name', 'what is your name', 'your name', 'como te llamas', 'cual es tu nombre', 'tu nombre'];
+var RE_XINGA_IA = /\b(voce|vc|tu|ce|essa ia|esse agente|agente|ia|you|you are|youre|eres|esta ia)\b.*\b(burr[oa]|idiota|inutil|lixo|chat[oa]|ruim|horrivel|pessim[oa]|imbecil|tont[oa]|besta|lerd[oa]|lent[oa]|nao presta|nao serve|nao entende nada|nao sabe nada|stupid|dumb|useless|trash|bad|terrible|tonto|inutil|malo|basura)\b|^(burr[oa]|idiota|inutil|lixo|que ia ruim|ia ruim|ia burra|stupid|dumb|useless|tonto)$/;
+var RE_VERBO_QUEBRADO = /\b(nao|n|nem|never|doesnt|does not|dont|wont|no)\s+(pula|anda|mexe|corre|atira|funciona|aparece|carrega|abre|move|mov[ei]|sai|para|conta|toca|responde|liga|inicia|comeca|começa|jumps?|moves?|works?|shows?|loads?|opens?|starts?|shoots?|salta|camina|funciona|aparece|carga|dispara|empieza)\b/;
+var RE_ITEM_GENERICO = /^(coisa|coisas|item|itens|objeto|objetos|produto|produtos|algo|alguma coisa|umas coisas|negocio|negocios|stuff|things|thing|items|algo|cosas|cosa|articulos|productos)$/;
+var RE_SKIN_DE_VERDADE = /\b(skin|meu personagem|minha skin|meu boneco|meu avatar|personagem do koda|boneco do koda|meu proprio personagem|my character|my avatar|my skin|koda character|mi personaje|mi avatar|personaje de koda|jogar com (o )?meu|jogar como eu|play as me|jugar con mi)\b/;
+function antesDeEntender(P, ctx, est){
+  var n = ' ' + P.n.trim() + ' ', curto = P.ws.length <= 7;
+  /* "não entendi" (curto, sem pedido junto) */
+  if(curto && P.frase(F_CONFUSO) && !/\b(codigo|code|erro|error)\b/.test(n)) return {int: 'confuso'};
+  if(P.ws.length <= 3 && /^ *(ha|hã|hein|ahn|q|oq|que|what|huh|eh|como)[ ?!]*$/.test(P.n)) return {int: 'confuso'};
+  /* moedas pra pegar dentro do jogo: isso é mudança grande, outra IA faz */
+  if(ctx.temCodigo && /\b(moedas?|coins?|monedas?) (pra|para|de|to|para) (pegar|coletar|juntar|catch|collect|recoger|juntar)\b/.test(n) && !moedasDoCtx(ctx).length) return {int: 'outra_ia', pedido: P.orig};
+  /* resposta pra pergunta da moeda */
+  var rm = responderMoedaPendente(P, ctx, est);
+  if(rm) return rm;
+  if(est.pendente && est.pendente.tipo === 'mod_moeda'){ var mdp = entenderMoedaDoJogo(P, ctx); if(mdp) return mdp; }
+  if(est.pendente) return null;
+  if(curto && P.frase(F_HISTORICO)) return {int: 'historico'};
+  if(curto && P.frase(F_NOME)) return {int: 'quem'};
+  if(P.ws.length <= 6 && RE_XINGA_IA.test(P.n.trim())) return {int: 'xingou'};
+  if(P.ws.length <= 6 && P.frase(F_TUDO_BEM) && !P.tem('jogo') && !P.tem('loja')) return {int: P.tem('oi') ? 'oi' : 'tudo_bem'};
+  /* a moeda do jogo (achar e trocar) */
+  var md = ctx.temCodigo ? entenderMoedaDoJogo(P, ctx) : null;
+  if(md) return md;
+  /* perguntas sobre o Koda escritas como pergunta ("como funciona o ranking?", "o que é diamante?") */
+  var q = /^(como funciona|como que funciona|o que e|o que sao|oque e|q e|pra que serve|para que serve|quanto custa|quanto e|what is|what are|how does|how do|how much|que es|que son|como funciona|cuanto cuesta|para que sirve)\b/.test(P.n.trim());
+  if((q || P.interrogacao || /^(como|how|como hago|como faco|como eu faco)\b/.test(P.n.trim())) && /\b(publicar|publico|publica|publish|publicacao|postar|subir)\b/.test(n) && P.ws.length <= 10) return {int: 'faq_texto', k: 'faq_publicar2'};
+  if(q){
+    if(/^(o que e|o que sao|oque e|q e|pra que serve|para que serve|what is|what are|que es|que son|para que sirve)\b/.test(P.n.trim()) && /\b(diamante|diamantes|diamond|diamonds|moeda|moedas|coin|coins|moneda|monedas)\b/.test(n) && !/\b(jogo|game|juego|loja|shop|tienda)\b/.test(n) && P.ws.length <= 7) return {int: 'faq_texto', k: 'faq_diamante_oque'};
+    if(/\b(publicar|publico|publish|publicacao|postar|subir)\b/.test(n)) return {int: 'faq_texto', k: 'faq_publicar2'};
+    var fq = buscarFaq(P.n, P.ws);
+    if(fq.length && fq[0].pts >= 0.9 && !P.mencoes.length) return {int: 'faq', id: fq[0].f.id};
+  }
+  if(/\b(ganhar|ganho|ganha|earn|make|gano|ganar)\b.*\b(dinheiro|moedas|money|coins|dinero|monedas)\b.*\b(com|with|con)\b.*\b(jogo|jogos|game|games|juego|juegos)\b/.test(n)) return {int: 'faq_texto', k: 'faq_criador'};
+  /* "o personagem não pula", "não anda" = problema no jogo */
+  if(ctx.temCodigo && RE_VERBO_QUEBRADO.test(n) && !P.tem('loja')) return {int: 'verificar', robo: true};
+  /* "deixa mais bonito" = opções visuais */
+  if(ctx.temCodigo && P.ws.length <= 7 && /\b(mais bonito|mais bonita|mais lindo|mais linda|mais legal de ver|mais caprichado|prettier|more beautiful|nicer looking|mas bonito|mas lindo)\b/.test(n)) return {int: 'bonito'};
+  /* "coloca vidas" num jogo que já tem vidas = mais vidas */
+  if(ctx.temCodigo && P.ws.length <= 5 && (P.tem('por') || /\b(add|pon|agrega)\b/.test(n)) && /\b(vidas|lives|vida extra|extra lives)\b/.test(n) && !P.nums.length && !P.tem('loja') && !P.tem('vender')) return {int: 'mod_numero', conceito: 'vidas', modo: 'mais'};
+  /* "quero que o jogo tenha moedas" (sem moeda própria) */
+  if(ctx.temCodigo && P.ws.length <= 9 && /\b(ter|tenha|tivesse|com|have|has|with|tenga|con|coloca|bota|poe|add)\b/.test(n) && /\b(moedas|coins|monedas|dinheiro|money|dinero)\b/.test(n) && !/\b(diamante|diamantes|diamond|loja|shop|tienda|koda|custa|custe|por|preco|vender|comprar)\b/.test(n) && !P.nums.length && !moedasDoCtx(ctx).length) return {int: 'moedas_quer'};
+  return null;
+}
+function depoisDeEntender(it, P, ctx, est){
+  if(!it) return it;
+  /* "o personagem voa" não é "jogar com a minha skin" */
+  if(it.int === 'skin' && !RE_SKIN_DE_VERDADE.test(' ' + P.n + ' ')) return {int: 'nada'};
+  /* "vender coisas" não é um item chamado "Coisas" */
+  if((it.int === 'loja_novo' || it.int === 'loja_criar') && it.itens && it.itens.length && it.itens.every(function(x){ return RE_ITEM_GENERICO.test(semAcento(String(x.nome || '')).toLowerCase().trim()); })) return {int: 'loja_quais'};
+  return it;
+}
+var entenderAntes = entender;
+entender = function(txt, ctx){
+  var P = null;
+  try{
+    try{ if(DEP.improprio(txt)) return entenderAntes(txt, ctx); }catch(e){}
+    P = analisar(txt, ctx);
+    if(P.ws.length){
+      var a = antesDeEntender(P, ctx, ctx.estado || {});
+      if(a){ a.P = P; return a; }
+    }
+  }catch(e){}
+  var r = entenderAntes(txt, ctx);
+  try{ if(P && P.ws.length){ var d = depoisDeEntender(r, P, ctx, ctx.estado || {}); if(d !== r){ d.P = r.P || P; return d; } } }catch(e){}
+  return r;
+};
+
+/* ---- perguntas sobre o Koda sem código no meio (e atualizadas: publicar agora é na hora) ---- */
+(function(){
+  var NOVAS = {
+    publicar: 'faq_publicar2', recusado: 'faq_recusado2',
+    salvar: 'Dá pra fazer o jogo lembrar onde a pessoa parou (fase, recorde, moedas), na conta dela e em qualquer aparelho. Eu consigo ligar isso no seu jogo: diga "salva o progresso".|A game can remember where the player stopped (level, high score, coins), in their account and on any device. I can turn this on in your game: say "save the progress".|El juego puede recordar dónde se quedó la persona (nivel, récord, monedas), en su cuenta y en cualquier dispositivo. Puedo activarlo en tu juego: di "guarda el progreso".',
+    skin: 'Todo jogo do Koda pode usar o personagem de quem está jogando como herói. Eu consigo fazer isso no seu jogo: diga "joga com minha skin".|Any Koda game can use the player\'s own character as the hero. I can do it in your game: say "play with my skin".|Cualquier juego de Koda puede usar el personaje de quien juega como héroe. Puedo hacerlo en tu juego: di "juega con mi skin".',
+    online: 'O Koda tem salas online de graça, com até 16 pessoas. Jogos online aparecem na Praça: as pessoas sentam no banco e entram juntas. Eu consigo deixar seu jogo online com os pontos ao vivo: diga "deixa meu jogo online". Pra ver os outros jogadores dentro do jogo, outra IA faz: diga "monta o pedido de jogo online".|Koda has free online rooms with up to 16 people. Online games show up in the Plaza: people sit on a bench and join together. I can make your game online with live points: say "make my game online". To see the other players inside the game, another AI does it: say "write the online game request".|Koda tiene salas online gratis, con hasta 16 personas. Los juegos online aparecen en la Plaza: la gente se sienta en el banco y entra junta. Puedo dejar tu juego online con los puntos en vivo: di "pon mi juego online". Para ver a los demás jugadores dentro del juego, lo hace otra IA: di "arma el pedido de juego online".',
+    ranking: 'Cada jogo tem um ranking com o melhor resultado de cada pessoa. Pra isso, o jogo avisa o Koda dos pontos quando a partida acaba. Eu consigo colocar isso no seu jogo: diga "manda os pontos pro ranking".|Each game has a ranking with each person\'s best result. For that, the game tells Koda the points when the round ends. I can add it to your game: say "send the points to the ranking".|Cada juego tiene un ranking con el mejor resultado de cada persona. Para eso, el juego le avisa a Koda los puntos cuando termina la partida. Puedo ponerlo en tu juego: di "manda los puntos al ranking".'
+  };
+  FAQ.forEach(function(f){ var n = NOVAS[f.id]; if(n) f.r = TX[n] || n; });
+})();
+TX.ajuda_r = 'Eu mexo no seu jogo. É só pedir do seu jeito, por exemplo:\n- Loja: "põe uma loja", "a espada custa 20 moedas", "deixa tudo em diamantes"\n- Moeda do jogo: "troca o ouro por moedas do Koda"\n- Visual: "fundo azul", "preto e branco", "modo noite"\n- Botões e música: "botão de pausa", "tela inicial", "música alegre"\n- Números: "mais vidas", "mais rápido", "pulo mais alto", "mais difícil"\n- Textos: "traduz pra inglês", troque "Game Over" por "Acabou!"\n- Koda: "joga com minha skin", "deixa online", "manda os pontos pro ranking", "salva o progresso"\n- Ajuda: "verifica o código", "avalia meu jogo", "me dá ideias"' +
+  '|I change your game. Just ask your way, for example:\n- Shop: "add a shop", "the sword costs 20 coins", "make everything diamonds"\n- Game currency: "change the gold to Koda coins"\n- Look: "blue background", "black and white", "night mode"\n- Buttons and music: "pause button", "start screen", "happy music"\n- Numbers: "more lives", "faster", "higher jump", "harder"\n- Texts: "translate to Spanish", replace "Game Over" with "The end!"\n- Koda: "play with my skin", "make it online", "send the points to the ranking", "save the progress"\n- Help: "check the code", "rate my game", "give me ideas"' +
+  '|Cambio tu juego. Solo pídelo a tu manera, por ejemplo:\n- Tienda: "pon una tienda", "la espada cuesta 20 monedas", "pon todo en diamantes"\n- Moneda del juego: "cambia el oro por monedas de Koda"\n- Aspecto: "fondo azul", "blanco y negro", "modo noche"\n- Botones y música: "botón de pausa", "pantalla de inicio", "música alegre"\n- Números: "más vidas", "más rápido", "salto más alto", "más difícil"\n- Textos: "traduce al inglés", cambia "Game Over" por "¡Fin!"\n- Koda: "juega con mi skin", "ponlo online", "manda los puntos al ranking", "guarda el progreso"\n- Ayuda: "revisa el código", "evalúa mi juego", "dame ideas"';
+/* números do jeito que criança lê: sem sinal de menos no pulo e com vírgula */
+function numeroAmigo(v, outro){
+  var x = Number(v);
+  if(x < 0 && Number(outro) < 0) x = -x;
+  var s = String(formatarNumero(x));
+  return LING === 'en' ? s : s.replace('.', ',');
+}
+linhasDeNumeros = function(mud){
+  var porConceito = {}, ordem = [];
+  mud.forEach(function(m){ var c = m.conceito || '?'; if(!porConceito[c]){ porConceito[c] = []; ordem.push(c); } porConceito[c].push(m); });
+  return ordem.slice(0, 4).map(function(c){
+    var ms = porConceito[c], m = ms[0];
+    var oque = c !== '?' && TX['rt_' + c] ? T('rt_' + c) : capitalizar(palavrasDoId(String(m.nome).split('.').pop()).join(' '));
+    return T('md_num_linha2', {oque: oque, de: numeroAmigo(m.de, m.para), para: numeroAmigo(m.para, m.de)}).replace(/\.$/, (ms.length > 1 ? T('md_num_mais', {n: ms.length - 1}) : '') + '.');
+  }).join(' ');
+};
+/* "o que mudou": junta as mudanças repetidas */
+H.historico = function(it, ctx, est){
+  var r = novaResp(), h = (est.historico || []).filter(function(x){ return x && x.desc; }), linhas = [];
+  if(!h.length) return diz(r, T('pp_historico_nada'));
+  h.slice(-12).forEach(function(x){ var u = linhas[linhas.length - 1]; if(u && u.desc === x.desc) u.n++; else linhas.push({desc: x.desc, n: 1}); });
+  diz(r, T('pp_historico') + '\n' + linhas.map(function(l){ return '- ' + l.desc + (l.n > 1 ? ' (' + l.n + 'x)' : ''); }).join('\n'));
+  diz(r, T('pp_historico_desfazer'));
+  chip(r, T('ch_desfazer')); chip(r, T('ch_testar'));
+  return r;
+};
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T, TL: TL,
@@ -30583,7 +32179,7 @@ return {
   robo: function(id){ return '(' + kodaRoboNoJogo.toString() + ')(' + JSON.stringify(String(id)) + ');'; },
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
   /* (pra testes) */
-  _: {norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
+  _: {moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
       lojaCriar: lojaCriar, lojaRemover: lojaRemover, acharAtributos: acharAtributos, compila: compila, linhaDoErro: linhaDoErro,
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,
@@ -43458,6 +45054,16 @@ async function ugcPerguntarIA(frente, costas, tipo, nome, palavra, fotos){
 }
 /* {ok:true} ou {ok:false, motivo:'sexual'|'odio'|'gesto'|'nome', palavra} */
 async function ugcConferirPeca(frente, costas, tipo, nome, fotos){
+  /* conferência por código (vale sempre, com ou sem a IA do servidor) */
+  const segN = segAnalisar(nome, 'nome');
+  if(!segN.ok) return {ok: false, motivo: 'nome', palavra: segN.trecho || ''};
+  if(segSuasticaNoDesenho(frente, PZ_W, PZ_H) || segSuasticaNoDesenho(costas, PZ_W, PZ_H)) return {ok: false, motivo: 'odio'};
+  if(fotos && (fotos.foto || fotos.fotoC)){
+    let pele = null;
+    try{ pele = await ugcFotoTemPele(fotos); }catch(e){}
+    if(pele === 'rosto') return {ok: false, motivo: 'rosto'};
+    if(pele === 'talvez' && await ugcPerguntarRosto()) return {ok: false, motivo: 'rosto'};
+  }
   const palavra = ugcPalavraRuim(nome);
   const ia = await ugcPerguntarIA(frente, costas, tipo, nome, palavra, fotos);
   const certeza = v=>Math.max(0, Math.min(1, Number(v) || 0));
@@ -43610,8 +45216,11 @@ function ugcPerguntarCompra(id, alvo, aoComprar){
     <div class="ugc-compra-ver"><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo')}</span><span class="pz-mini corpo" style="background:${pzFundo(c2)}">${pzSvg(c2, 'corpo', 'costas')}</span></div>
     <p class="kbs-dlg-dica">${esc(t('ugc_por', {nome: m.criadorNome || '?'}))}</p>
     <div class="kbs-dlg-btns col"><button type="button" class="kbs-btn" data-ok>${m.preco ? (ugcMoedaDe(m) === 'd' ? ICONS.diamond : ICONS.coin) + ' ' + esc(t('ugc_comprar', {n: kshopMilhar(m.preco)})) : esc(t('ugc_pegar'))}</button></div>
-    <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>`, (bg, fechar)=>{
+    <button type="button" class="kbs-dlg-x" data-no>${t('menu_cancel')}</button>
+    ${(()=>{ try{ return m.criador && fbAuth().currentUser && m.criador !== fbAuth().currentUser.uid; }catch(e){ return false; } })() ? `<button type="button" class="ugc-denunciar" data-den>${esc(t('ugc_den_btn'))}</button>` : ''}`, (bg, fechar)=>{
     bg.querySelector('[data-no]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
+    const den = bg.querySelector('[data-den]');
+    if(den) den.addEventListener('click', ()=>{ playSound('click'); fechar(); ugcDenunciar(id); });
     bg.querySelector('[data-ok]').addEventListener('click', ()=>{
       const r = ugcComprar(id);
       if(!r.ok){ toast(r.motivo === 'moedas' ? t('ugc_falta', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'diamantes' ? t('troca_falta_dia', {n: kshopMilhar(r.faltam || 0)}) : r.motivo === 'conta' ? t('ugc_sem_conta') : t('ugc_erro')); return; }
@@ -44466,6 +46075,7 @@ function ugcAbrirEditor(aoPublicar, tipoInicial){
       if(E.ferr === 'balde'){ if(!mascara[k]){ fora(); return; } balde(k, E.cor); if(E.espelho){ const xx = k % PZ_W, yy = Math.floor(k / PZ_W); balde(yy * PZ_W + (PZ_W - 1 - xx), E.cor); } pintar(); previas(); salvarRascunho(); return; }
       if(UGC_ARRASTA.indexOf(E.ferr) >= 0){
         if(E.ferr === 'letra' && !ugcTextoLimpo(E.texto)){ toast(t('ugc_letra_vazio')); E.desfaz.pop(); return; }
+        if(E.ferr === 'letra' && ugcTextoProibido(ugcTextoLimpo(E.texto))){ toast(t('ugc_letra_ruim')); E.desfaz.pop(); return; }
         if(E.ferr === 'mover' && !E.px.some(Boolean)){ toast(t('ugc_est_vazio')); E.desfaz.pop(); return; }
         arrasto = {k0: k, antes: E.px.slice(), ult: -1};
         try{ tela.setPointerCapture(ev.pointerId); }catch(e){}
