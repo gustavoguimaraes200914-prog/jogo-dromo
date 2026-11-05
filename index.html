@@ -44,6 +44,10 @@
   .overlay.fullscreen-mode{background:#0b2a24;}
   html.ov-cheio, html.ov-cheio body{background:#0b2a24;}
   html.ov-cheio .app, html.ov-cheio .bg-blob, html.ov-cheio #bottomNav{visibility:hidden;}
+  /* com um jogo (ou janela cheia) por cima, o site para de trabalhar por trás: no iPad o jogo e o site dividem o mesmo processador.
+     "visibility" só esconde (as animações continuavam calculando); "content-visibility" não desenha nem calcula nada lá dentro */
+  html.ov-cheio .app, html.ov-cheio .bg-blob, html.ov-cheio #bottomNav{content-visibility:hidden;}
+  html.ov-cheio .app, html.ov-cheio .app *, html.ov-cheio .bg-blob, html.ov-cheio #bottomNav, html.ov-cheio #bottomNav *{animation-play-state:paused !important;}
   html.folha-cheia, html.folha-cheia body{background:#0d1650;}
   html.entrada .app, html.entrada .bg-blob, html.entrada #bottomNav{visibility:hidden;}
   html,body{
@@ -3422,6 +3426,11 @@
   .req-btns{display:flex;gap:8px;margin-top:10px;} .req-btns .g-btn{flex:1;padding:10px 6px;}
   .chat-wrap.req-bloq .chat-inputbar{display:none;}
   .conv-preview-req{color:#0E7A5F;font-weight:800;}
+  #avisoInternet{position:fixed;left:50%;top:calc(env(safe-area-inset-top, 0px) + 10px);transform:translateX(-50%);z-index:30001;display:flex;align-items:center;gap:9px;max-width:min(92vw,520px);padding:9px 14px;border-radius:16px;background:rgba(20,24,40,.94);color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.92rem;line-height:1.3;box-shadow:0 8px 24px rgba(0,0,0,.3);pointer-events:none;animation:aiEntra .25s ease-out;}
+  #avisoInternet.bom{background:rgba(18,150,105,.95);}
+  #avisoInternet .ai-ico{flex:0 0 auto;display:flex;width:20px;height:20px;}
+  #avisoInternet .ai-ico svg{width:20px;height:20px;}
+  @keyframes aiEntra{from{opacity:0;transform:translate(-50%,-8px);}to{opacity:1;transform:translate(-50%,0);}}
   #semConexao{position:fixed;inset:0;z-index:30000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(8,30,25,.82);backdrop-filter:blur(4px);}
   .sc-card{background:#fff;color:#08322B;border-radius:24px;padding:26px 22px;max-width:320px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.35);}
   .sc-ico{font-size:5.5rem;line-height:1;color:#5a7169;} .sc-ico svg{width:1em;height:1em;}
@@ -14540,6 +14549,7 @@ function updateAccountChip(user){
 /* ---------- sem conexão: símbolo de internet riscado no meio da tela ---------- */
 let semConexaoEl = null;
 function mostrarSemConexao(){
+  if(jogoAbertoAgora()){ avisoInternet('net_jogo_off'); return; }   // jogando: só uma faixa (o jogo continua)
   if(semConexaoEl && document.body.contains(semConexaoEl)) return;
   const el = document.createElement('div');
   el.id = 'semConexao';
@@ -14566,6 +14576,7 @@ function mostrarSemConexao(){
   });
 }
 function esconderSemConexao(){
+  if(avisoNetChave === 'net_jogo_off') avisoInternet('net_voltou', 2600, true);
   if(semConexaoEl && semConexaoEl.parentNode) semConexaoEl.parentNode.removeChild(semConexaoEl);
   semConexaoEl = null;
   falhasDeRede = [];
@@ -14584,6 +14595,112 @@ window.addEventListener('unhandledrejection', e=>{
   if(/network-request-failed|unavailable|failed to fetch|networkerror|network error|load failed/i.test(txt)) registrarFalhaDeRede();
 });
 window.addEventListener('DOMContentLoaded', ()=>{ if(navigator.onLine === false) mostrarSemConexao(); });
+/* ============================================================
+   JOGO PESADO E INTERNET (O LADO DO SITE)
+   - O jogo avisa (kodaDes) quando está pesado: se deixar leve ajuda e o jogo
+     acabou de começar, o Koda reinicia ele leve sozinho; depois, a pessoa
+     escolhe com um toque. Fica guardado por jogo neste aparelho: na próxima
+     vez ele já abre leve.
+   - "Tentar de novo" (parte do jogo que não baixou) recarrega só o jogo.
+   - Sem internet com um jogo aberto: uma faixa pequena em cima, em vez da tela
+     que cobre tudo (a maioria dos jogos continua funcionando sem internet).
+   - Jogo online: quando a internet cai, avisa que está tentando voltar, e
+     avisa quando voltou.
+============================================================ */
+var DES_TXT = {
+  des_leve_feito: 'Deixei o jogo mais leve pra rodar melhor neste aparelho.|I made the game lighter so it runs better on this device.|Hice el juego más liviano para que funcione mejor en este dispositivo.|Ho reso il gioco più leggero per farlo andare meglio su questo dispositivo.|J’ai allégé le jeu pour qu’il tourne mieux sur cet appareil.|Ich habe das Spiel leichter gemacht, damit es auf diesem Gerät besser läuft.|Ik heb het spel lichter gemaakt zodat het beter loopt op dit apparaat.|この機器で動きやすいように、ゲームを軽くしたよ。|我把游戏调轻了，在这台设备上会更流畅。|이 기기에서 더 잘 돌아가도록 게임을 가볍게 했어요.',
+  des_leve_btn: 'O jogo está travando? Toque aqui pra deixar mais leve.|Is the game lagging? Tap here to make it lighter.|¿El juego va lento? Toca aquí para hacerlo más liviano.|Il gioco va a scatti? Tocca qui per renderlo più leggero.|Le jeu rame ? Touche ici pour l’alléger.|Ruckelt das Spiel? Tippe hier, um es leichter zu machen.|Hapert het spel? Tik hier om het lichter te maken.|ゲームがカクカクする？ここをタップして軽くしよう。|游戏卡吗？点这里让它更流畅。|게임이 끊기나요? 여기를 눌러 가볍게 해요.',
+  des_pesado_dica: 'Esse jogo é bem pesado pra este aparelho. Fechar outros apps e abas ajuda.|This game is very heavy for this device. Closing other apps and tabs helps.|Este juego es muy pesado para este dispositivo. Cerrar otras apps y pestañas ayuda.|Questo gioco è molto pesante per questo dispositivo. Chiudere altre app e schede aiuta.|Ce jeu est très lourd pour cet appareil. Fermer les autres applis et onglets aide.|Dieses Spiel ist sehr schwer für dieses Gerät. Andere Apps und Tabs zu schließen hilft.|Dit spel is erg zwaar voor dit apparaat. Andere apps en tabbladen sluiten helpt.|このゲームはこの機器にはかなり重いです。ほかのアプリやタブを閉じると楽になるよ。|这个游戏对这台设备来说很吃力。关掉其他应用和标签页会有帮助。|이 게임은 이 기기에 많이 무거워요. 다른 앱과 탭을 닫으면 도움이 돼요.',
+  des_carregando: 'Carregando o jogo... a internet está lenta.|Loading the game... the internet is slow.|Cargando el juego... internet está lento.|Caricamento del gioco... la connessione è lenta.|Chargement du jeu... la connexion est lente.|Spiel wird geladen... das Internet ist langsam.|Spel laden... het internet is traag.|ゲームを読みこみ中…インターネットがおそいみたい。|游戏加载中……网络有点慢。|게임을 불러오는 중... 인터넷이 느려요.',
+  des_sem_net_tit: 'Sem internet|No internet|Sin internet|Niente internet|Pas d’internet|Kein Internet|Geen internet|インターネットにつながっていません|没有网络|인터넷이 없어요',
+  des_sem_net_msg: 'O jogo precisa baixar uma parte da internet e não conseguiu. Confira a internet e tente de novo.|The game needs to download a part from the internet and couldn’t. Check your internet and try again.|El juego necesita descargar una parte de internet y no pudo. Revisa tu conexión e inténtalo de nuevo.|Il gioco deve scaricare una parte da internet e non ci è riuscito. Controlla la connessione e riprova.|Le jeu doit télécharger une partie sur internet et n’a pas pu. Vérifie ta connexion et réessaie.|Das Spiel muss einen Teil aus dem Internet laden und hat es nicht geschafft. Prüfe dein Internet und versuch es nochmal.|Het spel moet een deel van internet downloaden en dat lukte niet. Controleer je internet en probeer opnieuw.|ゲームがインターネットから必要な部分を読みこめませんでした。インターネットを確かめて、もう一度ためしてね。|游戏需要从网上下载一部分内容，但没有成功。请检查网络后再试一次。|게임이 인터넷에서 필요한 부분을 받지 못했어요. 인터넷을 확인하고 다시 해 보세요.',
+  des_falhou_tit: 'Uma parte do jogo não carregou|Part of the game didn’t load|Una parte del juego no cargó|Una parte del gioco non si è caricata|Une partie du jeu n’a pas chargé|Ein Teil des Spiels hat nicht geladen|Een deel van het spel laadde niet|ゲームの一部が読みこめませんでした|游戏有一部分没有加载出来|게임 일부가 불러와지지 않았어요',
+  des_falhou_msg: 'O jogo precisa de um arquivo da internet ({arquivo}) e ele não chegou. Pode ser a internet lenta. Tente de novo.|The game needs a file from the internet ({arquivo}) and it didn’t arrive. The internet may be slow. Try again.|El juego necesita un archivo de internet ({arquivo}) y no llegó. Puede ser que internet esté lento. Inténtalo de nuevo.|Il gioco ha bisogno di un file da internet ({arquivo}) e non è arrivato. Forse la connessione è lenta. Riprova.|Le jeu a besoin d’un fichier sur internet ({arquivo}) et il n’est pas arrivé. La connexion est peut-être lente. Réessaie.|Das Spiel braucht eine Datei aus dem Internet ({arquivo}) und sie ist nicht angekommen. Vielleicht ist das Internet langsam. Versuch es nochmal.|Het spel heeft een bestand van internet nodig ({arquivo}) en dat kwam niet aan. Misschien is het internet traag. Probeer opnieuw.|ゲームに必要なインターネットのファイル（{arquivo}）がとどきませんでした。インターネットがおそいのかも。もう一度ためしてね。|游戏需要一个网上的文件（{arquivo}），但没有下载下来。可能是网络太慢。请再试一次。|게임에 필요한 인터넷 파일({arquivo})이 오지 않았어요. 인터넷이 느릴 수 있어요. 다시 해 보세요.',
+  des_tentar: 'Tentar de novo|Try again|Intentar de nuevo|Riprova|Réessayer|Nochmal versuchen|Opnieuw proberen|もう一度|再试一次|다시 하기',
+  des_fechar: 'Fechar|Close|Cerrar|Chiudi|Fermer|Schließen|Sluiten|とじる|关闭|닫기',
+  des_net_fraca: 'A internet está fraca. Uma parte do jogo pode não funcionar agora.|The internet is weak. Part of the game may not work right now.|Internet está débil. Una parte del juego puede no funcionar ahora.|La connessione è debole. Una parte del gioco potrebbe non funzionare ora.|La connexion est faible. Une partie du jeu peut ne pas marcher pour l’instant.|Das Internet ist schwach. Ein Teil des Spiels funktioniert gerade vielleicht nicht.|Het internet is zwak. Een deel van het spel werkt nu misschien niet.|インターネットが弱いです。いまはゲームの一部が動かないかも。|网络信号弱，游戏的一部分现在可能用不了。|인터넷이 약해요. 지금은 게임 일부가 안 될 수 있어요.',
+  net_jogo_off: 'Sem internet. Dá pra continuar jogando; pontos, compras e jogo online voltam quando a internet voltar.|No internet. You can keep playing; points, purchases and online play come back when the internet does.|Sin internet. Puedes seguir jugando; los puntos, las compras y el juego online vuelven cuando vuelva internet.|Niente internet. Puoi continuare a giocare; punti, acquisti e gioco online tornano quando torna la connessione.|Pas d’internet. Tu peux continuer à jouer ; les points, les achats et le jeu en ligne reviennent avec la connexion.|Kein Internet. Du kannst weiterspielen; Punkte, Käufe und Online-Spiel kommen zurück, wenn das Internet wieder da ist.|Geen internet. Je kunt doorspelen; punten, aankopen en online spelen komen terug als het internet terug is.|インターネットにつながっていません。遊びつづけられるよ。ポイント・買いもの・オンラインはつながったらもどります。|没有网络。可以继续玩；分数、购买和在线游戏会在网络恢复后回来。|인터넷이 없어요. 계속 놀 수 있어요. 점수, 구매, 온라인은 인터넷이 돌아오면 다시 돼요.',
+  net_voltou: 'A internet voltou!|The internet is back!|¡Volvió internet!|La connessione è tornata!|La connexion est revenue !|Das Internet ist wieder da!|Het internet is terug!|インターネットがもどったよ！|网络恢复了！|인터넷이 돌아왔어요!',
+  online_reconectando: 'A internet caiu no jogo online. Tentando voltar...|The internet dropped in the online game. Trying to reconnect...|Se cayó internet en el juego online. Intentando volver...|La connessione è caduta nel gioco online. Provo a riconnettermi...|La connexion a coupé dans le jeu en ligne. Reconnexion...|Das Internet ist im Online-Spiel weggefallen. Verbinde neu...|Het internet viel weg in het online spel. Opnieuw verbinden...|オンラインゲームでインターネットが切れました。つなぎなおしています…|在线游戏断网了。正在重新连接……|온라인 게임에서 인터넷이 끊겼어요. 다시 연결하는 중...',
+  online_voltou: 'Voltou! Você está online de novo.|Back! You’re online again.|¡Volviste! Estás online otra vez.|Rieccoti! Sei di nuovo online.|C’est reparti ! Tu es de nouveau en ligne.|Zurück! Du bist wieder online.|Terug! Je bent weer online.|もどったよ！またオンラインです。|回来了！你又在线了。|돌아왔어요! 다시 온라인이에요.'
+};
+(function(){
+  if(typeof I18N === 'undefined') return;
+  const ling = ['pt', 'en', 'es', 'it', 'fr', 'de', 'nl', 'ja', 'zh', 'ko'];
+  Object.keys(DES_TXT).forEach(k=>{ const v = DES_TXT[k].split('|'); ling.forEach((l, i)=>{ if(!v[i]) return; if(!I18N[l]) I18N[l] = {}; I18N[l][k] = v[i]; }); });
+})();
+/* os textos que vão pra dentro do jogo, no idioma da pessoa */
+function desTextosDoJogo(){
+  return {tentar: t('des_tentar'), fechar: t('des_fechar'), pesadoDica: t('des_pesado_dica'), leveBtn: t('des_leve_btn'), ficouLeve: t('des_leve_feito'),
+    carregando: t('des_carregando'), semNetTit: t('des_sem_net_tit'), semNetMsg: t('des_sem_net_msg'), falhouTit: t('des_falhou_tit'), falhouMsg: t('des_falhou_msg'), netFraca: t('des_net_fraca')};
+}
+/* ---------- jogos que rodam melhor leves neste aparelho ---------- */
+const JOGOS_LEVES_KEY = 'koda_jogos_leves';
+function jogosLeves(){ try{ const o = JSON.parse(localStorage.getItem(JOGOS_LEVES_KEY)); return o && typeof o === 'object' ? o : {}; }catch(e){ return {}; } }
+function lembrarJogoLeve(id){
+  if(!id || /^__/.test(id)) return;
+  const o = jogosLeves(); o[id] = Date.now();
+  const n = {}; Object.keys(o).sort((a, b)=>o[b] - o[a]).slice(0, 300).forEach(k=>{ n[k] = o[k]; });
+  try{ localStorage.setItem(JOGOS_LEVES_KEY, JSON.stringify(n)); }catch(e){}
+}
+function jogoLeveLembrado(id){ return !!(id && jogosLeves()[id]); }
+/* o código que vai pro quadro, já leve se este jogo precisou da última vez */
+function srcdocLeve(src, nivel){ return String(src || '').replace(/window\.__KODA_LEVE=\d/, 'window.__KODA_LEVE=' + nivel); }
+/* recarrega só o jogo (leve = true: abre leve e avisa; null: do mesmo jeito) */
+function recarregarQuadroDoJogo(f, leve){
+  let s = f.srcdoc || '';
+  if(!s) return;
+  if(leve === true) s = srcdocLeve(s, 2);
+  else s = s.replace(/window\.__KODA_LEVE=2/, 'window.__KODA_LEVE=1');
+  s = s.replace(/window\.__KODA_REC=\d+/, 'window.__KODA_REC=' + Date.now());
+  f.srcdoc = s;
+}
+function quadroDaMensagem(src){
+  const fs = document.querySelectorAll('iframe');
+  for(let i = 0; i < fs.length; i++){ try{ if(fs[i].contentWindow === src) return fs[i]; }catch(e){} }
+  return null;
+}
+window.addEventListener('message', ev=>{
+  const d = ev.data;
+  if(!d || d.__koda !== 1 || d.tipo !== 'kodaDes') return;
+  const f = quadroDaMensagem(ev.source);
+  if(!f) return;
+  const id = f.dataset.jogo || '';
+  if(d.ev === 'lento'){ avisoInternet('des_carregando'); return; }
+  if(d.ev === 'carregou'){ esconderAvisoInternet('des_carregando'); return; }
+  if(d.ev === 'recarregar'){ recarregarQuadroDoJogo(f, null); return; }
+  if(d.ev === 'leve'){ lembrarJogoLeve(id); recarregarQuadroDoJogo(f, true); return; }
+  if(d.ev === 'pesado'){
+    if(d.leve || d.ganho) lembrarJogoLeve(id);        // da próxima vez, já abre leve
+    if(!d.leve && d.ganho && d.cedo && !f.dataset.kodaLeveAuto){ f.dataset.kodaLeveAuto = '1'; recarregarQuadroDoJogo(f, true); }
+  }
+});
+/* ---------- a faixa pequena de internet (com jogo aberto) ---------- */
+let avisoNetEl = null, avisoNetChave = '', avisoNetTm = 0;
+function avisoInternet(chave, ms, bom){
+  clearTimeout(avisoNetTm);
+  if(!avisoNetEl || !document.body.contains(avisoNetEl)){
+    avisoNetEl = document.createElement('div');
+    avisoNetEl.id = 'avisoInternet';
+    avisoNetEl.setAttribute('role', 'status');
+    avisoNetEl.setAttribute('aria-live', 'polite');
+    document.body.appendChild(avisoNetEl);
+  }
+  avisoNetChave = chave;
+  avisoNetEl.className = bom ? 'bom' : '';
+  avisoNetEl.innerHTML = `<span class="ai-ico">${bom ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : (ICONS.wifiOff || '')}</span><span>${chatListEscape(t(chave))}</span>`;
+  if(ms) avisoNetTm = setTimeout(esconderAvisoInternet, ms);
+}
+function esconderAvisoInternet(chave){
+  if(chave && avisoNetChave !== chave) return;
+  clearTimeout(avisoNetTm);
+  if(avisoNetEl && avisoNetEl.parentNode) avisoNetEl.parentNode.removeChild(avisoNetEl);
+  avisoNetEl = null; avisoNetChave = '';
+}
+function jogoAbertoAgora(){
+  const ov = document.getElementById('overlay');
+  return !!(ov && !ov.classList.contains('hidden') && ov.querySelector('iframe, canvas'));
+}
 /* o aviso vermelho de jogo contra a lei */
 function mostrarContraLeis(detalhe, extra){
   extra = extra || {};
@@ -19521,6 +19638,8 @@ const overlay = document.getElementById('overlay');
 (function(){
   const marca = ()=>{
     const aberto = !overlay.classList.contains('hidden');
+    if(!aberto && avisoNetChave === 'net_jogo_off'){ esconderAvisoInternet(); if(navigator.onLine === false) setTimeout(mostrarSemConexao, 0); }
+    if(!aberto && (avisoNetChave === 'des_carregando' || avisoNetChave === 'online_reconectando')) esconderAvisoInternet();
     document.documentElement.classList.toggle('ov-aberto', aberto);
     document.documentElement.classList.toggle('ov-cheio', aberto && overlay.classList.contains('fullscreen-mode'));
   };
@@ -20311,12 +20430,212 @@ function kodaRedeDentroDoJogo(T){
   window.addEventListener('error', function(e){ if(e && e.target && e.target !== window) return; erro((e && e.message) || T.desconhecido); });
   window.addEventListener('unhandledrejection', function(e){ var r = e && e.reason; erro((r && (r.name ? r.name + ': ' : '') + (r.message || '')) || String(r || T.desconhecido)); });
 }
-/* RODA DENTRO DO QUADRO DO JOGO. Celular de tela 3x: o jogo que usa devicePixelRatio passa a desenhar em 2x (quase 2x menos pixels pra pintar a cada quadro). */
-function kodaLeveDentroDoJogo(){
+/* ============================================================
+   JOGO PESADO E INTERNET (RODA DENTRO DO QUADRO DO JOGO, antes de tudo)
+   window.__KODA_LEVE: 0 = normal, 1 = leve, 2 = leve e acabou de ficar (mostra o aviso).
+   1) LEVE: o jogo desenha em resolução normal (devicePixelRatio 1 em vez de 2 ou 3:
+      até 4x menos pontinhos pra pintar a cada quadro) e o 3D (WebGL) sem serrilhado
+      e no modo mais rápido do aparelho.
+   2) SEMPRE: som. Jogo que cria um "new AudioContext()" a cada bipe (muito comum)
+      travava o som no iPad depois de poucos bipes: agora todos usam o mesmo.
+      Jogo que escreve no console a cada quadro gastava memória à toa: depois de
+      400 mensagens, o console do jogo fica quieto.
+   3) MEDE se o jogo está pesado (quadros por segundo e travadas). Pesado: avisa o
+      site, que deixa o jogo leve (sozinho no começo, ou com um toque depois) e
+      lembra disso pra próxima vez neste aparelho. O encaixe na tela também para
+      de recalcular toda hora.
+   4) INTERNET: parte do jogo que vem da internet demorando (aviso de internet
+      lenta), que não baixou (sem internet / não carregou, com "Tentar de novo") e
+      internet fraca no meio do jogo.
+   C = {txt: {...}}
+============================================================ */
+function kodaDesempenhoDentroDoJogo(C){
+  C = C || {};
+  var W = window, D = document, T = C.txt || {};
+  var nivel = W.__KODA_LEVE | 0, leve = nivel > 0;
+  function pai(o){ try{ o.__koda = 1; o.tipo = 'kodaDes'; parent.postMessage(o, '*'); }catch(e){} }
+
+  /* ---------- 1) resolução e 3D ---------- */
+  var dprReal = 1, toque = false;
+  try{ dprReal = W.devicePixelRatio || 1; }catch(e){}
+  try{ toque = !!(W.matchMedia && W.matchMedia('(pointer:coarse)').matches); }catch(e){}
+  var dpr = leve ? 1 : (toque && dprReal > 2 ? 2 : dprReal);
+  var leuDpr = 0;
+  try{ Object.defineProperty(W, 'devicePixelRatio', {configurable: true, get: function(){ leuDpr++; return dpr; }}); }catch(e){}
+  var usa3d = false;
   try{
-    var d = window.devicePixelRatio || 1;
-    if(d > 2 && window.matchMedia && window.matchMedia('(pointer:coarse)').matches)
-      Object.defineProperty(window, 'devicePixelRatio', {get:function(){ return 2; }, configurable:true});
+    var gc = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(tipo, op){
+      if(/webgl/i.test(String(tipo))){
+        usa3d = true;
+        if(leve){ var o = {}; if(op && typeof op === 'object') for(var k in op) o[k] = op[k]; o.antialias = false; o.powerPreference = 'high-performance'; return gc.call(this, tipo, o); }
+      }
+      return gc.apply(this, arguments);
+    };
+  }catch(e){}
+
+  /* leve: sem o brilho desfocado (shadowBlur e filter: blur), que é o desenho mais caro do canvas, principalmente no iPad.
+     O jogo continua igual, só sem o "glow". */
+  var usaBrilho = false;
+  try{
+    var P2 = CanvasRenderingContext2D.prototype;
+    ['shadowBlur', 'filter'].forEach(function(nome){
+      var d0 = Object.getOwnPropertyDescriptor(P2, nome);
+      if(!d0 || !d0.set) return;
+      Object.defineProperty(P2, nome, {configurable: true, enumerable: d0.enumerable, get: d0.get,
+        set: function(v){
+          var brilho = nome === 'shadowBlur' ? +v > 0 : /blur|drop-shadow/i.test(String(v));
+          if(brilho) usaBrilho = true;
+          if(leve && brilho) v = nome === 'shadowBlur' ? 0 : 'none';
+          return d0.set.call(this, v);
+        }});
+    });
+  }catch(e){}
+
+  /* ---------- 2) som e console ---------- */
+  ['AudioContext', 'webkitAudioContext'].forEach(function(n){
+    var O = W[n];
+    if(typeof O !== 'function' || O.__koda) return;
+    var um = null;
+    var K = function(op){
+      if(um && um.state !== 'closed' && !op){
+        if(!um.__kodaDividido){ um.__kodaDividido = 1; try{ um.close = function(){ return Promise.resolve(); }; }catch(e){} }
+        return um;
+      }
+      var c = op ? new O(op) : new O();
+      if(!um || um.state === 'closed') um = c;
+      return c;
+    };
+    K.prototype = O.prototype; K.__koda = 1;
+    try{ Object.setPrototypeOf(K, O); }catch(e){}
+    try{ W[n] = K; }catch(e){}
+  });
+  try{
+    ['log', 'info', 'debug', 'warn', 'trace', 'table', 'dir'].forEach(function(k){
+      var f = console[k]; if(typeof f !== 'function') return;
+      var n = 0;
+      console[k] = function(){ if(++n > 400) return; return f.apply(console, arguments); };
+    });
+  }catch(e){}
+
+  /* ---------- avisos (ficam no <html>, fora do corpo que o encaixe diminui) ---------- */
+  var ESTILO = 'position:fixed;left:50%;transform:translateX(-50%);z-index:2147483600;max-width:min(92vw,460px);box-sizing:border-box;'
+    + 'border-radius:16px;padding:10px 14px;font:600 14px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);';
+  function pilula(id, txt, cor, ms, embaixo, acao){
+    var antigo = D.getElementById(id); if(antigo) antigo.remove();
+    var el = D.createElement('div');
+    el.id = id; el.setAttribute('data-koda-ui', '1'); el.setAttribute('role', 'status');
+    el.style.cssText = ESTILO + (embaixo ? 'bottom:14px;' : 'top:12px;') + 'background:' + (cor || 'rgba(15,20,35,.92)') + ';color:#fff;' + (acao ? 'cursor:pointer;' : '');
+    el.textContent = txt;
+    if(acao){ el.addEventListener('click', function(e){ e.stopPropagation(); el.remove(); acao(); }); el.addEventListener('pointerdown', function(e){ e.stopPropagation(); }); }
+    (D.documentElement || D.body).appendChild(el);
+    if(ms) setTimeout(function(){ if(el.parentNode) el.remove(); }, ms);
+    return el;
+  }
+  function cartao(titulo, msg){
+    if(D.getElementById('__kodaNetCartao')) return;
+    var bg = D.createElement('div');
+    bg.id = '__kodaNetCartao'; bg.setAttribute('data-koda-ui', '1'); bg.setAttribute('role', 'alert');
+    bg.style.cssText = 'position:fixed;inset:0;z-index:2147483600;background:rgba(8,12,25,.9);display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;';
+    bg.innerHTML = '<div style="background:#fff;color:#14203a;border-radius:20px;padding:22px 20px;max-width:330px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4)">'
+      + '<svg viewBox="0 0 24 24" width="42" height="42" aria-hidden="true" style="color:#e2574c"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0M3 3l18 18"/><circle cx="12" cy="19" r="1.4" fill="currentColor"/></svg>'
+      + '<div data-k="tit" style="font-weight:800;font-size:18px;margin:8px 0 6px"></div><div data-k="msg" style="font-size:14px;line-height:1.4;opacity:.85;margin-bottom:16px"></div>'
+      + '<button type="button" data-k="tentar" style="border:0;border-radius:999px;padding:11px 20px;background:#6d4cff;color:#fff;font:800 15px system-ui,sans-serif;margin:0 4px 6px;cursor:pointer"></button>'
+      + '<button type="button" data-k="fechar" style="border:0;border-radius:999px;padding:11px 16px;background:#eef0f6;color:#14203a;font:700 14px system-ui,sans-serif;margin:0 4px;cursor:pointer"></button></div>';
+    var q = function(k){ return bg.querySelector('[data-k="' + k + '"]'); };
+    q('tit').textContent = titulo; q('msg').textContent = msg;
+    q('tentar').textContent = T.tentar || 'Tentar de novo'; q('fechar').textContent = T.fechar || 'Fechar';
+    q('tentar').addEventListener('click', function(){ this.disabled = true; pai({ev: 'recarregar'}); });
+    q('fechar').addEventListener('click', function(){ bg.remove(); });
+    (D.documentElement || D.body).appendChild(bg);
+  }
+
+  /* ---------- 3) pesado? ---------- */
+  var raf = W.requestAnimationFrame ? W.requestAnimationFrame.bind(W) : null;
+  var carregou = D.readyState === 'complete' ? Date.now() : 0, quadros = 0, maxFps = 0, baixos = 0, muitoBaixos = 0, travadas = 0, mandou = false, deuDica = false;
+  W.addEventListener('load', function(){ if(!carregou) carregou = Date.now(); });
+  function contar(){ quadros++; if(raf) raf(contar); }
+  if(raf) raf(contar);
+  var antes = Date.now();
+  setInterval(function(){
+    var agora = Date.now(), passou = agora - antes, q = quadros;
+    antes = agora; quadros = 0;
+    if(D.hidden || !carregou || agora - carregou < 2000 || !raf) return;
+    if(D.getElementById('__kodaNetCartao') || D.getElementById('__jogodromoErrorOverlay')) return;
+    var fps = q * 1000 / Math.max(1, passou);
+    if(passou > 1700) travadas++;                    // o processador ficou preso no meio
+    if(fps > maxFps && fps < 130) maxFps = fps;
+    var ref = Math.max(58, maxFps);
+    if(fps < Math.min(40, ref * .66)) baixos++; else baixos = Math.max(0, baixos - 1);
+    if(fps < 20) muitoBaixos++; else muitoBaixos = Math.max(0, muitoBaixos - 1);
+    if(!mandou && (baixos >= 3 || travadas >= 3)){ mandou = true; pesado(fps); }
+    if(!deuDica && mandou && muitoBaixos >= 5 && (leve || !ganho())){ deuDica = true; pilula('__kodaDica', T.pesadoDica || '', null, 7000, true); }
+  }, 1000);
+  /* deixar leve ajuda? (o jogo usa a densidade da tela, é 3D ou tem brilho desfocado) */
+  function ganho(){ return (leuDpr > 0 && dprReal > 1.01) || usa3d || usaBrilho; }
+  function pesado(fps){
+    W.__kodaAliviar = true;
+    var cedo = Date.now() - carregou < 25000, g = ganho();
+    pai({ev: 'pesado', fps: Math.round(fps), leve: leve, ganho: g, cedo: cedo});
+    if(!leve && g && !cedo) pilula('__kodaLeveBtn', T.leveBtn || '', '#6d4cff', 12000, true, function(){ pai({ev: 'leve'}); });
+  }
+  if(nivel === 2){
+    var mostrar = function(){ pilula('__kodaFicouLeve', T.ficouLeve || '', 'rgba(23,150,110,.95)', 4500, false); };
+    if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', mostrar); else mostrar();
+  }
+
+  /* ---------- 4) internet ---------- */
+  var semInternet = function(){ return navigator.onLine === false; };
+  function externos(){
+    try{ return D.querySelectorAll('script[src^="http"], script[src^="//"], link[rel~="stylesheet"][href^="http"]').length; }catch(e){ return 0; }
+  }
+  /* enquanto um arquivo do começo do jogo está baixando, o navegador não desenha nada aqui dentro (é a "tela preta"):
+     quem mostra o "carregando... internet lenta" é o site, por cima do jogo */
+  var avisouLento = false;
+  setTimeout(function(){
+    if(D.readyState === 'complete' || !externos() || D.getElementById('__kodaNetCartao')) return;
+    avisouLento = true; pai({ev: 'lento'});
+  }, 3500);
+  W.addEventListener('load', function(){ if(avisouLento){ avisouLento = false; pai({ev: 'carregou'}); } });
+  var f0 = W.fetch ? W.fetch.bind(W) : null;
+  function conferirInternet(cb){
+    if(semInternet()){ cb(false); return; }
+    if(!f0){ cb(true); return; }
+    var feito = false, tm = setTimeout(function(){ if(!feito){ feito = true; cb(false); } }, 6000);
+    try{ f0('https://www.gstatic.com/generate_204?k=' + Date.now(), {mode: 'no-cors', cache: 'no-store'}).then(function(){ if(!feito){ feito = true; clearTimeout(tm); cb(true); } }, function(){ if(!feito){ feito = true; clearTimeout(tm); cb(false); } }); }
+    catch(e){ if(!feito){ feito = true; clearTimeout(tm); cb(false); } }
+  }
+  /* uma biblioteca ou estilo que vem da internet não baixou (sem isso o jogo não funciona) */
+  W.addEventListener('error', function(e){
+    var el = e && e.target;
+    if(!el || el === W || !el.tagName) return;
+    var url = el.tagName === 'SCRIPT' ? el.src : (el.tagName === 'LINK' && /stylesheet/i.test(el.rel || '')) ? el.href : '';
+    if(!url || !/^(https?:)?\/\//i.test(url)) return;
+    var arq = String(url).split(/[?#]/)[0].split('/').pop() || url;
+    if(avisouLento){ avisouLento = false; pai({ev: 'carregou'}); }
+    conferirInternet(function(tem){
+      if(tem) cartao(T.falhouTit || '', String(T.falhouMsg || '').replace('{arquivo}', arq));
+      else cartao(T.semNetTit || '', T.semNetMsg || '');
+    });
+  }, true);
+  /* no meio do jogo: pedidos pra internet falhando (o site mostra o "sem internet"; aqui é a internet fraca) */
+  var falhas = [], ultimoAviso = 0;
+  function falhou(){
+    if(semInternet()) return;
+    var a = Date.now();
+    falhas = falhas.filter(function(x){ return a - x < 20000; }); falhas.push(a);
+    if(falhas.length >= 3 && a - ultimoAviso > 30000){ ultimoAviso = a; pilula('__kodaNetFraca', T.netFraca || '', null, 6000, false); }
+  }
+  if(f0){
+    W.fetch = function(){
+      var p = f0.apply(W, arguments);
+      try{ p.then(null, function(er){ if(!er || er.name !== 'AbortError') falhou(); }); }catch(e){}
+      return p;
+    };
+  }
+  try{
+    var XO = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function(){ try{ this.addEventListener('error', falhou); this.addEventListener('timeout', falhou); }catch(e){} return XO.apply(this, arguments); };
   }catch(e){}
 }
 /* ============================================================
@@ -20553,7 +20872,16 @@ function kodaCompatDentroDoJogo(C){
   }
   /* no máximo uma conta por vez: jogo que mexe na tela o tempo todo (placar, animação) não pode ficar adiando o encaixe pra sempre */
   var pend = 0;
-  function logo(ms){ if(pend) return; pend = setTimeout(function(){ pend = 0; encaixar(); }, ms || 60); }
+  function logo(ms){
+    if(pend) return;
+    pend = setTimeout(function(){
+      pend = 0;
+      var t0 = W.performance ? performance.now() : 0;
+      encaixar();
+      /* conta cara (jogo com muita coisa na tela) depois do começo: daqui pra frente, só de vez em quando */
+      if(W.performance && performance.now() - t0 > 8 && Date.now() - inicio > 15000) W.__kodaAliviar = true;
+    }, ms || 60);
+  }
   W.__kodaEncaixar = encaixar;
   var inicio = Date.now();
   function comecar(){
@@ -20561,13 +20889,13 @@ function kodaCompatDentroDoJogo(C){
     [120, 400, 900, 1800, 3500, 6000, 9000, 14000].forEach(function(ms){ setTimeout(encaixar, ms); });
     try{
       var mo = new MutationObserver(function(ms){
-        for(var i = 0; i < ms.length; i++){ if(!daKoda(ms[i].target)){ logo(Date.now() - inicio < 15000 ? 250 : 1500); return; } }
+        for(var i = 0; i < ms.length; i++){ if(!daKoda(ms[i].target)){ logo(Date.now() - inicio < 15000 ? 250 : W.__kodaAliviar ? 8000 : 1500); return; } }
       });
       mo.observe(D.body, {childList: true, subtree: true, attributes: true, attributeFilter: ['width', 'height', 'style', 'class', 'hidden']});
     }catch(e){}
   }
   var dEsc = false;
-  W.addEventListener('resize', function(){ if(!dEsc) logo(80); });
+  W.addEventListener('resize', function(){ if(dEsc) return; if(pend){ clearTimeout(pend); pend = 0; } logo(80); });
   if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', comecar); else setTimeout(comecar, 0);
   W.addEventListener('load', function(){ logo(30); });
 
@@ -20755,7 +21083,9 @@ function jogoRedeDeSeguranca(codigo){
   const T = {titulo: t('game_crashed_title'), faixa: t('game_err_faixa'), ok: t('game_err_ok'), fechar: t('game_err_fechar'), desconhecido: t('game_err_desconhecido')};
   const lido = codigo ? jogoTeclasDoCodigo(codigo) : {teclas: null, toque: true};
   const C = {teclas: lido.teclas, toque: lido.toque, txt: {espaco: t('jogo_ctrl_espaco'), mostrar: t('jogo_ctrl_mostrar'), esconder: t('jogo_ctrl_esconder'), setas: t('jogo_ctrl_setas')}};
-  return GAME_STORAGE_SHIM + '<script>(' + kodaLeveDentroDoJogo.toString() + ')();<\/script>'
+  return '<script>window.__KODA_LEVE=0;window.__KODA_REC=0;<\/script>'
+    + '<script>(' + kodaDesempenhoDentroDoJogo.toString() + ')(' + JSON.stringify({txt: desTextosDoJogo()}).replace(/</g, '\\u003c') + ');<\/script>'
+    + GAME_STORAGE_SHIM
     + '<script>(' + kodaCompatDentroDoJogo.toString() + ')(' + JSON.stringify(C).replace(/</g, '\\u003c') + ');<\/script>'
     + '<script>(' + kodaRedeDentroDoJogo.toString() + ')(' + JSON.stringify(T).replace(/</g, '\\u003c') + ');<\/script>';
 }
@@ -21142,6 +21472,8 @@ function initCustomGame(root, game, opts){
   } else {
     iframe.srcdoc = safetyNet + lojaIniDoJogo(comLoja, game.id) + salvoIniDoJogo(game.id) + KODA_BRIDGE + tradutorDoJogo(game.trad, currentLang) + codeText;
   }
+  iframe.dataset.jogo = game.id;
+  if(jogoLeveLembrado(game.id)) iframe.srcdoc = srcdocLeve(iframe.srcdoc, 1);
   root.appendChild(iframe);
   iniciarPontePublicada(iframe, game, opts);   // a partir daqui esse jogo pode pagar moedas
   kodaLojaLigar(iframe, {gameId: game.id, nome: game.name, ligada: comLoja, criador: game.creatorEmail || null});
@@ -34539,6 +34871,7 @@ function onlineConectar(O){
       clearTimeout(O.tCon);
       O.eu = m.eu; O.sala = m.sala; O.max = m.cap || O.max; O.lista = Array.isArray(m.jogadores) ? m.jogadores : [];
       O.tentativas = 0; O.jaEntrou = true;
+      if(avisoNetChave === 'online_reconectando') avisoInternet('online_voltou', 2600, true);
       onlineCriarPill(O); onlinePintarPill(O);
       onlineParaJogo(O, {tipo: 'oi', eu: O.eu, sala: O.sala || 1, jogadores: O.lista.map(onlinePessoa)});
     } else if(m.t === 'entrou'){
@@ -34562,7 +34895,7 @@ function onlineConectar(O){
     const tinha = !!O.eu;
     O.eu = null;
     if(O.fechado || onlineAtivo !== O || !O.quer) return;
-    if(tinha){ O.lista = []; onlinePintarPill(O); onlineParaJogo(O, {tipo: 'caiu'}); }
+    if(tinha){ O.lista = []; onlinePintarPill(O); onlineParaJogo(O, {tipo: 'caiu'}); if(!cheia) avisoInternet('online_reconectando'); }
     onlineFalhou(O, cheia);
   };
   ws.onerror = ()=>{};
@@ -34573,6 +34906,7 @@ function onlineFalhou(O, cheia){
   if(O.tentativas > limite){
     O.quer = false;
     onlineParaJogo(O, {tipo: 'erro', motivo: O.jaEntrou ? 'caiu' : 'sem_servidor'});
+    esconderAvisoInternet('online_reconectando');
     toast(t(O.jaEntrou ? 'online_caiu' : 'online_erro'));
     return;
   }
