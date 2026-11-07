@@ -1,16 +1,16 @@
-# Login com Google: trocar "jogodromo.firebaseapp.com" por "Koda"
+# Login com Google: trocar "jogodromo.firebaseapp.com" por "Koda GB"
 
 Quando a pessoa entra com o Google, aparece o endereço do projeto (`jogodromo.firebaseapp.com`). Isso vem das configurações da conta do Google do projeto, e não do código do site. Só quem é dono do projeto consegue mudar.
 
 ## O que dá para mudar agora (uns 5 minutos)
 
-Isso faz a tela do Google dizer **"Continuar para Koda"** em vez do endereço.
+Isso faz a tela do Google dizer **"Continuar para Koda GB"** em vez do endereço.
 
 1. Entre em https://console.cloud.google.com com a conta dona do projeto.
 2. No alto da página, escolha o projeto **jogodromo**.
 3. Menu (as três linhas) > **APIs e serviços** > **Tela de consentimento OAuth** (em algumas contas aparece como **Google Auth Platform** > **Branding**).
 4. Preencha:
-   - **Nome do app:** `Koda`
+   - **Nome do app:** `Koda GB`
    - **E-mail de suporte do usuário:** o seu e-mail
    - **Logotipo do app:** deixe em branco por enquanto (se enviar logo, o Google exige verificação do app, que demora dias)
    - **Domínio da página inicial do app:** o endereço do site (por exemplo `https://koda.gamersite.workers.dev`)
@@ -23,7 +23,7 @@ Isso faz a tela do Google dizer **"Continuar para Koda"** em vez do endereço.
 
 Abra o site em uma **janela anônima**, toque em entrar com o Google e olhe a frase da primeira tela do Google.
 - Antes: "Escolha uma conta para continuar em **jogodromo.firebaseapp.com**"
-- Depois: "Escolha uma conta para continuar em **Koda**"
+- Depois: "Escolha uma conta para continuar em **Koda GB**"
 
 Às vezes o Google demora alguns minutos (até uma hora) para mostrar a mudança. Se você já estiver com o Google aberto no navegador, teste em janela anônima, porque o navegador guarda o texto antigo.
 
