@@ -1,5 +1,40 @@
 name = "koda"
 compatibility_date = "2026-09-16"
+# O site (index.html e o resto) continua sendo servido direto como arquivo.
+# Só os endereços /api/... vão pro servidor do Koda GB (pasta servidor/, ver servidor/LEIA-ME.md).
+main = "servidor/index.js"
 
 [assets]
 directory = "."
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+# Cada pessoa tem a sua "Conta" (carteira oficial). Indice: uid -> e-mail. Vigia: avisos pro dono.
+# Placar: ranking de cada jogo. Temporada: ranking do mês.
+[[durable_objects.bindings]]
+name = "CONTA"
+class_name = "Conta"
+
+[[durable_objects.bindings]]
+name = "INDICE"
+class_name = "Indice"
+
+[[durable_objects.bindings]]
+name = "VIGIA"
+class_name = "Vigia"
+
+[[durable_objects.bindings]]
+name = "PLACAR"
+class_name = "Placar"
+
+[[durable_objects.bindings]]
+name = "TEMPORADA"
+class_name = "Temporada"
+
+# "new_sqlite_classes" é o tipo de Durable Object que existe no plano GRÁTIS da Cloudflare
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Conta", "Indice", "Vigia", "Placar", "Temporada"]
+
+[observability]
+enabled = true

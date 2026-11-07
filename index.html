@@ -13540,7 +13540,7 @@ function premioPorEnvio(){
   const n = enviouQuantas();
   if(n >= PREMIO_ENVIO_MAX) return 0;
   try{ localStorage.setItem(ENVIOU_KEY, String(n + 1)); }catch(e){ return 0; }   // grava antes de pagar (o addCoins já sincroniza com a conta)
-  addCoins(PREMIO_ENVIO, t('premio_envio_why'));
+  econFaz('envio', ()=>addCoins(PREMIO_ENVIO, t('premio_envio_why')));
   return PREMIO_ENVIO;
 }
 function premioPorTempo(seg){
@@ -13548,7 +13548,7 @@ function premioPorTempo(seg){
   const o = premioLer();
   if(o.pago) return;
   o.seg += Math.max(0, Math.floor(Number(seg) || 0));
-  if(o.seg >= PREMIO_TEMPO_SEG){ o.pago = true; premioGravar(o); addCoins(PREMIO_TEMPO, t('premio_tempo_why')); }
+  if(o.seg >= PREMIO_TEMPO_SEG){ o.pago = true; premioGravar(o); econFaz('tempo_dia', ()=>addCoins(PREMIO_TEMPO, t('premio_tempo_why')), {k: msChave('dia')}); }
   else premioGravar(o);
 }
 /* compartilhar rende moeda: 1.000 moedas por amigo que JOGAR 30 minutos, até 10 amigos = 10.000 (ver premiarCompartilhamento) */
@@ -13712,7 +13712,10 @@ function applyRemoteData(data){
   if(data.tutoriais && typeof data.tutoriais === 'object'){
     try{ localStorage.setItem(TUT_KEY, JSON.stringify(tutMesclar(tutLer(), data.tutoriais))); }catch(e){}
   }
-  const semMissoes = o => { const c = Object.assign({}, o); delete c.missoes; delete c.turbos; delete c.passe; delete c.tutoriais; delete c.rotina; delete c.salvos; return c; };
+  const semMissoes = o => { const c = Object.assign({}, o); delete c.missoes; delete c.turbos; delete c.passe; delete c.tutoriais; delete c.rotina; delete c.salvos;
+    let srv = false; try{ srv = econAutoridade(); }catch(e){}
+    if(srv){ delete c.coins; delete c.diamonds; delete c.aboboras; }
+    return c; };
   const current = collectLocalData();
   if(JSON.stringify(semMissoes(current)) === JSON.stringify(semMissoes(data))) return false;
   localStorage.setItem('jogodromo_custom_games', JSON.stringify(data.customGames||[]));
@@ -13730,9 +13733,13 @@ function applyRemoteData(data){
   let escolheuAqui = false; try{ escolheuAqui = !!localStorage.getItem(IDIOMA_ESCOLHIDO_KEY); }catch(e){}
   if(data.lang && LANGS.some(l=>l.id===data.lang) && !escolheuAqui) localStorage.setItem(LANG_KEY, data.lang);
   // moedas, tema e garagem seguem a conta de um aparelho pro outro
-  if(typeof data.coins === 'number') localStorage.setItem('jogodromo_moedas', String(Math.max(0, Math.floor(data.coins))));
-  if(typeof data.diamonds === 'number') localStorage.setItem('jogodromo_diamantes', String(Math.max(0, Math.floor(data.diamonds))));
-  if(typeof data.aboboras === 'number') localStorage.setItem('jogodromo_aboboras', String(Math.max(0, Math.floor(data.aboboras))));
+  /* depois que o servidor do Koda GB passou a guardar o saldo desta conta, quem manda nele é o servidor */
+  let srvManda = false; try{ srvManda = econAutoridade(); }catch(e){}
+  if(!srvManda){
+    if(typeof data.coins === 'number') localStorage.setItem('jogodromo_moedas', String(Math.max(0, Math.floor(data.coins))));
+    if(typeof data.diamonds === 'number') localStorage.setItem('jogodromo_diamantes', String(Math.max(0, Math.floor(data.diamonds))));
+    if(typeof data.aboboras === 'number') localStorage.setItem('jogodromo_aboboras', String(Math.max(0, Math.floor(data.aboboras))));
+  }
   if(typeof data.abEv === 'string' && data.abEv.length < 40) localStorage.setItem('jogodromo_ab_ev', data.abEv);
   if(data.evento && typeof data.evento === 'object' && !Array.isArray(data.evento)) localStorage.setItem('jogodromo_evento', JSON.stringify(hlNormEstado(data.evento)));
   if(data.theme) localStorage.setItem('jogodromo_tema', data.theme);
@@ -18281,6 +18288,7 @@ async function initAuth(){
       if(changed){ location.reload(); return; } // a intro continua na tela até a página recarregar
     }
     setTimeout(()=>{ try{ rodarFilaDeTraducao(); }catch(e){} }, 1500);   // tradução que ficou pela metade continua
+    try{ econIniciar(); }catch(e){}   // a carteira oficial no servidor do Koda GB (ver SERVIDOR DO KODA GB)
     devolverPersonagem();   // o personagem saiu: moedas das peças de volta, uma vez só
     try{ pzMigrarMolduras(); }catch(e){}   // as molduras viraram peças do personagem (ou dinheiro de volta)
     try{ await gamesLoaded; }catch(e){}
@@ -22006,6 +22014,8 @@ function siteShareLink(){
   return location.origin + location.pathname + (uid ? '?ref=' + encodeURIComponent(uid) : '');
 }
 function premiarCompartilhamento(){
+  /* com o servidor do Koda GB, quem paga o convite é o servidor (ele mede os 30 minutos do amigo): aqui não paga nada */
+  try{ if(econAutoridade()) return 0; }catch(e){}
   const n = compartilhouQuantas();
   if(n >= COMPARTILHAR_MAX) return 0;
   try{ localStorage.setItem(COMPARTILHOU_KEY, String(n+1)); }catch(e){ return 0; }
@@ -22019,6 +22029,7 @@ async function conferirConvites(){
   if(!FIREBASE_ENABLED || conferindoConvites) return 0;
   const user = fbAuth().currentUser;
   if(!user || compartilhouQuantas() >= COMPARTILHAR_MAX) return 0;
+  try{ if(econAutoridade()){ await econSync(); return 0; } }catch(e){}   // o servidor confere e paga (o contador vem dele)
   conferindoConvites = true;
   let pagas = 0;
   try{
@@ -23058,11 +23069,13 @@ async function openModeracaoView(){
   const alertas = logs.filter(l=>l.alerta);
   modalBody.innerHTML = `
     <div class="mod-painel">
+      <div id="srvPainel"></div>
       <div class="mod-antigos"><button class="g-btn" id="modAntigosBtn">${t('mod_admin_old_btn')}</button><span id="modAntigosInfo"></span></div>
       ${alertas.length ? `<h3>${t('mod_admin_alerts')}</h3>` + alertas.map(l=>`<div class="mod-item mod-item-alerta"><b>${esc(l.nome || l.gameId)}</b> ${chip(l.status)} <div class="mod-item-sub">${esc(l.criador || '')}</div><div class="mod-cats">${textoDasCategorias(l.categorias)}</div></div>`).join('') : ''}
       <h3>${t('mod_admin_recent')}</h3>
       ${logs.map(l=>`<div class="mod-linha">${chip(l.status)} <b>${esc(l.nome || l.gameId)}</b> <span class="mod-item-sub">${esc(l.criador || '')} · ${esc(l.tipo || '')}</span> ${textoDasCategorias(l.categorias)}</div>`).join('')}
     </div>`;
+  try{ econPainelAdmin(modalBody.querySelector('#srvPainel')); }catch(e){}
   const btn = modalBody.querySelector('#modAntigosBtn');
   btn.addEventListener('click', async ()=>{
     btn.disabled = true;
@@ -23080,6 +23093,112 @@ async function openModeracaoView(){
     }catch(e){ info.textContent = t('mod_admin_fail', {msg: e.message}); }
     btn.disabled = false;
   });
+}
+
+/* ============================================================
+   PAINEL DO SERVIDOR (só o dono do site, dentro do painel de moderação)
+   - Avisos: o que o servidor achou estranho (saldo cortado na primeira vez, ganho grande recusado, pontuação absurda).
+   - Conta: procura pelo e-mail e mostra o saldo oficial, o que foi recusado e o que está guardado pra ela.
+   - Ajustar saldo (devolver moedas de quem perdeu por engano, ou tirar de quem trapaceou) e banir/desbanir.
+   Só aparece pro dono; os textos ficam em português.
+============================================================ */
+async function econAdmin(caminho, corpo){
+  const u = FIREBASE_ENABLED ? fbAuth().currentUser : null;
+  if(!u) throw new Error('sem login');
+  const tk = await u.getIdToken();
+  const r = await fetch(caminho, corpo ? {method: 'POST', headers: {'content-type': 'application/json', authorization: 'Bearer ' + tk}, body: JSON.stringify(corpo)}
+                                      : {headers: {authorization: 'Bearer ' + tk}, cache: 'no-store'});
+  const j = await r.json().catch(()=>null);
+  if(!j || j.ok === false) throw new Error((j && (j.erro || j.por)) || ('erro ' + r.status));
+  return j;
+}
+/* o aviso em palavras (pro dono entender sem ler código) */
+function econAvisoTexto(a){
+  const i = a.info || {}, m = n => kshopMilhar(n || 0);
+  const valores = o => [o.c ? m(o.c) + ' moedas' : '', o.d ? m(o.d) + ' diamantes' : '', o.a ? m(o.a) + ' abóboras' : ''].filter(Boolean).join(', ');
+  if(a.tipo === 'recusado') return 'Recusado: ' + (i.m || '?') + ' (' + (i.por || '?') + ')' + (valores(i) ? ' · ' + valores(i) : '');
+  if(a.tipo === 'importar_teto') return 'Na primeira vez o aparelho dizia ter ' + valores(i.pedido || {}) + '. Ficou: ' + valores(i.ficou || {}) + '.';
+  if(a.tipo === 'placar') return 'Pontuação estranha no jogo ' + (i.jogo || '?') + ': ' + m(i.v) + ' (1º lugar tinha ' + m(i.topo) + ')';
+  return JSON.stringify(i);
+}
+function econPainelAdmin(raiz){
+  if(!raiz || !isAdmin()) return;
+  const esc = chatListEscape;
+  const data = ms => { try{ return new Date(ms).toLocaleString('pt-BR'); }catch(e){ return String(ms); } };
+  const milhar = n => kshopMilhar(n || 0);
+  raiz.innerHTML = `
+    <h3>Servidor do Koda GB</h3>
+    <p class="mod-item-sub">A carteira oficial de cada pessoa fica no servidor. Aqui você vê o que ele recusou e pode ajustar uma conta.</p>
+    <div class="mod-antigos"><button class="g-btn" id="srvAvisosBtn">Ver avisos</button> <span id="srvSaude" class="mod-item-sub"></span></div>
+    <div id="srvAvisos"></div>
+    <div class="mod-antigos" style="gap:6px;flex-wrap:wrap;">
+      <input id="srvEmail" type="email" placeholder="e-mail da conta" style="flex:1;min-width:180px;padding:8px;border-radius:10px;border:1px solid #0002;">
+      <button class="g-btn" id="srvContaBtn">Ver conta</button>
+    </div>
+    <div id="srvConta"></div>`;
+  econAdmin('/api/saude').then(j=>{ raiz.querySelector('#srvSaude').textContent = 'no ar · versão ' + (j.versao || '?'); })
+    .catch(()=>{ raiz.querySelector('#srvSaude').textContent = 'o servidor não respondeu'; });
+  raiz.querySelector('#srvAvisosBtn').addEventListener('click', async ()=>{
+    const box = raiz.querySelector('#srvAvisos');
+    box.innerHTML = `<p class="g-msg">${t('loading')}</p>`;
+    try{
+      const j = await econAdmin('/api/admin/alertas?n=150');
+      box.innerHTML = j.alertas.length ? j.alertas.map(a=>`<div class="mod-linha"><b>${esc(a.tipo)}</b> <span class="mod-item-sub">${esc(data(a.t))}</span>
+          <button class="g-btn srv-ver" data-email="${esc(a.email)}" style="padding:2px 8px;">${esc(a.email)}</button>
+          <div class="mod-item-sub">${esc(econAvisoTexto(a))}</div></div>`).join('') : '<p class="mod-item-sub">Nenhum aviso.</p>';
+      box.querySelectorAll('.srv-ver').forEach(b=>b.addEventListener('click', ()=>{ raiz.querySelector('#srvEmail').value = b.dataset.email; verConta(); }));
+    }catch(e){ box.innerHTML = `<p class="g-msg">${esc(e.message)}</p>`; }
+  });
+  async function verConta(){
+    const email = raiz.querySelector('#srvEmail').value.trim().toLowerCase();
+    const box = raiz.querySelector('#srvConta');
+    if(!email) return;
+    box.innerHTML = `<p class="g-msg">${t('loading')}</p>`;
+    try{
+      const j = await econAdmin('/api/admin/conta?email=' + encodeURIComponent(email));
+      if(!j.conta){ box.innerHTML = '<p class="mod-item-sub">Essa conta ainda não entrou no site com o servidor.</p>'; return; }
+      const c = j.conta;
+      const ban = c.ban && (!c.ban.ate || c.ban.ate > Date.now()) ? `banida${c.ban.ate ? ' até ' + esc(data(c.ban.ate)) : ' para sempre'}` : (c.fsBan && c.fsBan.ban ? 'banida (lista do Firebase)' : 'ativa');
+      box.innerHTML = `
+        <div class="mod-item"><b>${esc(c.email)}</b> <span class="mod-chip">${ban}</span>
+          <div class="mod-item-sub">Moedas: <b>${milhar(c.saldo.c)}</b> · Diamantes: <b>${milhar(c.saldo.d)}</b> · Abóboras: <b>${milhar(c.saldo.a)}</b></div>
+          <div class="mod-item-sub">Nível pago até ${milhar(c.nivel && c.nivel.pago)} · Tempo jogado: ${Math.round((c.tempo.total || 0) / 60)} min (hoje ${Math.round((c.tempo.hoje || 0) / 60)} min) · Envios: ${c.envio || 0}</div>
+          ${c.importCortado ? `<div class="mod-item-sub">Na primeira vez o aparelho dizia ter ${milhar(c.importCortado.c)} moedas e ${milhar(c.importCortado.d)} diamantes (passou do teto, ficou o teto).</div>` : ''}
+        </div>
+        <div class="mod-antigos" style="gap:6px;flex-wrap:wrap;">
+          <input id="srvAjC" type="number" placeholder="moedas (+/-)" style="width:120px;padding:6px;border-radius:8px;border:1px solid #0002;">
+          <input id="srvAjD" type="number" placeholder="diamantes (+/-)" style="width:120px;padding:6px;border-radius:8px;border:1px solid #0002;">
+          <input id="srvAjM" type="text" placeholder="motivo" style="flex:1;min-width:120px;padding:6px;border-radius:8px;border:1px solid #0002;">
+          <button class="g-btn" id="srvAjBtn">Ajustar</button>
+        </div>
+        <div class="mod-antigos" style="gap:6px;flex-wrap:wrap;">
+          <button class="g-btn" data-ban="1">Banir 1 dia</button><button class="g-btn" data-ban="7">Banir 7 dias</button>
+          <button class="g-btn" data-ban="0">Banir para sempre</button><button class="g-btn" id="srvDesban">Desbanir</button>
+        </div>
+        <h3>Recusados</h3>
+        ${(j.recusas || []).length ? j.recusas.map(x=>`<div class="mod-linha"><b>${esc(x.m)}</b> <span class="mod-chip">${esc(x.por)}</span>
+            <span class="mod-item-sub">${esc(data(x.t))} · ${x.c ? milhar(x.c) + ' moedas ' : ''}${x.d ? milhar(x.d) + ' diamantes ' : ''}${x.a ? milhar(x.a) + ' abóboras' : ''}</span></div>`).join('') : '<p class="mod-item-sub">Nada recusado.</p>'}
+        <h3>Últimos movimentos</h3>
+        ${(j.livro || []).slice(0, 40).map(x=>`<div class="mod-linha">${x.ok ? '' : '<span class="mod-chip">recusado</span> '}<b>${esc(x.m)}</b>
+            <span class="mod-item-sub">${esc(data(x.t))} · ${x.c ? milhar(x.c) + 'c ' : ''}${x.d ? milhar(x.d) + 'd ' : ''}${x.a ? milhar(x.a) + 'a' : ''}</span></div>`).join('')}`;
+      box.querySelector('#srvAjBtn').addEventListener('click', async ()=>{
+        const corpo = {email, c: Math.round(Number(box.querySelector('#srvAjC').value) || 0), d: Math.round(Number(box.querySelector('#srvAjD').value) || 0),
+          motivo: box.querySelector('#srvAjM').value || 'ajuste do dono'};
+        if(!corpo.c && !corpo.d) return;
+        if(!confirm('Ajustar ' + email + ': ' + corpo.c + ' moedas e ' + corpo.d + ' diamantes?')) return;
+        try{ await econAdmin('/api/admin/ajuste', corpo); toast('Saldo ajustado'); verConta(); }catch(e){ toast(e.message); }
+      });
+      box.querySelectorAll('[data-ban]').forEach(b=>b.addEventListener('click', async ()=>{
+        if(!confirm('Banir ' + email + '?')) return;
+        try{ await econAdmin('/api/admin/ban', {email, dias: Number(b.dataset.ban), motivo: 'pelo painel'}); verConta(); }catch(e){ toast(e.message); }
+      }));
+      box.querySelector('#srvDesban').addEventListener('click', async ()=>{
+        try{ await econAdmin('/api/admin/desban', {email}); verConta(); }catch(e){ toast(e.message); }
+      });
+    }catch(e){ box.innerHTML = `<p class="g-msg">${esc(e.message)}</p>`; }
+  }
+  raiz.querySelector('#srvContaBtn').addEventListener('click', verConta);
+  raiz.querySelector('#srvEmail').addEventListener('keydown', e=>{ if(e.key === 'Enter') verConta(); });
 }
 
 /* o link "O que não pode ter no jogo" dos formulários de publicar */
@@ -33800,7 +33919,8 @@ function recSubmit(gameId, value){
   if(ganho.moedas>0){
     /* o "+N" já aparece de qualquer jeito; junto com ele vai o próximo
        alvo, pra a barra subir sem virar surpresa */
-    addCoins(ganho.moedas, (ganho.turbo ? ganho.turbo + 'x · ' : '') + t('coins_next_goal', {n: ganho.proximoAlvo}));
+    econFaz('partida', ()=>addCoins(ganho.moedas, (ganho.turbo ? ganho.turbo + 'x · ' : '') + t('coins_next_goal', {n: ganho.proximoAlvo})),
+      {jogo: String(gameId).slice(0, 150), pub: !!partidaAtual.publicado});
   } else if(ganho.abaixoDoMinimo){
     mostrarRegraDasMoedas(gameId, ganho.minimo);   // só na primeira vez
   } else {
@@ -33854,6 +33974,251 @@ function recBarUpdate(root, gameId, mode, fmt){
 
 
 /* ============================================================
+   SERVIDOR DO KODA GB — A CARTEIRA OFICIAL
+   O saldo de verdade (moedas, Koda GB Diamonds e abóboras) fica no servidor do Koda GB (pasta servidor/).
+   O aparelho continua mudando o número na hora (pra ser rápido), mas cada ganho e cada gasto vira um
+   "movimento" com o motivo (partida, missão, baú, presente...). A fila de movimentos vai pro servidor de
+   pouquinho em pouquinho; ele confere com as regras e devolve o saldo certo, que passa a valer aqui.
+   Quem mexer no aparelho pra se dar moedas vê o número voltar ao certo na próxima conferência.
+   Sem internet (ou com o servidor fora do ar), tudo continua funcionando e a fila espera.
+   Como marcar o motivo:  econFaz('missao', ()=>{ ...dá as moedas... }, {p:'dia', ...})
+   Dentro dele, econSub('bau', {t:'epico'}, ()=>{...}) marca o que saiu de dentro de um baú.
+   Ganho sem motivo vira 'outro' (o servidor deixa só um pouquinho por dia desses).
+============================================================ */
+var ECON_PREFIXO = 'koda_econ:';
+var ECON_FILA_MAX = 400;
+var econPilha = [], econSolto = null, econBauN = 0, econSilencio = 0;
+var econTempoBuf = 0, econTempoJogo = '', econPontos = [];
+var econEnviando = false, econTimer = null, econDesligado = false, econFalhas = 0, econLigado = false, econUltimoOk = 0;
+function econConta(){ try{ const u = FIREBASE_ENABLED ? fbAuth().currentUser : null; return (u && u.email) ? String(u.email).toLowerCase() : ''; }catch(e){ return ''; } }
+function econLer(email){
+  email = email || econConta();
+  const vazio = {fila: [], srv: null, imp: false, visto: 0, ref: '', refN: 0, refOk: false};
+  if(!email) return vazio;
+  try{ const o = JSON.parse(localStorage.getItem(ECON_PREFIXO + email)); if(o && typeof o === 'object' && Array.isArray(o.fila)) return Object.assign(vazio, o); }catch(e){}
+  return vazio;
+}
+function econGravar(o, email){
+  email = email || econConta();
+  if(!email) return;
+  try{ localStorage.setItem(ECON_PREFIXO + email, JSON.stringify(o)); }
+  catch(e){ try{ o.fila = o.fila.slice(-100); localStorage.setItem(ECON_PREFIXO + email, JSON.stringify(o)); }catch(e2){} }
+}
+/* o servidor já manda no saldo desta conta? (depois da primeira conferência) */
+function econAutoridade(){ return !!econLer().imp; }
+function econId(){
+  const a = new Uint8Array(12);
+  try{ crypto.getRandomValues(a); }catch(e){ for(let i = 0; i < 12; i++) a[i] = Math.random() * 256 | 0; }
+  return 'm' + Date.now().toString(36) + Array.from(a, b=>'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+}
+function econTxNovo(m, q){ return {id: econId(), m: m || 'outro', q: Object.assign({}, q || {}), mv: [], t: Date.now()}; }
+/* saveCoins / saveDiamonds / abSave chamam isto com a diferença (+ ganhou, − gastou) */
+function econMov(k, delta){
+  delta = Math.round(Number(delta) || 0);
+  if(!delta || econSilencio > 0 || !econConta()) return;
+  const f = econPilha[econPilha.length - 1];
+  let tx;
+  if(f) tx = f.tx;
+  else {
+    if(!econSolto){
+      const t = econSolto = econTxNovo('outro');
+      queueMicrotask(()=>{ if(econSolto === t){ econSolto = null; econFila(t); } });
+    }
+    tx = econSolto;
+  }
+  const m = {k, n: delta};
+  if(f && f.sub){ m.s = f.sub.s; m.q = f.sub.q; }
+  tx.mv.push(m);
+}
+/* roda fn com um motivo: tudo que ganhar ou gastar ali dentro vai junto, num movimento só */
+function econFaz(m, fn, q, opc){
+  const tx = econTxNovo(m, q);
+  const quadro = {tx};
+  econPilha.push(quadro);
+  try{ return fn(tx); }
+  finally{
+    const i = econPilha.indexOf(quadro);
+    if(i >= 0) econPilha.splice(i, econPilha.length - i);
+    if(tx.mv.length || (opc && opc.vazio)) econFila(tx);
+  }
+}
+function econMeta(q){
+  for(let i = econPilha.length - 1; i >= 0; i--) if(!econPilha[i].sub){ Object.assign(econPilha[i].tx.q, q); return; }
+}
+/* o que sai de dentro de um baú (o servidor confere que veio de um baú de verdade e que não passou do máximo) */
+function econSub(s, q, fn){
+  const pai = econPilha[econPilha.length - 1];
+  if(!pai) return econFaz('outro', ()=>econSub(s, q, fn));
+  const quadro = {tx: pai.tx, sub: {s, q: Object.assign({i: econBauN++}, q || {})}};
+  econPilha.push(quadro);
+  try{ return fn(); }
+  finally{ const i = econPilha.indexOf(quadro); if(i >= 0) econPilha.splice(i, econPilha.length - i); }
+}
+/* muda o número guardado sem virar movimento (o saldo que veio do servidor) */
+function econBruto(fn){ econSilencio++; try{ return fn(); } finally{ econSilencio--; } }
+function econFila(tx){
+  const email = econConta();
+  if(!email || souVisitante()) return;
+  const o = econLer(email);
+  o.fila.push({id: tx.id, m: tx.m, q: tx.q, mv: tx.mv, t: tx.t});
+  if(o.fila.length > ECON_FILA_MAX) o.fila = o.fila.slice(-ECON_FILA_MAX);
+  econGravar(o, email);
+  econAgendar(1500);
+}
+function econAgendar(ms){
+  if(econTimer || econDesligado) return;
+  econTimer = setTimeout(()=>{ econTimer = null; econSync(); }, ms);
+}
+/* o tempo jogado (vem do relógio das missões: jogo aberto, tela visível e alguém mexendo) */
+function econTempo(jogo, seg){
+  seg = Math.floor(Number(seg) || 0);
+  if(seg <= 0) return;
+  econTempoBuf = Math.min(3600, econTempoBuf + seg);
+  if(jogo) econTempoJogo = String(jogo).slice(0, 150);
+  if(econTempoBuf >= 60) econAgendar(2000);
+}
+/* a pontuação vai pro ranking pelo servidor (ele confere que a pessoa estava jogando aquele jogo) */
+function econPontuar(jogo, v){
+  if(!econLigado || econDesligado) return false;
+  const u = fbAuth().currentUser;
+  if(!u) return false;
+  let foto = ''; try{ foto = getDisplayAvatar(u) || ''; }catch(e){}
+  econPontos.push({j: String(jogo).slice(0, 150), v: Math.max(0, Math.floor(v)), n: String(getDisplayName(u) || '').slice(0, 60), f: /^https:\/\//.test(foto) && foto.length < 400 ? foto : ''});
+  if(econPontos.length > 20) econPontos = econPontos.slice(-20);
+  econAgendar(600);
+  return true;
+}
+function econPendente(o){
+  const s = {c: 0, d: 0, a: 0};
+  o.fila.forEach(tx=>(tx.mv || []).forEach(m=>{ if(s[m.k] !== undefined) s[m.k] += m.n; }));
+  return s;
+}
+/* na primeira vez: o que este aparelho tem (menos o que ainda está na fila, que vai depois) */
+function econBase(o){
+  const p = econPendente(o);
+  let rot = null, passe = null, rep = 0;
+  try{ rot = rotLer(); }catch(e){}
+  try{ passe = passeNorm(passeLerBruto()); }catch(e){}
+  try{ const est = hlEstado(); Object.keys(est.rep || {}).forEach(k=>{ const it = hlItemPorChave(k); if(it) rep += (est.rep[k] || 0) * (it.rep || 0); }); }catch(e){}
+  return {c: Math.max(0, loadCoins() - p.c), d: Math.max(0, loadDiamonds() - p.d), a: Math.max(0, abLoad() - p.a),
+    pg: rot ? rot.xp.pg : 1, seq: rot ? {n: rot.seq.n, u: rot.seq.u} : null, rol: rot ? {u: rot.rol.u} : null,
+    bau: rot ? {n: rot.bau.n, prox: rot.bau.prox} : null, envio: enviouQuantas(), compartilhou: compartilhouQuantas(), passe, rep: Math.round(rep),
+    hoje: msChave('dia'), tempoHoje: (()=>{ try{ return premioLer().seg || 0; }catch(e){ return 0; } })()};
+}
+async function econSync(opc){
+  opc = opc || {};
+  if(econEnviando || econDesligado || !FIREBASE_ENABLED || !econLigado) return;
+  const user = fbAuth().currentUser;
+  if(!user || souVisitante()) return;
+  if(navigator.onLine === false){ econAgendar(30000); return; }
+  const email = econConta();
+  econEnviando = true;
+  let o = econLer(email);
+  const lote = o.fila.slice(0, 25);
+  const tempo = econTempoBuf > 0 ? {s: Math.min(900, econTempoBuf), j: econTempoJogo} : null;
+  const pontos = econPontos.splice(0, 8);
+  const corpo = {txs: lote, visto: o.visto || 0};
+  if(!o.imp) corpo.base = econBase(o);
+  if(tempo) corpo.tempo = tempo;
+  if(pontos.length) corpo.pontos = pontos;
+  const ref = conviteDe || o.ref;
+  if(ref && !o.refOk && (o.refN || 0) < 3000) corpo.ref = ref;
+  let r = null;
+  try{
+    const tk = await user.getIdToken();
+    const resp = await fetch('/api/sync', {method: 'POST', cache: 'no-store', keepalive: !!opc.saindo,
+      headers: {'content-type': 'application/json', authorization: 'Bearer ' + tk}, body: JSON.stringify(corpo)});
+    const tipo = resp.headers.get('content-type') || '';
+    if((resp.status === 404 || resp.status === 405) && !/json/.test(tipo)) econDesligado = true;   // site sem o servidor (versão antiga)
+    else r = await resp.json().catch(()=>null);
+  }catch(e){ r = null; }
+  econEnviando = false;
+  if(!r || !r.ok){
+    econPontos = pontos.concat(econPontos).slice(-20);
+    econFalhas++;
+    if(!econDesligado) econAgendar(Math.min(300000, 4000 * Math.pow(2, Math.min(6, econFalhas))));
+    return;
+  }
+  econFalhas = 0;
+  econUltimoOk = Date.now();
+  if(tempo) econTempoBuf = Math.max(0, econTempoBuf - tempo.s);
+  if(econConta() !== email) return;                     // trocou de conta no meio
+  o = econLer(email);
+  if(corpo.ref){ o.ref = ref; o.refN = (o.refN || 0) + 1; if(r.info && (r.info.convidadoPor || r.info.conviteFim)) o.refOk = true; }
+  if(r.precisaBase){ econGravar(o, email); econAgendar(400); return; }
+  const fora = new Set((r.ok || []).concat((r.nao || []).filter(x=>!x.depois).map(x=>x.id)));
+  o.fila = o.fila.filter(tx=>!fora.has(tx.id));
+  if(r.importado) o.imp = true;
+  if(r.saldo) o.srv = r.saldo;
+  const novas = (Array.isArray(r.nov) ? r.nov : []).filter(n=>n && n.s > (o.visto || 0));
+  if(novas.length) o.visto = Math.max.apply(null, novas.map(n=>n.s));
+  econGravar(o, email);
+  econAplicarSaldo(o);
+  econAplicarInfo(r.info || {});
+  novas.forEach(econMostrarNovidade);
+  /* sobrou fila: se tem coisa nova, manda logo; se só sobrou o que o servidor pediu pra esperar, espera */
+  const esperar = new Set((r.nao || []).filter(x=>x.depois).map(x=>x.id));
+  if(o.fila.some(tx=>!esperar.has(tx.id))) econAgendar(1200);
+  else if(o.fila.length) econAgendar(30000);
+}
+/* o saldo que vale = o do servidor + o que ainda está na fila */
+function econAplicarSaldo(o){
+  if(!o.srv) return;
+  const p = econPendente(o);
+  econBruto(()=>{
+    const c = Math.max(0, (o.srv.c || 0) + p.c), d = Math.max(0, (o.srv.d || 0) + p.d), a = Math.max(0, (o.srv.a || 0) + p.a);
+    if(c !== loadCoins()) saveCoins(c);
+    if(d !== loadDiamonds()) saveDiamonds(d);
+    if(a !== abLoad()) abSave(a);
+  });
+}
+/* os contadores que o servidor guarda (só sobem) */
+function econAplicarInfo(info){
+  try{
+    const env = Math.floor(Number(info.envio) || 0);
+    if(env > enviouQuantas()) localStorage.setItem(ENVIOU_KEY, String(Math.min(PREMIO_ENVIO_MAX, env)));
+    const conv = Math.floor(Number(info.convites) || 0);
+    if(conv > compartilhouQuantas()) localStorage.setItem(COMPARTILHOU_KEY, String(Math.min(COMPARTILHAR_MAX, conv)));
+  }catch(e){}
+}
+/* o servidor mandou algo (o prêmio de um amigo que jogou 30 minutos, um ajuste do dono...): as pecinhas voam */
+function econMostrarNovidade(n){
+  const motivo = n.m === 'convite' ? t('share_reward_why') : undefined;
+  try{
+    if(n.c > 0) voarMoeda('c', n.c, 'ganhou', motivo);
+    if(n.d > 0) voarMoeda('d', n.d, 'ganhou', motivo);
+    if(n.a > 0) voarMoeda('a', n.a, 'ganhou', motivo);
+  }catch(e){}
+}
+/* liga depois de baixar os dados da conta (senão o saldo da nuvem antiga e o do servidor se misturam) */
+function econIniciar(){
+  if(econLigado) return;
+  econLigado = true;
+  setTimeout(()=>econSync(), 800);
+  /* de 30 em 30 segundos: só conversa com o servidor se tiver algo pra mandar (ou a cada 3 minutos, pra pegar novidades) */
+  setInterval(()=>{
+    if(document.visibilityState !== 'visible') return;
+    const o = econLer();
+    if(o.fila.length || econTempoBuf >= 45 || econPontos.length || Date.now() - econUltimoOk > 180000) econSync();
+  }, 30000);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'hidden') econSync({saindo: true}); });
+  window.addEventListener('online', ()=>econAgendar(1000));
+}
+/* ranking: lido do servidor (com o Firebase de reserva) */
+async function econGet(caminho){
+  if(econDesligado || !FIREBASE_ENABLED) return null;
+  const u = fbAuth().currentUser;
+  if(!u) return null;
+  try{
+    const tk = await u.getIdToken();
+    const r = await fetch(caminho, {headers: {authorization: 'Bearer ' + tk}, cache: 'no-store'});
+    if(!/json/.test(r.headers.get('content-type') || '')) return null;
+    const j = await r.json();
+    return j && j.ok ? j : null;
+  }catch(e){ return null; }
+}
+
+/* ============================================================
    MOEDA DO KODA (carteira do site inteiro)
    Antes as moedas só existiam dentro do Turbo Racer. Agora é uma
    carteira só: ganha jogando qualquer jogo e gasta no que quiser
@@ -33891,7 +34256,9 @@ function loadCoins(){
 }
 function saveCoins(n){
   if(souVisitante()) return;
-  try{ localStorage.setItem(COINS_KEY, String(Math.max(0, Math.floor(n)))); }catch(e){}
+  const novo = Math.max(0, Math.floor(Number(n) || 0));
+  try{ econMov('c', novo - loadCoins()); }catch(e){}         // vira movimento pro servidor conferir (ver SERVIDOR DO KODA GB)
+  try{ localStorage.setItem(COINS_KEY, String(novo)); }catch(e){}
   updateCoinTags();
 }
 /* soma moedas e mostra um "+N" subindo na tela */
@@ -33969,7 +34336,9 @@ function loadDiamonds(){
 }
 function saveDiamonds(n){
   if(souVisitante()) return;
-  try{ localStorage.setItem(DIAMONDS_KEY, String(Math.max(0, Math.floor(n)))); }catch(e){}
+  const novo = Math.max(0, Math.floor(Number(n) || 0));
+  try{ econMov('d', novo - loadDiamonds()); }catch(e){}
+  try{ localStorage.setItem(DIAMONDS_KEY, String(novo)); }catch(e){}
   updateCoinTags();
 }
 function addDiamonds(n, motivo){
@@ -35769,7 +36138,7 @@ function pracaJogarMoeda(P){
     if(o.ganhas < FONTE_POR_DIA){
       o.ganhas++;
       setTimeout(()=>{ if(pracaAtiva === P) P.efeitos.push({k: 'premio', t0: performance.now()}); }, 650);
-      setTimeout(()=>{ try{ addCoins(1, t('fonte_moeda')); }catch(e){} }, 2200);   // paga mesmo se a pessoa sair da praça no meio da animação
+      setTimeout(()=>{ try{ econFaz('fonte', ()=>addCoins(1, t('fonte_moeda'))); }catch(e){} }, 2200);   // paga mesmo se a pessoa sair da praça no meio da animação
     }
     else if(!o.avisou){ o.avisou = true; toast(t('fonte_limite')); }
   }
@@ -37003,7 +37372,8 @@ async function lojaComprar(L, id){
   try{ sim = await lojaConfirmar(L, it); }finally{ L.ocupado = false; }
   if(!sim) return false;
   if(!L.simulado){
-    const pagou = it.moeda === 'd' ? spendDiamonds(it.preco) : spendCoins(it.preco);
+    const pagou = econFaz('loja_jogo', ()=>it.moeda === 'd' ? spendDiamonds(it.preco) : spendCoins(it.preco),
+      {para: String(L.criador || '').toLowerCase(), vende: !!(VENDAS_LIGADAS && L.criador && !modoTesteDeMoedas()), jogo: String(L.gameId || '').slice(0, 150)});
     if(!pagou) return false;
   }
   lojaGuardar(L, it.id, 1);
@@ -37257,8 +37627,10 @@ async function checarVendas(){
       ok.forEach(v=>{ if(v.moeda === 'd') d += v.n; else c += v.n; });
       if(primeira){
         /* estava fora: um resumo só, e tudo cai de uma vez */
-        if(c){ saveCoins(loadCoins() + c); try{ syncToServer(); }catch(e){} }
-        if(d) addDiamonds(d, t('venda_resumo_motivo'));
+        econFaz('venda_jogo', ()=>{
+          if(c){ saveCoins(loadCoins() + c); try{ syncToServer(); }catch(e){} }
+          if(d) addDiamonds(d, t('venda_resumo_motivo'));
+        });
         if(c) voarMoeda('c', c, 'ganhou', t('venda_resumo_motivo'));
         const linhas = ok.slice(-8).map(v=>chatListEscape(t('venda_resumo_linha', {nome: v.nome, item: v.item, jogo: v.jogo, n: kshopMilhar(v.n), un: t(v.moeda === 'd' ? 'venda_un_d' : 'venda_un_c')})));
         const tot = [c ? kshopMilhar(c) + ' ' + t('venda_un_c') : '', d ? kshopMilhar(d) + ' ' + t('venda_un_d') : ''].filter(Boolean).join(' + ');
@@ -37269,8 +37641,10 @@ async function checarVendas(){
         /* estava no site: "fulano comprou ..." na hora, uma por uma */
         ok.forEach(v=>{
           const motivo = t('venda_motivo', {nome: v.nome, item: v.item, jogo: v.jogo});
-          if(v.moeda === 'd') addDiamonds(v.n, motivo);
-          else { saveCoins(loadCoins() + v.n); try{ syncToServer(); }catch(e){} voarMoeda('c', v.n, 'ganhou', motivo); }
+          econFaz('venda_jogo', ()=>{
+            if(v.moeda === 'd') addDiamonds(v.n, motivo);
+            else { saveCoins(loadCoins() + v.n); try{ syncToServer(); }catch(e){} voarMoeda('c', v.n, 'ganhou', motivo); }
+          });
         });
       }
     }
@@ -37420,7 +37794,7 @@ function criadorPagar(ok, primeira){
     j[v.kind]++; j.n++;
   });
   const moedas = ok.length * CRIADOR_MOEDAS;
-  saveCoins(loadCoins() + moedas);
+  econFaz('criador', ()=>saveCoins(loadCoins() + moedas));
   try{ syncToServer(); }catch(e){}
   voarMoeda('c', moedas, 'ganhou', t('criador_voo_motivo', {resumo: criadorResumoTexto(tot)}));
   /* jogando agora: só o "+N" com o motivo, sem atravessar a partida com uma janela */
@@ -37550,7 +37924,7 @@ window.addEventListener('message', function(ev){
     if(cabe>0){
       subirDegrau(chave);
       let tm = 1; try{ tm = turboMoedas(); }catch(e){}
-      addCoins(cabe * tm, (tm > 1 ? tm + 'x · ' : '') + t('coins_next_goal', {n: alvoDoDegrau(ACOES_BASE, degrau+1)}));
+      econFaz('acoes', ()=>addCoins(cabe * tm, (tm > 1 ? tm + 'x · ' : '') + t('coins_next_goal', {n: alvoDoDegrau(ACOES_BASE, degrau+1)})), {jogo: String(a.id).slice(0, 150)});
       try{ msAcaoPublicado(a.id, cabe * tm); }catch(e){}
     }
   }
@@ -39627,8 +40001,11 @@ async function enviarPresente(tipo, id, pessoa){
     });
   }catch(e){ return {ok:false, motivo:'banco', detalhe: String(e && (e.code || e.message) || '')}; }
   /* gravou: agora sim desconta (com as pecinhas saindo do saldo) — o item exclusivo sai do inventário */
-  if(exclusivo) presenteTirarItem(tipo, id);
-  else if(!gastarItem(item)) return {ok:false, motivo:'saldo'};
+  const pagouPresente = econFaz('presente', ()=>{
+    if(exclusivo){ presenteTirarItem(tipo, id); return true; }
+    return gastarItem(item);
+  }, {para: String(pessoa.email).toLowerCase(), tipo, item: id, exclusivo: !!exclusivo, moeda: ehDiamante(item) ? 'd' : 'c', preco: exclusivo ? 0 : item.price}, {vazio: true});
+  if(!pagouPresente) return {ok:false, motivo:'saldo'};
   try{ msGuardarId('presente', String(msHash(String(pessoa.email).toLowerCase()))); }catch(e){}   // missão "mande presentes"
   return {ok:true};
 }
@@ -39701,7 +40078,7 @@ function abrirPresenteRecebido(g){
       setTimeout(()=>{ if(tela.parentNode) tela.parentNode.removeChild(tela); pronto(); }, 300);
       if(jaTinha && dup && dup.n > 0){
         const motivo = t('gift_recv_why', {name: quem});
-        presenteEntregarValor(dup.moeda, dup.n, motivo);
+        econFaz('presente_receber', ()=>presenteEntregarValor(dup.moeda, dup.n, motivo), {tipo: g.tipo, dup: true});
       }
     }
     tela.querySelector('#giftFechar').addEventListener('click', fechar);
@@ -39804,7 +40181,8 @@ async function enviarPresenteValor(v, pessoa, custoPago){
     });
   }catch(e){ return {ok:false, motivo:'banco', detalhe: String(e && (e.code || e.message) || '')}; }
   /* gravou: agora sim desconta (com as pecinhas saindo do saldo) */
-  const pagou = custo.moeda === 'd' ? spendDiamonds(custo.preco) : custo.moeda === 'a' ? abSpend(custo.preco) : spendCoins(custo.preco);
+  const pagou = econFaz('presente', ()=>custo.moeda === 'd' ? spendDiamonds(custo.preco) : custo.moeda === 'a' ? abSpend(custo.preco) : spendCoins(custo.preco),
+    {para: String(pessoa.email).toLowerCase(), v: {tipo: v.tipo, n: v.n, bau: v.bau, moeda: v.moeda, plano: v.plano}});
   if(!pagou) return {ok:false, motivo:'saldo'};
   try{ msGuardarId('presente', String(msHash(String(pessoa.email).toLowerCase()))); }catch(e){}   // missão "mande presentes"
   return {ok:true};
@@ -39999,24 +40377,27 @@ function abrirPresenteValorRecebido(g){
         ocupado = false; btn.disabled = false; toast(t('gift_fail')); return;
       }
       const motivo = t('pres_recv_why', {name: quem});
-      if(v.tipo === 'moedas'){
-        saveCoins(loadCoins() + v.n); try{ syncToServer(); }catch(e){}
-        voarMoeda('c', v.n, 'ganhou', motivo);
-      } else if(v.tipo === 'diamantes'){
-        addDiamonds(v.n, motivo);
-      } else if(v.tipo === 'aboboras'){
-        presenteEntregarValor('a', v.n, motivo);
-      } else if(v.tipo === 'passe'){
-        const r = passeReceberPasse(v.plano);
-        if(!r){                                 // já tinha esse passe (ou a temporada acabou): os diamantes voltam
+      let tempPasse = ''; try{ tempPasse = passeTemporada().s.id; }catch(e){}
+      econFaz('presente_receber', ()=>{
+        if(v.tipo === 'moedas'){
+          saveCoins(loadCoins() + v.n); try{ syncToServer(); }catch(e){}
+          voarMoeda('c', v.n, 'ganhou', motivo);
+        } else if(v.tipo === 'diamantes'){
           addDiamonds(v.n, motivo);
-          try{ toast(t('pres_recv_passe_volta')); }catch(e){}
-        } else if(r.volta > 0){                 // tinha o Super e ganhou o Premium: o que ela pagou no Super volta
-          addDiamonds(r.volta, motivo);
+        } else if(v.tipo === 'aboboras'){
+          presenteEntregarValor('a', v.n, motivo);
+        } else if(v.tipo === 'passe'){
+          const r = passeReceberPasse(v.plano);
+          if(!r){                                 // já tinha esse passe (ou a temporada acabou): os diamantes voltam
+            addDiamonds(v.n, motivo);
+            try{ toast(t('pres_recv_passe_volta')); }catch(e){}
+          } else if(r.volta > 0){                 // tinha o Super e ganhou o Premium: o que ela pagou no Super volta
+            addDiamonds(r.volta, motivo);
+          }
         }
-      }
+      }, v.tipo === 'passe' ? {tipo: 'passe', plano: v.plano, t: tempPasse} : {tipo: v.tipo}, v.tipo === 'passe' ? {vazio: true} : null);
       fechar();
-      if(v.tipo === 'bau') setTimeout(()=>abrirBau(v.bau), 350);
+      if(v.tipo === 'bau') setTimeout(()=>econFaz('presente_receber', ()=>abrirBau(v.bau), {bau: v.bau}), 350);
     });
   });
 }
@@ -40118,7 +40499,9 @@ function abLoad(){
 }
 function abSave(n){
   if(souVisitante()) return;
-  try{ localStorage.setItem('jogodromo_aboboras', String(Math.max(0, Math.floor(n)))); }catch(e){}
+  const novo = Math.max(0, Math.floor(Number(n) || 0));
+  try{ econMov('a', novo - abLoad()); }catch(e){}
+  try{ localStorage.setItem('jogodromo_aboboras', String(novo)); }catch(e){}
   try{ updateCoinTags(); }catch(e){}
 }
 function abAdd(n, motivo){
@@ -40230,10 +40613,12 @@ function evConverterSobras(){
   if(ab <= 0 && repN <= 0){ if(ev) evMarcarCarteira(ev.id); return null; }
   const tagEv = evPorId(tag);
   const moedas = (ab + repVal) * PASSE_AB_MOEDAS;
-  try{ localStorage.setItem('jogodromo_aboboras', '0'); }catch(e){}
-  est.rep = fica;
-  hlGuardarEstado(est);
-  saveCoins(loadCoins() + moedas);
+  econFaz('hl_fim', ()=>{
+    try{ abSave(0); }catch(e){ try{ localStorage.setItem('jogodromo_aboboras', '0'); }catch(e2){} }
+    est.rep = fica;
+    hlGuardarEstado(est);
+    saveCoins(loadCoins() + moedas);
+  });
   evMarcarCarteira(ev ? ev.id : '');
   try{ syncToServer(); }catch(e){}
   try{ updateCoinTags(); }catch(e){}
@@ -40336,15 +40721,13 @@ function hlComprarAboboras(moeda, n){
     if(!(n >= 1 && n <= HL_AB_MAX)) return {ok:false, motivo:'qtd'};
     const preco = n * HL_AB_PRECO_MOEDAS;
     if(!modoTesteDeMoedas() && loadCoins() < preco) return {ok:false, motivo:'moedas', faltam: preco - loadCoins()};
-    if(!spendCoins(preco)) return {ok:false, motivo:'moedas', faltam: preco};
-    abAdd(n, t('hl_comprou_why'));
+    if(!econFaz('hl_compra', ()=>{ if(!spendCoins(preco)) return false; abAdd(n, t('hl_comprou_why')); return true; }, {moeda: 'c'})) return {ok:false, motivo:'moedas', faltam: preco};
     return {ok:true, ab:n, preco, moeda:'c'};
   }
   if(moeda === 'd'){
     if(!(n >= 1 && n <= Math.floor(HL_AB_MAX / HL_AB_POR_DIAMANTE))) return {ok:false, motivo:'qtd'};
     if(!modoTesteDeMoedas() && loadDiamonds() < n) return {ok:false, motivo:'diamantes', faltam: n - loadDiamonds()};
-    if(!spendDiamonds(n)) return {ok:false, motivo:'diamantes', faltam: n};
-    abAdd(n * HL_AB_POR_DIAMANTE, t('hl_comprou_why'));
+    if(!econFaz('hl_compra', ()=>{ if(!spendDiamonds(n)) return false; abAdd(n * HL_AB_POR_DIAMANTE, t('hl_comprou_why')); return true; }, {moeda: 'd'})) return {ok:false, motivo:'diamantes', faltam: n};
     return {ok:true, ab: n * HL_AB_POR_DIAMANTE, preco:n, moeda:'d'};
   }
   return {ok:false, motivo:'moeda'};
@@ -40356,7 +40739,7 @@ function hlAbrirBau(bau, aoFechar){
   const b = HL_BAUS[bau];
   if(!b || !hlLigado()) return {ok:false, motivo:'bau'};
   if(!modoTesteDeMoedas() && abLoad() < b.preco) return {ok:false, motivo:'aboboras', faltam: b.preco - abLoad()};
-  if(!abSpend(b.preco)) return {ok:false, motivo:'aboboras', faltam: b.preco};
+  if(!econFaz('hl_bau', ()=>abSpend(b.preco), {bau})) return {ok:false, motivo:'aboboras', faltam: b.preco};
   const x = hlSortear(bau);
   const novo = !hlTem(x.tipo, x.id);
   const est = hlEstado();
@@ -40384,7 +40767,7 @@ function hlTrocarRep(chave, qtd){
   if(!est.rep[chave]) delete est.rep[chave];
   hlGuardarEstado(est);
   const ganho = n * it.rep;
-  abAdd(ganho, t('hl_troca_why'));
+  econFaz('hl_rep', ()=>abAdd(ganho, t('hl_troca_why')));
   return {ok:true, n, ganho};
 }
 function hlTrocarTodos(){
@@ -40394,7 +40777,7 @@ function hlTrocarTodos(){
   if(!n) return {ok:false};
   est.rep = {};
   hlGuardarEstado(est);
-  abAdd(ganho, t('hl_troca_why'));
+  econFaz('hl_rep', ()=>abAdd(ganho, t('hl_troca_why')));
   return {ok:true, n, ganho};
 }
 /* ---------- relógio e data ---------- */
@@ -40493,7 +40876,7 @@ function hlMsResgatar(i){
   msGuardar(o);
   const pr = HL_MS_PREMIO[i] || {};
   if(HL_MS_XP[i] > 0){ try{ passeGanharXp(HL_MS_XP[i]); }catch(e){} try{ nivelGanharXp(HL_MS_XP[i]); }catch(e){} }
-  if(pr.a > 0) abAdd(pr.a, t('ms_reward_why'));
+  if(pr.a > 0) econFaz('hl_missao', ()=>abAdd(pr.a, t('ms_reward_why')), {k: r.k, i});
   msAtualizarSelo();
   return true;
 }
@@ -40717,16 +41100,17 @@ function kshopComprar(sel){
   const maximo = sel.oferta ? Math.max.apply(null, KSHOP_OFERTAS.map(o=>o.dia)) : KSHOP_MAX;
   if(!(qtd >= 1 && qtd <= maximo)) return {ok:false, motivo:'qtd'};
   if(sel.oferta && !KSHOP_OFERTAS.some(o=>o.dia===qtd)) return {ok:false, motivo:'qtd'};
-  return kshopPagarEReceber(qtd, kshopPrecoDe({oferta:!!sel.oferta, dia:qtd}));
+  return econFaz('kshop', ()=>kshopPagarEReceber(qtd, kshopPrecoDe({oferta:!!sel.oferta, dia:qtd})), {op: 'compra', oferta: !!sel.oferta});
 }
 /* troca: moedas -> diamantes (n = quantos diamantes quer) */
 function kshopComprarTroca(n){
   n = Math.floor(Number(n));
   if(!(n >= 1 && n <= KSHOP_MAX)) return {ok:false, motivo:'qtd'};
-  return kshopPagarEReceber(n, kshopPrecoTroca(n));
+  return econFaz('kshop', ()=>kshopPagarEReceber(n, kshopPrecoTroca(n)), {op: 'compra'});
 }
 /* troca: diamantes -> moedas (n = quantos diamantes dá) */
-function kshopVender(n){
+function kshopVender(n){ return econFaz('kshop', ()=>kshopVenderAgora(n), {op: 'venda'}); }
+function kshopVenderAgora(n){
   n = Math.floor(Number(n));
   if(!(n >= 1 && n <= KSHOP_MAX)) return {ok:false, motivo:'qtd'};
   const ganha = kshopMoedasDaVenda(n);
@@ -40754,8 +41138,12 @@ function bauComprar(tipo, moeda){
     const saldo = usaDia ? loadDiamonds() : loadCoins();
     if(saldo < preco) return {ok:false, motivo: usaDia ? 'diamantes' : 'moedas', faltam: preco - saldo};
   }
-  if(!(usaDia ? spendDiamonds(preco) : spendCoins(preco))) return {ok:false, motivo: usaDia ? 'diamantes' : 'moedas', faltam: preco};
-  abrirBau(tipo);
+  const abriu = econFaz('bau_compra', ()=>{
+    if(!(usaDia ? spendDiamonds(preco) : spendCoins(preco))) return false;
+    abrirBau(tipo);
+    return true;
+  }, {t: tipo, moeda: usaDia ? 'd' : 'c'});
+  if(!abriu) return {ok:false, motivo: usaDia ? 'diamantes' : 'moedas', faltam: preco};
   return {ok:true, preco, moeda: usaDia ? 'd' : 'c'};
 }
 /* ============================================================
@@ -41908,6 +42296,7 @@ function msMoedas(n){
 function msTempo(gameId, seg){
   seg = Math.floor(Number(seg) || 0);
   if(!gameId || seg <= 0) return;
+  try{ econTempo(gameId, seg); }catch(e){}            // o servidor do Koda GB também conta (pelo relógio dele)
   try{ conviteContarTempo(seg); }catch(e){}          // quem entrou por convite: esses segundos contam pra quem indicou
   try{ premioPorTempo(seg); }catch(e){}              // 30 minutos jogando no dia = +100 moedas
   try{ nivelTempo(seg); }catch(e){}                  // XP do nível do jogador
@@ -42027,9 +42416,11 @@ function msResgatar(periodo, i){
   const r = rec.sel[i].r || {};
   const xp = Math.max(0, Math.floor(Number(rec.sel[i].x) || 0));
   if(xp > 0){ try{ passeGanharXp(xp); }catch(e){} try{ nivelGanharXp(xp); }catch(e){} }   // o XP vai pro Koda GB Pass e pro nível do jogador
-  if(r.c > 0) addCoins(r.c, t('ms_reward_why'));             // já sincroniza com a conta
-  if(r.d > 0) setTimeout(()=>addDiamonds(r.d, t('ms_reward_why')), r.c > 0 ? 900 : 0);
-  if(r.b && BAUS[r.b]) abrirBau(r.b);                          // o baú é sorteado e entregue agora; a animação vem por cima
+  econFaz('missao', ()=>{
+    if(r.c > 0) addCoins(r.c, t('ms_reward_why'));             // já sincroniza com a conta
+    if(r.d > 0){ saveDiamonds(loadDiamonds() + r.d); setTimeout(()=>{ try{ voarMoeda('d', r.d, 'ganhou', t('ms_reward_why')); }catch(e){} }, r.c > 0 ? 900 : 0); }
+    if(r.b && BAUS[r.b]) abrirBau(r.b);                          // o baú é sorteado e entregue agora; a animação vem por cima
+  }, {p: periodo, k: rec.k, s: i, ant: !!(rec.sel && rec.sel.length === 5)});
   msAtualizarSelo();
   return true;
 }
@@ -42426,7 +42817,7 @@ function passeDescr(r){
 /* abre os baús um depois do outro (todos já entregues; só a animação espera a vez) */
 function passeAbrirBaus(lista){
   if(!lista.length) return;
-  const prontos = lista.map(b=>({b, itens: bauEntregar(bauSortear(b))}));
+  const prontos = lista.map(b=>({b, itens: bauEntregar(bauSortear(b), b)}));
   try{ msEv('bau', lista.length); }catch(e){}
   let i = 0;
   const prox = ()=>{
@@ -42439,12 +42830,13 @@ function passeAbrirBaus(lista){
 /* pega vários de uma vez: [{tr, n}]. Tudo é marcado e entregue antes de qualquer animação. */
 function passePegar(lista){
   const e = passeCarregar();
-  const lote = {c:0, d:0, a:0, baus:[], novos:[], dups:[], n:0};
+  const lote = {c:0, d:0, a:0, baus:[], novos:[], dups:[], n:0, pegos:[]};
   lista.forEach(({tr, n})=>{
     if(!passePodePegar(e, tr, n)) return;
     const r = passeRecompensa(tr, n);
     e[tr].push(n);
     lote.n++;
+    lote.pegos.push([tr, n]);
     lote.c += r.c || 0; lote.d += r.d || 0;
     if(r.a){ if(hlLigado()) lote.a += r.a; else lote.c += r.a * PASSE_AB_MOEDAS; }
     if(r.b && BAUS[r.b]) lote.baus.push(r.b);
@@ -42458,12 +42850,14 @@ function passePegar(lista){
   passeGuardar(e);
   try{ syncToServer(); }catch(x){}
   const why = t('pass_why');
-  if(lote.c > 0) addCoins(lote.c, why);
-  if(lote.d > 0) setTimeout(()=>addDiamonds(lote.d, why), lote.c > 0 ? 900 : 0);
-  if(lote.a > 0) abAdd(lote.a, why);
+  econFaz('passe', ()=>{
+    if(lote.c > 0) addCoins(lote.c, why);
+    if(lote.d > 0){ saveDiamonds(loadDiamonds() + lote.d); setTimeout(()=>{ try{ voarMoeda('d', lote.d, 'ganhou', why); }catch(x){} }, lote.c > 0 ? 900 : 0); }
+    if(lote.a > 0) abAdd(lote.a, why);
+    passeAbrirBaus(lote.baus);
+  }, {t: e.t, l: lote.pegos});
   if(lote.novos.length){ try{ toast(t('pass_got_item', {x: lote.novos.map(passeNomeItem).join(', ')})); }catch(x){} }
   else if(lote.dups.length){ try{ toast(t('pass_dup', {x: lote.dups.map(passeNomeItem).join(', '), n: kshopMilhar(lote.dups.length * PASSE_DUP_MOEDAS)})); }catch(x){} }
-  passeAbrirBaus(lote.baus);
   try{ renderDestaques(); }catch(x){}
   return {ok:true, n: lote.n, lote};
 }
@@ -42484,7 +42878,7 @@ function passeComprar(plano){
   if(e.nv >= alvo) return {ok:true, ja:true};
   const custo = passeCustoDoPlano(plano, e);
   if(!modoTesteDeMoedas() && loadDiamonds() < custo) return {ok:false, motivo:'diamantes', faltam: custo - loadDiamonds()};
-  if(!spendDiamonds(custo)) return {ok:false, motivo:'diamantes', faltam: custo};
+  if(!econFaz('passe_compra', ()=>spendDiamonds(custo), {t: e.t, plano})) return {ok:false, motivo:'diamantes', faltam: custo};
   e.nv = alvo;
   passeGuardar(e);
   try{ syncToServer(); }catch(x){}
@@ -42497,7 +42891,7 @@ function passeComprarNivel(){
   const e = passeCarregar(), niv = passeNivelDe(e.xp);
   if(niv.fim) return {ok:false, motivo:'max'};
   if(!modoTesteDeMoedas() && loadCoins() < PASSE_NIVEL_MOEDAS) return {ok:false, motivo:'moedas', faltam: PASSE_NIVEL_MOEDAS - loadCoins()};
-  if(!spendCoins(PASSE_NIVEL_MOEDAS)) return {ok:false, motivo:'moedas', faltam: PASSE_NIVEL_MOEDAS};
+  if(!econFaz('passe_nivel', ()=>spendCoins(PASSE_NIVEL_MOEDAS), {t: e.t})) return {ok:false, motivo:'moedas', faltam: PASSE_NIVEL_MOEDAS};
   passeGanharXp(Math.max(1, niv.custo - niv.dentro));
   return {ok:true, nivel: passeNivelDe(passeCarregar().xp)};
 }
@@ -42871,7 +43265,8 @@ function bauSortear(tipo){
   return itens.sort((a, b2)=>ordem[a.k] - ordem[b2.k]);
 }
 /* entrega tudo de uma vez (antes da animação: fechou a página no meio, não perde nada) */
-function bauEntregar(itens){
+function bauEntregar(itens, tipo){ return econSub('bau', {t: String(tipo || '')}, ()=>bauEntregarAgora(itens)); }
+function bauEntregarAgora(itens){
   const dobro = turboDiamantes() > 1;
   let moedas = 0, dia = 0;
   itens.forEach(it=>{
@@ -42887,7 +43282,7 @@ function bauEntregar(itens){
 }
 function abrirBau(tipo, aoFechar){
   if(!BAUS[tipo]) return [];
-  const itens = bauEntregar(bauSortear(tipo));
+  const itens = bauEntregar(bauSortear(tipo), tipo);
   try{ msEv('bau', 1); }catch(e){}                         // missões: "abra baús"
   try{ mostrarBau(tipo, itens, its=>{ vooDoBau(itens); if(typeof aoFechar === 'function') aoFechar(its); }); }catch(e){}
   return itens;
@@ -43507,13 +43902,13 @@ function nivelGanharXp(xp){
   while(o.xp.pg < chegou){ o.xp.pg++; novos.push(o.xp.pg); if(novos.length >= 300){ o.xp.pg = chegou; break; } }   // subiu demais de uma vez: festa só dos primeiros
   rotGuardar(o);
   if(novos.length){
-    novos.forEach(n=>{
+    econFaz('nivel', ()=>novos.forEach(n=>{
       const p = nivelPremio(n);
       const itens = premioEntregar({c: p.c, d: p.d, b: p.b}, t('nv_why', {n}));
       if(p.classe) itens.push({k:'classe', id:p.classe, n});
       (p.tits || []).forEach(id=>itens.push({k:'titulo', id}));
       nivelFestas.push({n, itens});
-    });
+    }), {n: novos.slice()});
     rotSync(true);
     try{ syncPublicProfile(); }catch(e){}
     try{ toast(t('nv_toast', {n: kshopMilhar(novos[novos.length - 1])})); }catch(e){}
@@ -43577,7 +43972,7 @@ function premioEntregar(p, motivo){
     itens.push({k:'prot', n:p.prot});
   }
   if(p.b && BAUS[p.b]){
-    const dentro = bauEntregar(bauSortear(p.b));
+    const dentro = bauEntregar(bauSortear(p.b), p.b);
     try{ msEv('bau', 1); }catch(e){}
     itens.push({k:'bau', tipo:p.b, itens:dentro});
   }
@@ -43947,7 +44342,7 @@ function seqPegar(){
   o.seq.max = Math.max(o.seq.max, o.seq.n);
   rotGuardar(o);
   const p = seqPremio(o.seq.n);
-  const itens = premioEntregar(p, t('seq_why'));
+  const itens = econFaz('seq', ()=>premioEntregar(p, t('seq_why')), {n: o.seq.n, k: e.hoje});
   rotSync(true);
   try{ rotAtualizarUi(); }catch(x){}
   return {n: o.seq.n, premio: p, itens, gastou: e.gastar, perdeu: e.perdeu};
@@ -44263,11 +44658,11 @@ function bauGratisAbrir(aoFechar){
   o.bau.prox = Date.now() + BAU_GRATIS_MS;
   rotGuardar(o);
   rotSync(true);
-  abrirBau(tipo, ()=>{
+  econFaz('bau_gratis', ()=>abrirBau(tipo, ()=>{
     try{ nivelGanharXp(XP_BAU_GRATIS); }catch(e){}
     try{ rotAtualizarUi(); }catch(e){}
     if(typeof aoFechar === 'function'){ try{ aoFechar(); }catch(e){} }
-  });
+  }), {t: tipo});
   try{ rotAtualizarUi(); }catch(e){}
   return tipo;
 }
@@ -44305,7 +44700,7 @@ function roletaGirar(){
   o.rol.u = rotHoje();
   o.rol.n++;
   rotGuardar(o);
-  const itens = premioEntregar(escolhida.p, t('rol_why'));
+  const itens = econFaz('roleta', ()=>premioEntregar(escolhida.p, t('rol_why')), {i, k: rotHoje()});
   rotSync(true);
   try{ rotAtualizarUi(); }catch(e){}
   return {i, premio: escolhida.p, itens, jackpot: !!escolhida.jackpot};
@@ -44585,6 +44980,9 @@ function relComprar(){
   if(souVisitante()) return {ok:false, motivo:'login'};
   if(relComprado()) return {ok:false, motivo:'ja'};
   const of = relOferta();
+  return econFaz('rel', ()=>relComprarAgora(of), {tipo: of.tipo, k: rotHoje(), b: of.bau || ''});
+}
+function relComprarAgora(of){
   if(of.moeda === 'd'){
     if(!modoTesteDeMoedas() && loadDiamonds() < of.agora) return {ok:false, motivo:'diamantes', faltam: of.agora - loadDiamonds()};
     if(!spendDiamonds(of.agora)) return {ok:false, motivo:'diamantes', faltam: of.agora};
@@ -45465,7 +45863,7 @@ function ugcComprar(id){
   const preco = m.preco, moeda = ugcMoedaDe(m), motivo = moeda === 'd' ? 'diamantes' : 'moedas';
   if(preco > 0){
     if(!modoTesteDeMoedas() && presenteSaldoDe(moeda) < preco) return {ok: false, motivo, faltam: preco - presenteSaldoDe(moeda)};
-    if(!gastarItem({moeda, price: preco})) return {ok: false, motivo, faltam: preco};
+    if(!econFaz('ugc_compra', ()=>gastarItem({moeda, price: preco}), {para: String(m.criador || ''), peca: String(id).slice(0, 80)})) return {ok: false, motivo, faltam: preco};
   }
   ugcGanhar(id);
   const u = FIREBASE_ENABLED ? fbAuth().currentUser : null;
@@ -45511,8 +45909,8 @@ async function ugcChecarVendas(){
       if(dia){ totalDia += Math.max(1, Math.floor(v.price * UGC_PARTE_CRIADOR)); nDia++; }
       else { total += Math.floor(ugcPrecoDe(v.price, v.createdAt) * UGC_PARTE_CRIADOR); n++; }
     }
-    if(total > 0) addCoins(total, t(n === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n}));
-    if(totalDia > 0) addDiamonds(totalDia, t(nDia === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n: nDia}));
+    if(total > 0) econFaz('ugc_venda', ()=>addCoins(total, t(n === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n})));
+    if(totalDia > 0) econFaz('ugc_venda', ()=>addDiamonds(totalDia, t(nDia === 1 ? 'ugc_venda_1' : 'ugc_venda_n', {n: nDia})));
   }catch(e){}
   ugcConferindo = false;
 }
@@ -48729,8 +49127,10 @@ function pzMigrarMolduras(){
       if(mudou) localStorage.setItem('jogodromo_evento', JSON.stringify(est));
     }
   }catch(e){}
-  if(moedas > 0) addCoins(moedas, t('pz_refund_why'));
-  if(dia > 0) addDiamonds(dia, t('pz_refund_why'));
+  econFaz('reembolso', ()=>{
+    if(moedas > 0) addCoins(moedas, t('pz_refund_why'));
+    if(dia > 0) addDiamonds(dia, t('pz_refund_why'));
+  }, {k: 'molduras'});
   if(tinha.length) setTimeout(()=>{ try{ toast(t('pz_molduras_sairam')); }catch(e){} }, 2600);
   try{ syncToServer(); syncPublicProfile(); }catch(e){}
 }
@@ -51358,7 +51758,7 @@ function devolverPersonagem(){
   delete c.personagem;
   c.personagemDevolvido = true;
   try{ localStorage.setItem('jogodromo_cosmeticos', JSON.stringify(c)); }catch(e){ return; }
-  if(total > 0) addCoins(moedaNova(total), t('pers_refund_msg'));
+  if(total > 0) econFaz('reembolso', ()=>addCoins(moedaNova(total), t('pers_refund_msg')), {k: 'personagem'});
   else { try{ syncToServer(); }catch(e){} }
 }
 
@@ -54374,6 +54774,8 @@ async function submitScoreToServer(gameId, value){
   if(!FIREBASE_ENABLED || !gameId || typeof value !== 'number') return;
   const user = fbAuth().currentUser;
   if(!user) return;
+  /* com o servidor do Koda GB, a pontuação vai por ele (ele confere que a pessoa estava jogando e guarda no ranking) */
+  try{ if(econPontuar(gameId, value)) return; }catch(e){}
   try{
     const ref = fbDb().collection('gameScores').doc(scoreDocId(gameId, user.email));
     const doc = await ref.get();
@@ -54396,6 +54798,8 @@ async function submitScoreToServer(gameId, value){
 }
 async function fetchGameTop(gameId){
   if(!FIREBASE_ENABLED) return [];
+  const srv = await econGet('/api/placar?jogo=' + encodeURIComponent(gameId));
+  if(srv && Array.isArray(srv.lista)) return srv.lista.map(x=>Object.assign({gameId}, x));
   try{
     const snap = await fbDb().collection('gameScores').where('gameId','==',gameId).get();
     return snap.docs.map(d=>d.data()).filter(x=>x && x.best>0)
@@ -54405,6 +54809,8 @@ async function fetchGameTop(gameId){
 /* temporada: soma o melhor do mês de cada pessoa em todos os jogos */
 async function fetchSeason(){
   if(!FIREBASE_ENABLED) return {mes:monthKeyOf(), lista:[], campeaoAnterior:null, mesAnterior:null};
+  const srv = await econGet('/api/temporada');
+  if(srv && Array.isArray(srv.lista)) return {mes: srv.mes, lista: srv.lista, campeaoAnterior: srv.campeaoAnterior || null, mesAnterior: srv.mesAnterior || null};
   try{
     const snap = await fbDb().collection('gameScores').get();
     const mes = monthKeyOf();
