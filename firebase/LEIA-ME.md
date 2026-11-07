@@ -6,6 +6,9 @@ Esta pasta **não vai para o ar com o site** (está no `.assetsignore`).
 - `firestore.rules.original` — cópia das regras que estavam no ar antes destas mudanças (pra comparar ou voltar).
 
 ## O que mudou
+- **Ranking (gameScores)**: ninguém mais grava aqui. O ranking passou para o **servidor do Koda GB**
+  (pasta `servidor/`), que confere se a pessoa estava jogando de verdade. Publicar esta mudança é opcional:
+  o site já não grava mais aqui quando o servidor está no ar.
 - **Peças vendidas por diamantes**: `pecasCriadas` e `pecasVendas` aceitam o campo `moeda` (`'d'` = diamantes).
 - **Vídeo no chat em partes**: coleção nova `midias` (cada parte do vídeo; só quem está na conversa manda e vê).
 - **Jogo em dupla**: coleção nova `projetosDupla` (os dois membros leem e editam) e `gameSubmissions`
@@ -15,4 +18,4 @@ Esta pasta **não vai para o ar com o site** (está no `.assetsignore`).
 1. Firebase Console → projeto **jogodromo** → **Firestore Database** → aba **Regras** (Rules).
 2. Apague tudo, cole o conteúdo de `firestore.rules` e toque em **Publicar** (Publish).
 
-Ordem: publique as **regras** e os **workers** (`agente/` e `multiplayer/`) antes do **site**.
+Ordem: publique as **regras** e os **workers** (`agente/` e `multiplayer/`) antes do **site**. O servidor do Koda GB (`servidor/`) vai junto com o site, sozinho.

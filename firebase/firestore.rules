@@ -239,12 +239,12 @@ service cloud.firestore {
     // ---------- pontuações (ranking mundial e temporada) ----------
     // todo mundo lê; cada pessoa só escreve a pontuação dela, e o
     // documento tem que ser o dela mesma (id "idDoJogo__email")
+    // O ranking agora fica no SERVIDOR DO KODA GB (pasta servidor/): ele confere que a pessoa estava jogando
+    // de verdade antes de aceitar a pontuação. Aqui ficou só o ranking antigo, que o servidor copia uma vez.
+    // Ninguém mais grava aqui (antes qualquer um podia escrever um recorde inventado).
     match /gameScores/{scoreId} {
       allow read: if logado();
-      allow create, update: if logado() && naoEstouBanido()
-                            && request.resource.data.userEmail == meuEmail()
-                            && request.resource.data.best is number
-                            && request.resource.data.best >= 0;
+      allow create, update: if false;
       allow delete: if souAdmin() || sou(resource.data.userEmail);
     }
 

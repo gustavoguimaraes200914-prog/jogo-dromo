@@ -5,3 +5,11 @@ wrangler.toml
 firebase
 jogos-exemplo
 GUIA-LOGIN-GOOGLE.md
+servidor
+node_modules
+package.json
+package-lock.json
+.dev.vars
+.wrangler
+.git
+prototipo-musica
