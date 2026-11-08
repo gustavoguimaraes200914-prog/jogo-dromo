@@ -24702,8 +24702,17 @@ function lerHtml(codigo){
   return {scripts: scripts};
 }
 /* lê (e guarda) os pedaços de cada script; o código inteiro vira um "documento" com tudo o que a IA precisa */
+/* os últimos documentos lidos ficam guardados: uma troca lê o mesmo código várias vezes (achar, conferir, criar a loja) */
+var DOCS_LIDOS = [];
 function lerDocumento(codigo){
   codigo = String(codigo || '');
+  for(var i = 0; i < DOCS_LIDOS.length; i++) if(DOCS_LIDOS[i].codigo === codigo){ var d0 = DOCS_LIDOS[i]; if(i){ DOCS_LIDOS.splice(i, 1); DOCS_LIDOS.unshift(d0); } return d0; }
+  var doc = lerDocumentoNovo(codigo);
+  DOCS_LIDOS.unshift(doc);
+  if(DOCS_LIDOS.length > 6) DOCS_LIDOS.pop();
+  return doc;
+}
+function lerDocumentoNovo(codigo){
   var h = lerHtml(codigo);
   var doc = {codigo: codigo, linhas: indiceDeLinhas(codigo), scripts: h.scripts, js: []};
   h.scripts.forEach(function(sc, n){
@@ -24729,7 +24738,15 @@ function textosDosScripts(doc){
   return r;
 }
 /* JavaScript que o navegador aceita? -> true | 'cortado' | {msg} | null (não dá pra conferir aqui) */
+var COMPILADOS = new Map();
 function compila(js){
+  if(COMPILADOS.has(js)) return COMPILADOS.get(js);
+  var r = compilaAgora(js);
+  if(COMPILADOS.size > 40) COMPILADOS.clear();
+  COMPILADOS.set(js, r);
+  return r;
+}
+function compilaAgora(js){
   if(/^\s*(import|export)\s/m.test(js)) return null;
   try{ new Function(js); return true; }
   catch(e){
@@ -25004,6 +25021,7 @@ function fmtItem(it, e){
   var partes = [ch('id') + dp + textoJs(it.id, e.aspas), ch('nome') + dp + textoJs(it.nome, e.aspas)];
   if(it.desc) partes.push(ch('desc') + dp + textoJs(it.desc, e.aspas));
   partes.push(ch('preco') + dp + it.preco, ch('moeda') + dp + textoJs(it.moeda, e.aspas), ch('unico') + dp + (it.unico ? 'true' : 'false'));
+  if(typeof it.jogo === 'number' && it.jogo > 0) partes.push(ch('jogo') + dp + Math.round(it.jogo));
   return e.esp ? '{ ' + partes.join(', ') + ' }' : '{' + partes.join(', ') + '}';
 }
 
@@ -25394,6 +25412,7 @@ function lojaCriar(codigo, opts){
       if(ef && CONCEITOS[ef] && !at[ef]) ef = null;
       var base = ef ? itemDoEfeito(ef, lj, genero, at[ef] ? passoDaSoma(at[ef][0]) : 1) : null;
       var it = {id: p.id && !usados[p.id] ? idLimpo(p.id) : idDoNome(p.nome || (base && base.id), usados), nome: p.nome ? capitalizar(p.nome) : base.nome, desc: p.desc || (base ? base.desc : ''), preco: 0, moeda: p.moeda || opts.moeda || 'c', unico: p.unico != null ? p.unico : true};
+      if(typeof p.jogo === 'number' && p.jogo > 0) it.jogo = p.jogo;
       it.preco = p.preco ? limitar(Math.round(p.preco), 1, maxDe(it.moeda)) : (it.moeda === 'd' ? paraDiamantes(base ? base.preco : 300) : (base ? base.preco : 300));
       usados[it.id] = 1;
       itens.push(it);
@@ -31861,16 +31880,25 @@ Object.keys(TXL_DADOS4).forEach(function(k){
    As moedas que a pessoa pega no jogo NÃO viram moedas do Koda GB (senão
    daria pra ganhar moedas infinitas): só as compras mudam.
 ==================================================================== */
-var MOEDA_FORTE = lista('coin,coins,moeda,moedas,moneda,monedas,gold,ouro,oro,gem,gems,gema,gemas,joia,joias,jewel,jewels,diamond,diamonds,diamante,diamantes,crystal,crystals,cristal,cristais,cristales,ruby,rubies,rubi,rubis,emerald,emeralds,esmeralda,esmeraldas,money,dinheiro,dinero,grana,cash,buck,bucks,dollar,dollars,dolar,dolares,token,tokens,ficha,fichas,credit,credits,credito,creditos,pearl,pearls,perola,perolas,currency,saldo,monete,moneta,soldi,geld,munten,argent,pieces,doubloons,dobroes,gil,zenny,rupees,rupias,bits,bolts,parafusos,scrap,sucata');
+var MOEDA_FORTE = lista('balance,wallet,carteira,bank,banco,coin,coins,moeda,moedas,moneda,monedas,gold,ouro,oro,gem,gems,gema,gemas,joia,joias,jewel,jewels,diamond,diamonds,diamante,diamantes,crystal,crystals,cristal,cristais,cristales,ruby,rubies,rubi,rubis,emerald,emeralds,esmeralda,esmeraldas,money,dinheiro,dinero,grana,cash,buck,bucks,dollar,dollars,dolar,dolares,token,tokens,ficha,fichas,credit,credits,credito,creditos,pearl,pearls,perola,perolas,currency,saldo,monete,moneta,soldi,geld,munten,argent,pieces,doubloons,dobroes,gil,zenny,rupees,rupias,bits,bolts,parafusos,scrap,sucata');
 var MOEDA_MEDIA = lista('star,stars,estrela,estrelas,estrella,estrellas,shell,shells,concha,conchas,orb,orbs,orbe,orbes,seed,seeds,sementes,leaf,leaves,folhas,candy,candies,doces,bone,bones,ossos,souls,almas,acorns,bolotas,points,ponto,pontos,score,puntos,puntaje,pts,pontuacao,xp,exp');
 var MOEDA_FRACA = lista('points,ponto,pontos,score,puntos,puntaje,pts,pontuacao,xp,exp');
 /* palavras que dizem que a variável NÃO é o saldo (é a lista de moedas na tela, o preço, a meta, o recorde...) */
 var MOEDA_NAO = lista('list,lista,arr,array,img,image,imagem,imgs,sprite,sprites,sound,som,snd,sfx,audio,color,cor,colour,x,y,z,size,tamanho,radius,raio,r,spawn,spawner,timer,speed,vel,velocidade,icon,icone,el,elem,element,div,span,text,txt,texto,label,pos,rect,w,h,anim,frame,frames,max,min,cost,costs,custo,custos,price,prices,preco,precos,precio,precios,value,valor,rate,chance,interval,needed,need,required,requerido,goal,meta,objetivo,target,alvo,multiplier,mult,bonus,per,display,shown,hud,node,btn,button,botao,ui,str,fmt,format,pool,group,grupo,layer,info,obj,objs,objects,entities,items,itens,high,best,record,recorde,melhor,top,last,prev,old,anterior,start,starting,initial,inicial,inicio,reward,recompensa,premio,drop,drops,chance,pickup,pickups,particle,particles,particulas,anim,animation,width,height,offset,angle,rot,spin,glow,sparkle,shine,brilho,font,fonte,key,keys,storage,saved,save,salvo,save,earned,total_earned,lifetime,mesh,geo,material,texture,tex,pattern,canvas,ctx,svg,path,map,mapa,grid,tile,tiles,row,col,count_el,meter,bar,barra,pct,percent,ratio');
+/* o que se gasta pra USAR (tiro, magia, vida), não pra comprar: nunca vira moeda só pela estrutura */
+var CONSUMIVEL = lista('ammo,bullet,bullets,bala,balas,municao,arrow,arrows,flecha,flechas,mana,energy,energia,stamina,fuel,combustivel,hp,health,saude,vida,vidas,life,lives,bomb,bombs,bomba,bombas,potion,potions,pocao,pocoes,key,keys,chave,chaves,charge,charges,carga,cargas,shot,shots,tiro,tiros,move,moves,jogada,jogadas,turn,turns,turno,turnos,time,tempo,seconds,segundos,timer,stock,estoque,qty,quantity,quantidade,amount,count,total,remaining,left,restante,index,idx,len,length,num,i,j,k,n,m,t,dt,step,passo,level,nivel,lvl,wave,onda,round,rodada,combo,streak,hits,dano,damage,armor,shield,escudo,oxygen,oxigenio,ar,water,agua,food,comida,hunger,fome,ink,tinta,paint,battery,bateria,power,poder,heat,calor,rage,fury,focus,cooldown,delay,lock');
 function lista(s){ var o = {}; s.split(',').forEach(function(w){ if(w) o[w] = 1; }); return o; }
 function palavrasDoId(id){
   return semAcento(String(id)).replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
 }
 /* 3 = com certeza é dinheiro (coins, ouro, gemas), 2 = talvez (estrelas, conchas), 1 = pontos que às vezes compram coisas */
+/* nome que não está em lista nenhuma: pode ser moeda (cookies, beans, nuts...) se for gasto numa compra */
+function podeSerMoedaPelaEstrutura(nome){
+  var ws = palavrasDoId(nome);
+  if(!ws.length || nome.length < 3 || /^[A-Z0-9_]+$/.test(nome)) return false;
+  return !ws.some(function(w){ return MOEDA_NAO[w] || CONSUMIVEL[w]; });
+}
+var RE_COMPRA_NOME = /buy|purchase|shop|store|upgrade|unlock|compr|loja|tienda|adquir|desbloq|melhor|mejor|achat|acheter|kauf|acquist|compra|hire|recruit|contrat|evolu/i;
 function forcaDeMoeda(nome, ensinado){
   if(ensinado && String(nome).toLowerCase() === String(ensinado).toLowerCase()) return 3;
   var ws = palavrasDoId(nome);
@@ -31937,7 +31965,14 @@ function moedasDoJogo(codigo, opts){
       var nx = T[j + 1];
       if(nx && (nx.v === '.' || nx.v === '?.' || nx.v === '(')) continue;
       var f = forcaDeMoeda(T[j].v, opts.ensinado);
-      if(!f) continue;
+      if(!f){
+        /* nome livre: só entra na conta se for gasto com -= ou = x - y (e depois precisa ter compra de verdade) */
+        var o1 = nx && nx.v, o2 = T[j + 2];
+        if(!(o1 === '-=' || (o1 === '=' && o2 && o2.v === T[j].v) || o1 === '+=' || o1 === '=' && o2 && o2.t === 'num') || !podeSerMoedaPelaEstrutura(T[j].v)) continue;
+        var cx = caminhoAte(T, j);
+        if(!cx || (!porNome[cx.txt] && o1 !== '-=' && o1 !== '=')) continue;
+        f = 0.5;
+      }
       var c = caminhoAte(T, j);
       if(!c) continue;
       var m = porNome[c.txt] || (porNome[c.txt] = {caminho: c.txt, nome: c.ultimo, forca: f, ganha: [], gasta: [], compara: 0, lista: false, numero: false, usos: 0});
@@ -31951,6 +31986,12 @@ function moedasDoJogo(codigo, opts){
         var r0 = T[j + 2];
         if(r0 && (r0.v === '[' || r0.v === '{' || r0.v === 'new')) m.lista = true;
         else if(r0 && r0.t === 'num') m.numero = true;
+        else if(r0 && r0.v === 'Math' && T[j + 3] && T[j + 3].v === '.' && T[j + 4] && T[j + 4].v === 'max' && T[j + 5] && T[j + 5].v === '('){
+          /* coins = Math.max(0, coins - X) */
+          var fmx = par(T, j + 5), vg = T[j + 6] && T[j + 6].t === 'num' && T[j + 7] && T[j + 7].v === ',' ? j + 8 : -1;
+          var c4 = vg > 0 ? caminhoDesde(T, vg) : null;
+          if(c4 && c4.txt === c.txt && T[c4.fim + 1] && T[c4.fim + 1].v === '-' && fmx > c4.fim + 2) m.gasta.push({js: js, ini: c.ini, fim: j, op: '=max', rhs: c4.fim + 2, rhsFim: fmx - 1, fecha: fmx});
+        }
         else {
           var c2 = caminhoDesde(T, j + 2);
           if(c2 && c2.txt === c.txt && T[c2.fim + 1]){
@@ -31963,6 +32004,120 @@ function moedasDoJogo(codigo, opts){
       if(/^(>=|>|<|<=)$/.test(op) || (antes && /^(>=|>|<|<=)$/.test(antes.v))) m.compara++;
     }
   });
+  /* React: const [coins, setCoins] = useState(0); setCoins(coins - 50) / setCoins(c => c - 50) / setCoins(c => c + 1) */
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T, setters = {};
+    for(var j = 0; j + 6 < T.length; j++){
+      if(T[j].v !== '[' || T[j + 1].t !== 'id' || T[j + 2].v !== ',' || T[j + 3].t !== 'id' || T[j + 4].v !== ']' || T[j + 5].v !== '=') continue;
+      var u = j + 6; if(T[u] && T[u].v === 'React' && T[u + 1] && T[u + 1].v === '.') u += 2;
+      if(!T[u] || T[u].v !== 'useState') continue;
+      var f0 = forcaDeMoeda(T[j + 1].v, opts.ensinado);
+      if(!f0) continue;
+      setters[T[j + 3].v] = T[j + 1].v;
+      var mm = porNome[T[j + 1].v] || (porNome[T[j + 1].v] = {caminho: T[j + 1].v, nome: T[j + 1].v, forca: f0, ganha: [], gasta: [], compara: 0, lista: false, numero: false, usos: 0});
+      mm.numero = true; mm.react = T[j + 3].v;
+    }
+    Object.keys(setters).forEach(function(st){
+      var nome = setters[st], m = porNome[nome];
+      for(var k = 0; k < T.length; k++){
+        if(T[k].t !== 'id' || T[k].v !== st || !T[k + 1] || T[k + 1].v !== '(' || (T[k - 1] && T[k - 1].v === '.')) continue;
+        var fe = par(T, k + 1); if(fe < 0) continue;
+        var a0 = k + 2, base = null, opIdx = -1;
+        if(T[a0] && T[a0].t === 'id' && T[a0].v === nome && T[a0 + 1] && (T[a0 + 1].v === '-' || T[a0 + 1].v === '+')){ base = nome; opIdx = a0 + 1; }
+        else {
+          /* (c) => c - 50 / c => c - 50 / function(c){ return c - 50 } */
+          var q = a0, pn = null;
+          if(T[q] && T[q].v === '(' && T[q + 1] && T[q + 1].t === 'id' && T[q + 2] && T[q + 2].v === ')' && T[q + 3] && T[q + 3].v === '=>'){ pn = T[q + 1].v; q += 4; }
+          else if(T[q] && T[q].t === 'id' && T[q + 1] && T[q + 1].v === '=>'){ pn = T[q].v; q += 2; }
+          if(pn && T[q] && T[q].v === pn && T[q + 1] && (T[q + 1].v === '-' || T[q + 1].v === '+')){ base = pn; opIdx = q + 1; }
+        }
+        if(opIdx < 0) continue;
+        if(T[opIdx].v === '+') m.ganha.push({js: js, k: k});
+        else m.gasta.push({js: js, ini: k, fim: k, op: 'set', pIni: opIdx + 1, pFim: fe - 1, fecha: fe});
+      }
+    });
+  });
+  /* funções (e getters) que só respondem "tem saldo?": const canAfford = c => coins >= c / get canBuy(){ return this.money >= this.price } */
+  Object.keys(porNome).forEach(function(k){
+    var m = porNome[k];
+    if(m.lista) return;
+    m.guardasFn = [];
+    doc.js.forEach(function(js){
+      if(js.sc.koda) return;
+      var T = js.T;
+      for(var q = 0; q < T.length; q++){
+        if(T[q].t !== 'id' || T[q].v !== m.nome || (T[q + 1] && (T[q + 1].v === '.' || T[q + 1].v === '?.'))) continue;
+        var c = caminhoAte(T, q); if(!c || c.txt !== m.caminho) continue;
+        var op = T[q + 1] && T[q + 1].v;
+        if(!/^(>=|>|<|<=)$/.test(op)) continue;
+        var antes = T[c.ini - 1]; if(!antes || (antes.v !== 'return' && antes.v !== '=>')) continue;
+        var e = fimDaExpr(T, c.ini), dep = T[e + 1];
+        if(dep && dep.v !== ';' && dep.v !== '}' && !dep.nl) continue;
+        for(var z = q + 2; z <= e; z++) if(/^(&&|\|\||\?)$/.test(T[z].v)) { e = -1; break; }
+        if(e < 0) continue;
+        var nome = null, params = [], getter = false;
+        if(antes.v === '=>'){
+          var w = c.ini - 2;
+          if(T[w] && T[w].v === ')'){ var pa = parAntes(T, w); params = paramsEntre(T, pa + 1, w - 1); w = pa - 1; }
+          else if(T[w] && T[w].t === 'id'){ params = [T[w].v]; w--; }
+          if(T[w] && T[w].v === '=' && T[w - 1] && T[w - 1].t === 'id') nome = T[w - 1].v;
+          else if(T[w] && T[w].v === ':' && T[w - 1] && T[w - 1].t === 'id') nome = T[w - 1].v;
+        } else {
+          var fn = funcaoEmVolta(T, c.ini);
+          if(!fn || !fn.nome) continue;
+          /* o return precisa ser a primeira coisa da função */
+          if(c.ini - 1 !== fn.abre + 1) continue;
+          nome = fn.nome; params = fn.params;
+          var pp = parAntes(T, fn.abre - 1); getter = !!(T[pp - 2] && T[pp - 2].v === 'get' && !params.length);
+        }
+        if(!nome) continue;
+        var sentido = /^(>=|>)$/.test(op) ? 'tem' : 'falta', xIni = q + 2, xFim = e;
+        var ip = xIni === xFim && T[xIni].t === 'id' ? params.indexOf(T[xIni].v) : -1;
+        m.guardasFn.push({nome: nome, params: params, getter: getter, sentido: sentido, ip: ip, js: js, xIni: xIni, xFim: xFim});
+      }
+    });
+  });
+  /* funções que mexem no saldo com o que recebem: function addCoins(n){ coins += n } / function spendCoins(n){ coins -= n } */
+  Object.keys(porNome).forEach(function(k){
+    var m = porNome[k];
+    if(m.lista) return;
+    var funcs = [];
+    function regFn(js, kk, sinal){
+      var T = js.T, fn = funcaoEmVolta(T, kk);
+      if(!fn || !fn.nome) return;
+      /* o que soma/tira é o parâmetro sozinho */
+      var op = T[kk + 1] && T[kk + 1].v, r = op === '=' ? null : kk + 2;
+      if(op === '=') { var c2 = caminhoDesde(T, kk + 2); if(c2) r = c2.fim + 2; }
+      if(r == null || !T[r] || T[r].t !== 'id' || fn.params.indexOf(T[r].v) < 0) return;
+      var e = fimDaExpr(T, r); if(e !== r) return;
+      if(funcs.some(function(x){ return x.nome === fn.nome; })) return;
+      funcs.push({nome: fn.nome, ip: fn.params.indexOf(T[r].v), sinal: sinal, js: js, abre: fn.abre});
+    }
+    m.ganha.forEach(function(g){ var T = g.js.T, op = T[g.k + 1] && T[g.k + 1].v; if(op === '+=' || op === '=') regFn(g.js, g.k, 1); });
+    m.gasta.forEach(function(g){ if(g.op === '-=' || g.op === '=-'){ var cp0 = compraDoGasto(doc, g, m); if(!cp0) regFn(g.js, g.fim, -1); } });
+    if(!funcs.length) return;
+    doc.js.forEach(function(js){
+      if(js.sc.koda) return;
+      var T = js.T;
+      for(var q = 0; q < T.length; q++){
+        if(T[q].t !== 'id' || !T[q + 1] || T[q + 1].v !== '(') continue;
+        var F = funcs.filter(function(x){ return x.nome === T[q].v; })[0];
+        if(!F) continue;
+        var cc = caminhoAte(T, q); if(!cc) continue;
+        if(T[cc.ini - 1] && T[cc.ini - 1].v === 'function') continue;
+        var fe = par(T, q + 1); if(fe < 0) continue;
+        if(T[fe + 1] && T[fe + 1].v === '{') continue;
+        var args = [], ini = q + 2, d = 0;
+        for(var z = q + 2; z <= fe; z++){ var t = T[z]; if(z === fe || (d === 0 && t.v === ',')){ args.push([ini, z - 1]); ini = z + 1; continue; } if(t.t === 'p' && /^[([{]$/.test(t.v)) d++; else if(t.t === 'p' && /^[)\]}]$/.test(t.v)) d--; }
+        var a0 = args[F.ip]; if(!a0 || a0[1] < a0[0]) continue;
+        if(F.sinal > 0){
+          if(T[a0[0]].v !== '-' || a0[1] < a0[0] + 1) continue;
+          m.gasta.push({js: js, ini: cc.ini, fim: q, op: 'fn', pIni: a0[0] + 1, pFim: a0[1], fecha: fe});
+        } else m.gasta.push({js: js, ini: cc.ini, fim: q, op: 'fn', pIni: a0[0], pFim: a0[1], fecha: fe});
+      }
+    });
+  });
   var moedas = [];
   Object.keys(porNome).forEach(function(k){
     var m = porNome[k];
@@ -31970,11 +32125,15 @@ function moedasDoJogo(codigo, opts){
     m.compras = []; m.perdas = 0; m.semConverter = [];
     m.gasta.forEach(function(g){
       var cp = compraDoGasto(doc, g, m);
-      if(cp) m.compras.push(cp); else if(g.op !== '=-') m.perdas++;
+      if(cp) m.compras.push(cp); else if(g.op !== '=-' && g.op !== '=max' && g.op !== 'set' && g.op !== 'fn') m.perdas++;
     });
     var temCompra = m.compras.length > 0;
     if(m.forca >= 3 && (m.ganha.length || m.gasta.length || m.numero)) moedas.push(m);
     else if(m.forca >= 1 && temCompra) moedas.push(m);
+    else if(m.forca > 0 && temCompra && (m.numero || m.ganha.length)){
+      m.compras = m.compras.filter(function(cp){ return lugarDeCompra(cp); });
+      if(m.compras.length){ m.estrutura = true; moedas.push(m); }
+    }
   });
   /* "state.money" e "money" no mesmo jogo: fica o que tem compra */
   moedas.sort(function(a, b){ return (b.compras.length - a.compras.length) || (b.forca - a.forca) || (b.usos - a.usos); });
@@ -31984,33 +32143,156 @@ function moedasDoJogo(codigo, opts){
     m.rotulo = rotuloDaMoeda(doc, m);
     m.convertidas = m.compras.filter(function(c){ return c.convertida; }).length;
   });
+  juntarCompras(moedas);
   return moedas;
 }
+/* o pedaço do código que vira o "depois de pagar" de uma compra */
+function faixaDoEfeito(cp){
+  var g = cp.guarda;
+  if(g.tipo === 'retorno') return [g.gFim + 1, g.fimCaso != null ? g.fimCaso : g.fecha - 1];
+  if(g.tipo === 'expr') return [g.ifK, g.fim];
+  return [g.abre + 1, g.fecha - 1];
+}
+/* duas moedas na mesma compra: if (coins >= 100 && gems >= 2) { coins -= 100; gems -= 2; ... }, um if dentro do outro,
+   ou "if (gems < 2) return; if (coins < 100) return; gems -= 2; coins -= 100;". A que entra primeiro no código leva as outras. */
+function juntarCompras(moedas){
+  var todas = [];
+  moedas.forEach(function(m){ m.compras.forEach(function(c){ c.juntas = null; c.levada = null; if(c.guarda.tipo !== 'expr') todas.push(c); }); });
+  todas.forEach(function(c2){
+    var lider = null;
+    todas.forEach(function(cp){
+      if(cp === c2 || cp.js !== c2.js || cp.moeda === c2.moeda) return;
+      var f = faixaDoEfeito(cp);
+      if(c2.gIni < f[0] || c2.sFim > f[1] || cp.guarda.ifK > c2.guarda.ifK) return;
+      if(cp.guarda.ifK === c2.guarda.ifK && cp.gIni > c2.gIni) return;
+      if(!lider || cp.guarda.ifK < lider.guarda.ifK) lider = cp;
+    });
+    if(lider) c2.levada = lider;
+  });
+  todas.forEach(function(c2){ if(c2.levada){ while(c2.levada.levada) c2.levada = c2.levada.levada; (c2.levada.juntas = c2.levada.juntas || []).push(c2); if(c2.levada.convertida) c2.convertida = true; } });
+  moedas.forEach(function(m){ m.convertidas = m.compras.filter(function(c){ return c.convertida; }).length; });
+}
+/* moeda rara do jogo (gemas, diamantes, cristais...): combina com os diamantes do Koda GB */
+var MOEDA_RARA = lista('gem,gems,gema,gemas,diamond,diamonds,diamante,diamantes,crystal,crystals,cristal,cristais,cristales,jewel,jewels,joia,joias,ruby,rubies,rubi,rubis,emerald,emeralds,esmeralda,esmeraldas,pearl,pearls,perola,perolas,premium,diamant,diamanten,gemme,gemma');
+function moedaRara(m){ return palavrasDoId(m.nome).some(function(w){ return MOEDA_RARA[w]; }); }
+/* o jogo tem moeda comum E moeda rara com compras? (aí cada uma vai pra que combina) */
+function moedasMistas(moedas){
+  var comCompra = moedas.filter(function(m){ return m.compras.some(function(c){ return !c.convertida; }); });
+  return comCompra.length >= 2 && comCompra.some(moedaRara) && comCompra.some(function(m){ return !moedaRara(m); });
+}
 
+/* a compra está num lugar de comprar? (função buyX/upgrade/comprar, tecla de loja, texto "comprar"/"not enough") */
+function lugarDeCompra(cp){
+  var T = cp.js.T, fn = funcaoEmVolta(T, cp.gIni);
+  if(fn && fn.nome && RE_COMPRA_NOME.test(fn.nome)) return true;
+  var g = cp.guarda, a = Math.max(0, (g.ifK || cp.gIni) - 30), b = Math.min(T.length - 1, (g.fecha || cp.sFim) + 30);
+  for(var k = a; k <= b; k++){
+    var t = T[k];
+    if((t.t === 'str' || t.t === 'tpl') && /\b(buy|bought|purchase|shop|store|not enough|insufficient|comprar|comprou|compra|loja|insuficiente|faltam|tienda|no tienes|upgrade|unlock)/i.test(t.v)) return true;
+    if(t.t === 'id' && RE_COMPRA_NOME.test(t.v) && T[k + 1] && T[k + 1].v === '(') return true;
+  }
+  return false;
+}
 /* ---- uma compra: o gasto com a conferência de saldo antes ---- */
 function compraDoGasto(doc, g, m){
   var js = g.js, T = js.T, s = g.ini;
-  var cp = {js: js, moeda: m, gIni: s, gFim: g.fim, op: g.op};
+  var cp = {js: js, moeda: m, gIni: s, gFim: g.fim, op: g.op, doc: doc};
   /* o fim da frase do gasto e o preço */
   if(g.op === '-='){ cp.pIni = g.fim + 2; cp.pFim = fimDaExpr(T, cp.pIni); cp.fFim = cp.pFim; }
   else if(g.op === '=-'){ cp.pIni = g.rhs; cp.pFim = fimDaExpr(T, g.rhs); cp.fFim = cp.pFim; }
+  else if(g.op === '=max'){ cp.pIni = g.rhs; cp.pFim = g.rhsFim; cp.fFim = g.fecha; }
+  else if(g.op === 'set' || g.op === 'fn'){ cp.pIni = g.pIni; cp.pFim = g.pFim; cp.fFim = g.fecha; }
   else { cp.pIni = -1; cp.fFim = g.op === '--pre' ? g.fim : g.fim + 1; }
   if(cp.pIni >= 0 && cp.pFim < cp.pIni) return null;
-  if(!inicioDeFrase(T, s)) return null;
+  if(!inicioDeFrase(T, s)) return compraEmExpressao(doc, cp, m);
   var dep = T[cp.fFim + 1];
   cp.temPv = !!(dep && dep.v === ';');
   if(dep && dep.v === ',') return null;
   if(dep && !cp.temPv && dep.v !== '}' && !dep.nl) return null;
   cp.sFim = cp.temPv ? cp.fFim + 1 : cp.fFim;
   cp.precoTxt = cp.pIni >= 0 ? textoDosToks(js, cp.pIni, cp.pFim).replace(/\s+/g, ' ') : '1';
-  var guarda = acharGuarda(js, cp, m);
+  var guarda = acharGuarda(js, cp, m) || guardaLivre(js, cp);
   if(!guarda) return null;
   cp.guarda = guarda;
   cp.convertida = guarda.viaKoda || (guarda.condIni != null && /kodaLojaAtiva/.test(textoDosToks(js, guarda.condIni, guarda.condFim))) || (guarda.tipo === 'retorno' && antesTemKoda(js, guarda.ifK));
   cp.preco = precoDaCompra(doc, js, cp);
   if(!cp.preco) return null;
   cp.nome = nomeDaCompra(doc, js, cp);
+  /* função de pagar (spend/tryBuy) com todas as chamadas já trocadas */
+  if(!cp.convertida && cp.preco.tipo === 'dinamico'){
+    var h0 = ajudanteDaCompra(doc, cp);
+    if(h0){ var st0 = chamadasDoAjudante(doc, h0, LING); if(!st0.length && st0.jaTrocadas) cp.convertida = true; }
+  }
   return cp;
+}
+/* (coins -= 50, magnet = true) depois de "coins >= 50 ?" ou "coins >= 50 &&", numa frase sozinha */
+function compraEmExpressao(doc, cp, m){
+  var js = cp.js, T = js.T, s = cp.gIni;
+  if(cp.op !== '-=' && cp.op !== '=-') return null;
+  var po = -1, d = 0;
+  for(var k = s - 1; k >= 0 && k > s - 200; k--){
+    var v = T[k].v;
+    if(T[k].t === 'p' && /^[)\]}]$/.test(v)) d++;
+    else if(T[k].t === 'p' && /^[([{]$/.test(v)){ if(d === 0){ po = k; break; } d--; }
+    else if(d === 0 && v === ';') return null;
+  }
+  if(po < 1 || T[po].v !== '(') return null;
+  var pf = par(T, po); if(pf < 0) return null;
+  var sep = T[po - 1].v;
+  if(sep !== '?' && sep !== '&&') return null;
+  /* as partes do grupo: o gasto é uma delas */
+  var partes = [], ini = po + 1; d = 0;
+  for(var q = po + 1; q <= pf; q++){ var t = T[q]; if(q === pf || (d === 0 && t.v === ',')){ partes.push([ini, q - 1]); ini = q + 1; continue; } if(t.t === 'p' && /^[([{]$/.test(t.v)) d++; else if(t.t === 'p' && /^[)\]}]$/.test(t.v)) d--; }
+  var pg = partes.filter(function(x){ return x[0] === s; })[0];
+  if(!pg || pg[1] !== cp.fFim) return null;
+  var outras = partes.filter(function(x){ return x !== pg && x[1] >= x[0]; });
+  if(!outras.length) return null;
+  /* o começo da frase: a conferência vai dele até o ? / && */
+  var sIni = po - 2; d = 0;
+  for(; sIni >= 0; sIni--){
+    var t2 = T[sIni];
+    if(t2.t === 'p' && /^[)\]]$/.test(t2.v)) d++;
+    else if(t2.t === 'p' && /^[([]$/.test(t2.v)){ if(d === 0) break; d--; }
+    else if(d === 0 && (t2.v === ';' || t2.v === '{' || t2.v === '}' || t2.v === ',' || t2.v === '=' || t2.v === '?' || t2.v === ':' || t2.v === 'return')) break;
+  }
+  sIni++;
+  if(sIni >= po - 1 || !inicioDeFrase(T, sIni)) return null;
+  var e = fimDaExpr(T, sIni), dep = T[e + 1];
+  if(e < pf || (dep && dep.v !== ';' && dep.v !== '}' && !dep.nl)) return null;
+  cp.emExpr = {sIni: sIni, cFimTeste: po - 2, sFim: dep && dep.v === ';' ? e + 1 : e, efeitos: outras.map(function(x){ return textoDosToks(js, x[0], x[1]); }), ea: po + 1, eb: pf - 1};
+  cp.temPv = true; cp.sFim = cp.fFim;
+  cp.precoTxt = textoDosToks(js, cp.pIni, cp.pFim).replace(/\s+/g, ' ');
+  var guarda = acharGuarda(js, cp, m);
+  if(!guarda || guarda.tipo !== 'expr') return null;
+  cp.guarda = guarda;
+  cp.convertida = noSenaoDoKoda(js, cp.emExpr.sIni);
+  cp.preco = precoDaCompra(doc, js, cp);
+  if(!cp.preco) return null;
+  cp.nome = nomeDaCompra(doc, js, cp);
+  return cp;
+}
+/* sem conferir o saldo (o botão é que fica desligado): vale só numa função de comprar, com o gasto solto no corpo dela */
+var RE_FUNCAO_DE_COMPRA = /buy|purchase|compr|upgrade|unlock|desbloq|adquir|melhorar|mejorar|acheter|kaufen|hire|recruit/i;
+function guardaLivre(js, cp){
+  var T = js.T;
+  if(cp.op === '--' || cp.op === '--pre') return null;
+  var fn = funcaoEmVolta(T, cp.gIni);
+  if(!fn || !fn.nome || !RE_FUNCAO_DE_COMPRA.test(fn.nome) || fn.seta && T[fn.abre].v !== '{') return null;
+  if(abreDoBloco(T, cp.gIni) !== fn.abre) return null;
+  /* nada de laço nem de outro gasto da mesma moeda antes */
+  for(var k = fn.abre + 1; k < cp.gIni; k++) if(T[k].t === 'id' && /^(for|while|do)$/.test(T[k].v)) return null;
+  return {tipo: 'retorno', livre: true, ifK: cp.gIni, gFim: cp.gIni - 1, bloco: fn.abre, fecha: par(T, fn.abre), cIni: cp.gIni, cFim: cp.gIni, xIni: cp.gIni, xFim: cp.gIni};
+}
+/* a condição é só "a loja do Koda GB está ligada?" (o if que a troca põe) */
+function ehSeKoda(txt){ return /^\s*\(*\s*window\.kodaLojaAtiva\s*&&\s*kodaLojaAtiva\(\)\s*\)*\s*$/.test(txt) || /^\s*\(*\s*kodaLojaAtiva\(\)\s*\)*\s*$/.test(txt); }
+/* o trecho k está no "else { }" de um "if (loja do Koda GB ligada)"? (já foi trocado) */
+function noSenaoDoKoda(js, k){
+  var T = js.T, b = abreDoBloco(T, k);
+  if(b < 2 || T[b - 1].v !== 'else' || T[b - 2].v !== '}') return false;
+  var a = parAntes(T, b - 2);
+  if(a < 1 || T[a - 1].v !== ')') return false;
+  var p = parAntes(T, a - 1);
+  return p > 0 && T[p - 1].v === 'if' && ehSeKoda(textoDosToks(js, p + 1, a - 2));
 }
 /* logo antes da guarda já tem o "if (kodaLojaAtiva()) { kodaPagar(...); return; }" que a IA pôs? */
 function antesTemKoda(js, k){
@@ -32019,20 +32301,43 @@ function antesTemKoda(js, k){
   var a = parAntes(T, f);
   if(a < 1 || T[a - 1].v !== ')') return false;
   var p = parAntes(T, a - 1);
-  return p > 0 && T[p - 1].v === 'if' && /kodaLojaAtiva/.test(textoDosToks(js, p + 1, a - 2));
+  return p > 0 && T[p - 1].v === 'if' && ehSeKoda(textoDosToks(js, p + 1, a - 2));
 }
 /* a conferência "tem dinheiro?": if(ouro >= 10){...}, if(ouro < preco) return;, if(ouro < p){...} else {...} */
 function acharGuarda(js, cp, m){
   var T = js.T;
   function comparacao(a, b, sentido){
+    /* !(coins >= X) é o mesmo que coins < X */
+    if(T[a] && T[a].v === '!' && T[a + 1] && T[a + 1].v === '(' && par(T, a + 1) === b){
+      var neg = comparacao(a + 2, b - 1, sentido === 'tem' ? 'falta' : 'tem');
+      if(neg) return {cIni: a, cFim: b, xIni: neg.xIni, xFim: neg.xFim};
+    }
     /* procura "caminho >= X" / "X <= caminho" (sentido 'tem') ou "caminho < X" / "X > caminho" (sentido 'falta') entre a e b */
     for(var k = a; k <= b; k++){
       if(T[k].t !== 'id') continue;
+      /* canAfford(40) / !canAfford(40) / this.canBuyArmor */
+      var gf = (m.guardasFn || []).filter(function(x){ return x.nome === T[k].v; })[0];
+      if(gf && !(T[k + 1] && (T[k + 1].v === '.' || T[k + 1].v === '?.'))){
+        var cg = caminhoAte(T, k), chama = T[k + 1] && T[k + 1].v === '(';
+        if(cg && cg.ini >= a && chama !== gf.getter){
+          var fimG = chama ? par(T, k + 1) : k, neg = T[cg.ini - 1] && T[cg.ini - 1].v === '!' && cg.ini - 1 >= a;
+          var sent = neg ? (gf.sentido === 'tem' ? 'falta' : 'tem') : gf.sentido;
+          if(fimG > 0 && fimG <= b && sent === sentido) return {cIni: neg ? cg.ini - 1 : cg.ini, cFim: fimG, xIni: k, xFim: fimG, viaFn: gf};
+        }
+      }
       if(T[k + 1] && (T[k + 1].v === '.' || T[k + 1].v === '?.')) continue;
       var c = caminhoAte(T, k);
       if(!c || c.txt !== m.caminho || c.ini < a) continue;
       var op = T[k + 1] && T[k + 1].v, opA = T[c.ini - 1] && T[c.ini - 1].v;
       var quer = sentido === 'tem' ? /^(>=|>)$/ : /^(<|<=)$/, querA = sentido === 'tem' ? /^(<=|<)$/ : /^(>|>=)$/;
+      /* coins - X >= 0 (tem) / coins - X < 0 (falta) */
+      if(op === '-'){
+        var q2 = k + 2, d3 = 0;
+        for(; q2 <= b; q2++){ var v3 = T[q2].v; if(T[q2].t === 'p'){ if(v3 === '(' || v3 === '[') d3++; else if(v3 === ')' || v3 === ']'){ if(d3 === 0) break; d3--; } } if(d3 === 0 && /^(>=|>|<|<=|&&|\|\||\?|,)$/.test(v3)) break; }
+        var opc = T[q2] && T[q2].v, zero = T[q2 + 1];
+        if(zero && zero.t === 'num' && Number(zero.v) === 0 && q2 > k + 2 && (sentido === 'tem' ? /^(>=)$/.test(opc) : /^(<)$/.test(opc)))
+          return {cIni: c.ini, cFim: q2 + 1, xIni: k + 2, xFim: q2 - 1};
+      }
       if(op && quer.test(op)){
         var fim = k + 2, d = 0;
         for(; fim <= b; fim++){ var v = T[fim].v; if(T[fim].t === 'p'){ if(v === '(' || v === '[') d++; else if(v === ')' || v === ']'){ if(d === 0) break; d--; } else if(d === 0 && /^(&&|\|\||\?|,|\?\?)$/.test(v)) break; } }
@@ -32046,6 +32351,26 @@ function acharGuarda(js, cp, m){
     }
     return null;
   }
+  /* if (podeComprar) com "const podeComprar = coins >= preco" antes */
+  function guardaPorVariavel(a, b){
+    for(var k = a; k <= b; k++){
+      if(T[k].t !== 'id' || (T[k - 1] && (T[k - 1].v === '.' || T[k - 1].v === '?.')) || (T[k + 1] && (T[k + 1].v === '.' || T[k + 1].v === '(' || T[k + 1].v === '['))) continue;
+      for(var q = k - 1; q >= 0 && q > k - 400; q--){
+        if(T[q].t === 'id' && T[q].v === T[k].v && T[q + 1] && T[q + 1].v === '=' && T[q - 1] && /^(var|let|const)$/.test(T[q - 1].v)){
+          var e = fimDaExpr(T, q + 2);
+          var c0 = comparacao(q + 2, e, 'tem');
+          if(c0) return {cIni: k, cFim: k, xIni: c0.xIni, xFim: c0.xFim};
+          break;
+        }
+      }
+    }
+    return null;
+  }
+  if(cp.emExpr){
+    var ex = cp.emExpr, cx = comparacao(ex.sIni, ex.cFimTeste, 'tem');
+    if(!cx || cx.cIni !== ex.sIni || cx.cFim !== ex.cFimTeste) return null;
+    return {tipo: 'expr', ifK: ex.sIni, fim: ex.sFim, cIni: cx.cIni, cFim: cx.cFim, xIni: cx.xIni, xFim: cx.xFim};
+  }
   /* 1) dentro de um if que confere o saldo (até 3 blocos pra fora) */
   var b = abreDoBloco(T, cp.gIni), voltas = 0, viaKoda = false;
   while(b > 0 && voltas < 4){
@@ -32054,7 +32379,7 @@ function acharGuarda(js, cp, m){
     if(antes && antes.v === ')'){
       var p = parAntes(T, b - 1);
       if(p > 0 && T[p - 1].v === 'if'){
-        var cmp = comparacao(p + 1, b - 2, 'tem');
+        var cmp = comparacao(p + 1, b - 2, 'tem') || guardaPorVariavel(p + 1, b - 2);
         if(cmp) return {tipo: 'bloco', ifK: p - 1, abre: b, fecha: par(T, b), cIni: cmp.cIni, cFim: cmp.cFim, xIni: cmp.xIni, xFim: cmp.xFim, condIni: p + 1, condFim: b - 2, viaKoda: viaKoda};
       } else if(p > 0 && /^(function|while|for|switch|catch)$/.test(T[p - 1].v)) break;
       else if(p > 0 && T[p - 2] && T[p - 2].v === 'function') break;
@@ -32065,7 +32390,7 @@ function acharGuarda(js, cp, m){
       if(f2 && f2.v === ')'){
         var p2 = parAntes(T, a2 - 1);
         /* já trocada: if (kodaLojaAtiva()) { kodaPagar(...) } else { ouro -= preco; ... } -> a conferência de verdade fica um bloco pra fora */
-        if(p2 > 0 && T[p2 - 1].v === 'if' && /kodaLojaAtiva/.test(textoDosToks(js, p2 + 1, a2 - 2))){ viaKoda = true; b = abreDoBloco(T, p2 - 1); continue; }
+        if(p2 > 0 && T[p2 - 1].v === 'if' && ehSeKoda(textoDosToks(js, p2 + 1, a2 - 2))){ viaKoda = true; b = abreDoBloco(T, p2 - 1); continue; }
         if(p2 > 0 && T[p2 - 1].v === 'if'){
           var cmp2 = comparacao(p2 + 1, a2 - 2, 'falta');
           if(cmp2) return {tipo: 'senao', ifK: p2 - 1, abre: b, fecha: par(T, b), cIni: cmp2.cIni, cFim: cmp2.cFim, xIni: cmp2.xIni, xFim: cmp2.xFim, condIni: p2 + 1, condFim: a2 - 2, viaKoda: viaKoda};
@@ -32090,10 +32415,24 @@ function acharGuarda(js, cp, m){
     if(T[corpoIni] && T[corpoIni].v === '{'){ corpoFim = par(T, corpoIni); }
     else corpoFim = fimDaFrase(T, corpoIni);
     if(corpoFim < 0 || corpoFim >= cp.gIni) continue;
-    var sai = false;
-    for(var q = corpoIni; q <= corpoFim; q++) if(T[q].v === 'return' || T[q].v === 'throw'){ sai = true; break; }
-    if(!sai) continue;
+    var sai = false, quebra = false;
+    for(var q = corpoIni; q <= corpoFim; q++){ if(T[q].v === 'return' || T[q].v === 'throw'){ sai = true; break; } if(T[q].v === 'break' && T[q].t === 'id') quebra = true; }
     if(T[corpoFim + 1] && T[corpoFim + 1].v === 'else') continue;
+    /* switch: case 'x': if (ouro < preco) break; ouro -= preco; ...; break; */
+    if(!sai && quebra && T[b0 - 1] && T[b0 - 1].v === ')' && T[parAntes(T, b0 - 1) - 1] && T[parAntes(T, b0 - 1) - 1].v === 'switch'){
+      var fimCaso = -1, dd = 0;
+      for(var q5 = corpoFim + 1; q5 < par(T, b0); q5++){
+        var v5 = T[q5].v;
+        if(T[q5].t === 'p' && /^[([{]$/.test(v5)) dd++;
+        else if(T[q5].t === 'p' && /^[)\]}]$/.test(v5)) dd--;
+        else if(dd === 0 && T[q5].t === 'id' && (v5 === 'case' || v5 === 'default')){ fimCaso = q5 - 1; break; }
+        else if(dd === 0 && T[q5].t === 'id' && v5 === 'break'){ fimCaso = q5 - 1; break; }
+      }
+      if(fimCaso < 0) fimCaso = par(T, b0) - 1;
+      if(fimCaso < cp.sFim) continue;
+      return {tipo: 'retorno', sai: 'break', ifK: k, gFim: corpoFim, bloco: b0, fecha: par(T, b0), fimCaso: fimCaso, cIni: cmp3.cIni, cFim: cmp3.cFim, xIni: cmp3.xIni, xFim: cmp3.xFim};
+    }
+    if(!sai) continue;
     return {tipo: 'retorno', ifK: k, gFim: corpoFim, bloco: b0, fecha: par(T, b0), cIni: cmp3.cIni, cFim: cmp3.cFim, xIni: cmp3.xIni, xFim: cmp3.xFim};
   }
   return null;
@@ -32108,12 +32447,14 @@ function fimDaFrase(T, k){
 var PROPS_PRECO = lista('cost,price,preco,custo,precio,coste,valor,value,prix,kosten,prezzo,costo,amount');
 var PROPS_NOME = ['nome', 'name', 'titulo', 'title', 'label', 'nombre', 'id', 'tipo', 'type', 'key'];
 function numeroInicial(doc, caminho){
-  var achou = null, mudaDepois = 0;
+  doc._numIni = doc._numIni || {};
+  if(caminho in doc._numIni) return doc._numIni[caminho];
+  var achou = null, mudaDepois = 0, ultimo = String(caminho).split('.').pop();
   doc.js.forEach(function(js){
     if(js.sc.koda) return;
     var T = js.T;
     for(var j = 0; j < T.length; j++){
-      if(T[j].t !== 'id') continue;
+      if(T[j].t !== 'id' || T[j].v !== ultimo) continue;
       var c = caminhoAte(T, j);
       if(!c || c.txt !== caminho && !(caminho.indexOf('.') < 0 && c.ultimo === caminho && c.txt === caminho)) continue;
       if(T[j + 1] && /^(=|\*=|\+=|-=|\/=)$/.test(T[j + 1].v) && !(T[j + 1].v === '=' && T[j + 2] && T[j + 2].v === '=')){
@@ -32123,25 +32464,188 @@ function numeroInicial(doc, caminho){
       if(T[j + 1] && T[j + 1].v === ':' && T[j - 1] && (T[j - 1].v === '{' || T[j - 1].v === ',') && T[j + 2] && T[j + 2].t === 'num' && achou == null && caminho.split('.').pop() === T[j].v) achou = Number(T[j + 2].v);
     }
   });
-  return achou == null ? null : {v: achou, muda: mudaDepois > 0};
+  return (doc._numIni[caminho] = achou == null ? null : {v: achou, muda: mudaDepois > 0});
 }
-/* listas e tabelas escritas no código: [{nome:'Espada', custo:50}, ...] e {speed: 20, magnet: 40} */
+/* como o valorLiteral, mas aguenta o que não é valor fixo (função, conta, variável, método): vira {__x:1}.
+   Assim [{name:'Laser', cost:120, action: () => {...}}] ainda dá pra ler o nome e o preço. */
+function valorSolto(T, i, f){
+  var p = i;
+  function pular(ini){ var e = fimDaExpr(T, ini, f + 1); p = Math.max(ini + 1, e + 1); return {__x: 1}; }
+  function fimOk(){ var t = T[p]; return !t || p > f || t.v === ',' || t.v === '}' || t.v === ']'; }
+  function val(){
+    var t = T[p], ini = p;
+    if(!t) throw 0;
+    if(t.v === '{'){
+      var fo = par(T, p); if(fo < 0 || fo > f) throw 0;
+      p++; var o = {};
+      while(p < fo){
+        var kt = T[p];
+        if(kt.v === ','){ p++; continue; }
+        if(kt.v === '...'){ p = fimDaExpr(T, p + 1, fo) + 1; continue; }
+        if(kt.v === '['){ var fc = par(T, p); p = fc > 0 ? fimDaExpr(T, fc + 1, fo) + 1 : fo; continue; }
+        if(kt.t === 'id' && /^(get|set|async|static)$/.test(kt.v) && T[p + 1] && (T[p + 1].t === 'id' || T[p + 1].t === 'str') && T[p + 2] && T[p + 2].v === '('){ p++; continue; }
+        if(kt.t !== 'id' && kt.t !== 'str' && kt.t !== 'num'){ p++; continue; }
+        var k = kt.t === 'str' ? valorDoTexto(kt.v) : kt.v, nx = T[p + 1];
+        if(nx && nx.v === ':'){ p += 2; o[k] = val(); }
+        else if(nx && nx.v === '('){ var fp = par(T, p + 1), fb = fp > 0 && T[fp + 1] && T[fp + 1].v === '{' ? par(T, fp + 1) : fp; p = (fb > 0 ? fb : fo) + 1; o[k] = {__x: 1, metodo: 1}; }
+        else { p++; o[k] = {__x: 1}; }
+        if(T[p] && T[p].v === ',') p++;
+      }
+      p = fo + 1;
+      return fimOk() ? o : pular(ini);
+    }
+    if(t.v === '['){
+      var fa = par(T, p); if(fa < 0 || fa > f) throw 0;
+      p++; var a = [];
+      while(p < fa){ if(T[p].v === ','){ p++; continue; } var p0 = p; a.push(val()); if(p <= p0) p = p0 + 1; if(T[p] && T[p].v === ',') p++; }
+      p = fa + 1;
+      return fimOk() ? a : pular(ini);
+    }
+    var v;
+    if(t.t === 'str' && !t.aberta){ p++; v = valorDoTexto(t.v); }
+    else if(t.t === 'tpl' && t.v.indexOf('${') < 0){ p++; v = t.v.slice(1, -1); }
+    else if(t.t === 'num'){ p++; v = Number(t.v.replace(/_/g, '')); }
+    else if(t.v === '-' && T[p + 1] && T[p + 1].t === 'num'){ p += 2; v = -Number(T[p - 1].v.replace(/_/g, '')); }
+    else if(t.t === 'id' && /^(true|false|null)$/.test(t.v)){ p++; v = t.v === 'true' ? true : t.v === 'false' ? false : null; }
+    else return pular(ini);
+    return fimOk() ? v : pular(ini);
+  }
+  try{ return {ok: true, v: val()}; }catch(e){ return {ok: false}; }
+}
+/* listas e tabelas escritas no código: [{nome:'Espada', custo:50}, ...] e {speed: 20, magnet: 40}.
+   As de dentro também entram: Game.items, towerTypes.archer, shop.boost... */
 function tabelasDoJogo(doc){
   if(doc._tabelas) return doc._tabelas;
   var r = [];
+  function registrar(nome, ultimo, v, js, k, f, fundo){
+    r.push({nome: nome, ultimo: ultimo, v: v, js: js, k: k, f: f});
+    if(fundo >= 4 || !v || typeof v !== 'object' || v.__x) return;
+    Object.keys(v).forEach(function(chave){
+      var s2 = v[chave];
+      if(s2 && typeof s2 === 'object' && !s2.__x && (Array.isArray(s2) ? s2.length : Object.keys(s2).length)) registrar(nome + '.' + chave, chave, s2, js, k, f, fundo + 1);
+    });
+  }
   doc.js.forEach(function(js){
     if(js.sc.koda) return;
     var T = js.T;
     for(var j = 0; j + 2 < T.length; j++){
-      if(T[j].t !== 'id' || T[j + 1].v !== '=' || !T[j + 2] || (T[j + 2].v !== '[' && T[j + 2].v !== '{')) continue;
+      if(T[j].t !== 'id' || T[j + 1].v !== '=' || !T[j + 2]) continue;
+      /* new Map([['speed', {...}], ...]) vira uma tabela com as chaves */
+      if(T[j + 2].v === 'new' && T[j + 3] && T[j + 3].v === 'Map' && T[j + 4] && T[j + 4].v === '(' && T[j + 5] && T[j + 5].v === '['){
+        var cm = caminhoAte(T, j), fm = par(T, j + 5);
+        if(!cm || fm < 0) continue;
+        var vm = valorSolto(T, j + 5, fm);
+        if(!vm.ok || !Array.isArray(vm.v) || !vm.v.every(function(x){ return Array.isArray(x) && x.length === 2 && (typeof x[0] === 'string' || typeof x[0] === 'number'); })) continue;
+        var om = {}; vm.v.forEach(function(x){ om[x[0]] = x[1]; });
+        var i0 = r.length;
+        registrar(cm.txt, cm.ultimo, om, js, j + 2, par(T, j + 4), 0);
+        r[i0].mapa = true;
+        continue;
+      }
+      if(T[j + 2].v !== '[' && T[j + 2].v !== '{') continue;
       var c = caminhoAte(T, j); if(!c) continue;
       var fim = par(T, j + 2); if(fim < 0) continue;
-      var v = valorLiteral(T, j + 2, fim);
+      var v = valorSolto(T, j + 2, fim);
       if(!v.ok) continue;
-      r.push({nome: c.txt, ultimo: c.ultimo, v: v.v, js: js, k: j + 2, f: fim});
+      registrar(c.txt, c.ultimo, v.v, js, j + 2, fim, 0);
     }
   });
   return (doc._tabelas = r);
+}
+/* o número que um caminho tem nas tabelas do código: shop.boost.price -> 40, this.items.shield.price -> 30 */
+function semThis(c){ return String(c).replace(/^(this|self|that|me)\./, ''); }
+function tabelaDoCaminho(doc, base, permitirUltimo){
+  var tabs = tabelasDoJogo(doc), b = semThis(base);
+  return tabs.filter(function(x){ return semThis(x.nome) === b; })[0]
+    || tabs.filter(function(x){ var n = semThis(x.nome); return n.length > b.length && n.slice(-b.length - 1) === '.' + b; })[0]
+    || (permitirUltimo && b.indexOf('.') < 0 ? tabs.filter(function(x){ return x.ultimo === b; })[0] : null) || null;
+}
+function valorDoCaminho(doc, caminho){
+  var partes = semThis(caminho).split('.');
+  for(var i = partes.length - 1; i >= 1; i--){
+    var t = tabelaDoCaminho(doc, partes.slice(0, i).join('.'), true);
+    if(!t) continue;
+    var v = t.v, resto = partes.slice(i);
+    for(var q = 0; q < resto.length && v != null && typeof v === 'object'; q++) v = v[resto[q]];
+    if(typeof v === 'number') return v;
+  }
+  return null;
+}
+/* de qual tabela vem a variável do item: const it = items[i] / catalog.find(...) / for (const b of buttons) / buttons.forEach(b => ...) */
+function tabelaDaVariavel(doc, js, k0, nome){
+  var T = js.T;
+  for(var k = k0 - 1; k >= 0; k--){
+    if(T[k].t !== 'id' || T[k].v !== nome || (T[k - 1] && (T[k - 1].v === '.' || T[k - 1].v === '?.'))) continue;
+    var nx = T[k + 1];
+    /* nome = caminho[...] ou caminho.find(...) */
+    if(nx && nx.v === '=' && T[k + 2]){
+      var c = caminhoDesde(T, k + 2);
+      if(c && T[c.fim + 1] && T[c.fim + 1].v === '[') return tabelaDoCaminho(doc, c.txt, true);
+      if(c && c.txt.split('.').length >= 2 && /^(find|filter|at)$/.test(c.ultimo) && T[c.fim + 1] && T[c.fim + 1].v === '(') return tabelaDoCaminho(doc, c.txt.split('.').slice(0, -1).join('.'), true);
+      return null;
+    }
+    /* for (const nome of caminho) */
+    if(nx && nx.v === 'of'){ var c2 = caminhoDesde(T, k + 2); return c2 ? tabelaDoCaminho(doc, c2.txt, true) : null; }
+    /* caminho.forEach((nome ...) => / function(nome ...) */
+    var q = k - 1;
+    while(T[q] && (T[q].v === '(' || T[q].v === 'function' || T[q].v === 'async')) q--;
+    if(T[q] && T[q].t === 'id' && /^(forEach|map|some|every|filter|find)$/.test(T[q].v) && T[q - 1] && T[q - 1].v === '.'){
+      var c3 = caminhoAte(T, q - 2);
+      return c3 ? tabelaDoCaminho(doc, c3.txt, true) : null;
+    }
+  }
+  return null;
+}
+/* o preço pode ser lido de novo na hora da compra? (só leitura: nada de ++, =, new, função qualquer) */
+var CHAMADAS_DE_PRECO = /^(Number|parseInt|parseFloat|Math|String|BigInt)$/;
+function exprDePrecoSegura(T, a, b){
+  if(b < a || b - a > 60) return false;
+  for(var k = a; k <= b; k++){
+    var t = T[k];
+    if(t.t === 'num' || t.t === 'str') continue;
+    if(t.t === 'id'){
+      if(/^(new|await|yield|function|class|delete|void|var|let|const|return)$/.test(t.v)) return false;
+      var chama = T[k + 1] && T[k + 1].v === '(', depoisDePonto = T[k - 1] && (T[k - 1].v === '.' || T[k - 1].v === '?.');
+      if(chama && !depoisDePonto && !CHAMADAS_DE_PRECO.test(t.v) && !/price|cost|preco|custo|precio|valor|coste/i.test(t.v)) return false;
+      if(chama && depoisDePonto && !/^(getAttribute|floor|ceil|round|max|min|pow|abs|trunc|toFixed|get|getItem|at|indexOf)$/.test(t.v) && !/price|cost|preco|custo|precio|valor/i.test(t.v)) return false;
+      continue;
+    }
+    if(t.t === 'p' && /^(\(|\)|\[|\]|\.|\?\.|,)$/.test(t.v)) continue;
+    if(/^(\+|-|\*|\/|%|\*\*|\?|:|\|\||&&|\?\?)$/.test(t.v)) continue;
+    return false;
+  }
+  return true;
+}
+/* tenta saber o preço de agora sem rodar o jogo (10 * pickLevel com pickLevel = 1 -> 10). null se não der */
+var PARAM_QTD = /^(qty|quantity|quantidade|qtd|qtde|amount|n|count|vezes|times|cantidad|quanto|quantos)$/i;
+function estimarPreco(doc, js, a, b, fundo){
+  var T = js.T, txt = '';
+  if(a === b && T[a] && T[a].t === 'id' && !(fundo > 2)){
+    /* uma variável local: estima pela conta que ela tem (const total = PRICE * qty) */
+    for(var q0 = a - 1; q0 >= 0 && q0 > a - 600; q0--) if(T[q0].t === 'id' && T[q0].v === T[a].v && T[q0 + 1] && T[q0 + 1].v === '=' && T[q0 - 1] && /^(var|let|const)$/.test(T[q0 - 1].v)){
+      var e0 = estimarPreco(doc, js, q0 + 2, fimDaExpr(T, q0 + 2), (fundo || 0) + 1);
+      if(e0) return e0;
+      break;
+    }
+  }
+  var fn = funcaoEmVolta(T, a), params = fn ? fn.params : [];
+  for(var k = a; k <= b; k++){
+    var t = T[k];
+    if(t.t === 'num'){ txt += ' ' + t.v; continue; }
+    if(t.t === 'id'){
+      if(/^(Math)$/.test(t.v) && T[k + 1] && T[k + 1].v === '.'){ txt += ' Math'; continue; }
+      if(T[k - 1] && T[k - 1].v === '.' && T[k - 2] && T[k - 2].v === 'Math'){ txt += t.v; continue; }
+      var c = caminhoDesde(T, k);
+      if(!c) return null;
+      if(c.txt === t.v && params.indexOf(t.v) >= 0 && PARAM_QTD.test(t.v)){ txt += ' 1'; continue; }   /* quantidade: o preço de 1 */
+      var n = numeroInicial(doc, c.txt), v = n ? n.v : valorDoCaminho(doc, c.txt);
+      if(v == null || typeof v !== 'number') return null;
+      txt += ' ' + v; k = c.fim; continue;
+    }
+    if(/^(\+|-|\*|\/|%|\(|\)|\.|,)$/.test(t.v)){ txt += t.v; continue; }
+    return null;
+  }
+  try{ var r = Function('return (' + txt + ')')(); return typeof r === 'number' && isFinite(r) && r > 0 ? Math.round(r) : null; }catch(e){ return null; }
 }
 function precoDaCompra(doc, js, cp){
   var T = js.T;
@@ -32157,7 +32661,9 @@ function precoDaExpr(doc, js, a, b, cp, fundo){
   if(c && c.fim === b){
     var partes = c.txt.split('.'), prop = partes[partes.length - 1];
     if(partes.length >= 2 && PROPS_PRECO[prop.toLowerCase()]){
-      var tab = tabelasDoJogo(doc).filter(function(t){ return Array.isArray(t.v) && t.v.length && t.v.every(function(o){ return o && typeof o === 'object' && typeof o[prop] === 'number'; }); });
+      var daVar = partes.length === 2 ? tabelaDaVariavel(doc, js, cp.gIni, partes[0]) : null;
+      var serve = function(t){ return t && Array.isArray(t.v) && t.v.length && t.v.every(function(o){ return o && typeof o === 'object' && typeof o[prop] === 'number'; }); };
+      var tab = serve(daVar) ? [daVar] : daVar ? [] : tabelasDoJogo(doc).filter(serve);
       if(tab.length){
         var t0 = tab[0], campo = PROPS_NOME.filter(function(n){ return t0.v.every(function(o){ return typeof o[n] === 'string' && o[n].trim(); }); })[0];
         if(campo) return {tipo: 'lista', tabela: t0, prop: prop, campo: campo, obj: partes.slice(0, -1).join('.'), itens: t0.v.map(function(o){ return {nome: o[campo], preco: o[prop], unico: o.comprado != null || o.owned != null || o.bought != null || o.unlocked != null || o.desbloqueado != null}; })};
@@ -32165,6 +32671,8 @@ function precoDaExpr(doc, js, a, b, cp, fundo){
     }
     var n0 = numeroInicial(doc, c.txt);
     if(n0) return {tipo: 'num', v: n0.v, muda: n0.muda, variavel: c.txt};
+    var vc = partes.length >= 2 ? valorDoCaminho(doc, c.txt) : null;
+    if(vc != null) return {tipo: 'num', v: vc, variavel: c.txt};
     /* uma variável local que veio de outra coisa: const price = PRICES[type] */
     if(fundo < 1 && partes.length === 1){
       for(var k = cp.gIni - 1; k >= 0; k--){
@@ -32179,26 +32687,30 @@ function precoDaExpr(doc, js, a, b, cp, fundo){
   }
   /* tabela de objetos: shop[key].cost, ou const u = shop[key]; ... u.cost */
   function tabelaDeObjetos(nomeMapa, prop){
-    return tabelasDoJogo(doc).filter(function(t){ return (t.nome === nomeMapa || t.ultimo === nomeMapa) && t.v && !Array.isArray(t.v) && typeof t.v === 'object' && Object.keys(t.v).length && Object.keys(t.v).every(function(k2){ return t.v[k2] && typeof t.v[k2] === 'object' && typeof t.v[k2][prop] === 'number'; }); })[0];
+    var ok = function(t){ return t && t.v && !Array.isArray(t.v) && typeof t.v === 'object' && Object.keys(t.v).length && Object.keys(t.v).every(function(k2){ return t.v[k2] && typeof t.v[k2] === 'object' && typeof t.v[k2][prop] === 'number'; }); };
+    var t0 = tabelaDoCaminho(doc, nomeMapa, true);
+    if(ok(t0)) return t0;
+    return tabelasDoJogo(doc).filter(function(t){ return (t.nome === nomeMapa || t.ultimo === nomeMapa) && ok(t); })[0];
   }
   function comoTabela(tb, prop, chaveTxt){
     return {tipo: 'tabela', tabela: tb, chave: chaveTxt, itens: Object.keys(tb.v).map(function(k2){ var o = tb.v[k2], nm = PROPS_NOME.filter(function(n2){ return typeof o[n2] === 'string' && o[n2].trim(); })[0]; return {nome: nm ? o[nm] : k2, chave: k2, preco: o[prop], doCodigo: !nm}; })};
   }
-  if(T[a].t === 'id' && T[a + 1] && T[a + 1].v === '['){
-    var pf0 = par(T, a + 1);
+  var cA = caminhoDesde(T, a);
+  if(cA && T[cA.fim + 1] && T[cA.fim + 1].v === '['){
+    var pf0 = par(T, cA.fim + 1);
     if(pf0 > 0 && T[pf0 + 1] && T[pf0 + 1].v === '.' && pf0 + 2 === b && PROPS_PRECO[String(T[b].v).toLowerCase()]){
-      var tb0 = tabelaDeObjetos(T[a].v, T[b].v);
-      if(tb0) return comoTabela(tb0, T[b].v, textoDosToks(js, a + 2, pf0 - 1));
+      var tb0 = tabelaDeObjetos(cA.txt, T[b].v);
+      if(tb0) return comoTabela(tb0, T[b].v, textoDosToks(js, cA.fim + 2, pf0 - 1));
     }
   }
   if(c && c.fim === b && c.txt.split('.').length === 2 && PROPS_PRECO[c.ultimo.toLowerCase()] && fundo < 1){
     var base = c.txt.split('.')[0];
     for(var k3 = cp.gIni - 1; k3 >= 0; k3--){
       if(T[k3].t === 'id' && T[k3].v === base && T[k3 + 1] && T[k3 + 1].v === '=' && T[k3 - 1] && /^(var|let|const)$/.test(T[k3 - 1].v)){
-        var m0 = k3 + 2;
-        if(T[m0] && T[m0].t === 'id' && T[m0 + 1] && T[m0 + 1].v === '['){
-          var pf1 = par(T, m0 + 1), tb1 = pf1 > 0 ? tabelaDeObjetos(T[m0].v, c.ultimo) : null;
-          if(tb1 && fimDaExpr(T, m0) === pf1) return comoTabela(tb1, c.ultimo, textoDosToks(js, m0 + 2, pf1 - 1));
+        var m0 = k3 + 2, cm = caminhoDesde(T, m0);
+        if(cm && T[cm.fim + 1] && T[cm.fim + 1].v === '['){
+          var pf1 = par(T, cm.fim + 1), tb1 = pf1 > 0 ? tabelaDeObjetos(cm.txt, c.ultimo) : null;
+          if(tb1 && fimDaExpr(T, m0) === pf1) return comoTabela(tb1, c.ultimo, textoDosToks(js, cm.fim + 2, pf1 - 1));
         }
         break;
       }
@@ -32211,6 +32723,13 @@ function precoDaExpr(doc, js, a, b, cp, fundo){
       var ks = Object.keys(tb.v);
       if(ks.length && ks.every(function(k2){ return typeof tb.v[k2] === 'number'; })) return {tipo: 'tabela', tabela: tb, chave: textoDosToks(js, a + 2, b - 1), itens: ks.map(function(k2){ return {nome: k2, chave: k2, preco: tb.v[k2], doCodigo: true}; })};
     }
+  }
+  /* não deu pra saber o preço olhando o código (depende do nível, do botão, do que a pessoa escolheu):
+     o preço é lido NA HORA da compra (o jogo já calcula ele) e a loja do Koda GB cobra esse valor */
+  if(fundo === 0 && exprDePrecoSegura(T, a, b)){
+    var est = estimarPreco(doc, js, a, b, 0);
+    if(!est){ var vv = avaliarConta(doc, js, a, b, {}); if(typeof vv === 'number' && isFinite(vv) && vv > 0) est = Math.round(vv); }
+    return {tipo: 'dinamico', expr: textoDosToks(js, a, b).replace(/\s+/g, ' '), estimado: est, a: a, b: b};
   }
   return null;
 }
@@ -32230,12 +32749,35 @@ var NOME_ITEM = {
   vida: 'Vida extra|Extra life|Vida extra', vidas: 'Vida extra|Extra life|Vida extra', escudo: 'Escudo|Shield|Escudo', espada: 'Espada|Sword|Espada', pulo: 'Super pulo|Super jump|Súper salto', turbo: 'Turbo|Turbo|Turbo',
   forca: 'Mais força|More power|Más fuerza', bomba: 'Bomba|Bomb|Bomba', bombas: 'Bomba|Bomb|Bomba', asas: 'Asas|Wings|Alas', tiro: 'Tiro|Shot|Disparo', tiros: 'Tiro duplo|Double shot|Disparo doble', ima: 'Ímã|Magnet|Imán',
   vel: 'Turbo|Speed boost|Turbo', velocidade: 'Turbo|Speed boost|Turbo', tempo: 'Mais tempo|More time|Más tiempo', chave: 'Chave|Key|Llave', pocao: 'Poção|Potion|Poción', armadura: 'Armadura|Armor|Armadura', capacete: 'Capacete|Helmet|Casco',
-  pocoes: 'Poção|Potion|Poción', coracao: 'Coração|Heart|Corazón', municao: 'Munição|Ammo|Munición', dano: 'Mais força|More power|Más fuerza', poder: 'Poder|Power|Poder', picareta: 'Picareta|Pickaxe|Pico'
+  pocoes: 'Poção|Potion|Poción', coracao: 'Coração|Heart|Corazón', municao: 'Munição|Ammo|Munición', dano: 'Mais força|More power|Más fuerza', poder: 'Poder|Power|Poder', picareta: 'Picareta|Pickaxe|Pico',
+  chest: 'Baú|Chest|Cofre', torch: 'Tocha|Torch|Antorcha', lamp: 'Lanterna|Lamp|Lámpara', lantern: 'Lanterna|Lantern|Linterna', pick: 'Picareta|Pickaxe|Pico', glasses: 'Óculos|Glasses|Gafas',
+  alive: 'Reviver|Revive|Revivir', revived: 'Reviver|Revive|Revivir', respawn: 'Reviver|Revive|Revivir', continue: 'Continuar|Continue|Continuar', potion2: '',
+  coin2x: 'Moedas em dobro|Double coins|Monedas dobles', doubler: 'Dobro|Double|Doble', sword2: '', bag: 'Mochila|Bag|Mochila', backpack: 'Mochila|Backpack|Mochila', map: 'Mapa|Map|Mapa',
+  lightning: 'Raio|Lightning|Rayo', flash: 'Raio|Flash|Rayo', ice: 'Gelo|Ice|Hielo', poison: 'Veneno|Poison|Veneno', heal: 'Cura|Heal|Curación', healing: 'Cura|Heal|Curación', medkit: 'Kit médico|Medkit|Botiquín',
+  gem: '', drill: 'Furadeira|Drill|Taladro', engine: 'Motor|Engine|Motor', tank: 'Tanque|Tank|Tanque', nitro: 'Nitro|Nitro|Nitro', wheels: 'Rodas|Wheels|Ruedas', tires: 'Pneus|Tires|Neumáticos'
 };
+/* nomes de duas palavras que juntas querem dizer outra coisa */
+var NOME_DUPLO = {
+  'double jump': 'Pulo duplo|Double jump|Doble salto', 'triple jump': 'Pulo triplo|Triple jump|Triple salto', 'high jump': 'Super pulo|High jump|Súper salto', 'super jump': 'Super pulo|Super jump|Súper salto',
+  'fire rate': 'Tiro rápido|Fire rate|Disparo rápido', 'extra life': 'Vida extra|Extra life|Vida extra', 'max hp': 'Mais vida|More health|Más vida', 'max health': 'Mais vida|More health|Más vida',
+  'unlock level': 'Liberar fase|Unlock level|Desbloquear nivel', 'unlock world': 'Liberar mundo|Unlock world|Desbloquear mundo', 'unlock stage': 'Liberar fase|Unlock stage|Desbloquear fase',
+  'double coins': 'Moedas em dobro|Double coins|Monedas dobles', 'coin magnet': 'Ímã|Magnet|Imán', 'slow motion': 'Câmera lenta|Slow motion|Cámara lenta', 'speed boost': 'Turbo|Speed boost|Turbo',
+  'open box': 'Caixa surpresa|Mystery box|Caja sorpresa', 'mystery box': 'Caixa surpresa|Mystery box|Caja sorpresa', 'loot box': 'Caixa surpresa|Loot box|Caja sorpresa', 'open chest': 'Baú|Chest|Cofre',
+  'more time': 'Mais tempo|More time|Más tiempo', 'extra time': 'Mais tempo|More time|Más tiempo', 'pulo duplo': 'Pulo duplo|Double jump|Doble salto', 'vida extra': 'Vida extra|Extra life|Vida extra'
+};
+/* potions -> potion, chests -> chest, lives fica */
+function singularIngles(w){ if(NOME_ITEM[w]) return w; if(/ies$/.test(w) && NOME_ITEM[w.replace(/ies$/, 'y')]) return w.replace(/ies$/, 'y'); if(/es$/.test(w) && NOME_ITEM[w.slice(0, -2)]) return w.slice(0, -2); if(/s$/.test(w) && NOME_ITEM[w.slice(0, -1)]) return w.slice(0, -1); return w; }
 var PREFIXOS_FLAG = lista('has,have,had,tem,is,got,possui,com,own,owned,unlocked,desbloqueado,comprou,bought,with,can,pode,enable,enabled,ativo,active,on,use,usa,usar,buy,comprar,purchase,get,pegar');
 function nomeDasPalavras(ws, lj){
   var i = lj === 'en' ? 1 : lj === 'es' ? 2 : 0;
   ws = ws.filter(function(w){ return !PREFIXOS_FLAG[w] && !/^\d+$/.test(w) && !MOEDA_FORTE[w]; });
+  if(!ws.length) return '';
+  /* nome sem sentido (l, b2, x1): melhor não ter nome */
+  if(ws.length === 1 && (ws[0].length < 3 || /^[a-z]\d+$/.test(ws[0])) && !NOME_ITEM[ws[0]]) return '';
+  var juntas = ws.join(' ');
+  if(NOME_DUPLO[juntas]) return NOME_DUPLO[juntas].split('|')[i];
+  for(var d = 0; d + 1 < ws.length; d++){ var par2 = singularIngles(ws[d]) + ' ' + singularIngles(ws[d + 1]); if(NOME_DUPLO[par2]) return NOME_DUPLO[par2].split('|')[i]; }
+  ws = ws.map(singularIngles).filter(function(w){ return NOME_ITEM[w] !== ''; });
   if(!ws.length) return '';
   for(var k = 0; k < ws.length; k++) if(NOME_ITEM[ws[k]] && ws.length === 1) return NOME_ITEM[ws[k]].split('|')[i];
   /* duas palavras: a que tem tradução é a principal (pickaxePower -> Picareta) */
@@ -32255,7 +32797,13 @@ function nomeDaCompra(doc, js, cp){
     if(T[k + 1] && T[k + 1].v === '.') continue;
     var c = caminhoAte(T, k);
     if(!c) continue;
-    if(op === '++' || op === '+=' || op === '*=' || opA === '++' || (op === '=' && T[k + 2] && T[k + 2].v === 'true') || (op === '=' && T[k + 2] && T[k + 2].t === 'num')){
+    var sobe = false;
+    if(op === '=' && T[k + 2] && !(T[k + 2].v === '=')){
+      /* x = Math.min(x + 3, 10) / x = x + 5 / x = Math.max(x, 2) */
+      var e9 = fimDaExpr(T, k + 2);
+      for(var z = k + 2; z <= e9; z++) if(T[z].t === 'id' && T[z].v === c.ultimo && T[z + 1] && T[z + 1].v === '+') { sobe = true; break; }
+    }
+    if(sobe || op === '++' || op === '+=' || op === '*=' || opA === '++' || (op === '=' && T[k + 2] && T[k + 2].v === 'true') || (op === '=' && T[k + 2] && T[k + 2].t === 'num')){
       if(/^(msg|message|mensagem|aviso|texto|text|info|status|toast|flash)$/i.test(c.ultimo)) continue;
       if(c.txt === cp.moeda.caminho) continue;
       alvos.push({nome: c.ultimo, flag: op === '=' && T[k + 2].v === 'true'});
@@ -32269,6 +32817,12 @@ function nomeDaCompra(doc, js, cp){
   }
   /* o nome da função: buySword(), comprarEscudo(), buyUpgrade() */
   var fn = nomeDaFuncao(T, cp.gIni), dofn = fn ? nomeDasPalavras(palavrasDoId(fn), lj) : '';
+  /* quem escreveu deu nome à compra (buyPotion, comprarTurbo, buyDoubleJump): esse nome ganha do efeito */
+  if(fn && dofn && /^(buy|comprar|compra|purchase|unlock|desbloquear|adquirir|get)[A-Z_]/.test(fn)){
+    var wsf = palavrasDoId(fn).filter(function(w){ return !PREFIXOS_FLAG[w] && !/^(unlock|desbloquear|adquirir)$/.test(w); }).map(singularIngles);
+    var duplo = wsf.length >= 2 && NOME_DUPLO[wsf.slice(0, 2).join(' ')];
+    if(duplo || (wsf.length && wsf.every(function(w){ return NOME_ITEM[w] && !/^(upgrade|extra|double|power|time)$/.test(w); }))) return dofn;
+  }
   if(dofn && (!n || /^(Melhoria|Upgrade|Mejora)$/.test(dofn) === false && !alvos.length)) n = dofn;
   else if(dofn && /^(Melhoria|Upgrade|Mejora)$/.test(dofn) && n && n !== dofn) n = dofn + ': ' + n;
   return n;
@@ -32326,6 +32880,573 @@ function textosDaTela(doc){
   return (doc._tela = r);
 }
 
+
+/* ---- de quem é a compra que tem preço "de agora" ----
+   A loja do Koda GB precisa de um nome pra cada coisa. Quando o preço vem do botão (data-price), do parâmetro da
+   função (buy('speed', 30)) ou de uma conta, o nome também vem dali: do botão, do parâmetro que diz O QUE é,
+   ou do nome da função. Os itens que já dá pra saber olhando o código (botões do HTML, chamadas com números)
+   entram na loja do Koda GB logo; os outros entram sozinhos na primeira compra. */
+function funcaoEmVolta(T, k){
+  var b = abreDoBloco(T, k);
+  for(var v = 0; b > 0 && v < 8; v++){
+    var antes = T[b - 1];
+    if(antes && antes.v === ')'){
+      var p = parAntes(T, b - 1), q = p - 1;
+      if(p > 0 && T[q] && T[q].t === 'id' && !/^(if|for|while|switch|catch|with)$/.test(T[q].v)){
+        var nome = T[q].v === 'function' ? null : T[q].v;
+        if(T[q].v === 'function' && T[q - 1] && T[q - 1].v === '=' && T[q - 2] && T[q - 2].t === 'id') nome = T[q - 2].v;
+        if(T[q].v === 'function' && T[q - 1] && T[q - 1].v === ':' && T[q - 2] && T[q - 2].t === 'id') nome = T[q - 2].v;
+        if(T[q - 1] && T[q - 1].v === 'function') nome = T[q].v;
+        return {nome: nome, params: paramsEntre(T, p + 1, b - 2), abre: b};
+      }
+      if(p > 0 && T[p - 1] && T[p - 1].v === '=>') {}
+    }
+    if(antes && antes.v === '=>'){
+      var e = b - 2, params = [];
+      if(T[e] && T[e].v === ')'){ var pa = parAntes(T, e); params = paramsEntre(T, pa + 1, e - 1); e = pa - 1; }
+      else if(T[e] && T[e].t === 'id'){ params = [T[e].v]; e = e - 1; }
+      if(T[e] && T[e].v === 'async') e--;
+      var nm = T[e] && T[e].v === '=' && T[e - 1] && T[e - 1].t === 'id' ? T[e - 1].v : (T[e] && T[e].v === ':' && T[e - 1] && T[e - 1].t === 'id' ? T[e - 1].v : null);
+      return {nome: nm, params: params, abre: b, seta: true};
+    }
+    b = abreDoBloco(T, b);
+  }
+  return null;
+}
+function paramsEntre(T, a, b){
+  var r = [], d = 0, novo = true;
+  for(var k = a; k <= b; k++){
+    var t = T[k];
+    if(t.t === 'p' && /^[([{]$/.test(t.v)) d++;
+    else if(t.t === 'p' && /^[)\]}]$/.test(t.v)) d--;
+    else if(d === 0 && t.v === ','){ novo = true; continue; }
+    if(d === 0 && novo && t.t === 'id'){ r.push(t.v); novo = false; }
+    else if(d === 0 && novo && t.v === '...'){ continue; }
+    else novo = false;
+  }
+  return r;
+}
+/* as chamadas f(...) com valores fixos, no código e nos botões do HTML (onclick="buy('speed', 30)") */
+function chamadasDe(doc, nome){
+  if(!nome) return [];
+  var r = [];
+  function ler(T){
+    for(var k = 0; k < T.length; k++){
+      if(T[k].t !== 'id' || T[k].v !== nome || !T[k + 1] || T[k + 1].v !== '(') continue;
+      if(T[k - 1] && (T[k - 1].v === 'function' || (T[k + 2] && par(T, k + 1) > 0 && T[par(T, k + 1) + 1] && T[par(T, k + 1) + 1].v === '{' && !(T[k - 1] && T[k - 1].v === '.')))) continue;   /* a própria função */
+      var fe = par(T, k + 1); if(fe < 0) continue;
+      var args = [], ini = k + 2, d = 0;
+      for(var q = k + 2; q <= fe; q++){
+        var t = T[q];
+        if(q === fe || (d === 0 && t.v === ',')){
+          var lv = q - 1 >= ini ? valorSolto(T, ini, q - 1) : {ok: false};
+          args.push(lv.ok && !(lv.v && lv.v.__x) ? lv.v : undefined);
+          ini = q + 1; continue;
+        }
+        if(t.t === 'p' && /^[([{]$/.test(t.v)) d++; else if(t.t === 'p' && /^[)\]}]$/.test(t.v)) d--;
+      }
+      r.push(args);
+    }
+  }
+  doc.js.forEach(function(js){ if(!js.sc.koda) ler(js.T); });
+  String(doc.codigo).replace(/<script\b[\s\S]*?(<\/script\s*>|$)/gi, ' ').replace(/\son[a-z]+\s*=\s*("([^"]*)"|'([^']*)')/gi, function(m0, q, a, b2){
+    try{ ler(tokenizar(String(a != null ? a : b2).replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')).T); }catch(e){}
+    return m0;
+  });
+  return r;
+}
+/* os botões/itens do HTML que têm o preço num atributo: <button data-item="hat" data-price="60">Chapéu</button> */
+function itensDoHtml(doc, atributo){
+  var r = [], html = String(doc.codigo).replace(/<script\b[\s\S]*?(<\/script\s*>|$)/gi, ' ').replace(/<style\b[\s\S]*?(<\/style\s*>|$)/gi, ' ');
+  var re = new RegExp('<([a-z][a-z0-9-]*)\\b([^>]*\\b' + atributo.replace(/[^a-z0-9-]/gi, '') + '\\s*=\\s*["\']?\\s*(\\d+(?:\\.\\d+)?)[^>]*)>([\\s\\S]*?)<\\/\\1\\s*>', 'gi'), m;
+  while((m = re.exec(html))){
+    var at = m[2], txt = m[4].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+    var pega = function(n){ var x = new RegExp('\\bdata-' + n + '\\s*=\\s*("([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i').exec(at); return x ? (x[2] != null ? x[2] : x[3] != null ? x[3] : x[4]) : ''; };
+    var chave = pega('item') || pega('id') || pega('name') || pega('nome') || pega('key') || txt;
+    var nome = pega('name') || pega('nome') || txt || chave;
+    if(chave) r.push({id: idDaCompra(chave), nome: String(nome).replace(/\s*[-–:]\s*\d+\s*(coins?|moedas?|gold|ouro|gems?|\$)?\s*$/i, '').slice(0, 40) || chave, preco: Number(m[3])});
+  }
+  return r;
+}
+var PARAM_CHAVE = /^(item|itemid|itemname|name|nome|type|tipo|key|chave|id|kind|what|oque|cosa|thing|coisa|product|produto|upgrade|up|which|qual|slot|skin|power|perk)$/i;
+/* const preco = Number(btn.dataset.price): de onde a variável do preço veio (pra achar o botão, a tabela...) */
+function origemDoPreco(T, P, k0){
+  var faixas = [[P.a, P.b]];
+  if(P.a === P.b && T[P.a].t === 'id'){
+    for(var q = k0 - 1; q >= 0 && q > k0 - 600; q--){
+      if(T[q].t === 'id' && T[q].v === T[P.a].v && T[q + 1] && T[q + 1].v === '=' && T[q - 1] && /^(var|let|const)$/.test(T[q - 1].v)){ faixas.push([q + 2, fimDaExpr(T, q + 2)]); break; }
+    }
+  }
+  return faixas;
+}
+
+/* ---- O CALCULADOR: o preço de cada item sem rodar o jogo ----
+   Lê a conta do preço (10 * (game.upgrades[name] + 1), costOf(b), u.cost, levelCosts[n]...) e troca o que é do jogo
+   pelos valores escritos no código: tabelas, variáveis com valor no começo, contas locais e funções curtinhas de um "return".
+   Só aceita leitura: nada de =, ++, new, nem chamar coisa que não seja Math.* ou uma dessas funções curtinhas. */
+var METODOS_DE_CONTA = /^(get|toFixed|at|indexOf|includes|floor|ceil|round|pow|abs|trunc|sqrt|min|max|log|log10|log2|exp|hasOwnProperty)$/;
+var PROIBIDO_NA_CONTA = /^(constructor|__proto__|prototype|call|apply|bind|eval|Function|window|document|globalThis|self|top|parent|frames|localStorage|fetch|XMLHttpRequest|import|require|process|setTimeout|setInterval)$/;
+function acharFuncaoCurta(doc, nome){
+  doc._curtas = doc._curtas || {};
+  if(nome in doc._curtas) return doc._curtas[nome];
+  var achou = null;
+  doc.js.forEach(function(js){
+    if(achou || js.sc.koda) return;
+    var T = js.T;
+    for(var k = 0; k < T.length && !achou; k++){
+      if(T[k].t !== 'id' || T[k].v !== nome || (T[k - 1] && T[k - 1].v === '.' && !(T[k + 1] && (T[k + 1].v === '=')))) continue;
+      var params = null, corpo = -1, seta = false, q = k + 1;
+      if(T[k - 1] && T[k - 1].v === 'function' && T[q] && T[q].v === '('){ var pf = par(T, q); if(pf > 0){ params = paramsEntre(T, q + 1, pf - 1); corpo = pf + 1; } }
+      else if(T[q] && T[q].v === '(' && !(T[k - 1] && /^[=(,!&|?:+\-*\/.]$/.test(T[k - 1].v))){ var pf2 = par(T, q); if(pf2 > 0 && T[pf2 + 1] && T[pf2 + 1].v === '{'){ params = paramsEntre(T, q + 1, pf2 - 1); corpo = pf2 + 1; } }
+      else if(T[q] && (T[q].v === '=' || T[q].v === ':')){
+        var r = q + 1; if(T[r] && T[r].v === 'async') r++;
+        if(T[r] && T[r].v === 'function'){ r++; if(T[r] && T[r].t === 'id') r++; if(T[r] && T[r].v === '('){ var pf3 = par(T, r); if(pf3 > 0){ params = paramsEntre(T, r + 1, pf3 - 1); corpo = pf3 + 1; } } }
+        else if(T[r] && T[r].v === '('){ var pf4 = par(T, r); if(pf4 > 0 && T[pf4 + 1] && T[pf4 + 1].v === '=>'){ params = paramsEntre(T, r + 1, pf4 - 1); corpo = pf4 + 2; seta = true; } }
+        else if(T[r] && T[r].t === 'id' && T[r + 1] && T[r + 1].v === '=>'){ params = [T[r].v]; corpo = r + 2; seta = true; }
+      }
+      if(!params || corpo < 0 || !T[corpo]) continue;
+      if(T[corpo].v === '{'){
+        var fc = par(T, corpo);
+        if(T[corpo + 1] && T[corpo + 1].v === 'return'){
+          var e = fimDaExpr(T, corpo + 2), dep = T[e + 1];
+          if(e >= corpo + 2 && dep && (e + 1 === fc || (dep.v === ';' && e + 2 === fc))) achou = {js: js, params: params, a: corpo + 2, b: e};
+        }
+      } else if(seta && T[corpo].v !== '{'){ var e2 = fimDaExpr(T, corpo); if(e2 >= corpo) achou = {js: js, params: params, a: corpo, b: e2}; }
+    }
+  });
+  return (doc._curtas[nome] = achou);
+}
+/* o valor que um nome solto tem no começo do jogo: let hasCoupon = false / const BASE = 'x' */
+function literalInicial(doc, nome){
+  var r;
+  doc.js.forEach(function(js){
+    if(r !== undefined || js.sc.koda) return;
+    var T = js.T;
+    for(var k = 1; k + 2 < T.length; k++){
+      if(T[k].t !== 'id' || T[k].v !== nome || T[k + 1].v !== '=' || (T[k + 2] && T[k + 2].v === '=')) continue;
+      if(!(T[k - 1] && (/^(var|let|const)$/.test(T[k - 1].v) || T[k - 1].v === ','))) continue;
+      var t = T[k + 2], dep = T[k + 3];
+      if(dep && !(dep.v === ';' || dep.v === ',' || dep.nl || dep.v === '}')) continue;
+      if(t.t === 'num'){ r = Number(t.v.replace(/_/g, '')); return; }
+      if(t.t === 'str' && !t.aberta){ r = valorDoTexto(t.v); return; }
+      if(t.t === 'id' && /^(true|false|null)$/.test(t.v)){ r = t.v === 'true' ? true : t.v === 'false' ? false : null; return; }
+    }
+  });
+  return r;
+}
+/* a definição local "const x = ..." mais perto antes de k, dentro da mesma função */
+function defLocal(T, k, nome){
+  var lim = Math.max(0, k - 900), fn = funcaoEmVolta(T, k), ini = fn ? fn.abre : lim;
+  for(var q = k - 1; q > Math.max(lim, ini); q--){
+    if(T[q].t === 'id' && T[q].v === nome && T[q + 1] && T[q + 1].v === '=' && !(T[q + 2] && T[q + 2].v === '=') && T[q - 1] && (/^(var|let|const)$/.test(T[q - 1].v) || T[q - 1].v === ','))
+      return [q + 2, fimDaExpr(T, q + 2)];
+  }
+  return null;
+}
+function exprParaJs(doc, js, a, b, livres, fundo){
+  if(fundo > 4 || b < a || b - a > 160) return null;
+  var T = js.T, out = '', podeChamar = false;
+  for(var k = a; k <= b; k++){
+    var t = T[k], v = t.v;
+    if(t.t === 'num'){ out += ' ' + v.replace(/_/g, ''); podeChamar = false; continue; }
+    if(t.t === 'str'){ if(t.aberta) return null; out += ' ' + JSON.stringify(valorDoTexto(v)); podeChamar = false; continue; }
+    if(t.t === 'tpl'){ if(v.indexOf('${') >= 0) return null; out += ' ' + JSON.stringify(v.slice(1, -1)); podeChamar = false; continue; }
+    if(t.t === 'id'){
+      if(PROIBIDO_NA_CONTA.test(v)) return null;
+      var dPonto = T[k - 1] && (T[k - 1].v === '.' || T[k - 1].v === '?.');
+      if(dPonto){
+        if(T[k + 1] && T[k + 1].v === '('){ if(!METODOS_DE_CONTA.test(v)) return null; podeChamar = true; }
+        else podeChamar = false;
+        out += v; continue;
+      }
+      if(/^(true|false|null|undefined|NaN|Infinity)$/.test(v)){ out += ' ' + v; podeChamar = false; continue; }
+      if(/^(Math|Number|parseInt|parseFloat|String|isFinite|isNaN)$/.test(v)){ out += ' ' + v; podeChamar = v !== 'Math'; continue; }
+      if(/^(new|function|class|delete|void|await|yield|typeof|in|instanceof|var|let|const|return|async|super|arguments)$/.test(v)) return null;
+      /* o caminho a.b.c, sem passar do fim do trecho */
+      var partes = [v], fimC = k;
+      while(T[fimC + 1] && T[fimC + 1].v === '.' && T[fimC + 2] && T[fimC + 2].t === 'id' && fimC + 2 <= b){ partes.push(T[fimC + 2].v); fimC += 2; }
+      if(partes.some(function(x){ return PROIBIDO_NA_CONTA.test(x); })) return null;
+      var raiz = v;
+      if(raiz === 'this' && partes.length < 2) return null;
+      var chamada = T[fimC + 1] && T[fimC + 1].v === '(' && fimC + 1 <= b;
+      /* método de conta em cima de um valor: upgrades.get(name), price.toFixed(0) */
+      if(chamada && partes.length > 1 && METODOS_DE_CONTA.test(partes[partes.length - 1])){
+        var pre = resolverCaminho(doc, js, T, k, partes.slice(0, -1), livres, fundo);
+        if(pre == null) return null;
+        out += ' ' + pre + '.' + partes[partes.length - 1];
+        k = fimC; podeChamar = true; continue;
+      }
+      /* uma função curtinha do jogo: costOf(b), this.upgradeCost(name) */
+      if(chamada){
+        var f = acharFuncaoCurta(doc, partes[partes.length - 1]);
+        if(!f) return null;
+        var corpo = exprParaJs(doc, f.js, f.a, f.b, f.params.slice(), fundo + 1);
+        if(corpo == null) return null;
+        out += ' ((' + f.params.join(', ') + ') => (' + corpo + '))';
+        k = fimC; podeChamar = true; continue;
+      }
+      podeChamar = false;
+      var rv = resolverCaminho(doc, js, T, k, partes, livres, fundo);
+      if(rv == null) return null;
+      out += ' ' + rv; k = fimC; continue;
+    }
+    if(v === '('){ if(!podeChamar && T[k - 1] && (T[k - 1].v === ')' || T[k - 1].v === ']')) return null; out += '('; podeChamar = false; continue; }
+    if(/^(\)|\[|\]|\.|\?\.|,|\?|:|\+|-|\*|\/|%|\*\*|<|>|<=|>=|==|===|!=|!==|&&|\|\||\?\?|!)$/.test(v)){ out += v; podeChamar = false; continue; }
+    return null;
+  }
+  return out;
+}
+/* o valor de um caminho (raiz.a.b) como texto de JavaScript: livre, conta local, tabela ou valor do começo do jogo */
+function resolverCaminho(doc, js, T, k, partes, livres, fundo){
+  var raiz = partes[0], resto = partes.length > 1 ? '.' + partes.slice(1).join('.') : '';
+  if(livres.indexOf(raiz) >= 0) return raiz + resto;
+  if(raiz !== 'this'){
+    var dl = defLocal(T, k, raiz);
+    if(dl){
+      var dentro = exprParaJs(doc, js, dl[0], dl[1], livres, fundo + 1);
+      return dentro == null ? null : '(' + dentro + ')' + resto;
+    }
+  }
+  for(var n = partes.length; n >= 1; n--){
+    var base = partes.slice(0, n).join('.');
+    if(base === 'this') break;
+    var tb = tabelaDoCaminho(doc, base, n === 1);
+    if(tb && tb.v && typeof tb.v === 'object'){
+      var j0 = JSON.stringify(tb.v);
+      return (tb.mapa ? 'new Map(Object.entries(' + j0 + '))' : j0) + (n < partes.length ? '.' + partes.slice(n).join('.') : '');
+    }
+  }
+  var txt = partes.join('.');
+  var num = numeroInicial(doc, txt);
+  if(num) return String(num.v);
+  if(partes.length > 1){ var vc = valorDoCaminho(doc, txt); if(vc != null) return String(vc); }
+  if(partes.length === 1){ var li = literalInicial(doc, raiz); if(li !== undefined) return JSON.stringify(li); }
+  return null;
+}
+function avaliarConta(doc, js, a, b, env){
+  var nomes = Object.keys(env || {});
+  var txt = exprParaJs(doc, js, a, b, nomes, 0);
+  if(txt == null) return undefined;
+  try{ return Function.apply(null, nomes.concat(['"use strict"; return (' + txt + ');'])).apply(null, nomes.map(function(n){ return env[n]; })); }catch(e){ return undefined; }
+}
+/* os nomes soltos que a conta do preço usa (seguindo as contas locais: cost -> costOf(b) -> b) */
+function nomesDaConta(T, a, b, k0, fundo){
+  var r = [];
+  for(var k = a; k <= b; k++){
+    if(T[k].t !== 'id' || (T[k - 1] && (T[k - 1].v === '.' || T[k - 1].v === '?.'))) continue;
+    if(/^(Math|this|true|false|null|undefined)$/.test(T[k].v)) continue;
+    if(r.indexOf(T[k].v) < 0) r.push(T[k].v);
+    if(!(fundo > 2)){ var dl = defLocal(T, k0, T[k].v); if(dl) nomesDaConta(T, dl[0], dl[1], dl[0], (fundo || 0) + 1).forEach(function(x){ if(r.indexOf(x) < 0) r.push(x); }); }
+  }
+  return r;
+}
+/* as chamadas de uma função com os pedaços de cada argumento */
+function chamadasCruas(doc, nome){
+  var r = [];
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T;
+    for(var k = 0; k < T.length; k++){
+      if(T[k].t !== 'id' || T[k].v !== nome || !T[k + 1] || T[k + 1].v !== '(') continue;
+      if(T[k - 1] && T[k - 1].v === 'function') continue;
+      var fe = par(T, k + 1); if(fe < 0) continue;
+      if(T[fe + 1] && T[fe + 1].v === '{' && !(T[k - 1] && /^[(!,=&|?:]$/.test(T[k - 1].v))) continue;
+      var args = [], ini = k + 2, d = 0;
+      for(var q = k + 2; q <= fe; q++){ var t = T[q]; if(q === fe || (d === 0 && t.v === ',')){ if(q - 1 >= ini) args.push([ini, q - 1]); ini = q + 1; continue; } if(t.t === 'p' && /^[([{]$/.test(t.v)) d++; else if(t.t === 'p' && /^[)\]}]$/.test(t.v)) d--; }
+      r.push({js: js, k: k, args: args});
+    }
+  });
+  /* e os onclick="buy('x')" do HTML */
+  (doc.codigo.match(/\bon[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi) || []).forEach(function(at){
+    var src = at.replace(/^[^=]*=\s*/, '').slice(1, -1).replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+    if(src.indexOf(nome + '(') < 0) return;
+    try{ var T2 = tokenizar(src), js2 = {T: T2, sc: {corpo: src}, base: 0};
+      for(var k2 = 0; k2 < T2.length; k2++){
+        if(T2[k2].t !== 'id' || T2[k2].v !== nome || !T2[k2 + 1] || T2[k2 + 1].v !== '(') continue;
+        var fe2 = par(T2, k2 + 1); if(fe2 < 0) continue;
+        var args2 = [], ini2 = k2 + 2, d2 = 0;
+        for(var q2 = k2 + 2; q2 <= fe2; q2++){ var t2 = T2[q2]; if(q2 === fe2 || (d2 === 0 && t2.v === ',')){ if(q2 - 1 >= ini2) args2.push([ini2, q2 - 1]); ini2 = q2 + 1; continue; } if(t2.t === 'p' && /^[([{]$/.test(t2.v)) d2++; else if(t2.t === 'p' && /^[)\]}]$/.test(t2.v)) d2--; }
+        r.push({js: js2, k: k2, args: args2, html: true});
+      }
+    }catch(e){}
+  });
+  return r;
+}
+/* o parâmetro é usado como chave/posição dentro da função? (tabela[n], mapa.get(n)) */
+function usadoComoChave(T, fn, pn){
+  var fim = par(T, fn.abre);
+  for(var q = fn.abre; q < fim; q++){
+    if(T[q].t !== 'id' || T[q].v !== pn) continue;
+    if(T[q - 1] && T[q - 1].v === '[' && T[q + 1] && T[q + 1].v === ']') return true;
+    if(T[q - 1] && T[q - 1].v === '(' && T[q - 2] && T[q - 2].v === 'get' && T[q + 1] && T[q + 1].v === ')') return true;
+  }
+  return false;
+}
+/* os itens de uma compra com preço que muda: um por elemento da lista, por chave da tabela, por posição ou por quem chama */
+function itensDinamicos(doc, js, cp){
+  var T = js.T, a = cp.pIni, b = cp.pFim, lj = cp.lj || linguaDoJogo(doc);
+  if(!(a >= 0) || b < a) return null;
+  var fn = funcaoEmVolta(T, cp.gIni);
+  var precoCom = function(env){ var v = avaliarConta(doc, js, a, b, env); return typeof v === 'number' && isFinite(v) && v > 0 ? Math.round(v) : null; };
+  var nomes = nomesDaConta(T, a, b, cp.gIni, 0);
+  var CAMPOS = PROPS_NOME.concat(['label', 'nome', 'title']);
+  var campoDe = function(objs){ return CAMPOS.filter(function(n){ return objs.every(function(o){ return o && typeof o[n] === 'string' && o[n].trim(); }); })[0]; };
+  /* 1) uma variável que é um elemento de lista: const b = buildings[i] / for (const it of shop) */
+  for(var i = 0; i < nomes.length; i++){
+    var V = nomes[i];
+    if(fn && fn.params.indexOf(V) >= 0 && !defLocal(T, cp.gIni, V)) { /* parâmetro: vê em 2) */ }
+    var tb = tabelaDaVariavel(doc, js, cp.gIni, V);
+    if(!tb || !Array.isArray(tb.v) || !tb.v.length || !tb.v.every(function(o){ return o && typeof o === 'object' && !Array.isArray(o); })) continue;
+    var campo = campoDe(tb.v);
+    if(!campo) continue;
+    var its = [];
+    tb.v.forEach(function(o){ var env = {}; env[V] = o; var pr = precoCom(env); if(pr) its.push({id: idDaCompra(o[campo]), nome: String(o[campo]).slice(0, 40), preco: pr}); });
+    if(its.length) return {idExpr: 'kodaIdDoNome(' + V + '.' + campo + ')', nomeExpr: V + '.' + campo, itens: its};
+  }
+  if(!fn || !fn.params.length) return null;
+  var cham = fn.nome ? chamadasCruas(doc, fn.nome) : [];
+  for(var ip = 0; ip < fn.params.length; ip++){
+    var pn = fn.params[ip];
+    if(nomes.indexOf(pn) < 0) continue;
+    if(PARAM_QTD.test(pn) && !usadoComoChave(T, fn, pn)) continue;
+    /* 2) quem chama manda o objeto do item: purchase(SHOP_ITEMS.magnet) */
+    var objs = [];
+    cham.forEach(function(ch){ var ar = ch.args[ip]; if(!ar) return; var o = avaliarConta(doc, ch.js, ar[0], ar[1], {}); if(o && typeof o === 'object' && !Array.isArray(o)) objs.push(o); });
+    if(objs.length){
+      var cpo = campoDe(objs);
+      if(cpo){
+        var its2 = [];
+        objs.forEach(function(o){ var env = {}; env[pn] = o; var pr = precoCom(env); if(pr && !its2.some(function(x){ return x.id === idDaCompra(o[cpo]); })) its2.push({id: idDaCompra(o[cpo]), nome: String(o[cpo]).slice(0, 40), preco: pr}); });
+        if(its2.length) return {idExpr: 'kodaIdDoNome(' + pn + '.' + cpo + ')', nomeExpr: pn + '.' + cpo, itens: its2};
+      }
+      continue;
+    }
+    /* as chaves: o que quem chama manda ("speed", 2) ou as chaves da tabela que a função usa com esse parâmetro */
+    var chaves = [];
+    cham.forEach(function(ch){ var ar = ch.args[ip]; if(!ar) return; var kv = avaliarConta(doc, ch.js, ar[0], ar[1], {}); if((typeof kv === 'string' && kv) || typeof kv === 'number') if(chaves.indexOf(kv) < 0) chaves.push(kv); });
+    var lista = null;
+    if(!chaves.length){
+      var fimFn = par(T, fn.abre);
+      for(var q = fn.abre; q < fimFn && !chaves.length; q++){
+        if(T[q].t !== 'id' || T[q].v !== pn) continue;
+        var tab = null;
+        if(T[q - 1] && T[q - 1].v === '[' && T[q + 1] && T[q + 1].v === ']'){ var cx = caminhoAte(T, q - 2); if(cx) tab = avaliarConta(doc, js, cx.ini, q - 2, {}); }
+        else if(T[q - 1] && T[q - 1].v === '(' && T[q - 2] && T[q - 2].v === 'get' && T[q + 1] && T[q + 1].v === ')'){ var cy = caminhoAte(T, q - 4); if(cy) tab = avaliarConta(doc, js, cy.ini, q - 4, {}); }
+        /* getPrice(key): a chave é usada lá dentro (catalog[key]) */
+        if(tab == null && T[q - 1] && (T[q - 1].v === '(' || T[q - 1].v === ',') && !(T[q - 2] && T[q - 2].v === 'get')){
+          var ab = q - 1, dd = 0; while(ab > fn.abre && !(T[ab].v === '(' && dd === 0)){ if(T[ab].v === ')') dd++; else if(T[ab].v === '(') dd--; ab--; }
+          var nf = T[ab - 1] && T[ab - 1].t === 'id' ? T[ab - 1].v : null, fc = nf ? acharFuncaoCurta(doc, nf) : null;
+          if(fc){
+            var pos = 0; for(var z = ab + 1; z < q; z++) if(T[z].v === ',') pos++;
+            var pn2 = fc.params[pos], T2 = fc.js.T;
+            for(var z2 = fc.a; z2 <= fc.b && tab == null; z2++){
+              if(T2[z2].t === 'id' && T2[z2].v === pn2 && T2[z2 - 1] && T2[z2 - 1].v === '[' && T2[z2 + 1] && T2[z2 + 1].v === ']'){ var cz = caminhoAte(T2, z2 - 2); if(cz) tab = avaliarConta(doc, fc.js, cz.ini, z2 - 2, {}); }
+            }
+          }
+        }
+        if(tab instanceof Map) chaves = Array.from(tab.keys());
+        else if(Array.isArray(tab)){ lista = tab; chaves = tab.map(function(_, n){ return n; }); }
+        else if(tab && typeof tab === 'object') chaves = Object.keys(tab);
+      }
+    }
+    if(!chaves.length) continue;
+    var its3 = [], numerica = chaves.every(function(x){ return typeof x === 'number'; });
+    /* número que não é posição de lista é o próprio preço (comprar(25, 'vida')), não uma chave */
+    if(numerica && !usadoComoChave(T, fn, pn)) continue;
+    var base = fn.nome || 'compra', nomeBase = nomeDasPalavras(palavrasDoId(base), lj) || capitalizar(base);
+    chaves.forEach(function(kv){
+      var env = {}; env[pn] = kv; var pr = precoCom(env);
+      if(!pr) return;
+      if(numerica){
+        var el = lista && lista[kv], cn = el && typeof el === 'object' ? campoDe([el]) : null;
+        its3.push({id: idDaCompra(base + ' ' + kv), nome: cn ? String(el[cn]).slice(0, 40) : nomeBase + ' ' + kv, preco: pr});
+      } else its3.push({id: idDaCompra(kv), nome: nomeDasPalavras(palavrasDoId(String(kv)), lj) || capitalizar(String(kv)), preco: pr});
+    });
+    if(!its3.length) continue;
+    if(numerica) return {idExpr: 'kodaIdDoNome(' + textoJs(base + ' ', "'") + ' + ' + pn + ')', nomeExpr: textoJs(nomeBase + ' ', "'") + ' + ' + pn, itens: its3};
+    return {idExpr: 'kodaIdDoNome(' + pn + ')', nomeExpr: pn, itens: its3};
+  }
+  return null;
+}
+function paramSoltoNaConta(T, faixas, x){
+  return faixas.some(function(f){
+    for(var q = f[0]; q <= f[1]; q++){
+      if(T[q].t !== 'id' || T[q].v !== x || (T[q - 1] && T[q - 1].v === '.')) continue;
+      var d = 0, ok = true;
+      for(var z = q - 1; z >= f[0]; z--){
+        if(T[z].v === ')' || T[z].v === ']') d++;
+        else if(T[z].v === '[' ){ if(d === 0){ ok = false; break; } d--; }
+        else if(T[z].v === '('){ if(d === 0){ if(T[z - 1] && T[z - 1].t === 'id' && !CHAMADAS_DE_PRECO.test(T[z - 1].v) && !(T[z - 2] && T[z - 2].v === '.' && T[z - 3] && T[z - 3].v === 'Math')){ ok = false; break; } } else d--; }
+      }
+      if(ok) return true;
+    }
+    return false;
+  });
+}
+function identidadeDaCompra(doc, js, cp){
+  var T = js.T, P = cp.preco, r = {idExpr: null, nomeExpr: null, itens: []};
+  var faixas = origemDoPreco(T, P, cp.gIni);
+  /* 1) o preço vem do botão: el.dataset.price / el.getAttribute('data-price') */
+  for(var fx = 0; fx < faixas.length; fx++) for(var k = faixas[fx][0]; k <= faixas[fx][1]; k++){
+    var el = null, atr = null;
+    if(T[k].v === 'dataset' && T[k - 1] && T[k - 1].v === '.' && T[k + 1] && T[k + 1].v === '.' && T[k + 2]){ var c = caminhoAte(T, k - 2); if(c){ el = c.txt; atr = 'data-' + T[k + 2].v.replace(/[A-Z]/g, function(x){ return '-' + x.toLowerCase(); }); } }
+    if(T[k].v === 'getAttribute' && T[k - 1] && T[k - 1].v === '.' && T[k + 2] && T[k + 2].t === 'str'){ var c2 = caminhoAte(T, k - 2), at2 = valorDoTexto(T[k + 2].v); if(c2 && /^data-/.test(at2)){ el = c2.txt; atr = at2; } }
+    if(el){
+      var d = function(n){ return el + '.dataset.' + n; };
+      r.idExpr = 'kodaIdDoNome(' + [d('item'), d('id'), d('name'), d('nome'), d('key'), el + '.textContent'].join(' || ') + ')';
+      r.nomeExpr = '(' + [d('name'), d('nome'), el + '.textContent', d('item'), d('id')].join(' || ') + ')';
+      r.itens = itensDoHtml(doc, atr);
+      return r;
+    }
+  }
+  /* 2) o calculador: um item por elemento, chave, posição ou objeto que quem chama manda */
+  var din = itensDinamicos(doc, js, cp);
+  if(din && din.itens.length) return din;
+  /* 3) o preço é um parâmetro da função: buy(item, price) -> as chamadas dizem os itens */
+  var fn = funcaoEmVolta(T, cp.gIni);
+  if(fn && fn.params.length){
+    var idsDoPreco = [];
+    faixas.forEach(function(f){ for(var q = f[0]; q <= f[1]; q++) if(T[q].t === 'id' && !(T[q - 1] && T[q - 1].v === '.')) idsDoPreco.push(T[q].v); });
+    var ip = fn.params.findIndex(function(x){ return idsDoPreco.indexOf(x) >= 0 && !PARAM_QTD.test(x) && paramSoltoNaConta(T, faixas, x); });   /* quantidade não é o preço */
+    var chamadas = fn.nome ? chamadasDe(doc, fn.nome) : [];
+    var ic = fn.params.findIndex(function(x, i){ return i !== ip && (PARAM_CHAVE.test(x) || chamadas.some(function(a){ return typeof a[i] === 'string'; })); });
+    if(ic >= 0){ r.idExpr = 'kodaIdDoNome(' + fn.params[ic] + ')'; r.nomeExpr = fn.params[ic]; }
+    if(ip >= 0 || ic >= 0){
+      chamadas.forEach(function(a){
+        var preco = ip >= 0 ? a[ip] : P.estimado, chave = ic >= 0 ? a[ic] : null;
+        if(typeof preco !== 'number' || !(preco > 0)) return;
+        var nome = typeof chave === 'string' ? (nomeDasPalavras(palavrasDoId(chave), cp.lj) || capitalizar(chave)) : '';
+        var id = typeof chave === 'string' ? idDaCompra(chave) : null;
+        if(!id){ id = idDaCompra((fn.nome || 'compra') + ' ' + preco); nome = nome || (nomeDasPalavras(palavrasDoId(fn.nome || ''), cp.lj) || capitalizar(fn.nome || 'Compra')) + ' (' + preco + ')'; }
+        if(!r.itens.some(function(x){ return x.id === id; })) r.itens.push({id: id, nome: nome, preco: preco});
+      });
+      if(ic < 0 && ip >= 0 && fn.nome){ r.idExpr = 'kodaIdDoNome(' + textoJs((fn.nome || 'compra') + ' ', "'") + ' + (' + P.expr + '))'; }
+      /* const u = up[name]; const price = u.costs[u.level]  ->  um item por chave da tabela, com o preço de agora de cada um */
+      if(ic >= 0 && !r.itens.length) estimarPorChave(doc, js, cp, faixas, fn.params[ic]).forEach(function(i){ r.itens.push(i); });
+      if(r.idExpr) return r;
+    }
+  }
+  /* 3) o nome do que a compra muda ou da função (upgradePick, buyPotions) */
+  return r;
+}
+function estimarPorChave(doc, js, cp, faixas, chave){
+  var T = js.T, out = [];
+  /* acha "X = TABELA[chave]" antes da compra */
+  for(var q = cp.gIni - 1; q >= 0 && q > cp.gIni - 600; q--){
+    if(T[q].t !== 'id' || !T[q + 1] || T[q + 1].v !== '=' || !T[q - 1] || !/^(var|let|const)$/.test(T[q - 1].v)) continue;
+    var c = caminhoDesde(T, q + 2);
+    if(!c || !T[c.fim + 1] || T[c.fim + 1].v !== '[' || !T[c.fim + 2] || T[c.fim + 2].v !== chave || !T[c.fim + 3] || T[c.fim + 3].v !== ']') continue;
+    var tb = tabelaDoCaminho(doc, c.txt, true), x = T[q].v;
+    if(!tb || !tb.v || typeof tb.v !== 'object' || Array.isArray(tb.v)) return out;
+    var expr = faixas.length > 1 ? textoDosToks(js, faixas[1][0], faixas[1][1]) : textoDosToks(js, faixas[0][0], faixas[0][1]);
+    if(!/^[\w$.\[\]\s+\-*\/()]+$/.test(expr)) return out;
+    Object.keys(tb.v).forEach(function(k2){
+      var o = tb.v[k2], v = null;
+      try{ v = Function(x, chave, 'return (' + expr + ')')(o, k2); }catch(e){}
+      if(typeof v === 'number' && v > 0) out.push({id: idDaCompra(k2), nome: nomeDasPalavras(palavrasDoId(k2), cp.lj) || capitalizar(k2), preco: Math.round(v)});
+    });
+    return out;
+  }
+  return out;
+}
+
+/* ---- AJUDANTES DE PAGAR: function spend(n){ if(coins < n) return false; coins -= n; return true; } ----
+   A compra de verdade acontece em quem chama: if (spend(20)) { bombs++; }  /  tryBuy(40, () => shield = true).
+   Então a troca é feita em cada chamada (e o ajudante fica como está pra quem joga sem o Koda GB). */
+function ajudanteDaCompra(doc, cp){
+  var T = cp.js.T, P = cp.preco;
+  if(P.tipo !== 'dinamico' || !(cp.pIni >= 0) || cp.pIni !== cp.pFim || T[cp.pIni].t !== 'id') return null;
+  var fn = funcaoEmVolta(T, cp.gIni);
+  if(!fn || !fn.nome) return null;
+  var ip = fn.params.indexOf(T[cp.pIni].v);
+  if(ip < 0) return null;
+  var fim = par(T, fn.abre), temTrue = false, cb = -1;
+  for(var k = fn.abre; k <= fim; k++){
+    if(T[k].v === 'return' && T[k + 1] && T[k + 1].v === 'true') temTrue = true;
+    if(T[k].t === 'id' && T[k + 1] && T[k + 1].v === '(' && !(T[k - 1] && T[k - 1].v === '.')){ var i2 = fn.params.indexOf(T[k].v); if(i2 >= 0 && i2 !== ip) cb = i2; }
+  }
+  if(cb < 0 && !temTrue) return null;
+  return {nome: fn.nome, params: fn.params, ip: ip, cb: cb, tipo: cb >= 0 ? 'cb' : 'bool'};
+}
+/* o nome do que o efeito muda (bombs++ -> Bomba, shield = true -> Escudo) ou o da função que chama (buyMagnet -> Ímã) */
+function nomeDoEfeito(doc, js, a, b, k0, lj){
+  var T = js.T, alvos = [];
+  for(var k = a; k <= b; k++){
+    if(T[k].t !== 'id' || (T[k + 1] && T[k + 1].v === '.')) continue;
+    var op = T[k + 1] && T[k + 1].v, opA = T[k - 1] && T[k - 1].v, c = caminhoAte(T, k);
+    if(!c) continue;
+    if(op === '++' || op === '+=' || opA === '++' || (op === '=' && T[k + 2] && (T[k + 2].v === 'true' || T[k + 2].t === 'num' || T[k + 2].t === 'str'))){
+      if(/^(msg|message|mensagem|aviso|texto|text|info|status|toast|flash|title)$/i.test(c.ultimo)) continue;
+      alvos.push(c.ultimo);
+    }
+  }
+  for(var q = 0; q < alvos.length; q++){ var n = nomeDasPalavras(palavrasDoId(alvos[q]), lj); if(n) return n; }
+  var fn = funcaoEmVolta(T, k0);
+  return fn && fn.nome ? (nomeDasPalavras(palavrasDoId(fn.nome), lj) || '') : '';
+}
+function chamadasDoAjudante(doc, h, lj){
+  var r = [];
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T;
+    for(var k = 0; k < T.length; k++){
+      if(T[k].t !== 'id' || T[k].v !== h.nome || !T[k + 1] || T[k + 1].v !== '(') continue;
+      var c = caminhoAte(T, k); if(!c) continue;
+      var fe = par(T, k + 1); if(fe < 0) continue;
+      if(T[c.ini - 1] && T[c.ini - 1].v === 'function') continue;
+      if(T[fe + 1] && T[fe + 1].v === '{' && !(T[c.ini - 1] && /^[(!,=&|?:]$/.test(T[c.ini - 1].v))) continue;   /* a própria declaração (método) */
+      /* os argumentos */
+      var args = [], ini = k + 2, d = 0;
+      for(var q = k + 2; q <= fe; q++){ var t = T[q]; if(q === fe || (d === 0 && t.v === ',')){ args.push([ini, q - 1]); ini = q + 1; continue; } if(t.t === 'p' && /^[([{]$/.test(t.v)) d++; else if(t.t === 'p' && /^[)\]}]$/.test(t.v)) d--; }
+      var pa = args[h.ip];
+      if(!pa || pa[1] < pa[0] || !exprDePrecoSegura(T, pa[0], pa[1])) continue;
+      var preco = textoDosToks(js, pa[0], pa[1]).replace(/\s+/g, ' ');
+      var fixo = pa[0] === pa[1] && T[pa[0]].t === 'num' ? Number(T[pa[0]].v) : estimarPreco(doc, js, pa[0], pa[1], 0);
+      var s0 = {js: js, k: k, ini: c.ini, fe: fe, preco: preco, fixo: fixo};
+      /* já trocada: "if (koda) {...} else if (spend(20))", "if (koda) {...; return;} if (!spend(20)) return;" ou "else { tryBuy(...) }" */
+      var ifAntes = T[c.ini - 1] && T[c.ini - 1].v === '(' && T[c.ini - 2] && T[c.ini - 2].v === 'if' ? c.ini - 2 : (T[c.ini - 1] && T[c.ini - 1].v === '!' && T[c.ini - 3] && T[c.ini - 3].v === 'if' ? c.ini - 3 : -1);
+      if((ifAntes > 0 && T[ifAntes - 1] && T[ifAntes - 1].v === 'else' && T[ifAntes - 2] && T[ifAntes - 2].v === '}' && (function(){ var a9 = parAntes(T, ifAntes - 2); if(a9 < 1 || T[a9 - 1].v !== ')') return false; var p9 = parAntes(T, a9 - 1); return p9 > 0 && T[p9 - 1].v === 'if' && ehSeKoda(textoDosToks(js, p9 + 1, a9 - 2)); })())
+        || (ifAntes > 0 && antesTemKoda(js, ifAntes)) || (h.tipo === 'cb' && noSenaoDoKoda(js, c.ini))){ r.jaTrocadas = (r.jaTrocadas || 0) + 1; continue; }
+      if(h.tipo === 'bool'){
+        /* if (spend(20)) CORPO */
+        if(T[c.ini - 1] && T[c.ini - 1].v === '(' && T[c.ini - 2] && T[c.ini - 2].v === 'if' && par(T, c.ini - 1) === fe + 1){
+          var ci = fe + 2, cf = T[ci] && T[ci].v === '{' ? par(T, ci) : fimDaFrase(T, ci);
+          if(cf < ci || (T[cf + 1] && T[cf + 1].v === 'else')) continue;
+          s0.tipo = 'se'; s0.ifK = c.ini - 2; s0.cIni = ci; s0.cFim = cf;
+          s0.efeito = T[ci].v === '{' ? js.sc.corpo.slice(T[ci].e, T[cf].s) : js.sc.corpo.slice(T[ci].s, T[cf].e);
+          s0.eA = T[ci].v === '{' ? ci + 1 : ci; s0.eB = T[ci].v === '{' ? cf - 1 : cf;
+        }
+        /* if (!spend(20)) return; O RESTO */
+        else if(T[c.ini - 1] && T[c.ini - 1].v === '!' && T[c.ini - 2] && T[c.ini - 2].v === '(' && T[c.ini - 3] && T[c.ini - 3].v === 'if' && par(T, c.ini - 2) === fe + 1){
+          var ri = fe + 2, rf = T[ri] && T[ri].v === '{' ? par(T, ri) : fimDaFrase(T, ri), sai = false;
+          for(var q2 = ri; q2 <= rf; q2++) if(T[q2].v === 'return' || T[q2].v === 'throw') sai = true;
+          var bl = abreDoBloco(T, c.ini), blf = par(T, bl);
+          if(!sai || bl < 0 || blf <= rf + 1) continue;
+          s0.tipo = 'naoRetorna'; s0.ifK = c.ini - 3; s0.cIni = rf + 1; s0.cFim = blf - 1;
+          s0.efeito = js.sc.corpo.slice(T[rf + 1].s, T[blf - 1].e); s0.eA = rf + 1; s0.eB = blf - 1;
+        } else continue;
+      } else {
+        /* tryBuy(40, () => {...}); sozinho numa linha */
+        var cbA = args[h.cb];
+        if(!cbA || cbA[1] < cbA[0] || !inicioDeFrase(T, c.ini)) continue;
+        var dep = T[fe + 1];
+        if(dep && dep.v !== ';' && dep.v !== '}' && !dep.nl) continue;
+        s0.tipo = 'cb'; s0.cIni = c.ini; s0.cFim = dep && dep.v === ';' ? fe + 1 : fe;
+        s0.cb = textoDosToks(js, cbA[0], cbA[1]); s0.eA = cbA[0]; s0.eB = cbA[1];
+      }
+      var bad = false, laco = 0;
+      for(var q3 = s0.eA; q3 <= s0.eB; q3++){ var v3 = T[q3].v; if(T[q3].t !== 'id') continue; if(/^(for|while|do|switch)$/.test(v3)) laco++; if((v3 === 'break' || v3 === 'continue') && !laco) bad = true; if(v3 === 'yield') bad = true; }
+      if(bad) continue;
+      s0.unico = (function(){ var flag = false, outro = false; for(var q4 = s0.eA; q4 <= s0.eB; q4++){ var o4 = T[q4].v; if(o4 === '=' && T[q4 + 1] && T[q4 + 1].v === 'true') flag = true; else if(/^(\+\+|--|\+=|-=|\*=)$/.test(o4)) outro = true; } return flag && !outro; })();
+      s0.nome = nomeDoEfeito(doc, js, s0.eA, s0.eB, k, lj) || (lj === 'en' ? 'Purchase' : 'Compra');
+      r.push(s0);
+    }
+  });
+  /* nomes repetidos ganham o preço junto (Compra (20), Compra (75)) */
+  var vistos = {};
+  r.forEach(function(x){ var id = idDaCompra(x.nome); if(vistos[id]){ x.nome = x.nome + ' (' + (x.fixo || x.preco) + ')'; } vistos[idDaCompra(x.nome)] = 1; x.id = idDaCompra(x.nome); });
+  return r;
+}
 /* ---- trocar as compras pela loja do Koda GB ---- */
 var ID_DO_NOME_RT = 'function(s){ return String(s == null ? \'\' : s).normalize(\'NFD\').replace(/[\\u0300-\\u036f]/g, \'\').toLowerCase().replace(/[^a-z0-9]+/g, \'_\').replace(/^_+|_+$/g, \'\').slice(0, 30) || \'item\'; }';
 function idDaCompra(nome){ return semAcento(String(nome == null ? '' : nome)).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) || 'item'; }
@@ -32334,18 +33455,49 @@ function kodaMoedasNoJogo(){
     try{ var L = window.KODA && window.KODA.loja; return !!(L && typeof L.comprar === 'function' && (typeof L.ligada !== 'function' || L.ligada())); }catch(e){ return false; }
   };
   window.kodaIdDoNome = KODA_ID_DO_NOME;
+  /* o item está na loja do Koda GB com o preço de agora? (preço que sobe no jogo sobe aqui também, do mesmo tanto;
+     item que só aparece na hora, como o botão que o jogo criou, entra na loja na primeira compra) */
+  window.kodaPreparar = function(id, preco, nome, unico, moedaDaCompra){
+    var M = typeof KODA_MOEDA_TROCA === 'object' && KODA_MOEDA_TROCA ? KODA_MOEDA_TROCA : {moeda: 'c', maxC: 100000, maxD: 50, faixas: []};
+    var lista = (typeof KODA_LOJA_ITENS !== 'undefined' && Array.isArray(KODA_LOJA_ITENS)) ? KODA_LOJA_ITENS : (window.__kodaItens = window.__kodaItens || []);
+    var p = Math.max(1, Math.round(Number(preco) || 0));
+    if(!isFinite(p)) return;
+    var km = moedaDaCompra === 'c' || moedaDaCompra === 'd' || moedaDaCompra === 'd1' ? moedaDaCompra : M.moeda;
+    function converter(v, moeda){
+      if(moeda === 'd1') return Math.max(1, Math.min(M.maxD, Math.round(v)));
+      if(moeda !== 'd') return Math.max(1, Math.min(M.maxC, Math.round(v)));
+      for(var i = 0; i < M.faixas.length; i++) if(v <= M.faixas[i][0]) return Math.min(M.faixas[i][1], M.maxD);
+      return M.maxD;
+    }
+    var it = null;
+    for(var i = 0; i < lista.length; i++) if(lista[i] && lista[i].id === id){ it = lista[i]; break; }
+    if(it){
+      var base = Number(it.jogo);
+      if(!(base > 0) || base === p) return;
+      it.preco = Math.max(1, Math.min(it.moeda === 'd' ? M.maxD : M.maxC, Math.round(it.preco * p / base)));
+      it.jogo = p;
+    } else {
+      if(lista.length >= 40) return;
+      var nm = String(nome == null || nome === '' ? id : nome).replace(/\s+/g, ' ').trim();
+      if(/^[A-Za-z][A-Za-z0-9_]*$/.test(nm)){ nm = nm.replace(/_+/g, ' ').replace(/([a-z])([A-Z0-9])/g, '$1 $2').toLowerCase(); nm = nm.charAt(0).toUpperCase() + nm.slice(1); }
+      lista.push({id: id, nome: nm.slice(0, 40) || id, preco: converter(p, km), moeda: km === 'c' ? 'c' : 'd', unico: !!unico, jogo: p});
+    }
+    try{ window.KODA.loja.definir(lista); }catch(e){}
+  };
   /* paga com o saldo do Koda GB; se a pessoa já tinha o item (comprou na loja do Koda GB), usa sem cobrar de novo */
-  window.kodaPagar = function(id, unico, efeito){
+  window.kodaPagar = function(id, unico, efeito, preco, nome, moedaDaCompra){
     var L = window.KODA.loja, feito = false;
     function aplicar(){ if(feito) return; feito = true; try{ efeito(); }catch(e){ setTimeout(function(){ throw e; }); } }
     try{
+      if(preco != null) window.kodaPreparar(id, preco, nome, unico, moedaDaCompra);
       if(unico ? L.tem(id) : L.usar(id, 1)){ aplicar(); return; }
       L.comprar(id).then(function(ok){ if(ok && (unico || L.usar(id, 1))) aplicar(); });
     }catch(e){}
   };
 }
-function escreverAjudanteMoedas(lj){
-  return '<script data-koda-moedas="1">\n/* ' + TL(lj, 'dj_comentario') + ' */\nvar KODA_ID_DO_NOME = ' + ID_DO_NOME_RT + ';\n(' + kodaMoedasNoJogo.toString() + ')();\n<\/script>';
+function escreverAjudanteMoedas(lj, moeda){
+  var troca = {moeda: moeda === 'd' ? 'd' : 'c', maxC: DEP.maxC, maxD: DEP.maxD, faixas: FAIXAS};
+  return '<script data-koda-moedas="1">\n/* ' + TL(lj, 'dj_comentario') + ' */\nvar KODA_ID_DO_NOME = ' + ID_DO_NOME_RT + ';\nvar KODA_MOEDA_TROCA = ' + JSON.stringify(troca) + ';\n(' + kodaMoedasNoJogo.toString() + ')();\n<\/script>';
 }
 var SE_KODA = '(window.kodaLojaAtiva && kodaLojaAtiva())';
 /* os nomes de "var" de laços em volta (for(var i...)) que o código adiado usa: viram parâmetros pra não mudar depois */
@@ -32363,17 +33515,31 @@ function varsDeLaco(T, k, a, b){
   return r;
 }
 /* o código que roda depois de pagar (sem a linha que gasta o dinheiro do jogo) */
-function codigoAdiado(js, cp, a, b){
+function codigoAdiado(js, cp, a, b, outros){
   var T = js.T;
   if(b < a) return {txt: '', ok: true};
-  var antes = a <= cp.gIni - 1 ? js.sc.corpo.slice(T[a].s, T[cp.gIni - 1].e) : '';
-  var depois = cp.sFim + 1 <= b ? js.sc.corpo.slice(T[cp.sFim + 1].s, T[b].e) : '';
-  var dentro = cp.gIni >= a && cp.sFim <= b;
-  var txt = dentro ? (antes + (antes && depois ? '\n' : '') + depois) : js.sc.corpo.slice(T[a].s, T[b].e);
+  /* o que sai: o gasto desta compra e, das moedas que vão junto, o gasto e a conferência (já foi pago no Koda GB) */
+  var trocas = [[cp.gIni, cp.sFim, '']];
+  (outros || []).forEach(function(o){
+    trocas.push([o.gIni, o.sFim, '']);
+    var g2 = o.guarda;
+    if(g2.tipo === 'retorno' && !g2.livre) trocas.push([g2.ifK, g2.gFim, '']);
+    /* if (gems >= 3) { ... } dentro: fica só o de dentro (sem o if e sem a chave do fim) */
+    else if(g2.tipo === 'bloco' && !(T[g2.fecha + 1] && T[g2.fecha + 1].v === 'else')){ trocas.push([g2.ifK, g2.abre, '']); trocas.push([g2.fecha, g2.fecha, '']); }
+    else if(g2.tipo === 'bloco') trocas.push([g2.cIni, g2.cFim, 'true']);
+    /* if (gems < 2) { aviso } else { ... }: fica só o else */
+    else if(g2.tipo === 'senao'){ trocas.push([g2.ifK, g2.abre, '']); trocas.push([g2.fecha, g2.fecha, '']); }
+  });
+  var fora = trocas.filter(function(x){ return x[0] >= a && x[1] <= b; }).sort(function(x, y){ return x[0] - y[0]; });
+  fora = fora.filter(function(x, i){ return !fora.slice(0, i).some(function(y){ return x[0] <= y[1]; }); });
+  var dentro = fora.length > 0, pedacos = [], q0 = a;
+  fora.forEach(function(x){ if(x[0] - 1 >= q0) pedacos.push(js.sc.corpo.slice(T[q0].s, T[x[0] - 1].e)); if(x[2]) pedacos.push(x[2]); q0 = x[1] + 1; });
+  if(q0 <= b) pedacos.push(js.sc.corpo.slice(T[q0].s, T[b].e));
+  var txt = dentro ? pedacos.map(function(x){ return x.trim(); }).filter(Boolean).join('\n') : js.sc.corpo.slice(T[a].s, T[b].e);
   /* break/continue soltos não funcionam dentro de uma função */
   var laco = 0, ok = true, temReturn = false, temAwait = false, temYield = false;
   for(var q = a; q <= b; q++){
-    if(dentro && q >= cp.gIni && q <= cp.sFim) continue;
+    if(dentro && fora.some(function(x){ return q >= x[0] && q <= x[1]; })) continue;
     var v = T[q].v;
     if(T[q].t !== 'id') continue;
     if(/^(for|while|do|switch)$/.test(v)) laco++;
@@ -32386,11 +33552,19 @@ function codigoAdiado(js, cp, a, b){
   return {txt: txt.trim(), ok: ok, temReturn: temReturn, temAwait: temAwait};
 }
 function idsDaCompra(cp){
-  var P = cp.preco;
-  if(P.tipo === 'lista') return {expr: 'kodaIdDoNome(' + P.obj + '.' + P.campo + ')', itens: P.itens.map(function(it){ return {id: idDaCompra(it.nome), nome: String(it.nome).slice(0, 40), preco: it.preco, unico: it.unico}; })};
-  if(P.tipo === 'tabela') return {expr: 'kodaIdDoNome(' + P.chave + ')', itens: P.itens.map(function(it){ var nm = it.doCodigo === false ? String(it.nome).slice(0, 40) : (nomeDasPalavras(palavrasDoId(it.nome), cp.lj) || capitalizar(it.nome)); return {id: idDaCompra(it.chave), nome: nm, preco: it.preco, unico: false}; })};
+  var P = cp.preco, js = cp.js;
+  /* o preço como o jogo calcula NA HORA (vale quando ele sobe ou depende do nível) */
+  var agora = cp.pIni >= 0 && exprDePrecoSegura(js.T, cp.pIni, cp.pFim) ? textoDosToks(js, cp.pIni, cp.pFim).replace(/\s+/g, ' ') : (cp.pIni < 0 ? '1' : null);
+  if(P.tipo === 'lista') return {expr: 'kodaIdDoNome(' + P.obj + '.' + P.campo + ')', agora: agora, nomeExpr: P.obj + '.' + P.campo, itens: P.itens.map(function(it){ return {id: idDaCompra(it.nome), nome: String(it.nome).slice(0, 40), preco: it.preco, unico: it.unico}; })};
+  if(P.tipo === 'tabela') return {expr: 'kodaIdDoNome(' + P.chave + ')', agora: agora, nomeExpr: null, itens: P.itens.map(function(it){ var nm = it.doCodigo === false ? String(it.nome).slice(0, 40) : (nomeDasPalavras(palavrasDoId(it.nome), cp.lj) || capitalizar(it.nome)); return {id: idDaCompra(it.chave), nome: nm, preco: it.preco, unico: false}; })};
+  if(P.tipo === 'dinamico'){
+    var idn = identidadeDaCompra(cp.doc, js, cp);
+    if(idn.idExpr) return {expr: idn.idExpr, agora: P.expr, nomeExpr: idn.nomeExpr, itens: idn.itens.map(function(i){ return {id: i.id, nome: i.nome, preco: i.preco, unico: cp.unico}; })};
+    var nm0 = cp.nome || '', id0 = idDaCompra(nm0 || ('compra ' + cp.n));
+    return {expr: textoJs(id0, "'"), agora: P.expr, nomeExpr: null, itens: P.estimado ? [{id: id0, nome: nm0 || TL(cp.lj, 'dj_compra_n', {n: cp.n}), preco: P.estimado, unico: cp.unico}] : [], nomeFixo: nm0 || TL(cp.lj, 'dj_compra_n', {n: cp.n})};
+  }
   var nome = cp.nome || '', id = idDaCompra(nome || ('compra ' + cp.n));
-  return {expr: textoJs(id, "'"), itens: [{id: id, nome: nome || TL(cp.lj, 'dj_compra_n', {n: cp.n}), preco: P.v, unico: cp.unico}]};
+  return {expr: textoJs(id, "'"), agora: agora, nomeExpr: null, itens: [{id: id, nome: nome || TL(cp.lj, 'dj_compra_n', {n: cp.n}), preco: P.v, unico: cp.unico}], nomeFixo: nome || TL(cp.lj, 'dj_compra_n', {n: cp.n})};
 }
 /* o recuo (espaços do começo) da linha onde fica a posição p */
 function recuoDaLinha(src, p){ var a = src.lastIndexOf('\n', p - 1) + 1, m = /^[ \t]*/.exec(src.slice(a, p)); return m ? m[0] : ''; }
@@ -32420,44 +33594,121 @@ function converterMoedas(codigo, opts){
   var compras = [];
   moedas.forEach(function(m){ m.compras.forEach(function(c){ if(!c.convertida) compras.push(c); }); });
   if(!compras.length) return {erro: moedas.length ? (moedas.some(function(m){ return m.convertidas; }) ? 'ja' : 'sem_compras') : 'sem_moeda', moedas: moedas};
-  var ed = new Edicao(codigo), itens = [], usados = {}, falhas = [], feitas = [], ocupado = [];
+  var ed = new Edicao(codigo), itens = [], usados = {}, falhas = [], feitas = [], ocupado = [], semPreco = [];
+  /* cada moeda do jogo vai pra do Koda GB que combina (moedas -> moedas, gemas -> diamantes), se pediram assim */
+  var misto = !!opts.combinar && moedasMistas(moedas);
+  function kmDe(m){ return misto && moedaRara(m) ? 'd1' : moeda; }
+  function precoKoda(p, km){ return km === 'c' ? Math.min(p, DEP.maxC) : km === 'd' ? paraDiamantes(p) : Math.max(1, Math.min(Math.round(p), DEP.maxD)); }
+  function argMoeda(km){ return km === moeda ? '' : ', ' + textoJs(km, "'"); }
+  /* ajudantes de pagar (spend, tryBuy...): troca em cada chamada */
+  var chamadasTrocadas = [];
+  compras = compras.filter(function(cp){
+    var h = ajudanteDaCompra(doc, cp);
+    if(!h) return true;
+    var sitios = chamadasDoAjudante(doc, h, lj);
+    if(!sitios.length) return h.tipo === 'cb';          /* sem chamada que dê pra trocar: o "cb" ainda dá pra trocar por dentro */
+    sitios.forEach(function(st){ st.km = kmDe(cp.moeda); chamadasTrocadas.push(st); });
+    feitas.push(cp);
+    return false;
+  });
+  chamadasTrocadas.forEach(function(st){
+    var js = st.js, T = js.T, ind = recuoDaLinha(js.sc.corpo, T[st.ifK != null ? st.ifK : st.ini].s), dentro = ind + '  ';
+    var rIni = js.base + T[st.ifK != null ? st.ifK : st.ini].s, rFim = js.base + T[st.cFim].e;
+    if(ocupado.some(function(o){ return !(rFim <= o[0] || rIni >= o[1]); })) return;
+    var nm = textoJs(st.nome, "'"), id = textoJs(st.id, "'");
+    var am = argMoeda(st.km);
+    if(st.tipo === 'se'){
+      var cham = 'kodaPagar(' + id + ', ' + st.unico + ', () => {\n' + recuar(st.efeito.trim(), '  ') + '\n}, ' + st.preco + ', ' + nm + am + ')';
+      ed.inserir(js.base + T[st.ifK].s, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(cham, dentro) + ';\n' + ind + '} else ');
+    } else if(st.tipo === 'naoRetorna'){
+      var cham2 = 'kodaPagar(' + id + ', ' + st.unico + ', () => {\n' + recuar(st.efeito.trim(), '  ') + '\n}, ' + st.preco + ', ' + nm + am + ')';
+      ed.inserir(js.base + T[st.ifK].s, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(cham2, dentro) + ';\n' + dentro + 'return;\n' + ind + '}\n' + ind);
+    } else {
+      var orig = js.sc.corpo.slice(T[st.cIni].s, T[st.cFim].e);
+      ed.trocar(rIni, rFim, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */ kodaPagar(' + id + ', false, ' + st.cb + ', ' + st.preco + ', ' + nm + am + '); } else { ' + orig + (/;\s*$/.test(orig) ? '' : ';') + ' }');
+    }
+    ocupado.push([rIni, rFim]);
+    if(!usados[st.id]){
+      usados[st.id] = 1;
+      var p0 = st.fixo ? Math.max(1, Math.round(st.fixo)) : null;
+      if(p0) itens.push({id: st.id, nome: st.nome, preco: precoKoda(p0, st.km), precoJogo: p0, jogo: p0, moeda: st.km === 'c' ? 'c' : 'd', unico: !!st.unico, semEfeito: true, desc: ''});
+      else if(semPreco.indexOf(st.nome) < 0) semPreco.push(st.nome);
+    }
+  });
+  /* compras que custam duas moedas (moedas E gemas): a que vem primeiro leva a outra junto, mesmo se só uma moeda foi escolhida */
+  compras.slice().forEach(function(cp){ (cp.juntas || []).forEach(function(c){ if(compras.indexOf(c) < 0 && !c.convertida) compras.push(c); }); if(cp.levada && compras.indexOf(cp.levada) < 0 && !cp.levada.convertida) compras.push(cp.levada); });
   compras.forEach(function(cp, n){
-    cp.n = n + 1; cp.lj = lj;
+    if(cp.levada) return;
+    cp.n = n + 1; cp.lj = lj; cp.doc = doc;
     if(!cp.nome && cp.preco.tipo === 'num') cp.nome = nomeDaCompra(doc, cp.js, cp);
     var js = cp.js, T = js.T, g = cp.guarda;
     var a, b;
-    if(g.tipo === 'retorno'){ a = g.gFim + 1; b = g.fecha - 1; }
+    if(g.tipo === 'retorno'){ a = g.gFim + 1; b = g.fimCaso != null ? g.fimCaso : g.fecha - 1; }
+    else if(g.tipo === 'expr'){ a = g.ifK; b = g.fim; }
     else { a = g.abre + 1; b = g.fecha - 1; }
-    var ad = codigoAdiado(js, cp, a, b);
-    var rIni = js.base + T[g.tipo === 'retorno' ? g.ifK : g.abre].s, rFim = js.base + T[g.tipo === 'retorno' ? g.gFim : g.fecha].e;
+    var ad = g.tipo === 'expr' ? {ok: true, txt: cp.emExpr.efeitos.join(';\n') + ';'} : codigoAdiado(js, cp, a, b, cp.juntas);
+    /* conferências das outras moedas que ficam antes do ponto da troca */
+    var trocasFora = [];
+    (cp.juntas || []).forEach(function(c){
+      var g2 = c.guarda;
+      if(g2.livre || (g2.cIni >= a && g2.cFim <= b) || g2.cIni === g.cIni) return;
+      var t2 = js.sc.corpo.slice(T[g2.cIni].s, T[g2.cFim].e);
+      trocasFora.push([js.base + T[g2.cIni].s, js.base + T[g2.cFim].e, g2.tipo === 'bloco' ? '(' + SE_KODA + ' || ' + t2 + ')' : '(!' + SE_KODA + ' && ' + t2 + ')']);
+    });
+    var rIni = js.base + T[g.tipo === 'retorno' || g.tipo === 'expr' ? g.ifK : g.abre].s, rFim = js.base + T[g.tipo === 'retorno' ? g.gFim : g.tipo === 'expr' ? g.fim : g.fecha].e;
     if(!ad.ok || !ad.txt || ocupado.some(function(o){ return !(rFim <= o[0] || rIni >= o[1]); })){ falhas.push(cp); return; }
-    cp.unico = cp.preco.tipo === 'num' ? compraUnica(js, cp, a, b) : false;
+    cp.unico = cp.preco.tipo === 'num' ? (g.tipo === 'expr' ? compraUnica(js, cp, cp.emExpr.ea, cp.emExpr.eb) : compraUnica(js, cp, a, b)) : false;
     var ids = idsDaCompra(cp);
     var lv = varsDeLaco(T, cp.gIni, a, b);
     var unicoTxt = cp.preco.tipo === 'lista' ? (ids.itens.some(function(i){ return i.unico; }) ? 'true' : 'false') : String(!!cp.unico);
-    var chamada = 'kodaPagar(' + ids.expr + ', ' + unicoTxt + ', ' + (ad.temAwait ? 'async ' : '') + '() => {\n' + recuar(ad.txt, '  ') + '\n})';
+    if(cp.juntas){
+      /* o preço no Koda GB é a soma das partes (100 moedas + 2 gemas = 102) */
+      var partes = [cp].concat(cp.juntas).map(function(c){ return c.pIni >= 0 ? textoDosToks(c.js, c.pIni, c.pFim).replace(/\s+/g, ' ') : '1'; });
+      ids.agora = partes.map(function(x){ return '(' + x + ')'; }).join(' + ');
+      var soma = 0, ok2 = true, raro = 0, comum = 0;
+      [cp].concat(cp.juntas).forEach(function(c){ var v = c.preco.tipo === 'num' ? c.preco.v : c.preco.estimado; if(typeof v === 'number'){ soma += v; if(misto && moedaRara(c.moeda)) raro += v; else comum += v; } else ok2 = false; });
+      /* moeda comum + moeda rara (com cada uma indo pra do Koda GB que combina): tudo em diamantes, cada parte do seu jeito */
+      var kmJ = misto && raro > 0 ? 'd1' : null;
+      if(kmJ && ok2){ var dia = raro + (comum > 0 ? paraDiamantes(comum) : 0); ids.agora = String(dia); ids.itens.forEach(function(it){ it.preco = dia; }); }
+      else if(ok2) ids.itens.forEach(function(it){ it.preco = soma; });
+      if(!ids.nomeExpr && !ids.nomeFixo) ids.nomeFixo = cp.nome;
+      cp.kmJ = kmJ;
+    }
+    var km = cp.kmJ || kmDe(cp.moeda);
+    var extra = ids.agora ? ', ' + ids.agora + ', ' + (ids.nomeExpr || textoJs(String(ids.nomeFixo || ''), "'")) + argMoeda(km) : (km !== moeda ? ', null, null' + argMoeda(km) : '');
+    var chamada = 'kodaPagar(' + ids.expr + ', ' + unicoTxt + ', ' + (ad.temAwait ? 'async ' : '') + '() => {\n' + recuar(ad.txt, '  ') + '\n}' + extra + ')';
     if(lv.length) chamada = '((' + lv.join(', ') + ') => ' + chamada + ')(' + lv.join(', ') + ')';
     var cmpTxt = js.sc.corpo.slice(T[g.cIni].s, T[g.cFim].e);
     var ind = recuoDaLinha(js.sc.corpo, T[g.ifK].s), dentro = ind + '  ';
-    if(g.tipo === 'bloco' || g.tipo === 'senao'){
+    if(g.tipo === 'expr'){
+      var frase = js.sc.corpo.slice(T[g.ifK].s, T[g.fim].e);
+      ed.trocar(rIni, rFim, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro) + ';\n' + ind + '} else { ' + frase + (/;\s*$/.test(frase) ? '' : ';') + ' }');
+    } else if(g.tipo === 'bloco' || g.tipo === 'senao'){
       var corpo = js.sc.corpo.slice(T[g.abre].e, T[g.fecha].s);
       ed.trocar(js.base + T[g.cIni].s, js.base + T[g.cFim].e, g.tipo === 'bloco' ? '(' + SE_KODA + ' || ' + cmpTxt + ')' : '(!' + SE_KODA + ' && ' + cmpTxt + ')');
+
       ed.trocar(js.base + T[g.abre].e, js.base + T[g.fecha].s, '\n' + dentro + 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro + '  ') + ';' + (ad.temReturn ? '\n' + dentro + '  return;' : '') + '\n' + dentro + '} else {' + corpo.replace(/\s+$/, '').replace(/\n/g, '\n  ') + '\n' + dentro + '}\n' + ind);
     } else {
-      ed.inserir(js.base + T[g.ifK].s, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro) + ';\n' + dentro + 'return;\n' + ind + '}\n' + ind);
+      ed.inserir(js.base + T[g.ifK].s, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro) + ';\n' + dentro + (g.sai === 'break' ? 'break;' : 'return;') + '\n' + ind + '}\n' + ind);
     }
     ocupado.push([rIni, rFim]);
+    trocasFora.forEach(function(x){ ed.trocar(x[0], x[1], x[2]); });
+    var muda = cp.preco.tipo === 'dinamico' && precoSobe(doc, cp);
     ids.itens.forEach(function(it){
       if(usados[it.id]) return;
       usados[it.id] = 1;
       var p = Math.max(1, Math.round(Number(it.preco) || 1));
-      itens.push({id: it.id, nome: it.nome, preco: moeda === 'd' ? paraDiamantes(p) : Math.min(p, DEP.maxC), precoJogo: p, moeda: moeda, unico: !!it.unico, semEfeito: true, desc: ''});
+      itens.push({id: it.id, nome: it.nome, preco: precoKoda(p, km), precoJogo: p, jogo: p, moeda: km === 'c' ? 'c' : 'd', unico: !!it.unico, semEfeito: true, desc: '', muda: muda || undefined});
     });
+    if(!ids.itens.length){ var nmS = ids.nomeFixo || cp.nome || TL(lj, 'dj_compra_n', {n: cp.n}); if(semPreco.indexOf(nmS) < 0) semPreco.push(nmS); }
     feitas.push(cp);
+    (cp.juntas || []).forEach(function(c){ feitas.push(c); });
   });
   if(!feitas.length) return {erro: 'nao_deu', moedas: moedas, falhas: falhas};
-  if(!/data-koda-moedas/.test(codigo)) ed.inserir(pontoDeEntrada(codigo, doc), '\n' + escreverAjudanteMoedas(lj) + '\n');
+  if(!/data-koda-moedas/.test(codigo)) ed.inserir(pontoDeEntrada(codigo, doc), '\n' + escreverAjudanteMoedas(lj, moeda) + '\n');
   var novo = ed.aplicar();
+  /* ajudante de uma versão antiga (sem o preço de agora): troca pelo novo */
+  if(novo != null && /data-koda-moedas/.test(codigo) && !/moedaDaCompra/.test(novo)) novo = novo.replace(/<script data-koda-moedas="1">[\s\S]*?<\/script>/, escreverAjudanteMoedas(lj, moeda));
   if(novo == null) return {erro: 'edicao', moedas: moedas};
   var ok = conferirDepois(codigo, novo, {});
   if(ok.erro) return {erro: 'quebrou', moedas: moedas};
@@ -32470,7 +33721,8 @@ function converterMoedas(codigo, opts){
     r2 = novos.length ? lojaMudar(novo, novos.map(function(i){ return {tipo: 'novo', item: i}; }), {lingua: lj}) : {codigo: novo};
   }
   if(!r2 || r2.erro || !r2.codigo) return {erro: 'loja', moedas: moedas, detalhe: r2 && r2.erro};
-  return {codigo: r2.codigo, itens: itens, feitas: feitas, falhas: falhas, moedas: moedas, moeda: moeda, lingua: lj};
+  var porMoeda = misto ? moedas.filter(function(m){ return m.compras.length; }).map(function(m){ return {m: m, km: kmDe(m)}; }) : null;
+  return {codigo: r2.codigo, itens: itens, semPreco: semPreco, feitas: feitas, falhas: falhas, moedas: moedas, moeda: moeda, lingua: lj, misto: misto, porMoeda: porMoeda};
 }
 
 /* ---- trocar só o nome que aparece na tela ---- */
@@ -32504,6 +33756,15 @@ Object.assign(TX, {
   dj_comentario: 'MOEDAS DO JOGO (Agente Koda GB): as compras do jogo usam as moedas ou os diamantes do Koda GB.|GAME CURRENCY (Koda GB Agent): the game\'s purchases use Koda GB coins or diamonds.|MONEDAS DEL JUEGO (Agente Koda GB): las compras del juego usan las monedas o los diamantes de Koda GB.',
   dj_marca: 'compra pela loja do Koda GB|purchase through the Koda GB shop|compra con la tienda de Koda GB',
   dj_compra_n: 'Compra {n}|Purchase {n}|Compra {n}',
+  dj_desde: 'a partir de {preco}|from {preco}|desde {preco}',
+  dj_junto: '{preco}, junto com {outra}|{preco}, together with {outra}|{preco}, junto con {outra}',
+  dj_feito_sobra_n: 'As moedas do jogo ({nomes}) que a pessoa pega continuam lá, mas não compram mais nada (elas não viram moedas do Koda GB, senão daria pra ganhar moedas sem fim).|The game currencies ({nomes}) the player collects are still there, but no longer buy anything (they do not turn into Koda GB coins, or anyone could get endless coins).|Las monedas del juego ({nomes}) que se juntan siguen ahí, pero ya no compran nada (no se convierten en monedas de Koda GB, si no se podrían ganar monedas sin fin).',
+  dj_feito_misto: 'Pronto! As compras do jogo agora usam as moedas e os diamantes do Koda GB:|Done! The game\'s purchases now use Koda GB coins and diamonds:|¡Listo! Las compras del juego ahora usan las monedas y los diamantes de Koda GB:',
+  dj_misto_como: 'Cada moeda do jogo virou a do Koda GB que combina: {lista}. Se quiser tudo igual, diga "deixa tudo em moedas" ou "deixa tudo em diamantes".|Each game currency became the matching Koda GB one: {lista}. To make it all the same, say "make everything coins" or "make everything diamonds".|Cada moneda del juego pasó a la de Koda GB que combina: {lista}. Si quieres todo igual, di "pon todo en monedas" o "pon todo en diamantes".',
+  dj_sugestao_varias: 'Seu jogo tem moedas próprias ({nomes}) que compram {coisas}. Quer que essas compras usem as moedas e os diamantes do Koda GB?|Your game has its own currencies ({nomes}) that buy {coisas}. Do you want those purchases to use Koda GB coins and diamonds?|Tu juego tiene monedas propias ({nomes}) que compran {coisas}. ¿Quieres que esas compras usen las monedas y los diamantes de Koda GB?',
+  dj_pergunta_misto: 'As compras com {raras} vão usar os diamantes do Koda GB (é a moeda mais rara do jogo), e as outras, as moedas.|Purchases with {raras} will use Koda GB diamonds (the rarest game currency), and the others will use coins.|Las compras con {raras} usarán los diamantes de Koda GB (es la moneda más rara del juego), y las otras, las monedas.',
+  dj_preco_jogo: 'o preço que o jogo mostrar na hora|the price the game shows at the time|el precio que muestre el juego en ese momento',
+  dj_sobe: 'Onde o preço sobe no jogo (a cada nível, por exemplo), o preço no Koda GB sobe junto.|Where the price goes up in the game (each level, for example), the Koda GB price goes up too.|Donde el precio sube en el juego (en cada nivel, por ejemplo), el precio en Koda GB sube también.',
   dj_uma: 'Achei a moeda do seu jogo: "{nome}".|I found your game\'s currency: "{nome}".|Encontré la moneda de tu juego: "{nome}".',
   dj_varias: 'Achei {n} moedas no seu jogo: {nomes}.|I found {n} currencies in your game: {nomes}.|Encontré {n} monedas en tu juego: {nomes}.',
   dj_compra1: 'Com ela a pessoa compra 1 coisa: {lista}.|With it the player buys 1 thing: {lista}.|Con ella se compra 1 cosa: {lista}.',
@@ -32545,13 +33806,74 @@ function moedasDoCtx(ctx){
   return ctx._moedas;
 }
 function nomeDaMoeda(m, est){ if(est && est.nomesDeMoeda && est.nomesDeMoeda[m.caminho]) return est.nomesDeMoeda[m.caminho]; return m.rotulo && m.rotulo.tela && m.rotulo.tela !== '$' ? m.rotulo.tela : (m.rotulo && m.rotulo.nome) || m.nome; }
-function listaDeCompras(m){
-  var nomes = [];
+/* o que a pessoa vê de cada compra: nome, preço e se o preço sobe no jogo (um por item, mesmo quando uma linha do código vende vários) */
+function comprasParaMostrar(m){
+  if(m._mostrar) return m._mostrar;
+  var r = [], vistos = {};
+  function add(nome, preco, muda, txt){ var k = idDaCompra(nome) + '|' + preco + '|' + (txt || ''); if(vistos[k]) return; vistos[k] = 1; r.push({nome: nome, preco: preco, muda: !!muda, txt: txt}); }
+  function valor(x){ var v = x.preco.tipo === 'num' ? x.preco.v : x.preco.estimado; return typeof v === 'number' ? milhar(v) : '?'; }
+  function curto(mm){ return mm.rotulo && mm.rotulo.tela && mm.rotulo.tela !== '$' ? mm.rotulo.tela : mm.nome; }
   m.compras.forEach(function(c){
-    if(c.preco.tipo === 'lista' || c.preco.tipo === 'tabela') c.preco.itens.forEach(function(i){ nomes.push((c.preco.tipo === 'tabela' ? (nomeDasPalavras(palavrasDoId(i.nome), LING) || i.nome) : i.nome) + ' (' + milhar(i.preco) + ')'); });
-    else nomes.push((c.nome || T('dj_compra_n', {n: nomes.length + 1})) + ' (' + milhar(c.preco.v) + ')');
+    if(c.convertida) return;
+    /* compra que custa duas moedas: "Dragon (100 + 2 gems)" na principal e "Dragon (2, junto com 100 coins)" na outra */
+    if(c.levada){ add(c.levada.nome || T('dj_compra_n', {n: r.length + 1}), null, false, T('dj_junto', {preco: valor(c), outra: valor(c.levada) + ' ' + curto(c.levada.moeda)})); return; }
+    if(c.juntas && c.juntas.length){
+      add(c.nome || T('dj_compra_n', {n: r.length + 1}), null, false, valor(c) + ' + ' + c.juntas.map(function(j){ return valor(j) + ' ' + curto(j.moeda); }).join(' + '));
+      return;
+    }
+    if(c.preco.tipo === 'lista' || c.preco.tipo === 'tabela'){ c.preco.itens.forEach(function(i){ add(c.preco.tipo === 'tabela' ? (nomeDasPalavras(palavrasDoId(i.nome), LING) || i.nome) : i.nome, i.preco); }); return; }
+    if(c.preco.tipo === 'dinamico' && c.doc){
+      try{
+        c.lj = c.lj || LING;
+        var h = ajudanteDaCompra(c.doc, c);
+        if(h){ var st = chamadasDoAjudante(c.doc, h, c.lj); if(st.length){ st.forEach(function(x){ add(x.nome, x.fixo || null); }); return; } }
+        var idn = identidadeDaCompra(c.doc, c.js, c);
+        if(idn.itens.length){ var sobe = precoSobe(c.doc, c); idn.itens.forEach(function(i){ add(i.nome, i.preco, sobe); }); return; }
+      }catch(e){}
+      add(c.nome || T('dj_compra_n', {n: r.length + 1}), c.preco.estimado || null, true);
+      return;
+    }
+    add(c.nome || T('dj_compra_n', {n: r.length + 1}), c.preco.v);
   });
-  return nomes;
+  return (m._mostrar = r);
+}
+function listaDeCompras(m){
+  return comprasParaMostrar(m).map(function(x){ return x.nome + ' (' + (x.txt ? x.txt : x.preco == null ? T('dj_preco_jogo') : x.muda ? T('dj_desde', {preco: milhar(x.preco)}) : milhar(x.preco)) + ')'; });
+}
+/* o preço sobe no jogo? (alguma coisa que a conta do preço lê é aumentada em algum lugar: level++, b.count++, owned[k] += 1) */
+function precoSobe(doc, cp){
+  if(!(cp.pIni >= 0)) return false;
+  var ws = {};
+  function juntar(js, a, b, fundo){
+    var TT = js.T;
+    for(var k = a; k <= b; k++){
+      if(TT[k].t !== 'id') continue;
+      if(!/^(Math|this|true|false|null|undefined|floor|ceil|round|pow|min|max|abs|get)$/.test(TT[k].v)) ws[TT[k].v] = 1;
+      if(fundo < 3){
+        if(!(TT[k - 1] && TT[k - 1].v === '.')){ var dl = defLocal(TT, k, TT[k].v); if(dl) juntar(js, dl[0], dl[1], fundo + 1); }
+        if(TT[k + 1] && TT[k + 1].v === '('){ var f = acharFuncaoCurta(doc, TT[k].v); if(f) juntar(f.js, f.a, f.b, fundo + 1); }
+      }
+    }
+  }
+  juntar(cp.js, cp.pIni, cp.pFim, 0);
+  var sobe = false;
+  doc.js.forEach(function(js){
+    if(sobe || js.sc.koda) return;
+    var TT = js.T;
+    for(var k = 0; k < TT.length && !sobe; k++){
+      if(TT[k].t !== 'id' || !ws[TT[k].v] || /^[ijkntxy]$/.test(TT[k].v)) continue;
+      var c = caminhoAte(TT, k); if(!c || c.ultimo !== TT[k].v) continue;
+      var dep = TT[k + 1], ant = TT[c.ini - 1];
+      if(dep && dep.v === '[') { var fe = par(TT, k + 1); dep = TT[fe + 1]; }
+      if((dep && (dep.v === '++' || dep.v === '+=' || dep.v === '*=')) || (ant && ant.v === '++')){
+        /* contador de laço não conta */
+        var noFor = false;
+        for(var q = k - 1; q >= 0 && q > k - 40; q--){ if(TT[q].v === 'for' && TT[q + 1] && TT[q + 1].v === '(' && par(TT, q + 1) > k){ noFor = true; break; } }
+        if(!noFor) sobe = true;
+      }
+    }
+  });
+  return sobe;
 }
 var RE_MOEDA_FALA = /\b(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|cash|ouro|gold|oro|gema|gemas|gem|gems|cristal|cristais|crystal|crystals|cristales|diamante|diamantes|diamond|diamonds|ficha|fichas|token|tokens|rubi|rubis|ruby|rubies|joia|joias|jewel|jewels|currency|estrela|estrelas|star|stars|pontos|points|score)\b/;
 function entenderMoedaDoJogo(P, ctx){
@@ -32595,9 +33917,18 @@ function entenderMoedaDoJogo(P, ctx){
     if(cand.length && cand.length <= 2) nomeNovo = cand.join(' ');
   }
   var alvo = null;
-  md.forEach(function(m){ if(!alvo && (m.rotulo.palavras || []).concat([semAcento(m.nome).toLowerCase()]).some(function(w){ return n.indexOf(' ' + w + ' ') >= 0; })) alvo = m.caminho; });
+  /* "as moedas do jogo" / "the game's coins" / "o dinheiro" é jeito de falar do dinheiro do jogo em geral, não de uma moeda.
+     Só escolhe uma moeda quando a pessoa fala dela de verdade ("troca o ouro", "só as gemas"). */
+  var GENERICA = /^(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|currency)$/;
+  var semGenerico = n.replace(/ (as |os |a |o |the |las |los |la |el )?(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|currency) (do jogo|of the game|del juego|in the game|no jogo|en el juego|dele|dela|del) /g, ' ').replace(/ (game'?s?|jogo) (coins|money|currency) /g, ' ');
+  md.forEach(function(m){
+    if(alvo) return;
+    var ws = (m.rotulo.palavras || []).concat([semAcento(m.nome).toLowerCase()]);
+    if(ws.some(function(w){ return semGenerico.indexOf(' ' + w + ' ') >= 0 && !(GENERICA.test(w) && md.length > 1 && !/\b(so|só|apenas|only|solo|somente)\b/.test(n)); })) alvo = m.caminho;
+  });
   if(nomeNovo && conv) return {int: 'moeda_renomear', nome: nomeNovo, alvo: alvo};
-  if(para && para !== 'pergunta' && (conv || /\b(com|with|con|usando|using)\b/.test(n))) return {int: 'moeda_converter', para: para, alvo: alvo, doNome: para === 'd' && !querKoda};
+  var tudo = /\b(tudo|todas|todos|toda|todo|everything|all|todas las|cada)\b/.test(n);
+  if(para && para !== 'pergunta' && (conv || /\b(com|with|con|usando|using)\b/.test(n))) return {int: 'moeda_converter', para: para, alvo: alvo, doNome: para === 'd' && !querKoda, tudo: tudo};
   if(conv || para === 'pergunta') return {int: 'moeda_ver', perguntar: true, alvo: alvo};
   if(ver || doJogo || falaDoJogo) return {int: 'moeda_ver', alvo: alvo};
   return null;
@@ -32623,6 +33954,7 @@ H.moeda_ver = function(it, ctx, est){
   var comCompra = md.filter(function(m){ return m.compras.some(function(c){ return !c.convertida; }); });
   if(comCompra.length){
     diz(r, T('dj_pergunta'));
+    if(!it.alvo && moedasMistas(md)) diz(r, T('dj_pergunta_misto', {raras: md.filter(function(m){ return moedaRara(m) && m.compras.length; }).map(function(m){ return '"' + nomeDaMoeda(m, est) + '"'; }).join(', ')}));
     est.pendente = {tipo: 'mod_moeda', alvo: it.alvo || null};
     chip(r, T('ch_dj_moedas')); chip(r, T('ch_dj_diamantes')); chip(r, T('ch_dj_nome')); chip(r, T('ch_dj_deixar'));
   } else if(md.some(function(m){ return m.convertidas; })){
@@ -32637,7 +33969,7 @@ H.moeda_ver = function(it, ctx, est){
 H.moeda_converter = function(it, ctx, est){
   var r = novaResp();
   if(precisaCodigo(ctx, r)) return r;
-  var res = converterMoedas(ctx.codigo, {moeda: it.para, alvo: it.alvo, ensinado: est.moedaEnsinada});
+  var res = converterMoedas(ctx.codigo, {moeda: it.para, alvo: it.alvo, ensinado: est.moedaEnsinada, combinar: !it.alvo && !it.tudo});
   if(res.erro){
     var md = res.moedas || [], m0 = md[0];
     if(res.erro === 'sem_moeda'){ diz(r, T('dj_nenhuma')); return r; }
@@ -32648,8 +33980,13 @@ H.moeda_converter = function(it, ctx, est){
     return r;
   }
   var m = res.moedas.filter(function(x){ return x.compras.length; })[0] || res.moedas[0];
-  diz(r, T('dj_feito', {moeda: T(res.moeda === 'd' ? 'w_diamantes_koda' : 'w_moedas_koda')}) + '\n' + res.itens.map(function(i){ return '- ' + i.nome + ': ' + precoTxt(i.preco, i.moeda); }).join('\n'));
-  diz(r, T('dj_feito_como') + ' ' + T('dj_feito_sobra', {nome: nomeDaMoeda(m, est)}) + ' ' + T('dj_feito_teste'));
+  var linhas = res.itens.map(function(i){ return '- ' + i.nome + ': ' + (i.muda ? T('dj_desde', {preco: precoTxt(i.preco, i.moeda)}) : precoTxt(i.preco, i.moeda)); })
+    .concat((res.semPreco || []).map(function(n){ return '- ' + n + ': ' + T('dj_preco_jogo'); }));
+  diz(r, (res.misto ? T('dj_feito_misto') : T('dj_feito', {moeda: T(res.moeda === 'd' ? 'w_diamantes_koda' : 'w_moedas_koda')})) + '\n' + linhas.join('\n'));
+  if(res.misto) diz(r, T('dj_misto_como', {lista: res.porMoeda.map(function(x){ return '"' + nomeDaMoeda(x.m, est) + '" -> ' + T(x.km === 'c' ? 'w_moedas_koda' : 'w_diamantes_koda'); }).join(', ')}));
+  if(res.itens.some(function(i){ return i.muda; })) diz(r, T('dj_sobe'));
+  var usadas = res.moedas.filter(function(x){ return x.compras.length && res.feitas.some(function(c){ return c.moeda === x; }); });
+  diz(r, T('dj_feito_como') + ' ' + (usadas.length > 1 ? T('dj_feito_sobra_n', {nomes: usadas.map(function(x){ return '"' + nomeDaMoeda(x, est) + '"'; }).join(', ')}) : T('dj_feito_sobra', {nome: nomeDaMoeda(m, est)})) + ' ' + T('dj_feito_teste'));
   if(res.falhas.length) diz(r, T('dj_falhas', {n: res.falhas.length, nome: nomeDaMoeda(m, est)}));
   if(res.moeda === 'd' && it.doNome) diz(r, T('dj_diamante_ou_nome'));
   chip(r, T('ch_testar')); chip(r, T(res.moeda === 'd' ? 'ch_so_moedas' : 'ch_so_diamantes')); chip(r, T('ch_mais_barato'));
@@ -32801,10 +34138,11 @@ saudar = function(est, bruto, deNovo){
   try{
     var md = moedasDoCtx(ctx).filter(function(m){ return m.compras.some(function(x){ return !x.convertida; }); });
     if(md.length){
-      var n = md[0].compras.reduce(function(s, x){ return s + (x.preco.itens ? x.preco.itens.length : 1); }, 0);
-      diz(r, T('dj_sugestao', {nome: nomeDaMoeda(md[0], est), coisas: n === 1 ? T('dj_coisa1') : T('dj_coisasN', {n: n})}));
+      var n = md.reduce(function(s, m){ return s + (m.compras.every(function(c){ return c.convertida || c.levada; }) ? 0 : (comprasParaMostrar(m).filter(function(x){ return !/^.*, junto com |, together with |, junto con /.test(x.txt || ''); }).length || 1)); }, 0);
+      if(md.length > 1) diz(r, T('dj_sugestao_varias', {nomes: md.map(function(m){ return '"' + nomeDaMoeda(m, est) + '"'; }).join(', '), coisas: n === 1 ? T('dj_coisa1') : T('dj_coisasN', {n: n})}));
+      else diz(r, T('dj_sugestao', {nome: nomeDaMoeda(md[0], est), coisas: n === 1 ? T('dj_coisa1') : T('dj_coisasN', {n: n})}));
       primeiro = [{txt: T('ch_dj_moedas'), msg: TL('pt', 'ch_dj_moedas'), rot: T('ch_dj_moedas')}, {txt: T('ch_dj_diamantes'), msg: TL('pt', 'ch_dj_diamantes'), rot: T('ch_dj_diamantes')}];
-      est.pendente = {tipo: 'mod_moeda', alvo: md[0].caminho};
+      est.pendente = {tipo: 'mod_moeda', alvo: md.length > 1 ? null : md[0].caminho};
     }
   }catch(e){}
   if(!primeiro && !/KODA\s*\.|data-koda-/.test(c) && c.length > 300){ diz(r, T('oi2_adaptar')); primeiro = [{txt: T('ch_adaptar'), msg: TL('pt', 'ch_adaptar'), rot: T('ch_adaptar')}]; }
@@ -33004,7 +34342,7 @@ return {
   robo: function(id){ return '(' + kodaRoboNoJogo.toString() + ')(' + JSON.stringify(String(id)) + ');'; },
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
   /* (pra testes) */
-  _: {moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
+  _: {moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
       lojaCriar: lojaCriar, lojaRemover: lojaRemover, acharAtributos: acharAtributos, compila: compila, linhaDoErro: linhaDoErro,
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,
