@@ -1643,7 +1643,8 @@
     display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4);
   }
   .dest:focus-visible{outline:3px solid #FFE082;outline-offset:2px;}
-  @media (max-width:560px){ .destaques{flex-direction:column;gap:10px;} }
+  /* em coluna cada cartão tem o tamanho do que tem dentro (com overflow:hidden ele encolhia até as bordas e o título sumia) */
+  @media (max-width:560px){ .destaques{flex-direction:column;gap:10px;} .destaques > .dest{flex:0 0 auto;} }
 
   .passe-sheet{
     position:relative;display:flex;flex-direction:column;color:#fff;
@@ -1661,7 +1662,7 @@
   .passe-sheet .tc-folha-btn{display:none !important;}
   .passe-sheet .passe-trilha{flex:1 1 auto;min-height:0;}
   /* o cartaz "Desbloqueie o Premium" (no lugar do botãozinho) */
-  .pv-cartaz{position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;width:100%;margin:2px 0 6px;padding:7px 12px;border:2px solid #FFD86B;border-radius:18px;cursor:pointer;color:#fff;text-align:left;font:inherit;
+  .pv-cartaz{flex-shrink:0;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;width:100%;margin:2px 0 6px;padding:7px 12px;border:2px solid #FFD86B;border-radius:18px;cursor:pointer;color:#fff;text-align:left;font:inherit;
     background:linear-gradient(110deg,#7C3AED,#C026D3 55%,#F59E0B);box-shadow:0 4px 0 #6B21A8,0 10px 24px rgba(192,38,211,.35);animation:pvCartazPulsa 2.6s ease-in-out infinite;}
   .pv-cartaz::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:pvVarre 3.2s ease-in-out infinite;}
   .pv-cartaz-ticket svg{width:38px !important;height:38px !important;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));animation:pvFlutua 2.4s ease-in-out infinite;}
@@ -28763,7 +28764,7 @@ function saudar(est, bruto, deNovo){
 }
 /* ---------------- textos da tela da conversa ---------------- */
 Object.assign(TX, {
-  ui_ph: 'Diga o que tem na sua mente para {agente}...|Tell {agente} what’s on your mind...|Dile a {agente} lo que tienes en mente...',
+  ui_ph: 'Fale com {agente}...|Talk to {agente}...|Habla con {agente}...',
   ui_enviar: 'Enviar|Send|Enviar',
   ui_desfazer: 'Desfazer a última mudança|Undo the last change|Deshacer el último cambio',
   ui_robo: 'O robô está jogando seu jogo...|The robot is playing your game...|El robot está jugando tu juego...',
@@ -32200,7 +32201,7 @@ Object.keys(TXL_DADOS3).forEach(function(k){
   LINGUAS_EXTRA.forEach(function(l, i){ (TXL[l] = TXL[l] || {})[k] = p[i]; });
 });
 var TXL_DADOS4 = {
-  ui_ph: "Dì a {agente} cosa hai in mente...|Dis à {agente} ce que tu as en tête...|Sag {agente}, was du vorhast...|Vertel {agente} wat je in gedachten hebt...|{agente}に思っていることを話してね…|告诉{agente}你在想什么……|{agente}에게 생각하는 걸 말해 줘...",
+  ui_ph: "Parla con {agente}...|Parle à {agente}...|Sprich mit {agente}...|Praat met {agente}...|{agente}に話しかけてね…|和{agente}说说吧……|{agente}에게 말해 줘...",
   ui_enviar: "Invia|Envoyer|Senden|Versturen|送信|发送|보내기",
   ui_desfazer: "Annulla l'ultima modifica|Annuler la dernière modification|Letzte Änderung rückgängig machen|Laatste wijziging ongedaan maken|最後の変更を元に戻す|撤销上一次修改|마지막 변경 되돌리기",
   ui_robo: "Il robot sta giocando al tuo gioco...|Le robot joue à ton jeu...|Der Roboter spielt dein Spiel...|De robot speelt je spel...|ロボットがゲームを遊んでいます…|机器人正在玩你的游戏……|로봇이 네 게임을 하는 중이야...",
