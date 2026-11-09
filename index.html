@@ -28715,10 +28715,12 @@ function responderUm(est, texto, bruto){
     var direto = null;
     Object.keys(CHIPS_DIRETOS).forEach(function(k){ if(String(texto).trim() === T(k)) direto = {int: 'efeito_curto', efeito: CHIPS_DIRETOS[k]}; });
     var it = direto || entender(texto, ctx);
+    if(!direto){ try{ it = aprenderAntes(est, texto, it, ctx); }catch(e){} }
     est.pendente = it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' ? est.pendente : (est.pendente && /^(confirmar|qual_item|nome_item|ideia|tipo_jogo|tema_jogo|briefing|mod_\w+)$/.test(est.pendente.tipo) && it.int !== 'nada' ? null : est.pendente);
     if(it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' || it.int === 'negou' || it.int === 'briefing_resp') est.pendente = null;
     r = (H[it.int] || H.nada)(it, ctx, est);
     r.intencao = it.int;
+    try{ aprenderDepois(est, texto, it, r); }catch(e){}
   }catch(e){
     r = diz(novaResp(), T('ops'));
     r.erro = String(e && e.stack || e);
@@ -34171,6 +34173,8 @@ Object.assign(TX, {
   dj_sem_compra: 'Ela só é juntada no jogo: nada é comprado com ela.|It is only collected: nothing is bought with it.|Solo se junta en el juego: no se compra nada con ella.',
   dj_pergunta: 'Quer pagar essas compras com moedas ou diamantes do Koda GB? Quem joga paga com o saldo da conta.|Do you want to pay for these with Koda GB coins or diamonds? Players pay with their account balance.|¿Quieres pagar estas compras con monedas o diamantes de Koda GB? Quien juega paga con el saldo de la cuenta.',
   dj_pergunta_sem: 'Quer mudar o nome dela na tela? Por exemplo: "troca o ouro por cristais".|Do you want to change its name on screen? For example: "change gold to crystals".|¿Quieres cambiar su nombre en la pantalla? Por ejemplo: "cambia el oro por cristales".',
+  dj_nenhuma_loja: 'Quer que eu crie uma loja com {destino}?|Do you want me to create a shop with {destino}?|¿Quieres que cree una tienda con {destino}?',
+  dj_dest_c: 'moedas do Koda GB|Koda GB coins|monedas de Koda GB', dj_dest_d: 'diamantes do Koda GB|Koda GB diamonds|diamantes de Koda GB',
   dj_nenhuma: 'Não achei nenhuma moeda no seu jogo (procurei coins, ouro, gemas, cristais, dinheiro, fichas...). Se ela tiver outro nome no código, me diga assim: "a moeda do jogo é estrelas".|I did not find a currency in your game (I looked for coins, gold, gems, crystals, money, tokens...). If it has another name in the code, tell me: "the game currency is stars".|No encontré ninguna moneda en tu juego (busqué coins, oro, gemas, cristales, dinero, fichas...). Si tiene otro nombre en el código, dime: "la moneda del juego es estrellas".',
   dj_feito: 'Pronto! As compras do jogo agora usam {moeda} do Koda GB:|Done! The game\'s purchases now use Koda GB {moeda}:|¡Listo! Las compras del juego ahora usan {moeda} de Koda GB:',
   dj_feito_como: 'Quem joga compra do mesmo jeito, e o Koda GB pergunta se quer pagar.|Players buy the same way, and Koda GB asks if they want to pay.|Se compra igual, y Koda GB pregunta si quiere pagar.',
@@ -34280,6 +34284,16 @@ function precoSobe(doc, cp){
   return sobe;
 }
 var RE_MOEDA_FALA = /\b(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|cash|ouro|gold|oro|gema|gemas|gem|gems|cristal|cristais|crystal|crystals|cristales|diamante|diamantes|diamond|diamonds|ficha|fichas|token|tokens|rubi|rubis|ruby|rubies|joia|joias|jewel|jewels|currency|estrela|estrelas|star|stars|pontos|points|score)\b/;
+/* "transforma tudo em Koda Coins" / "tudo em diamantes do koda gb": pede pra trocar pelas moedas do Koda GB (sem falar de loja nem de item) */
+function pedeMoedaKoda(n){
+  if(!/\bkoda\b/.test(n) || !/\b(moeda|moedas|coin|coins|moneda|monedas|diamante|diamantes|diamond|diamonds)\b/.test(n)) return null;
+  if(/\bkoda (pass|passe|studio|gb pass)\b|\bpasse\b/.test(n)) return null;           /* o Koda Pass é outra coisa */
+  if(!/\b(tudo|todas|todos|toda|todo|everything|all|transforma|transformar|transforme|vira|virar|vire|converte|converter|converta|troca|trocar|troque|muda|mudar|mude|turn|convert|change|cambia|convierte)\b/.test(n)) return null;
+  if(/\b(loja|shop|tienda|vender|sell|vende|item|itens|items)\b/.test(n)) return null;
+  if(/\b(diamante|diamantes|diamond|diamonds) (do |de |from )?koda\b|\bkoda (diamonds|diamantes)\b/.test(n)) return 'd';
+  if(/\b(moeda|moedas|coin|coins|moneda|monedas) (do |de |from )?koda\b|\bkoda (coins|moedas|monedas)\b/.test(n)) return 'c';
+  return null;           /* "pelas do Koda GB" sozinho continua perguntando: moedas ou diamantes? */
+}
 function entenderMoedaDoJogo(P, ctx){
   var n = ' ' + P.n + ' ', est = ctx.estado || {};
   /* ensinar: "a moeda do jogo é stars" */
@@ -34298,11 +34312,13 @@ function entenderMoedaDoJogo(P, ctx){
   var temLojaKoda = ctx.loja && ctx.loja.tipo !== 'nenhuma';
   /* sem moeda própria no jogo: só responde se a pessoa falou claramente da moeda do jogo */
   if(!md.length){
+    var pk0 = temLojaKoda ? null : pedeMoedaKoda(n); if(pk0) return {int: 'moeda_converter', para: pk0, alvo: null, tudo: true};
     if(doJogo && /\b(acha|achar|encontra|encontrar|detecta|detectar|quais|qual|tem|mostra|transforma|transformar|converte|converter|troca|trocar|find|detect|which|convert|turn|change|encuentra|detecta|cuales|convierte|cambia)\b/.test(n)) return {int: 'moeda_ver'};
     return null;
   }
   var ver = /\b(acha|achar|ache|encontra|encontrar|detecta|detectar|detecte|quais|qual e|tem moeda|tem alguma|mostra|lista|find|detect|which|show me|list|encuentra|detecta|cuales|hay)\b/.test(n);
   var conv = /\b(virem|viram|virou|seja|sejam|become|becomes|sea|sean|transforma|transformar|transforme|transformem|converte|converter|converta|troca|trocar|troque|muda|mudar|mude|vira|virar|vire|passa|passar|passe|usa|usar|use|usem|deixa|deixar|deixe|faz|faca|fazer|bota|coloca|turn|convert|change|switch|swap|make|replace|convierte|convertir|cambia|cambiar|pasa|pasar|reemplaza|haz|pon)\b/.test(n);
+  if(!semCompraFeita && !temLojaKoda){ var pk1 = pedeMoedaKoda(n); if(pk1) return {int: 'moeda_converter', para: pk1, alvo: null, tudo: true}; }
   if(!(falaDoJogo || doJogo || (semCompraFeita && !temLojaKoda))) return null;
   if(temLojaKoda && !falaDoJogo && !doJogo) return null;
   /* cada moeda com o seu destino ("todo ouro vira Koda Coins e todas as gemas viram Koda Diamonds") */
@@ -34335,7 +34351,7 @@ function entenderMoedaDoJogo(P, ctx){
   });
   if(nomeNovo && conv) return {int: 'moeda_renomear', nome: nomeNovo, alvo: alvo};
   var tudo = /\b(tudo|todas|todos|toda|todo|everything|all|todas las|cada)\b/.test(n);
-  if(para && para !== 'pergunta' && (conv || /\b(com|with|con|usando|using)\b/.test(n))) return {int: 'moeda_converter', para: para, alvo: alvo, doNome: para === 'd' && !querKoda, tudo: tudo};
+  if(para && para !== 'pergunta' && (conv || /\b(com|with|con|usando|using)\b/.test(n) || (querKoda && tudo))) return {int: 'moeda_converter', para: para, alvo: alvo, doNome: para === 'd' && !querKoda, tudo: tudo};
   if(conv || para === 'pergunta') return {int: 'moeda_ver', perguntar: true, alvo: alvo};
   if(ver || doJogo || falaDoJogo) return {int: 'moeda_ver', alvo: alvo};
   return null;
@@ -34426,7 +34442,7 @@ H.moeda_converter = function(it, ctx, est){
   var res = converterMoedas(ctx.codigo, {moeda: it.para || 'c', alvo: it.alvo, ensinado: est.moedaEnsinada, combinar: !it.alvo && !it.tudo, mapa: it.mapa});
   if(res.erro){
     var md = res.moedas || [], m0 = md[0];
-    if(res.erro === 'sem_moeda'){ diz(r, T('dj_nenhuma')); return r; }
+    if(res.erro === 'sem_moeda'){ diz(r, T('dj_nenhuma')); diz(r, T('dj_nenhuma_loja', {destino: it.para === 'd' ? T('dj_dest_d') : T('dj_dest_c')})); est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar', moeda: it.para || 'c', confirmado: true}}; chip(r, T('ch_sim')); chip(r, T('ch_nao')); return r; }
     if(res.erro === 'ja'){ diz(r, T('dj_ja')); return r; }
     if(res.erro === 'sem_compras'){ diz(r, T('dj_sem_compras', {nome: nomeDaMoeda(m0, est)})); est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar', moeda: it.para, confirmado: true}}; chip(r, T('ch_sim')); chip(r, T('ch_nao')); return r; }
     diz(r, T('dj_nao_deu'));
@@ -34790,9 +34806,138 @@ H.historico = function(it, ctx, est){
   chip(r, T('ch_desfazer')); chip(r, T('ch_testar'));
   return r;
 };
+/* ---------------- o agente aprende com os próprios erros ----------------
+   Quando eu não entendo uma frase, ou entendo errado, a pessoa me mostra o que queria (toca num botão,
+   explica "eu queria..." ou diz "não era isso" e depois fala de novo). Eu guardo "essa frase = esse pedido"
+   e da próxima vez já faço certo. Fica só no aparelho de quem ensinou (o site guarda a lista, sem mandar pra ninguém). */
+var AP_MAX = 150;
+var AP_NAO_ENSINA = /^(vazio|nada|oi|obrigado|quem|ajuda|sim|nao|negou|improprio|dados_pessoais|dinheiro_real|faq|faq_duvida|qual_item|escolheu_item|loja_nome_qual|deu_nome|confirmou|briefing_resp|ensinar|ensinar_qual|elogio|confuso|tudo_bem|xingou|historico|moedas_quer|faq_texto|desfazer|aprendeu_ver|aprendeu_limpar|aprendeu_errei)$/;
+var AP_PARTE = /\b(eu )?(quis dizer|queria dizer|queria|quero dizer|eu falei|falei|na verdade|era pra|era para|i meant|i mean|what i meant|actually|quise decir|queria decir|en realidad|era para)\b[ :,-]*/;
+var AP_NAO_ERA = /^(nao (era|foi|e|eh) (isso|assim|bem isso|nada disso)|nao e isso que eu (pedi|quis|queria)|errou|voce errou|vc errou|que nao era isso|that (is|was) not (it|what i (meant|wanted|asked))|not what i (meant|wanted|asked)|you got it wrong|no era eso|eso no (era|es)|no es eso|te equivocaste)\b/;
+var AP_VER = /\b(o que (voce|vc|tu) (ja )?aprendeu|what (have )?you (have )?learn(ed|t)|que (has )?aprendido|lista (do que )?(voce|vc) aprendeu|show what you learned|what did you learn)\b/;
+var AP_LIMPAR = /\b(esquece|esqueca|esquecer|apaga|apagar|limpa|limpar|forget|erase|clear|olvida|olvidar|borra|borrar)\b.*\b(aprendeu|aprendi|aprendido|aprendi[zd]ado|learned|learnt|memoria|memory|memoria)\b/;
+
+function apChave(txt){
+  return norm(String(txt || '')).replace(/[^a-z0-9ñ ]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+}
+function apPalavras(k){ return k.split(' ').filter(function(w){ return w.length > 1 && !/^(o|a|os|as|de|do|da|em|no|na|um|uma|the|of|in|to|el|la|los|las|un|una|por|pra|para|que|eu|me|meu|minha|my|mi)$/.test(w); }); }
+function apParecido(a, b){
+  if(a === b) return true;
+  var A = apPalavras(a), B = apPalavras(b);
+  if(A.length < 2 || B.length < 2) return false;
+  var comum = A.filter(function(w){ return B.indexOf(w) >= 0; }).length, uniao = A.length + B.length - comum;
+  return comum / uniao >= 0.8;
+}
+function apAchar(est, k){
+  var lista = est.aprendido || [], i;
+  for(i = 0; i < lista.length; i++) if(lista[i].k === k) return lista[i];
+  for(i = 0; i < lista.length; i++) if(apParecido(lista[i].k, k)) return lista[i];
+  return null;
+}
+function apLimpo(it){
+  try{
+    var s = JSON.stringify(it, function(k, v){ return k === 'P' || k === 'aprendido' || typeof v === 'function' ? undefined : v; });
+    if(!s || s.length > 700) return null;
+    return JSON.parse(s);
+  }catch(e){ return null; }
+}
+function apEnsinavel(it, r){
+  return !!(it && it.int && !AP_NAO_ENSINA.test(it.int) && H[it.int] && !(r && r.erro) && !it.aprendido);
+}
+function apGuardar(est, te, it){
+  var limpo = apLimpo(it);
+  if(!limpo || !te || !te.k || te.k.length < 3) return false;
+  if(/@|\d{6,}/.test(te.frase)) return false;          /* nada de e-mail ou telefone */
+  est.aprendido = est.aprendido || [];
+  var antigo = apAchar(est, te.k);
+  if(antigo){ antigo.it = limpo; antigo.sobre = !!te.sobre || antigo.sobre; antigo.f = te.frase; }
+  else est.aprendido.unshift({k: te.k, f: te.frase.slice(0, 120), it: limpo, sobre: !!te.sobre, usos: 0});
+  if(est.aprendido.length > AP_MAX) est.aprendido.length = AP_MAX;
+  est.aprendidoV = (est.aprendidoV || 0) + 1;
+  return true;
+}
+/* antes de responder: o que eu já aprendi, "o que você aprendeu?", "esquece", "não era isso", "eu queria..." */
+function aprenderAntes(est, texto, it, ctx){
+  var k = apChave(texto);
+  if(!k) return it;
+  if(AP_LIMPAR.test(k)) return {int: 'aprendeu_limpar'};
+  if(AP_VER.test(k)) return {int: 'aprendeu_ver'};
+  if(AP_NAO_ERA.test(k) && est.ultimoPedido && est.turnos - est.ultimoPedido.turno <= 3) return {int: 'aprendeu_errei'};
+  var m = est.talvezErro ? AP_PARTE.exec(k) : null;
+  if(m && m.index === 0 && k.length > m[0].length + 2){
+    est.explicou = true;
+    var resto = String(texto).replace(/^\s*(eu\s+)?(quis dizer|queria dizer|queria|quero dizer|eu falei|falei|na verdade|era pra|era para|i meant|i mean|what i meant|actually|quise decir|queria decir|en realidad)\b[\s:,-]*/i, '').trim();
+    if(resto){ try{ it = entender(resto, ctx); }catch(e){} }
+  }
+  var ex = apAchar(est, k);
+  if(ex && (it.int === 'nada' || ex.sobre)){
+    ex.usos = (ex.usos || 0) + 1;
+    var c = JSON.parse(JSON.stringify(ex.it)); c.aprendido = true;
+    return c;
+  }
+  return it;
+}
+/* depois de responder: se não entendi, aviso que dá pra me ensinar; se a pessoa acabou de me ensinar, guardo */
+function aprenderDepois(est, texto, it, r){
+  var k = apChave(texto), te = est.talvezErro;
+  if(it.int === 'nada'){
+    est.talvezErro = {k: k, frase: String(texto).trim(), turno: est.turnos};
+    if(r.chips && r.chips.length) diz(r, T('ap_dica'));
+    est.chipsVistos = (r.chips || []).map(function(c){ return c.msg || c.txt; });
+    est.explicou = false;
+    return;
+  }
+  if(te && est.turnos - te.turno > 3){ est.talvezErro = te = null; }
+  if(te && apEnsinavel(it, r)){
+    var tocou = (est.chipsVistos || []).indexOf(String(texto).trim()) >= 0;
+    if(tocou || est.explicou || te.sobre){
+      if(apGuardar(est, te, it)){ diz(r, T(te.sobre ? 'ap_corrigi' : 'ap_aprendi', {frase: te.frase.slice(0, 60)})); est.talvezErro = null; }
+    }
+  }
+  if(apEnsinavel(it, r)) est.ultimoPedido = {k: k, frase: String(texto).trim(), turno: est.turnos};
+  est.chipsVistos = (r.chips || []).map(function(c){ return c.msg || c.txt; });
+  est.explicou = false;
+}
+H.aprendeu_ver = function(it, ctx, est){
+  var l = est.aprendido || [], r = novaResp();
+  if(!l.length) return diz(r, T('ap_ver_vazio'));
+  diz(r, T('ap_ver', {n: l.length}) + '\n' + l.slice(0, 12).map(function(e){ return '- "' + e.f + '"'; }).join('\n') + (l.length > 12 ? '\n' + T('ap_ver_mais', {n: l.length - 12}) : ''));
+  chip(r, T('ch_ap_limpar'), 'esquece o que você aprendeu');
+  return r;
+};
+H.aprendeu_limpar = function(it, ctx, est){
+  est.aprendido = []; est.aprendidoV = (est.aprendidoV || 0) + 1; est.talvezErro = null;
+  return diz(novaResp(), T('ap_limpou'));
+};
+H.aprendeu_errei = function(it, ctx, est){
+  var u = est.ultimoPedido, r = novaResp();
+  est.talvezErro = {k: u.k, frase: u.frase, turno: est.turnos, sobre: true};
+  diz(r, T('ap_errei'));
+  palpites(null, ctx).forEach(function(k){ chip(r, T(k)); });
+  return r;
+};
+Object.assign(TX, {
+  ap_dica: 'Se você tocar numa das opções, eu aprendo e da próxima vez já entendo.|If you tap one of the options, I learn it and understand next time.|Si tocas una de las opciones, aprendo y la próxima vez ya entiendo.',
+  ap_aprendi: 'Aprendi! Quando você falar "{frase}", eu já faço isso. (Fica só neste aparelho. Pra apagar, diga "esquece o que você aprendeu".)|Learned! When you say "{frase}", I will do this. (It stays only on this device. To erase it, say "forget what you learned".)|¡Aprendí! Cuando digas "{frase}", ya hago esto. (Se queda solo en este aparato. Para borrarlo, di "olvida lo que aprendiste".)',
+  ap_corrigi: 'Anotei o erro! Da próxima vez que você falar "{frase}", eu faço isso.|Noted the mistake! Next time you say "{frase}", I will do this.|¡Anoté el error! La próxima vez que digas "{frase}", haré esto.',
+  ap_errei: 'Foi mal, errei! Me diz do seu jeito o que você queria (ou toca numa opção) e eu aprendo pra não errar de novo.|Sorry, I got it wrong! Tell me in your own words what you wanted (or tap an option) and I will learn so it does not happen again.|¡Perdón, me equivoqué! Dime con tus palabras qué querías (o toca una opción) y aprendo para no fallar otra vez.',
+  ap_ver_vazio: 'Ainda não aprendi nenhuma frase com você. Quando eu errar, me mostra o que você queria e eu guardo.|I have not learned any phrases from you yet. When I get something wrong, show me what you wanted and I will remember it.|Todavía no aprendí ninguna frase contigo. Cuando me equivoque, muéstrame qué querías y lo guardo.',
+  ap_ver: 'Frases que aprendi com você ({n}):|Phrases I learned from you ({n}):|Frases que aprendí contigo ({n}):',
+  ap_ver_mais: '(e mais {n})|(and {n} more)|(y {n} más)',
+  ap_limpou: 'Pronto, esqueci tudo o que aprendi com você.|Done, I forgot everything I learned from you.|Listo, olvidé todo lo que aprendí contigo.',
+  ch_ap_limpar: 'Esquecer tudo|Forget everything|Olvidar todo'
+});
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T, TL: TL,
+  /* o que o agente aprendeu com os erros (o site guarda no aparelho) */
+  aprendido: function(est){ return JSON.parse(JSON.stringify(est.aprendido || [])); },
+  aprendidoV: function(est){ return est.aprendidoV || 0; },
+  carregarAprendido: function(est, l){
+    est.aprendido = (Array.isArray(l) ? l : []).filter(function(e){ return e && typeof e.k === 'string' && typeof e.f === 'string' && e.it && typeof e.it.int === 'string' && H[e.it.int] && !AP_NAO_ENSINA.test(e.it.int); }).slice(0, AP_MAX)
+      .map(function(e){ return {k: e.k.slice(0, 120), f: e.f.slice(0, 120), it: apLimpo(e.it) || {int: 'nada'}, sobre: !!e.sobre, usos: e.usos | 0}; }).filter(function(e){ return e.it.int !== 'nada'; });
+    est.aprendidoV = 0;
+  },
   novoEstado: novoEstado, saudar: saudar, responder: responder, depoisDoTeste: depoisDoTeste, comecarOpcao: comecarOpcao, opcoes: opcoesDeOferta,
   robo: function(id){ return '(' + kodaRoboNoJogo.toString() + ')(' + JSON.stringify(String(id)) + ');'; },
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
@@ -34937,6 +35082,20 @@ function kaDigitar(el, s, rolar){
     }, 16);
   });
 }
+/* o que o agente aprendeu com os erros fica só neste aparelho */
+const KA_APRENDEU_CHAVE = 'koda_ag_aprendeu';
+function kaLerAprendido(){ try{ return JSON.parse(localStorage.getItem(KA_APRENDEU_CHAVE) || '[]'); }catch(e){ return []; } }
+function kaSalvarAprendido(est){
+  try{
+    const v = KA.aprendidoV(est);
+    if(est.__apSalvoV === v) return;
+    est.__apSalvoV = v;
+    let lista = KA.aprendido(est);
+    /* duas conversas abertas: junta o que as duas aprenderam (só "esquece tudo" esvazia) */
+    if(lista.length){ const tem = new Set(lista.map(e=>e.k)); kaLerAprendido().forEach(e=>{ if(e && !tem.has(e.k)) lista.push(e); }); }
+    localStorage.setItem(KA_APRENDEU_CHAVE, JSON.stringify(lista.slice(0, 150)));
+  }catch(e){}
+}
 /* abre a conversa ligada a uma caixa de código */
 function abrirAgente(caixa, opts){
   opts = opts || {};
@@ -34944,7 +35103,7 @@ function abrirAgente(caixa, opts){
   const esc = chatListEscape;
   let conv = KA_CONVERSAS.get(caixa);
   const nova = !conv;
-  if(!conv){ conv = {estado: KA.novoEstado(), lista: null, chips: []}; KA_CONVERSAS.set(caixa, conv); }
+  if(!conv){ conv = {estado: KA.novoEstado(), lista: null, chips: []}; try{ KA.carregarAprendido(conv.estado, kaLerAprendido()); conv.estado.__apSalvoV = 0; }catch(e){} KA_CONVERSAS.set(caixa, conv); }
   document.querySelectorAll('.ka-tela').forEach(e=>e.remove());
   const tela = document.createElement('div');
   tela.className = 'ka-tela';
@@ -35004,6 +35163,7 @@ function abrirAgente(caixa, opts){
     /* jogo criado do zero: o nome dele já vai pro campo "Nome" (se estiver vazio) */
     if(r.nomeJogo && opts.nomeEl && !opts.nomeEl.value.trim()){ opts.nomeEl.value = r.nomeJogo; try{ opts.nomeEl.dispatchEvent(new Event('input', {bubbles: true})); }catch(e){} }
     await mostrar(r);
+    kaSalvarAprendido(conv.estado);
     if(r.testar){
       /* o robô joga com o código que está na caixa (já arrumado, igual o Testar faz) */
       const prep = prepararCodigoDoJogo(caixa.value);
