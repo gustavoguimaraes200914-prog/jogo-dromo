@@ -25651,7 +25651,7 @@ function lojaCriar(codigo, opts){
   var plano = planoDeEfeitos(doc, conceitosUsados(efeitos), opts.ensinado);
   var ed = new Edicao(codigo);
   plano.trocas.forEach(function(t){ ed.trocar(t.ini, t.fim, t.txt); });
-  var mod = escreverModulo({itens: itens, efeitos: efeitos, botao: {texto: TL(lj, 'it_botao'), lugar: 'cima-direita'}, agora: plano.agora, lingua: lj});
+  var mod = escreverModulo({itens: itens, efeitos: efeitos, botao: opts.botao || {texto: TL(lj, 'it_botao'), lugar: 'cima-direita'}, agora: plano.agora, lingua: lj});
   ed.inserir(pontoDeEntrada(codigo, doc), '\n' + mod + '\n');
   var novo = ed.aplicar();
   if(novo == null) return {erro: 'edicao'};
@@ -33830,9 +33830,14 @@ function kodaMoedasNoJogo(){
     var lista = (typeof KODA_LOJA_ITENS !== 'undefined' && Array.isArray(KODA_LOJA_ITENS)) ? KODA_LOJA_ITENS : (window.__kodaItens = window.__kodaItens || []);
     var p = Math.max(1, Math.round(Number(preco) || 0));
     if(!isFinite(p)) return;
-    var km = moedaDaCompra === 'c' || moedaDaCompra === 'd' || moedaDaCompra === 'd1' ? moedaDaCompra : M.moeda;
+    var km = moedaDaCompra === 'c' || moedaDaCompra === 'd' || moedaDaCompra === 'd1' || moedaDaCompra === 'cr' ? moedaDaCompra : M.moeda;
     function converter(v, moeda){
       if(moeda === 'd1') return Math.max(1, Math.min(M.maxD, Math.round(v)));
+      if(moeda === 'cr'){
+        var d0 = Math.max(1, Math.min(M.maxD, Math.round(v))), pc = 0, pd = 0;
+        for(var q = 0; q < M.faixas.length; q++){ var fc = M.faixas[q][0], fd = M.faixas[q][1]; if(d0 <= fd) return Math.max(1, Math.min(M.maxC, Math.round(pc + (fc - pc) * (d0 - pd) / (fd - pd)))); pc = fc; pd = fd; }
+        return M.maxC;
+      }
       if(moeda !== 'd') return Math.max(1, Math.min(M.maxC, Math.round(v)));
       for(var i = 0; i < M.faixas.length; i++) if(v <= M.faixas[i][0]) return Math.min(M.faixas[i][1], M.maxD);
       return M.maxD;
@@ -33848,7 +33853,7 @@ function kodaMoedasNoJogo(){
       if(lista.length >= 40) return;
       var nm = String(nome == null || nome === '' ? id : nome).replace(/\s+/g, ' ').trim();
       if(/^[A-Za-z][A-Za-z0-9_]*$/.test(nm)){ nm = nm.replace(/_+/g, ' ').replace(/([a-z])([A-Z0-9])/g, '$1 $2').toLowerCase(); nm = nm.charAt(0).toUpperCase() + nm.slice(1); }
-      lista.push({id: id, nome: nm.slice(0, 40) || id, preco: converter(p, km), moeda: km === 'c' ? 'c' : 'd', unico: !!unico, jogo: p});
+      lista.push({id: id, nome: nm.slice(0, 40) || id, preco: converter(p, km), moeda: km === 'c' || km === 'cr' ? 'c' : 'd', unico: !!unico, jogo: p});
     }
     try{ window.KODA.loja.definir(lista); }catch(e){}
   };
@@ -33959,14 +33964,27 @@ function converterMoedas(codigo, opts){
   var doc = lerDocumento(codigo), lj = opts.lingua || linguaDoJogo(doc), moeda = opts.moeda === 'd' ? 'd' : 'c';
   var moedas = moedasDoJogo(codigo, {doc: doc, ensinado: opts.ensinado});
   if(opts.alvo) moedas = moedas.filter(function(m){ return m.caminho === opts.alvo || m.nome === opts.alvo; });
+  /* o criador disse o destino de cada moeda ("todo ouro vira Koda Coins, as gemas viram Koda Diamonds"): só as citadas mudam */
+  var mapa = opts.mapa || null, deFora = [];
+  if(mapa){
+    deFora = moedas.filter(function(m){ return !mapa[m.caminho] && m.compras.some(function(c){ return !c.convertida; }); });
+    moedas = moedas.filter(function(m){ return !!mapa[m.caminho]; });
+  }
   var compras = [];
   moedas.forEach(function(m){ m.compras.forEach(function(c){ if(!c.convertida) compras.push(c); }); });
   if(!compras.length) return {erro: moedas.length ? (moedas.some(function(m){ return m.convertidas; }) ? 'ja' : 'sem_compras') : 'sem_moeda', moedas: moedas};
   var ed = new Edicao(codigo), itens = [], usados = {}, falhas = [], feitas = [], ocupado = [], semPreco = [];
   /* cada moeda do jogo vai pra do Koda GB que combina (moedas -> moedas, gemas -> diamantes), se pediram assim */
   var misto = !!opts.combinar && moedasMistas(moedas);
-  function kmDe(m){ return misto && moedaRara(m) ? 'd1' : moeda; }
-  function precoKoda(p, km){ return km === 'c' ? Math.min(p, DEP.maxC) : km === 'd' ? paraDiamantes(p) : Math.max(1, Math.min(Math.round(p), DEP.maxD)); }
+  /* km: 'c' moedas 1 pra 1 | 'cr' moeda rara (gema) em moedas | 'd' diamantes pelas faixas | 'd1' diamantes 1 pra 1 */
+  function kmDe(m){
+    if(mapa && mapa[m.caminho]){ var rara = moedaRara(m); return mapa[m.caminho] === 'd' ? (rara ? 'd1' : 'd') : (rara ? 'cr' : 'c'); }
+    return misto && moedaRara(m) ? 'd1' : moeda;
+  }
+  function moedaDoKm(km){ return km === 'c' || km === 'cr' ? 'c' : 'd'; }
+  function precoKoda(p, km){ return km === 'c' ? Math.min(p, DEP.maxC) : km === 'cr' ? Math.min(paraMoedas(p), DEP.maxC) : km === 'd' ? paraDiamantes(p) : Math.max(1, Math.min(Math.round(p), DEP.maxD)); }
+  /* o valor, na moeda de um km, de um preço do jogo */
+  function valorEmKm(v, km){ return km === 'c' ? v : km === 'cr' ? paraMoedas(v) : km === 'd' ? paraDiamantes(v) : v; }
   function argMoeda(km){ return km === moeda ? '' : ', ' + textoJs(km, "'"); }
   /* ajudantes de pagar (spend, tryBuy...): troca em cada chamada */
   var chamadasTrocadas = [];
@@ -33999,7 +34017,7 @@ function converterMoedas(codigo, opts){
     if(!usados[st.id]){
       usados[st.id] = 1;
       var p0 = st.fixo ? Math.max(1, Math.round(st.fixo)) : null;
-      if(p0) itens.push({id: st.id, nome: st.nome, preco: precoKoda(p0, st.km), precoJogo: p0, jogo: p0, moeda: st.km === 'c' ? 'c' : 'd', unico: !!st.unico, semEfeito: true, desc: ''});
+      if(p0) itens.push({id: st.id, nome: st.nome, preco: precoKoda(p0, st.km), precoJogo: p0, jogo: p0, moeda: moedaDoKm(st.km), unico: !!st.unico, semEfeito: true, desc: ''});
       else if(semPreco.indexOf(st.nome) < 0) semPreco.push(st.nome);
     }
   });
@@ -34033,11 +34051,18 @@ function converterMoedas(codigo, opts){
       /* o preço no Koda GB é a soma das partes (100 moedas + 2 gemas = 102) */
       var partes = [cp].concat(cp.juntas).map(function(c){ return c.pIni >= 0 ? textoDosToks(c.js, c.pIni, c.pFim).replace(/\s+/g, ' ') : '1'; });
       ids.agora = partes.map(function(x){ return '(' + x + ')'; }).join(' + ');
-      var soma = 0, ok2 = true, raro = 0, comum = 0;
-      [cp].concat(cp.juntas).forEach(function(c){ var v = c.preco.tipo === 'num' ? c.preco.v : c.preco.estimado; if(typeof v === 'number'){ soma += v; if(misto && moedaRara(c.moeda)) raro += v; else comum += v; } else ok2 = false; });
-      /* moeda comum + moeda rara (com cada uma indo pra do Koda GB que combina): tudo em diamantes, cada parte do seu jeito */
-      var kmJ = misto && raro > 0 ? 'd1' : null;
-      if(kmJ && ok2){ var dia = raro + (comum > 0 ? paraDiamantes(comum) : 0); ids.agora = String(dia); ids.itens.forEach(function(it){ it.preco = dia; }); }
+      var soma = 0, ok2 = true, somaDia = 0, somaMoe = 0, temDia = false;
+      [cp].concat(cp.juntas).forEach(function(c){
+        var v = c.preco.tipo === 'num' ? c.preco.v : c.preco.estimado, kc = kmDe(c.moeda);
+        if(typeof v === 'number'){
+          soma += v;
+          /* uma compra só tem uma moeda: se alguma parte vai pra diamante, tudo vira diamante (a parte em moedas pelas faixas) */
+          var emMoedas = kc === 'c' || kc === 'cr' ? valorEmKm(v, kc) : 0, emDia = kc === 'd1' || kc === 'd' ? valorEmKm(v, kc) : 0;
+          somaMoe += emMoedas; somaDia += emDia; if(moedaDoKm(kc) === 'd') temDia = true;
+        } else ok2 = false;
+      });
+      var kmJ = temDia ? 'd1' : (mapa || misto ? 'c' : null);
+      if(kmJ && ok2){ var tot = temDia ? Math.max(1, Math.round(somaDia + (somaMoe > 0 ? paraDiamantes(somaMoe) : 0))) : Math.max(1, Math.round(somaMoe)); ids.agora = String(tot); ids.itens.forEach(function(it){ it.preco = tot; }); }
       else if(ok2) ids.itens.forEach(function(it){ it.preco = soma; });
       if(!ids.nomeExpr && !ids.nomeFixo) ids.nomeFixo = cp.nome;
       cp.kmJ = kmJ;
@@ -34066,7 +34091,7 @@ function converterMoedas(codigo, opts){
       if(usados[it.id]) return;
       usados[it.id] = 1;
       var p = Math.max(1, Math.round(Number(it.preco) || 1));
-      itens.push({id: it.id, nome: it.nome, preco: precoKoda(p, km), precoJogo: p, jogo: p, moeda: km === 'c' ? 'c' : 'd', unico: !!it.unico, semEfeito: true, desc: '', muda: muda || undefined});
+      itens.push({id: it.id, nome: it.nome, preco: precoKoda(p, km), precoJogo: p, jogo: p, moeda: moedaDoKm(km), unico: !!it.unico, semEfeito: true, desc: '', muda: muda || undefined});
     });
     if(!ids.itens.length){ var nmS = ids.nomeFixo || cp.nome || TL(lj, 'dj_compra_n', {n: cp.n}); if(semPreco.indexOf(nmS) < 0) semPreco.push(nmS); }
     feitas.push(cp);
@@ -34082,15 +34107,18 @@ function converterMoedas(codigo, opts){
   if(ok.erro) return {erro: 'quebrou', moedas: moedas};
   /* os itens vão pra loja do Koda GB (cria a loja ou junta na que já existe) */
   var L = lojaLer(novo), r2;
-  if(L.tipo === 'nenhuma') r2 = lojaCriar(novo, {itens: itens, moeda: moeda, lingua: lj});
+  if(L.tipo === 'nenhuma') r2 = lojaCriar(novo, {itens: itens, moeda: moeda, lingua: lj, botao: {texto: TL(lj, 'it_botao'), lugar: 'nenhum'}});
   else {
     var jaTem = {}; L.itens.forEach(function(i){ jaTem[i.idSite] = 1; });
     var novos = itens.filter(function(i){ return !jaTem[i.id]; });
     r2 = novos.length ? lojaMudar(novo, novos.map(function(i){ return {tipo: 'novo', item: i}; }), {lingua: lj}) : {codigo: novo};
   }
   if(!r2 || r2.erro || !r2.codigo) return {erro: 'loja', moedas: moedas, detalhe: r2 && r2.erro};
-  var porMoeda = misto ? moedas.filter(function(m){ return m.compras.length; }).map(function(m){ return {m: m, km: kmDe(m)}; }) : null;
-  return {codigo: r2.codigo, itens: itens, semPreco: semPreco, feitas: feitas, falhas: falhas, moedas: moedas, moeda: moeda, lingua: lj, misto: misto, porMoeda: porMoeda};
+  var comCompra = moedas.filter(function(m){ return m.compras.length; });
+  var destinos = {}; comCompra.forEach(function(m){ destinos[moedaDoKm(kmDe(m))] = 1; });
+  var variosDestinos = Object.keys(destinos).length > 1;
+  var porMoeda = (misto || (mapa && comCompra.length)) ? comCompra.map(function(m){ return {m: m, km: moedaDoKm(kmDe(m))}; }) : null;
+  return {codigo: r2.codigo, itens: itens, semPreco: semPreco, feitas: feitas, falhas: falhas, moedas: moedas, moeda: mapa && !variosDestinos && comCompra.length ? moedaDoKm(kmDe(comCompra[0])) : moeda, lingua: lj, misto: misto || (mapa && variosDestinos), porMoeda: porMoeda, deFora: deFora, mapa: !!mapa};
 }
 
 /* ---- trocar só o nome que aparece na tela ---- */
@@ -34128,6 +34156,9 @@ Object.assign(TX, {
   dj_junto: '{preco}, junto com {outra}|{preco}, together with {outra}|{preco}, junto con {outra}',
   dj_feito_sobra_n: 'As moedas do jogo ({nomes}) continuam aparecendo, mas não compram mais nada.|The game currencies ({nomes}) keep showing, but they no longer buy anything.|Las monedas del juego ({nomes}) siguen apareciendo, pero ya no compran nada.',
   dj_feito_misto: 'Pronto! As compras do jogo agora usam as moedas e os diamantes do Koda GB:|Done! The game\'s purchases now use Koda GB coins and diamonds:|¡Listo! Las compras del juego ahora usan las monedas y los diamantes de Koda GB:',
+  dj_de_fora: 'As compras com {nomes} ficaram como estavam. Pra mudar também, diga: {exemplo}.|Purchases with {nomes} stayed as they were. To change them too, say: {exemplo}.|Las compras con {nomes} quedaron como estaban. Para cambiarlas también, di: {exemplo}.',
+  dj_vira_ex: 'vira Koda Coins|becomes Koda Coins|pasa a Koda Coins',
+  dj_dica_mapa: 'Você escolhe o destino de cada uma. Por exemplo: "todo {a} vira Koda Coins e todas as {b} viram Koda Diamonds".|You choose where each one goes. For example: "all {a} becomes Koda Coins and all {b} become Koda Diamonds".|Tú eliges el destino de cada una. Por ejemplo: "todo el {a} pasa a Koda Coins y todas las {b} pasan a Koda Diamonds".',
   dj_misto_como: 'Cada moeda virou a do Koda GB que combina: {lista}.|Each currency became the matching Koda GB one: {lista}.|Cada moneda pasó a la de Koda GB que combina: {lista}.',
   dj_sugestao_varias: 'Seu jogo usa {nomes} pra comprar {coisas}. Quer pagar essas compras com as moedas e os diamantes do Koda GB?|Your game uses {nomes} to buy {coisas}. Do you want to pay for those with Koda GB coins and diamonds?|Tu juego usa {nomes} para comprar {coisas}. ¿Quieres pagar esas compras con las monedas y los diamantes de Koda GB?',
   dj_pergunta_misto: 'As compras com {raras} vão usar os diamantes do Koda GB (é a moeda mais rara do jogo), e as outras, as moedas.|Purchases with {raras} will use Koda GB diamonds (the rarest game currency), and the others will use coins.|Las compras con {raras} usarán los diamantes de Koda GB (es la moneda más rara del juego), y las otras, las monedas.',
@@ -34274,6 +34305,9 @@ function entenderMoedaDoJogo(P, ctx){
   var conv = /\b(virem|viram|virou|seja|sejam|become|becomes|sea|sean|transforma|transformar|transforme|transformem|converte|converter|converta|troca|trocar|troque|muda|mudar|mude|vira|virar|vire|passa|passar|passe|usa|usar|use|usem|deixa|deixar|deixe|faz|faca|fazer|bota|coloca|turn|convert|change|switch|swap|make|replace|convierte|convertir|cambia|cambiar|pasa|pasar|reemplaza|haz|pon)\b/.test(n);
   if(!(falaDoJogo || doJogo || (semCompraFeita && !temLojaKoda))) return null;
   if(temLojaKoda && !falaDoJogo && !doJogo) return null;
+  /* cada moeda com o seu destino ("todo ouro vira Koda Coins e todas as gemas viram Koda Diamonds") */
+  var mapaPorMoeda = lerMapaDeMoedas(n, md, P.orig);
+  if(mapaPorMoeda) return {int: 'moeda_converter', mapa: mapaPorMoeda, para: null, alvo: null, tudo: true};
   /* para onde? (o que vem depois do último "em/por/pra/into/to/en") */
   var partes = n.split(/\b(?:em|por|pra|para|pelas|pelos|pela|pelo|into|to|for|en|by|with|com|con|vira|vire|virar|virem|virou|seja|sejam|become|becomes|sea|sean)\b/);
   var depois = partes.length > 1 ? partes[partes.length - 1] : '';
@@ -34306,6 +34340,52 @@ function entenderMoedaDoJogo(P, ctx){
   if(ver || doJogo || falaDoJogo) return {int: 'moeda_ver', alvo: alvo};
   return null;
 }
+/* "todo ouro vira Koda Coins e todas as gemas viram Koda Diamonds": cada moeda do jogo com o seu destino */
+var FAMILIAS_MOEDA = ['ouro gold oro', 'gema gemas gem gems gemme gemmes gemmen', 'moeda moedas coin coins moneda monedas moneta monete monnaie munt munten', 'cristal cristais crystal crystals cristales cristallo',
+  'dinheiro money dinero grana cash geld argent soldi', 'diamante diamantes diamond diamonds', 'estrela estrelas star stars estrella estrellas', 'ficha fichas token tokens', 'rubi rubis ruby rubies',
+  'esmeralda esmeraldas emerald emeralds', 'perola perolas pearl pearls', 'ponto pontos point points puntos'].map(function(s){ return s.split(' '); });
+function familiaDaMoeda(w){ for(var i = 0; i < FAMILIAS_MOEDA.length; i++) if(FAMILIAS_MOEDA[i].indexOf(w) >= 0) return i; return -1; }
+var TRANSICAO_MOEDA = /(?:\b(?:vai virar|vao virar|se tornam|se torna|se convierten en|se convierte en|turns into|turn into|become|becomes|vira|viram|virar|virem|vire|virou|em|para|pra|por|pelo|pela|pelos|pelas|into|to|sea|sean|a)\b|->|=>|→|=|:)/;
+function lerMapaDeMoedas(n, md, orig){
+  /* o texto limpo perde vírgula e dois-pontos; se não deu, tenta o original (que guarda a pontuação) */
+  return lerMapaDeTexto(n, md) || (orig ? lerMapaDeTexto(' ' + norm(orig) + ' ', md) : null);
+}
+function lerMapaDeTexto(n, md){
+  if(!md || !md.length) return null;
+  var texto = ' ' + n.replace(/[,;&+]| e | and | y | mais | tambem /g, ' | ') + ' ', pedacos = texto.split('|').map(function(x){ return ' ' + x.trim() + ' '; }).filter(function(x){ return x.trim(); });
+  var GEN = /^(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|currency)$/, so = /\b(so|somente|apenas|only|solo)\b/.test(n);
+  var mapa = {}, pendentes = [], achou = false;
+  function fontes(parte){
+    parte = parte.replace(/ (as |os |a |o |the |las |los |la |el )?(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|currency) (do jogo|of the game|del juego|in the game|no jogo|en el juego) /g, ' ');
+    var toks = parte.split(/[^a-z0-9_$]+/).filter(Boolean), r = [];
+    md.forEach(function(m){
+      var ws = (m.rotulo.palavras || []).concat([semAcento(m.nome).toLowerCase()]).concat(palavrasDoId(m.nome)).filter(Boolean);
+      var bate = toks.some(function(t){
+        if(ws.indexOf(t) >= 0 && !(GEN.test(t) && md.length > 1 && !so)) return true;
+        var ft = familiaDaMoeda(t);
+        return ft >= 0 && !(GEN.test(t) && md.length > 1 && !so) && ws.some(function(w){ return familiaDaMoeda(w) === ft; });
+      });
+      if(bate && r.indexOf(m.caminho) < 0) r.push(m.caminho);
+    });
+    return r;
+  }
+  function destino(parte){
+    var d = /\b(diamante|diamantes|diamond|diamonds|diamant|diamanten)\b/.test(parte), c = /\b(moeda|moedas|coin|coins|moneda|monedas|moneta|monete|monnaie|munt|munten)\b/.test(parte);
+    return d && !c ? 'd' : c && !d ? 'c' : null;
+  }
+  pedacos.forEach(function(p){
+    var m = TRANSICAO_MOEDA.exec(p);
+    if(!m){ var f0 = fontes(p); f0.forEach(function(k){ if(pendentes.indexOf(k) < 0) pendentes.push(k); }); return; }
+    var antes = p.slice(0, m.index), depois = p.slice(m.index + m[0].length), d = destino(depois);
+    if(!d) return;
+    var f = fontes(antes);
+    if(!f.length) return;
+    pendentes.forEach(function(k){ if(f.indexOf(k) < 0) f.push(k); });
+    pendentes = [];
+    f.forEach(function(k){ mapa[k] = d; achou = true; });
+  });
+  return achou ? mapa : null;
+}
 var RE_EDUCADO_W = /^(por|favor|pfv|pf|pls|please|ai|aí)$/;
 function descreverMoedas(r, md, est){
   if(md.length === 1) diz(r, T('dj_uma', {nome: nomeDaMoeda(md[0], est)}));
@@ -34327,6 +34407,7 @@ H.moeda_ver = function(it, ctx, est){
   var comCompra = md.filter(function(m){ return m.compras.some(function(c){ return !c.convertida; }); });
   if(comCompra.length){
     diz(r, T('dj_pergunta'));
+    if(!it.alvo && md.length > 1) diz(r, T('dj_dica_mapa', {a: nomeDaMoeda(md[0], est), b: nomeDaMoeda(md[1], est)}));
     if(!it.alvo && moedasMistas(md)) diz(r, T('dj_pergunta_misto', {raras: md.filter(function(m){ return moedaRara(m) && m.compras.length; }).map(function(m){ return '"' + nomeDaMoeda(m, est) + '"'; }).join(', ')}));
     est.pendente = {tipo: 'mod_moeda', alvo: it.alvo || null};
     chip(r, T('ch_dj_moedas')); chip(r, T('ch_dj_diamantes')); chip(r, T('ch_dj_nome')); chip(r, T('ch_dj_deixar'));
@@ -34342,7 +34423,7 @@ H.moeda_ver = function(it, ctx, est){
 H.moeda_converter = function(it, ctx, est){
   var r = novaResp();
   if(precisaCodigo(ctx, r)) return r;
-  var res = converterMoedas(ctx.codigo, {moeda: it.para, alvo: it.alvo, ensinado: est.moedaEnsinada, combinar: !it.alvo && !it.tudo});
+  var res = converterMoedas(ctx.codigo, {moeda: it.para || 'c', alvo: it.alvo, ensinado: est.moedaEnsinada, combinar: !it.alvo && !it.tudo, mapa: it.mapa});
   if(res.erro){
     var md = res.moedas || [], m0 = md[0];
     if(res.erro === 'sem_moeda'){ diz(r, T('dj_nenhuma')); return r; }
@@ -34358,6 +34439,7 @@ H.moeda_converter = function(it, ctx, est){
   diz(r, (res.misto ? T('dj_feito_misto') : T('dj_feito', {moeda: T(res.moeda === 'd' ? 'w_diamantes_koda' : 'w_moedas_koda')})) + '\n' + linhas.join('\n'));
   if(res.misto) diz(r, T('dj_misto_como', {lista: res.porMoeda.map(function(x){ return '"' + nomeDaMoeda(x.m, est) + '" -> ' + T(x.km === 'c' ? 'w_moedas_koda' : 'w_diamantes_koda'); }).join(', ')}));
   if(res.itens.some(function(i){ return i.muda; })) diz(r, T('dj_sobe'));
+  if(res.deFora && res.deFora.length) diz(r, T('dj_de_fora', {nomes: listaComE(res.deFora.map(function(x){ return '"' + nomeDaMoeda(x, est) + '"'; })), exemplo: '"' + nomeDaMoeda(res.deFora[0], est) + ' ' + T('dj_vira_ex') + '"'}));
   var usadas = res.moedas.filter(function(x){ return x.compras.length && res.feitas.some(function(c){ return c.moeda === x; }); });
   diz(r, T('dj_feito_como') + ' ' + (usadas.length > 1 ? T('dj_feito_sobra_n', {nomes: listaComE(usadas.map(function(x){ return '"' + nomeDaMoeda(x, est) + '"'; }))}) : T('dj_feito_sobra', {nome: nomeDaMoeda(m, est)})) + ' ' + T('dj_feito_teste'));
   if(res.falhas.length) diz(r, T('dj_falhas', {n: res.falhas.length, nome: nomeDaMoeda(m, est)}));
