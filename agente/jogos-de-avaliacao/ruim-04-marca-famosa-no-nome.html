@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Super Mario Run</title>
+<style>body{margin:0;background:#12204a;color:#fff;font-family:sans-serif;text-align:center}canvas{background:#1c2f6b;border-radius:12px;touch-action:manipulation}</style></head>
+<body><h1>Super Mario Run</h1><p id="placar">Pontos: 0</p><p>Corra e pule</p>
+<canvas id="c" width="320" height="320"></canvas>
+<script>
+var c = document.getElementById('c'), g = c.getContext('2d'), pontos = 0, estrela = {x: 100, y: 100};
+function desenhar(){ g.fillStyle = '#1c2f6b'; g.fillRect(0, 0, 320, 320); g.fillStyle = '#ffd54a'; g.beginPath(); g.arc(estrela.x, estrela.y, 22, 0, 7); g.fill(); }
+c.addEventListener('pointerdown', function(e){ var r = c.getBoundingClientRect(), x = (e.clientX - r.left) * 320 / r.width, y = (e.clientY - r.top) * 320 / r.height;
+  if(Math.hypot(x - estrela.x, y - estrela.y) < 26){ pontos++; document.getElementById('placar').textContent = 'Pontos: ' + pontos; estrela.x = 30 + Math.random() * 260; estrela.y = 30 + Math.random() * 260; } });
+setInterval(desenhar, 50);
+
+</script></body></html>

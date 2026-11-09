@@ -1,0 +1,25 @@
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;background:#f1f7f5;color:#13312a}
+header{background:#13312a;color:#fff;padding:18px 20px}
+header h1{margin:0 0 4px;font-size:1.35rem}header p{margin:0;opacity:.85;font-size:.95rem}
+main{max-width:900px;margin:0 auto;padding:16px}
+.soltar{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:3px dashed #7c4dff;border-radius:18px;background:#fff;padding:30px 16px;text-align:center;cursor:pointer}
+.soltar.sobre{background:#efe9ff}.soltar b{font-size:1.1rem}.soltar span{opacity:.7;font-size:.9rem}
+details{margin:12px 0;background:#fff;border-radius:14px;padding:10px 14px}summary{cursor:pointer;font-weight:700}
+details input,details textarea{display:block;width:100%;margin:8px 0;padding:9px;border:1.5px solid #0003;border-radius:10px;font:inherit}
+textarea{font-family:ui-monospace,Menlo,monospace;font-size:.85rem}
+button{background:#7c4dff;color:#fff;border:0;border-radius:12px;padding:10px 16px;font:700 .95rem system-ui;cursor:pointer}
+.linha{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:10px 0}.linha select{padding:7px;border-radius:8px}
+#resumo{background:#fff;border-radius:14px;padding:12px 16px;margin:10px 0;font-weight:700}
+.jogo{background:#fff;border-radius:16px;margin:12px 0;overflow:hidden;box-shadow:0 1px 4px #0001}
+.topo{display:flex;align-items:center;gap:12px;padding:12px 14px;border-left:8px solid #888}
+.jogo.ok .topo{border-color:#17c79e}.jogo.nao .topo{border-color:#e8413c}
+.selo{font-weight:800;font-size:.95rem;border-radius:999px;padding:4px 12px;color:#fff}
+.ok .selo{background:#17a07f}.nao .selo{background:#e8413c}
+.nome{font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.corpo{padding:4px 14px 14px}.motivo{background:#fdecea;border-radius:12px;padding:10px 12px;margin:8px 0}
+.ok .motivo{background:#e6f7f2}
+.aviso{background:#fff6e0;border-radius:12px;padding:8px 12px;margin:8px 0;font-size:.92rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.chip{background:#efe9ff;color:#4a2fb0;border-radius:999px;padding:3px 10px;font-size:.82rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin:6px 0}td,th{text-align:left;padding:5px 6px;border-bottom:1px solid #0001;vertical-align:top}
+th{opacity:.7;font-weight:700}.pequeno{font-size:.82rem;opacity:.75}

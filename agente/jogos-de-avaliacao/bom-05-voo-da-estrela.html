@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voo da Estrela</title>
+<style>
+  html,body{margin:0;background:#000;height:100%;display:flex;align-items:center;justify-content:center}
+  canvas{max-width:100vw;max-height:100vh;background:#070b2a}
+</style>
+</head>
+<body>
+<canvas id="game" width="800" height="450"></canvas>
+<script>
+/* Voo da Estrela: nave voando para a direita. Setas ou WASD movem, ESPAÇO atira. Destrua os meteoros! */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = 800, H = 450;
+let nave = { x: 80, y: H / 2, w: 44, h: 26, vy: 0 };
+let tiros = [], meteoros = [], estrelas = [], explosoes = [];
+let vidas = 3, pontos = 0, quadro = 0, cooldown = 0, fim = false, invul = 0;
+const teclas = {};
+for (let i = 0; i < 70; i++) estrelas.push({ x: Math.random() * W, y: Math.random() * H, v: 0.5 + Math.random() * 2.2 });
+
+document.addEventListener('keydown', e => { teclas[e.code] = true; if (e.code === 'Space') e.preventDefault(); if (fim && e.code === 'Enter') reiniciar(); });
+document.addEventListener('keyup', e => { teclas[e.code] = false; });
+
+function reiniciar(){ nave.y = H / 2; tiros = []; meteoros = []; explosoes = []; vidas = 3; pontos = 0; fim = false; invul = 0; }
+function atirar(){ if (cooldown <= 0) { tiros.push({ x: nave.x + nave.w, y: nave.y, v: 11 }); cooldown = 12; } }
+
+function atualizar(){
+  quadro++;
+  estrelas.forEach(s => { s.x -= s.v; if (s.x < 0) { s.x = W; s.y = Math.random() * H; } });
+  if (fim) return;
+  const sobe = teclas.ArrowUp || teclas.KeyW, desce = teclas.ArrowDown || teclas.KeyS;
+  nave.vy = sobe ? -5 : desce ? 5 : 0;
+  nave.y = Math.max(20, Math.min(H - 20, nave.y + nave.vy));
+  if (teclas.Space) atirar();
+  if (cooldown > 0) cooldown--;
+  if (invul > 0) invul--;
+  if (quadro % Math.max(18, 55 - Math.floor(pontos / 80)) === 0) meteoros.push({ x: W + 30, y: 30 + Math.random() * (H - 60), r: 14 + Math.random() * 18, v: 2.4 + Math.random() * 2 + pontos / 600 });
+  tiros.forEach(t => t.x += t.v);
+  meteoros.forEach(m => {
+    m.x -= m.v;
+    tiros.forEach(t => { if (Math.hypot(t.x - m.x, t.y - m.y) < m.r + 4) { t.x = 9999; m.x = -999; pontos += 10; explosoes.push({ x: m.x < 0 ? t.x : m.x, y: m.y, t: 14 }); } });
+    if (invul === 0 && Math.abs(m.x - (nave.x + 14)) < m.r + 18 && Math.abs(m.y - nave.y) < m.r + 10) { m.x = -999; vidas--; invul = 80; if (vidas <= 0) fim = true; }
+  });
+  tiros = tiros.filter(t => t.x < W + 20); meteoros = meteoros.filter(m => m.x > -60);
+  explosoes.forEach(x => x.t--); explosoes = explosoes.filter(x => x.t > 0);
+}
+function desenhar(){
+  ctx.fillStyle = '#070b2a'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff'; estrelas.forEach(s => ctx.fillRect(s.x, s.y, s.v > 1.8 ? 2 : 1, 1.5));
+  ctx.fillStyle = '#ffd54a'; tiros.forEach(t => ctx.fillRect(t.x, t.y - 2, 14, 4));
+  ctx.fillStyle = '#8a7a6a'; meteoros.forEach(m => { ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, 7); ctx.fill(); });
+  ctx.fillStyle = '#ff7a2f'; explosoes.forEach(x => { ctx.beginPath(); ctx.arc(x.x, x.y, 30 - x.t, 0, 7); ctx.fill(); });
+  if (invul % 8 < 4) {
+    ctx.fillStyle = '#d9e2ff'; ctx.beginPath(); ctx.moveTo(nave.x + nave.w, nave.y); ctx.lineTo(nave.x, nave.y - 14); ctx.lineTo(nave.x + 8, nave.y); ctx.lineTo(nave.x, nave.y + 14); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#3aa0ff'; ctx.fillRect(nave.x + 16, nave.y - 4, 14, 8);
+  }
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('Pontos: ' + pontos, 14, 26); ctx.fillText('Vidas: ' + vidas, 14, 50);
+  if (fim) {
+    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = 'bold 40px sans-serif'; ctx.fillText('Fim de jogo', W / 2, H / 2 - 10);
+    ctx.font = '20px sans-serif'; ctx.fillText('Aperte ENTER para tentar de novo', W / 2, H / 2 + 28); ctx.textAlign = 'left';
+  }
+}
+(function laco(){ atualizar(); desenhar(); requestAnimationFrame(laco); })();
+</script>
+</body>
+</html>

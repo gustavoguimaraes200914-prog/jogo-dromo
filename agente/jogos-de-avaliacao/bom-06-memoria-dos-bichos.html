@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memória dos Bichos</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:system-ui,sans-serif;background:#fff4e0;color:#4a2c00;text-align:center}
+  header{padding:12px;background:#ffcf8a;border-bottom:3px solid #e8a23d}
+  h1{margin:0;font-size:1.3rem}
+  .info{display:flex;justify-content:space-around;margin-top:6px;font-weight:700}
+  #fases{display:flex;gap:8px;justify-content:center;margin:12px 0}
+  #fases button{border:none;border-radius:10px;padding:8px 14px;font-weight:800;background:#e8a23d;color:#fff;cursor:pointer}
+  #fases button:disabled{background:#ccc;cursor:not-allowed}
+  #fases button.atual{outline:3px solid #4a2c00}
+  #tabuleiro{display:grid;gap:8px;max-width:420px;margin:0 auto;padding:10px}
+  .carta{aspect-ratio:1;border:none;border-radius:12px;background:#e8a23d;font-size:2rem;cursor:pointer;color:transparent;transition:transform .15s}
+  .carta.virada,.carta.par{background:#fff;color:#000}
+  .carta.par{opacity:.55}
+  #msg{min-height:28px;font-weight:800;margin:8px}
+</style>
+</head>
+<body>
+<header><h1>Memória dos Bichos</h1>
+  <div class="info"><span>Fase <b id="fase">1</b></span><span>Jogadas <b id="jog">0</b></span><span>Moedas <b id="moedas">0</b></span><span>Melhor <b id="melhor">-</b></span></div>
+</header>
+<div id="fases"></div>
+<div id="tabuleiro"></div>
+<div id="msg"></div>
+<script>
+var BICHOS = ['G', 'C', 'P', 'R', 'S', 'L', 'U', 'A', 'O', 'T'];
+var FASES = [{ pares: 3, cols: 3 }, { pares: 4, cols: 4 }, { pares: 6, cols: 4 }, { pares: 8, cols: 4 }, { pares: 10, cols: 5 }];
+var NOME = { G: 'gato', C: 'cão', P: 'pato', R: 'rã', S: 'sapo', L: 'leão', U: 'urso', A: 'asno', O: 'ovelha', T: 'tigre' };
+/* progresso guardado no navegador */
+var faseLiberada = parseInt(localStorage.getItem('memoria_fase_liberada') || '1', 10);
+var moedas = parseInt(localStorage.getItem('memoria_moedas') || '0', 10);
+var melhores = JSON.parse(localStorage.getItem('memoria_melhores') || '{}');
+var faseAtual = 1, jogadas = 0, abertas = [], travado = false, acertos = 0;
+
+function salvar(){
+  localStorage.setItem('memoria_fase_liberada', String(faseLiberada));
+  localStorage.setItem('memoria_moedas', String(moedas));
+  localStorage.setItem('memoria_melhores', JSON.stringify(melhores));
+}
+function embaralhar(a){ for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function botoesDeFase(){
+  var el = document.getElementById('fases'); el.innerHTML = '';
+  FASES.forEach(function(f, i){
+    var b = document.createElement('button'); b.textContent = i + 1; b.disabled = (i + 1) > faseLiberada;
+    if (i + 1 === faseAtual) b.className = 'atual';
+    b.onclick = function(){ comecar(i + 1); }; el.appendChild(b);
+  });
+}
+function comecar(n){
+  faseAtual = n; jogadas = 0; abertas = []; travado = false; acertos = 0;
+  var f = FASES[n - 1], cartas = [];
+  BICHOS.slice(0, f.pares).forEach(function(b){ cartas.push(b, b); });
+  embaralhar(cartas);
+  var tab = document.getElementById('tabuleiro'); tab.innerHTML = ''; tab.style.gridTemplateColumns = 'repeat(' + f.cols + ',1fr)';
+  cartas.forEach(function(b){
+    var c = document.createElement('button'); c.className = 'carta'; c.dataset.b = b; c.textContent = b; c.setAttribute('aria-label', NOME[b]);
+    c.onclick = function(){ virar(c); }; tab.appendChild(c);
+  });
+  document.getElementById('msg').textContent = '';
+  atualizar(); botoesDeFase();
+}
+function virar(c){
+  if (travado || c.classList.contains('virada') || c.classList.contains('par')) return;
+  c.classList.add('virada'); abertas.push(c);
+  if (abertas.length === 2) {
+    jogadas++; travado = true;
+    var a = abertas[0], b = abertas[1];
+    if (a.dataset.b === b.dataset.b) { a.classList.add('par'); b.classList.add('par'); abertas = []; travado = false; acertos++; if (acertos === FASES[faseAtual - 1].pares) vitoria(); }
+    else setTimeout(function(){ a.classList.remove('virada'); b.classList.remove('virada'); abertas = []; travado = false; }, 700);
+    atualizar();
+  }
+}
+function vitoria(){
+  var ganho = 10 + faseAtual * 5; moedas += ganho;
+  if (!melhores[faseAtual] || jogadas < melhores[faseAtual]) melhores[faseAtual] = jogadas;
+  if (faseAtual < FASES.length && faseAtual + 1 > faseLiberada) faseLiberada = faseAtual + 1;
+  salvar();
+  document.getElementById('msg').textContent = 'Muito bem! +' + ganho + ' moedas. ' + (faseAtual < FASES.length ? 'Fase ' + (faseAtual + 1) + ' liberada!' : 'Você terminou tudo!');
+  atualizar(); botoesDeFase();
+}
+function atualizar(){
+  document.getElementById('fase').textContent = faseAtual;
+  document.getElementById('jog').textContent = jogadas;
+  document.getElementById('moedas').textContent = moedas;
+  document.getElementById('melhor').textContent = melhores[faseAtual] || '-';
+}
+comecar(1);
+</script>
+</body>
+</html>
