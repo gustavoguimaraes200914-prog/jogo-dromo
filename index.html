@@ -5844,25 +5844,78 @@
   .giro-setas{transform-box:view-box;transform-origin:100px 100px;animation:giroSetas 2.6s cubic-bezier(.6,0,.3,1) infinite;}
   @keyframes giroCel{0%,18%{transform:rotate(0deg)}46%,78%{transform:rotate(-90deg)}100%{transform:rotate(0deg)}}
   @keyframes giroSetas{0%,18%{transform:rotate(0deg);opacity:.55}46%,78%{transform:rotate(-90deg);opacity:1}100%{transform:rotate(0deg);opacity:.55}}
+  /* jogo de jogar em pé: o celular começa deitado e fica em pé */
+  .giro-tela.para-empe .giro-cel{animation-name:giroCelEmPe;}
+  .giro-tela.para-empe .giro-setas{animation-name:giroSetasEmPe;}
+  @keyframes giroCelEmPe{0%,18%{transform:rotate(-90deg)}46%,78%{transform:rotate(0deg)}100%{transform:rotate(-90deg)}}
+  @keyframes giroSetasEmPe{0%,18%{transform:rotate(-90deg);opacity:.55}46%,78%{transform:rotate(0deg);opacity:1}100%{transform:rotate(-90deg);opacity:.55}}
   .giro-tit{font-size:clamp(1.35rem,6vw,1.8rem);font-weight:900;letter-spacing:.01em;text-shadow:0 3px 12px rgba(0,0,0,.35);}
   .giro-sub{font-size:1rem;font-weight:600;opacity:.88;max-width:330px;line-height:1.4;}
   .giro-dica{font-size:.82rem;font-weight:600;opacity:.6;max-width:300px;line-height:1.35;}
   .giro-sair{margin-top:12px;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.45);color:#fff;border-radius:999px;
     padding:11px 26px;font-weight:800;font-size:1rem;cursor:pointer;}
   .giro-sair:active{transform:translateY(2px);}
-  @media (prefers-reduced-motion: reduce){ .giro-cel{animation:none;transform:rotate(-90deg);} .giro-setas{animation:none;} }
+  @media (prefers-reduced-motion: reduce){ .giro-cel{animation:none;transform:rotate(-90deg);} .giro-setas{animation:none;} .giro-tela.para-empe .giro-cel{transform:none;} }
   /* jogo aberto no celular deitado: a barra de cima fica fininha (o X vai pro canto) e os jogos do Koda GB se arrumam em colunas:
      o tabuleiro no meio, do tamanho da altura da tela, e o resto (pontos, botões, setas) dos lados */
-  #overlay.jogo-deitado .modal-head{position:absolute;top:0;right:0;z-index:6;width:auto;min-height:0;padding:5px max(8px, env(safe-area-inset-right)) 0 0;
+  /* celular deitado (igual ao Roblox): nada de barra em cima; o jogo usa a tela toda e só ficam botõezinhos
+     flutuando no canto ("?", "⋯" e o X). Em pé: a barra é uma linha só. */
+  #overlay.jogo-deitado .modal-head,#overlay.cel-empe .modal-head{position:absolute;top:0;right:0;z-index:6;width:auto;min-height:0;padding:6px max(8px, env(safe-area-inset-right)) 0 0;
     background:transparent;border:none;box-shadow:none;}
-  #overlay.jogo-deitado .modal-head h2{font-size:.95rem;margin:0 6px 0 0;}
-  #overlay.jogo-deitado .modal-close{width:38px;height:38px;}
-  #overlay.jogo-deitado .game-info-bar{padding-top:4px;padding-bottom:4px;padding-right:calc(56px + env(safe-area-inset-right));padding-left:max(10px, env(safe-area-inset-left));}
-  #overlay.jogo-deitado .game-controls-btn{width:34px;height:34px;}
+  #overlay.jogo-deitado .modal-head h2,#overlay.cel-empe .modal-head h2{display:none;}
+  #overlay.jogo-deitado .modal-close{width:34px;height:34px;background:rgba(0,0,0,.42);color:#fff;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  #overlay.jogo-deitado .game-info-bar{position:absolute;top:0;right:calc(48px + env(safe-area-inset-right));z-index:6;width:auto;background:transparent;box-shadow:none;border:none;padding:6px 0 0 0;}
+  #overlay.jogo-deitado:has(.online-pill:not([style*="none"])) .game-info-bar{right:calc(116px + env(safe-area-inset-right));}
+  #overlay.jogo-deitado .game-info-left{display:none;}
+  #overlay.jogo-deitado .game-controls-btn{width:34px;height:34px;padding:0;border-radius:50%;background:rgba(0,0,0,.42);color:#fff;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  #overlay.jogo-deitado .game-controls-btn.gc-ajuda{background:rgba(31,181,140,.85);}
+  #overlay.jogo-deitado .modal.app-embed:not(.iframe-fill) .modal-body{padding-top:6px;}
+  #overlay.cel-empe .modal-close{width:36px;height:36px;}
+  #overlay.cel-empe .game-info-bar{padding:6px calc(52px + env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));min-height:48px;box-sizing:border-box;}
+  #overlay.cel-empe:has(.online-pill:not([style*="none"])) .game-info-bar{padding-right:calc(122px + env(safe-area-inset-right));}
+  #overlay.cel-empe .game-info-cover{width:32px;height:32px;border-radius:9px;}
+  #overlay.cel-empe .game-info-ccu{display:none;}
+  /* no celular a barra só tem o "?" e o "⋯" (o resto fica dentro do "⋯") */
+  .gc-mais{display:none;}
+  #overlay.cel-jogo .gc-mais{display:flex;}
+  #overlay.cel-jogo .game-controls-btn:not(.gc-ajuda):not(.gc-mais){display:none;}
+  .gc-menu{position:fixed;z-index:3600;min-width:210px;max-width:min(300px,calc(100vw - 16px));overflow-y:auto;padding:6px;border-radius:16px;
+    background:#fff;box-shadow:0 12px 34px rgba(0,0,0,.28);animation:gcMenuEntra .14s ease-out;}
+  @keyframes gcMenuEntra{from{opacity:0;transform:translateY(-6px) scale(.97);}to{opacity:1;transform:none;}}
+  .gc-menu-it{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:none;border-radius:11px;background:none;cursor:pointer;
+    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:.95rem;color:var(--ink);text-align:left;}
+  .gc-menu-it:active{background:rgba(0,0,0,.06);}
+  .gc-menu-it svg{width:19px !important;height:19px !important;flex:none;}
+  .gc-menu-it.liked svg{color:#FF3B5C;} .gc-menu-it.saved svg{color:#F5A200;}
+  /* jogos do Koda GB no celular em pé: tudo numa tela só (sem rolar), setas menores, tabuleiro grande */
+  #overlay.cel-empe .modal.app-embed:not(.iframe-fill) .modal-body{padding:6px 10px 10px;}
+  #overlay.cel-empe .g-row{margin-bottom:6px;gap:6px;}
+  #overlay.cel-empe .rec-bar{margin:0 0 6px;gap:4px;}
+  #overlay.cel-empe .rec-chip{padding:2px 8px;min-width:46px;}
+  #overlay.cel-empe .g-msg{margin:4px 0;font-size:.95rem;}
+  #overlay.cel-empe .pad{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,48px);gap:7px;margin:6px auto 2px;}
+  #overlay.cel-empe .pad.pad-lr{grid-template-columns:repeat(2,104px);grid-template-rows:52px;}
+  #overlay.cel-empe .pad-btn{font-size:1.3rem;border-radius:12px;}
+  #overlay.cel-empe .pad-hint{display:none;}
+  #overlay.cel-empe .g2048-tagline{display:none;}
+  .cel-palco{margin-left:auto !important;margin-right:auto !important;flex-shrink:0;}
+  /* o 2048 se limita a 34% da altura da tela (pensado pro celular em pé sem encaixe): no celular o encaixe é que decide o tamanho */
+  #overlay.cel-jogo .g2048-board{max-width:min(340px,calc(100vw - 32px));}
+  /* celular baixinho em pé (iPhone SE com a barra do navegador): o tabuleiro vale mais que os recordes e a placa do 2048 */
+  @media (max-height:640px){
+    #overlay.cel-empe .rec-bar{display:none;}
+    #overlay.cel-empe .g2048-logo{display:none;}
+    #overlay.cel-empe .g2048-header{margin-bottom:6px;}
+    #overlay.cel-empe .g-msg{margin:2px 0;min-height:1.2em;}
+  }
+  /* deitado: setas menores (sobra tabuleiro) */
+  #overlay.jogo-deitado .pad{grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,44px);gap:6px;margin:4px auto;}
+  #overlay.jogo-deitado .pad.pad-lr{grid-template-columns:repeat(2,88px);grid-template-rows:48px;}
+  #overlay.jogo-deitado .pad-btn{font-size:1.2rem;border-radius:12px;}
+  #overlay.jogo-deitado .pad-hint{display:none;}
   #overlay.jogo-deitado .giro-colunas{display:flex !important;flex-direction:column;flex-wrap:wrap;align-content:center;justify-content:center;
     align-items:center;column-gap:22px;row-gap:6px;overflow:hidden;box-sizing:border-box;}
   #overlay.jogo-deitado .giro-colunas > *{flex:0 0 auto;width:auto;max-width:24vw;margin-top:0;margin-bottom:0;}
-  #overlay.jogo-deitado:has(#modalTitle:not(:empty)) .game-info-bar{padding-right:calc(132px + env(safe-area-inset-right));}
   #overlay.jogo-deitado .giro-colunas > .giro-palco{max-width:none;}
   #overlay.jogo-deitado .giro-colunas > .g-row{flex-wrap:wrap;justify-content:center;}
 </style>
@@ -6848,7 +6901,7 @@ const I18N = {
     seq_recorde:"Seu recorde: {n} dias", seq_amanha:"Amanhã: {x}", bg_tile:"Baú grátis",
     bg_abrir:"Abrir!", bg_abrir_raro:"Abrir o raro!", bg_espera:"O próximo baú grátis abre em {t}",
     bg_raro_em:"Baú raro em {n}", bg_shop_dica:"Um baú de graça a cada 4 horas. O 5º é raro!", rol_tile:"Roleta",
-    rol_tile_girar:"Girar!", giro_tit:"Vire o celular", giro_sub:"Os jogos do Koda GB são jogados com a tela deitada.", giro_dica:"Se ele não virar, desligue a trava de rotação do celular.", giro_sair:"Sair do jogo", rol_tit:"Roleta da sorte", rol_sub:"1 giro grátis por dia",
+    rol_tile_girar:"Girar!", giro_tit:"Vire o celular", giro_sub:"Esse jogo é jogado com a tela deitada.", giro_dica:"Se ele não virar, desligue a trava de rotação do celular.", giro_sair:"Sair do jogo", rol_tit:"Roleta da sorte", rol_sub:"1 giro grátis por dia",
     rol_girar:"GIRAR!", rol_volta:"Próximo giro em", rol_ganhou:"Você ganhou!",
     rol_jackpot:"JACKPOT!", rol_why:"Roleta da sorte", rel_tit:"Oferta relâmpago",
     rel_acaba:"acaba em", rel_comprar:"Comprar agora", rel_comprado:"Comprado! Volte amanhã",
@@ -7523,7 +7576,7 @@ const I18N = {
     seq_recorde:"Your best: {n} days", seq_amanha:"Tomorrow: {x}", bg_tile:"Free chest",
     bg_abrir:"Open!", bg_abrir_raro:"Open the rare!", bg_espera:"The next free chest opens in {t}",
     bg_raro_em:"Rare chest in {n}", bg_shop_dica:"A free chest every 4 hours. The 5th is rare!", rol_tile:"Wheel",
-    rol_tile_girar:"Spin!", giro_tit:"Turn your phone", giro_sub:"Koda GB games are played with the screen sideways.", giro_dica:"If it doesn't turn, switch off your phone's rotation lock.", giro_sair:"Leave the game", rol_tit:"Lucky wheel", rol_sub:"1 free spin every day",
+    rol_tile_girar:"Spin!", giro_tit:"Turn your phone", giro_sub:"This game is played with the screen sideways.", giro_dica:"If it doesn't turn, switch off your phone's rotation lock.", giro_sair:"Leave the game", rol_tit:"Lucky wheel", rol_sub:"1 free spin every day",
     rol_girar:"SPIN!", rol_volta:"Next spin in", rol_ganhou:"You won!",
     rol_jackpot:"JACKPOT!", rol_why:"Lucky wheel", rel_tit:"Flash deal",
     rel_acaba:"ends in", rel_comprar:"Buy now", rel_comprado:"Bought! Come back tomorrow",
@@ -8152,7 +8205,7 @@ const I18N = {
     seq_recorde:"Il tuo record: {n} giorni", seq_amanha:"Domani: {x}", bg_tile:"Baule gratis",
     bg_abrir:"Apri!", bg_abrir_raro:"Apri il raro!", bg_espera:"Il prossimo baule gratis si apre tra {t}",
     bg_raro_em:"Baule raro tra {n}", bg_shop_dica:"Un baule gratis ogni 4 ore. Il 5º è raro!", rol_tile:"Ruota",
-    rol_tile_girar:"Gira!", giro_tit:"Gira il telefono", giro_sub:"I giochi di Koda GB si giocano con lo schermo in orizzontale.", giro_dica:"Se non gira, togli il blocco della rotazione.", giro_sair:"Esci dal gioco", rol_tit:"Ruota della fortuna", rol_sub:"1 giro gratis al giorno",
+    rol_tile_girar:"Gira!", giro_tit:"Gira il telefono", giro_sub:"Questo gioco si gioca con lo schermo in orizzontale.", giro_dica:"Se non gira, togli il blocco della rotazione.", giro_sair:"Esci dal gioco", rol_tit:"Ruota della fortuna", rol_sub:"1 giro gratis al giorno",
     rol_girar:"GIRA!", rol_volta:"Prossimo giro tra", rol_ganhou:"Hai vinto!",
     rol_jackpot:"JACKPOT!", rol_why:"Ruota della fortuna", rel_tit:"Offerta lampo",
     rel_acaba:"finisce tra", rel_comprar:"Compra ora", rel_comprado:"Comprato! Torna domani",
@@ -8781,7 +8834,7 @@ const I18N = {
     seq_recorde:"Jouw record: {n} dagen", seq_amanha:"Morgen: {x}", bg_tile:"Gratis kist",
     bg_abrir:"Openen!", bg_abrir_raro:"Open de zeldzame!", bg_espera:"De volgende gratis kist gaat open over {t}",
     bg_raro_em:"Zeldzame kist over {n}", bg_shop_dica:"Elke 4 uur een gratis kist. De 5e is zeldzaam!", rol_tile:"Rad",
-    rol_tile_girar:"Draai!", giro_tit:"Draai je telefoon", giro_sub:"Koda GB-spellen speel je met het scherm liggend.", giro_dica:"Draait het niet? Zet de rotatievergrendeling uit.", giro_sair:"Spel verlaten", rol_tit:"Geluksrad", rol_sub:"Elke dag 1 gratis draai",
+    rol_tile_girar:"Draai!", giro_tit:"Draai je telefoon", giro_sub:"Deze game speel je met het scherm liggend.", giro_dica:"Draait het niet? Zet de rotatievergrendeling uit.", giro_sair:"Spel verlaten", rol_tit:"Geluksrad", rol_sub:"Elke dag 1 gratis draai",
     rol_girar:"DRAAI!", rol_volta:"Volgende draai over", rol_ganhou:"Je hebt gewonnen!",
     rol_jackpot:"JACKPOT!", rol_why:"Geluksrad", rel_tit:"Flitsdeal",
     rel_acaba:"eindigt over", rel_comprar:"Nu kopen", rel_comprado:"Gekocht! Kom morgen terug",
@@ -9422,7 +9475,7 @@ const I18N = {
     seq_recorde:"Dein Rekord: {n} Tage", seq_amanha:"Morgen: {x}", bg_tile:"Gratis-Truhe",
     bg_abrir:"Öffnen!", bg_abrir_raro:"Seltene öffnen!", bg_espera:"Die nächste Gratis-Truhe öffnet in {t}",
     bg_raro_em:"Seltene Truhe in {n}", bg_shop_dica:"Alle 4 Stunden eine Gratis-Truhe. Die 5. ist selten!", rol_tile:"Glücksrad",
-    rol_tile_girar:"Drehen!", giro_tit:"Dreh dein Handy", giro_sub:"Koda GB Spiele spielt man mit dem Bildschirm quer.", giro_dica:"Dreht sich nichts? Schalte die Rotationssperre aus.", giro_sair:"Spiel verlassen", rol_tit:"Glücksrad", rol_sub:"1 Gratis-Dreh pro Tag",
+    rol_tile_girar:"Drehen!", giro_tit:"Dreh dein Handy", giro_sub:"Dieses Spiel spielt man mit dem Bildschirm quer.", giro_dica:"Dreht sich nichts? Schalte die Rotationssperre aus.", giro_sair:"Spiel verlassen", rol_tit:"Glücksrad", rol_sub:"1 Gratis-Dreh pro Tag",
     rol_girar:"DREHEN!", rol_volta:"Nächster Dreh in", rol_ganhou:"Gewonnen!",
     rol_jackpot:"JACKPOT!", rol_why:"Glücksrad", rel_tit:"Blitzangebot",
     rel_acaba:"endet in", rel_comprar:"Jetzt kaufen", rel_comprado:"Gekauft! Komm morgen wieder",
@@ -10058,7 +10111,7 @@ const I18N = {
     seq_recorde:"Ton record : {n} jours", seq_amanha:"Demain : {x}", bg_tile:"Coffre gratuit",
     bg_abrir:"Ouvrir !", bg_abrir_raro:"Ouvrir le rare !", bg_espera:"Le prochain coffre gratuit s’ouvre dans {t}",
     bg_raro_em:"Coffre rare dans {n}", bg_shop_dica:"Un coffre gratuit toutes les 4 heures. Le 5e est rare !", rol_tile:"Roue",
-    rol_tile_girar:"Tourner !", giro_tit:"Tourne ton téléphone", giro_sub:"Les jeux de Koda GB se jouent avec l’écran à l’horizontale.", giro_dica:"Si rien ne tourne, désactive le verrouillage de rotation.", giro_sair:"Quitter le jeu", rol_tit:"Roue de la chance", rol_sub:"1 tour gratuit par jour",
+    rol_tile_girar:"Tourner !", giro_tit:"Tourne ton téléphone", giro_sub:"Ce jeu se joue avec l’écran à l’horizontale.", giro_dica:"Si rien ne tourne, désactive le verrouillage de rotation.", giro_sair:"Quitter le jeu", rol_tit:"Roue de la chance", rol_sub:"1 tour gratuit par jour",
     rol_girar:"TOURNER !", rol_volta:"Prochain tour dans", rol_ganhou:"Tu as gagné !",
     rol_jackpot:"JACKPOT !", rol_why:"Roue de la chance", rel_tit:"Offre éclair",
     rel_acaba:"finit dans", rel_comprar:"Acheter", rel_comprado:"Acheté ! Reviens demain",
@@ -10627,7 +10680,7 @@ const I18N = {
     seq_recorde:"最高記録：{n}日", seq_amanha:"明日：{x}", bg_tile:"無料の宝箱",
     bg_abrir:"開ける！", bg_abrir_raro:"レアを開ける！", bg_espera:"次の無料の宝箱まで {t}",
     bg_raro_em:"あと{n}個でレア", bg_shop_dica:"4時間ごとに無料の宝箱。5個目はレア！", rol_tile:"ルーレット",
-    rol_tile_girar:"回す！", giro_tit:"スマホを横にしてね", giro_sub:"Koda GBのゲームは画面を横にして遊びます。", giro_dica:"回らないときは画面の向きのロックをオフにしてね。", giro_sair:"ゲームをやめる", rol_tit:"ラッキールーレット", rol_sub:"1日1回無料",
+    rol_tile_girar:"回す！", giro_tit:"スマホを横にしてね", giro_sub:"このゲームは画面を横にして遊びます。", giro_dica:"回らないときは画面の向きのロックをオフにしてね。", giro_sair:"ゲームをやめる", rol_tit:"ラッキールーレット", rol_sub:"1日1回無料",
     rol_girar:"回す！", rol_volta:"次の回転まで", rol_ganhou:"当たり！",
     rol_jackpot:"ジャックポット！", rol_why:"ラッキールーレット", rel_tit:"タイムセール",
     rel_acaba:"終了まで", rel_comprar:"今すぐ買う", rel_comprado:"購入済み！また明日",
@@ -11180,7 +11233,7 @@ const I18N = {
     seq_recorde:"你的纪录：{n} 天", seq_amanha:"明天：{x}", bg_tile:"免费宝箱",
     bg_abrir:"打开！", bg_abrir_raro:"打开稀有！", bg_espera:"下一个免费宝箱 {t} 后开启",
     bg_raro_em:"再开 {n} 个是稀有宝箱", bg_shop_dica:"每 4 小时一个免费宝箱，第 5 个是稀有！", rol_tile:"转盘",
-    rol_tile_girar:"转！", giro_tit:"请把手机横过来", giro_sub:"Koda GB 的游戏要横屏玩。", giro_dica:"如果没有转过来，请关闭方向锁定。", giro_sair:"退出游戏", rol_tit:"幸运转盘", rol_sub:"每天免费转 1 次",
+    rol_tile_girar:"转！", giro_tit:"请把手机横过来", giro_sub:"这个游戏要横屏玩。", giro_dica:"如果没有转过来，请关闭方向锁定。", giro_sair:"退出游戏", rol_tit:"幸运转盘", rol_sub:"每天免费转 1 次",
     rol_girar:"转！", rol_volta:"下次转动还有", rol_ganhou:"你赢了！",
     rol_jackpot:"大奖！", rol_why:"幸运转盘", rel_tit:"限时闪购",
     rel_acaba:"剩余", rel_comprar:"立即购买", rel_comprado:"已购买！明天再来",
@@ -11747,7 +11800,7 @@ const I18N = {
     seq_recorde:"최고 기록: {n}일", seq_amanha:"내일: {x}", bg_tile:"무료 상자",
     bg_abrir:"열기!", bg_abrir_raro:"레어 열기!", bg_espera:"다음 무료 상자까지 {t}",
     bg_raro_em:"{n}개 뒤 레어 상자", bg_shop_dica:"4시간마다 무료 상자. 5번째는 레어!", rol_tile:"룰렛",
-    rol_tile_girar:"돌리기!", giro_tit:"휴대폰을 가로로 돌려 주세요", giro_sub:"Koda GB 게임은 화면을 가로로 해서 해요.", giro_dica:"돌아가지 않으면 화면 회전 잠금을 꺼 주세요.", giro_sair:"게임 나가기", rol_tit:"행운의 룰렛", rol_sub:"하루 1번 무료",
+    rol_tile_girar:"돌리기!", giro_tit:"휴대폰을 가로로 돌려 주세요", giro_sub:"이 게임은 화면을 가로로 해서 해요.", giro_dica:"돌아가지 않으면 화면 회전 잠금을 꺼 주세요.", giro_sair:"게임 나가기", rol_tit:"행운의 룰렛", rol_sub:"하루 1번 무료",
     rol_girar:"돌리기!", rol_volta:"다음 회전까지", rol_ganhou:"당첨!",
     rol_jackpot:"잭팟!", rol_why:"행운의 룰렛", rel_tit:"번개 특가",
     rel_acaba:"남은 시간", rel_comprar:"지금 구매", rel_comprado:"구매 완료! 내일 또 와요",
@@ -12423,7 +12476,7 @@ const I18N = {
     seq_recorde:"Tu récord: {n} días", seq_amanha:"Mañana: {x}", bg_tile:"Cofre gratis",
     bg_abrir:"¡Ábrelo!", bg_abrir_raro:"¡Abre el raro!", bg_espera:"El próximo cofre gratis se abre en {t}",
     bg_raro_em:"Cofre raro en {n}", bg_shop_dica:"Un cofre gratis cada 4 horas. ¡El 5º es raro!", rol_tile:"Ruleta",
-    rol_tile_girar:"¡Gira!", giro_tit:"Gira el celular", giro_sub:"Los juegos de Koda GB se juegan con la pantalla acostada.", giro_dica:"Si no gira, quita el bloqueo de rotación del celular.", giro_sair:"Salir del juego", rol_tit:"Ruleta de la suerte", rol_sub:"1 giro gratis al día",
+    rol_tile_girar:"¡Gira!", giro_tit:"Gira el celular", giro_sub:"Este juego se juega con la pantalla acostada.", giro_dica:"Si no gira, quita el bloqueo de rotación del celular.", giro_sair:"Salir del juego", rol_tit:"Ruleta de la suerte", rol_sub:"1 giro gratis al día",
     rol_girar:"¡GIRA!", rol_volta:"Próximo giro en", rol_ganhou:"¡Ganaste!",
     rol_jackpot:"¡PREMIO GORDO!", rol_why:"Ruleta de la suerte", rel_tit:"Oferta relámpago",
     rel_acaba:"acaba en", rel_comprar:"Comprar ahora", rel_comprado:"¡Comprado! Vuelve mañana",
@@ -19765,7 +19818,7 @@ function applyGameFullscreen(){
    (kodaPausaDentroDoJogo). Os jogos online não param (tem gente jogando junto), só o aviso aparece.
 ============================================================ */
 var giroCongelado = false, giroFilaRaf = [];
-var giroEstado = {ativo: false, jogo: null, esperando: null, telaCheia: false, travou: false};
+var giroEstado = {ativo: false, jogo: null, esperando: null, telaCheia: false, travou: false, modo: 'livre'};
 (function(){
   /* o relógio dos jogos daqui: enquanto o aviso estiver na tela, os intervalos não batem e as animações esperam */
   const siOriginal = window.setInterval, rafOriginal = window.requestAnimationFrame;
@@ -19790,15 +19843,34 @@ function giroEmPe(){
   try{ if(window.matchMedia) return matchMedia('(orientation: portrait)').matches; }catch(e){}
   return window.innerHeight > window.innerWidth;
 }
-/* jogo feito pra tela em pé (o criador marcou no Koda GB Studio, ou o próprio jogo trava em pé): esse não obriga a deitar */
-function giroJogoEmPe(id){
+/* como cada jogo é jogado no celular:
+   'deitado' = só deitado (pede pra virar), 'empe' = só em pé (pede pra ficar em pé), 'livre' = se ajusta (joga do jeito que estiver).
+   Os jogos do Koda GB se ajustam (em pé é o jeito natural deles). Jogo criado: o que o criador marcou no Koda GB Studio;
+   senão o Agente Koda GB lê o código: tamanho fixo (800x450 é deitado, 400x700 é em pé), trava da tela e pra onde as coisas andam
+   (nascem na direita e somem na esquerda, como numa corrida, é deitado). */
+const giroModoGuardado = {};
+function giroModoDoJogo(id){
+  if(giroModoGuardado[id]) return giroModoGuardado[id];
+  let modo = 'livre';
   try{
     const g = GAMES.find(x=>x.id === id && x.custom);
-    if(!g || !g.codeB64) return false;
-    const c = b64ToUtf8(g.codeB64);
-    if(/data-koda-painel[\s\S]{0,4000}?\/\*CFG\{[^]*?"orientacao"\s*:\s*"empe"/.test(c)) return true;
-    if(/orientation\s*\.\s*lock\s*\(\s*['"]portrait/i.test(c)) return true;
+    if(g && g.codeB64){
+      const c = b64ToUtf8(g.codeB64);
+      const marcado = /data-koda-painel[\s\S]{0,4000}?\/\*CFG\{[^]*?"orientacao"\s*:\s*"(empe|deitada)"/.exec(c);
+      if(marcado) modo = marcado[1] === 'empe' ? 'empe' : 'deitado';
+      else if(typeof KA !== 'undefined' && KA && typeof KA.orientacao === 'function'){
+        const o = KA.orientacao(c);
+        if(o && o.modo === 'deitada') modo = 'deitado';
+        else if(o && o.modo === 'empe' && o.fixo) modo = 'empe';     // em pé de tamanho fixo (deitado ficaria pequenininho)
+      }
+    }
   }catch(e){}
+  return (giroModoGuardado[id] = modo);
+}
+/* o celular está do jeito errado pra esse jogo? */
+function giroPrecisaVirar(){
+  if(giroEstado.modo === 'deitado') return giroEmPe();
+  if(giroEstado.modo === 'empe') return !giroEmPe();
   return false;
 }
 function giroTela(){
@@ -19835,8 +19907,10 @@ function giroTela(){
   return el;
 }
 function giroPintarTextos(el){
-  el.querySelector('.giro-tit').textContent = t('giro_tit');
-  el.querySelector('.giro-sub').textContent = t('giro_sub');
+  const empe = giroEstado.modo === 'empe';
+  el.classList.toggle('para-empe', empe);
+  el.querySelector('.giro-tit').textContent = t(empe ? 'giro_tit_empe' : 'giro_tit');
+  el.querySelector('.giro-sub').textContent = t(empe ? 'giro_sub_empe' : 'giro_sub');
   el.querySelector('.giro-dica').textContent = t('giro_dica');
   el.querySelector('.giro-sair').textContent = t('giro_sair');
 }
@@ -19857,7 +19931,7 @@ function giroPausar(sim){
     if(fila.length) window.__kodaRelogioOriginal.requestAnimationFrame.call(window, ts=>fila.forEach(cb=>{ try{ cb(ts); }catch(e){} }));
   }
 }
-/* Android: tela cheia + trava deitada (precisa do toque que abriu o jogo). No iPhone não existe: fica só o aviso. */
+/* Android: tela cheia + trava do jeito do jogo (precisa do toque que abriu o jogo). No iPhone não existe: fica só o aviso. */
 async function giroTentarDeitar(){
   try{
     if(!window.screen || !screen.orientation || !screen.orientation.lock) return;
@@ -19866,13 +19940,13 @@ async function giroTentarDeitar(){
       await raiz.requestFullscreen({navigationUI: 'hide'});
       giroEstado.telaCheia = true;
     }
-    await screen.orientation.lock('landscape');
+    await screen.orientation.lock(giroEstado.modo === 'empe' ? 'portrait' : 'landscape');
     giroEstado.travou = true;
   }catch(e){}
 }
 function giroConferir(){
   if(!giroEstado.ativo) return;
-  const emPe = giroEmPe();
+  const emPe = giroPrecisaVirar();     // "do jeito errado" (o nome ficou do tempo em que todo jogo era deitado)
   if(giroEstado.esperando){
     if(!emPe){
       const abrir = giroEstado.esperando;
@@ -19892,11 +19966,11 @@ function giroConferir(){
 /* acabou o jogo (ou a pessoa desistiu antes de virar): tudo volta ao normal */
 function giroDesligar(){
   const estava = giroEstado.ativo;
-  giroEstado.ativo = false; giroEstado.jogo = null; giroEstado.esperando = null;
+  giroEstado.ativo = false; giroEstado.jogo = null; giroEstado.esperando = null; giroEstado.modo = 'livre';
   giroFilaRaf = [];                      // o jogo fechou: as animações que estavam esperando não rodam mais
   giroCongelado = false;
   giroMostrar(false);
-  try{ document.getElementById('overlay').classList.remove('jogo-deitado'); giroDesfazerEncaixe(); }catch(e){}
+  try{ celMenuFechar(); const ov = document.getElementById('overlay'); ov.classList.remove('jogo-deitado', 'cel-empe', 'cel-jogo'); giroDesfazerEncaixe(); }catch(e){}
   if(!estava) return;
   try{ if(giroEstado.travou && screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){}
   giroEstado.travou = false;
@@ -19912,15 +19986,24 @@ function giroVisivel(e){ return !!(e && e.nodeType === 1 && (e.offsetWidth || e.
 function giroDesfazerEncaixe(){
   const mb = document.getElementById('modalBody');
   if(!mb) return;
-  mb.querySelectorAll('.giro-palco').forEach(e=>{ e.classList.remove('giro-palco'); e.style.zoom = ''; e.style.width = e.dataset.giroW || ''; delete e.dataset.giroW; });
+  mb.querySelectorAll('.giro-palco, .cel-palco').forEach(e=>{ e.classList.remove('giro-palco', 'cel-palco'); e.style.zoom = ''; e.style.width = e.dataset.giroW || ''; delete e.dataset.giroW; });
   [mb].concat([...mb.querySelectorAll('.giro-colunas')]).forEach(e=>{ e.classList.remove('giro-colunas'); e.style.height = ''; });
   giroEncaixeAssinatura = '';
+}
+/* a largura de verdade do tabuleiro: o que tem dentro + a moldura dele (padding e borda) */
+function giroLarguraDoPalco(el, larguraDentro){
+  const cs = getComputedStyle(el), extra = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) + (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.borderRightWidth) || 0);
+  const fora = Math.min(el.offsetWidth || larguraDentro, larguraDentro + (larguraDentro < el.offsetWidth ? extra : 0));
+  return {fora: fora, css: cs.boxSizing === 'border-box' ? fora : Math.max(1, fora - extra)};
 }
 function giroEncaixar(forcar){
   const ov = document.getElementById('overlay'), mb = document.getElementById('modalBody'), card = document.getElementById('modalCard');
   if(!ov || !mb) return;
-  const ligar = !!(giroEstado.ativo && !giroEstado.esperando && !giroEmPe() && !ov.classList.contains('hidden'));
+  const aberto = !!(giroEstado.ativo && !giroEstado.esperando && !ov.classList.contains('hidden'));
+  const ligar = aberto && !giroEmPe();
   ov.classList.toggle('jogo-deitado', ligar);
+  ov.classList.toggle('cel-empe', aberto && !ligar);
+  if(aberto && !ligar && !card.classList.contains('iframe-fill') && !mb.querySelector(':scope > iframe')){ celEncaixarEmPe(forcar); return; }
   if(!ligar || card.classList.contains('iframe-fill') || mb.querySelector(':scope > iframe')){ giroDesfazerEncaixe(); return; }
   /* acha a caixa que tem as peças do jogo (às vezes elas estão dentro de uma caixa só) */
   let caixa = mb;
@@ -19948,16 +20031,67 @@ function giroEncaixar(forcar){
   let palco = null, maior = 0;
   (tabuleiros.length ? tabuleiros : candidatos.length ? candidatos : filhos).forEach(f=>{ const t2 = tamanho(f), a = t2.w * t2.h; if(a > maior){ maior = a; palco = f; } });
   if(!palco) return;
-  const medida = tamanho(palco), w = medida.w, h = medida.h;     // o tamanho dele antes de mexer (só o que tem dentro, sem a sobra dos lados)
+  const medida = tamanho(palco), lp = giroLarguraDoPalco(palco, medida.w), w = lp.fora, h = medida.h;     // o tamanho dele antes de mexer (o que tem dentro + a moldura, sem a sobra dos lados)
   caixa.classList.add('giro-colunas');
   palco.classList.add('giro-palco');
   palco.dataset.giroW = palco.style.width || '';
-  palco.style.width = w + 'px';                                     // sem isso, tabuleiro de largura "100%" sumia na coluna
+  palco.style.width = lp.css + 'px';                                     // sem isso, tabuleiro de largura "100%" sumia na coluna
   if(caixa !== mb) caixa.style.height = Math.max(120, mb.clientHeight - 8) + 'px';
   const alt = Math.max(120, mb.clientHeight - 14), larg = mb.clientWidth;
   const z = Math.max(0.45, Math.min(2, alt / h, (larg * 0.5) / w));
   if(Math.abs(z - 1) > 0.03) palco.style.zoom = z.toFixed(3);
   giroEncaixeAssinatura = assinatura;
+}
+/* celular EM PÉ (jogos do Koda GB): tudo cabe numa tela só, sem rolar, com o tabuleiro do maior tamanho que der
+   (a largura toda, se sobrar altura; menor, se faltar) */
+let celEncaixeAssinatura = '';
+function celEncaixarEmPe(forcar){
+  const mb = document.getElementById('modalBody');
+  if(!mb) return;
+  let caixa = mb;
+  for(let i = 0; i < 3; i++){
+    const vis = [...caixa.children].filter(giroVisivel);
+    if(vis.length >= 2) break;
+    if(vis.length === 1 && !/^(CANVAS|IFRAME|SVG|IMG)$/i.test(vis[0].tagName)) caixa = vis[0]; else break;
+  }
+  const filhos = [...caixa.children].filter(giroVisivel);
+  const assinatura = 'empe:' + filhos.length + ':' + mb.clientWidth + 'x' + mb.clientHeight + ':' + filhos.map(f=>f.className + '#' + (f.id || '')).join('|');
+  if(!forcar && assinatura === celEncaixeAssinatura) return;
+  giroDesfazerEncaixe();
+  celEncaixeAssinatura = assinatura;
+  if(filhos.length < 2) return;
+  const naoPalco = /(^|\s)(pad|pad-lr|g-row|rec-bar|g-msg|g-btn|diff-tag|setup)(\s|$)/;
+  const candidatos = filhos.filter(f=>!naoPalco.test(String(f.className || '')) || /board|wrap|canvas/i.test(String(f.className || '')));
+  const tabuleiros = candidatos.filter(f=>/board|wrap|canvas|tabuleiro/i.test(String(f.className || '') + ' ' + (f.id || '') + ' ' + f.tagName));
+  if(!tabuleiros.length) return;                                    // tela de escolher (dificuldade, modo): fica como está
+  const tamanho = el=>{
+    let w = el.offsetWidth, h = el.offsetHeight;
+    const k = [...el.children].filter(giroVisivel);
+    if(k.length){ let x0 = Infinity, x1 = -Infinity; k.forEach(c=>{ const r = c.getBoundingClientRect(); x0 = Math.min(x0, r.left); x1 = Math.max(x1, r.right); }); if(x1 > x0) w = Math.min(w, Math.ceil(x1 - x0)); }
+    return {w: w || 1, h: h || 1};
+  };
+  let palco = null, maior = 0;
+  tabuleiros.forEach(f=>{ const t2 = tamanho(f), a = t2.w * t2.h; if(a > maior){ maior = a; palco = f; } });
+  if(!palco) return;
+  const medida = tamanho(palco), lp = giroLarguraDoPalco(palco, medida.w), w = lp.fora, h = medida.h;
+  /* quanto sobra (ou falta) de altura: a altura de verdade do que está na tela, de cima a baixo */
+  const cs = getComputedStyle(mb), padV = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+  let topo = Infinity, fundo = -Infinity;
+  [...mb.children].filter(giroVisivel).forEach(k=>{ const r = k.getBoundingClientRect(), ks = getComputedStyle(k); topo = Math.min(topo, r.top - (parseFloat(ks.marginTop) || 0)); fundo = Math.max(fundo, r.bottom + (parseFloat(ks.marginBottom) || 0)); });
+  const ocupado = fundo > topo ? fundo - topo : mb.scrollHeight;
+  const sobra = (mb.clientHeight - padV) - ocupado;                 // negativo: está passando da tela
+  /* a largura que dá: a da tela, ou a de dentro da caixa (moldura) em que o tabuleiro está */
+  let larguraUtil = mb.clientWidth - 16;
+  if(caixa !== mb){ const cc = getComputedStyle(caixa); larguraUtil = Math.min(larguraUtil, caixa.clientWidth - (parseFloat(cc.paddingLeft) || 0) - (parseFloat(cc.paddingRight) || 0)); }
+  const zAlt = (h + sobra - 6) / h, zLarg = larguraUtil / w;
+  const z = Math.max(0.5, Math.min(1.6, zAlt, zLarg));
+  palco.classList.add('cel-palco');
+  palco.dataset.giroW = palco.style.width || '';
+  if(z < 0.97 || z > 1.06){                                         // mudança pequena não vale (tem tabuleiro que se ajusta sozinho)
+    palco.style.width = lp.css + 'px';
+    palco.style.zoom = z.toFixed(3);
+  }
+  celEncaixeAssinatura = 'empe:' + filhos.length + ':' + mb.clientWidth + 'x' + mb.clientHeight + ':' + filhos.map(f=>f.className + '#' + (f.id || '')).join('|');
 }
 function giroEncaixeDepois(ms, forcar){
   if(giroEncaixeTimer && !forcar) return;            // já tem uma conferida marcada (jogo que mexe na tela toda hora não adia pra sempre)
@@ -19971,11 +20105,12 @@ function giroVigiarEncaixe(){
 }
 /* chamado pelo openGame: devolve true se o jogo tem que esperar a pessoa virar o celular */
 function giroAntesDoJogo(id, abrir){
-  if(!giroEhCelular() || giroJogoEmPe(id)){ giroDesligar(); return false; }
-  giroEstado.ativo = true; giroEstado.jogo = id;
+  if(!giroEhCelular()){ giroDesligar(); return false; }
+  giroEstado.ativo = true; giroEstado.jogo = id; giroEstado.modo = giroModoDoJogo(id);
+  try{ document.getElementById('overlay').classList.add('cel-jogo'); }catch(e){}
   giroVigiarEncaixe();
-  giroTentarDeitar();
-  if(!giroEmPe()){ giroEncaixeDepois(150, true); return false; }
+  if(giroEstado.modo !== 'livre') giroTentarDeitar();
+  if(!giroPrecisaVirar()){ giroEncaixeDepois(150, true); return false; }
   giroEstado.esperando = abrir;
   giroMostrar(true);
   return true;
@@ -21348,9 +21483,9 @@ function kodaCompatDentroDoJogo(C){
   function arrumar(){
     var vw = larguraReal(), vh = alturaReal(), deitado = vw > vh * 1.15;
     var lado = Math.min(vw, vh);
-    var d = Math.round(Math.max(120, Math.min(190, lado * .36))), bt = Math.round(Math.max(46, Math.min(66, lado * .13)));
+    var d = Math.round(Math.max(106, Math.min(180, lado * .33))), bt = Math.round(Math.max(42, Math.min(62, lado * .12)));
     K0.style.setProperty('--d', d + 'px'); K0.style.setProperty('--b', bt + 'px');
-    var faixa = mostrar && !deitado ? d + 28 : 0;
+    var faixa = mostrar && !deitado ? d + 22 : 0;
     K0.style.setProperty('--faixa', faixa + 'px');
     K0.classList.toggle('mostra', mostrar);
     K0.classList.toggle('deitado', deitado);
@@ -21979,10 +22114,57 @@ function soJogoLigar(ligar){
   document.body.appendChild(caixa);
   try{ toast(t('sj_dica')); }catch(e){}
 }
+/* celular: a barra do jogo fica com "?", "⋯" e X; o resto (tela toda, ranking, comentários, curtir, salvar, compartilhar,
+   denunciar) abre no "⋯", igual ao menu do Roblox */
+function celMenuFechar(){ const m = document.getElementById('gcMenu'); if(m) m.remove(); }
+function celMenuAbrir(botao){
+  if(document.getElementById('gcMenu')){ celMenuFechar(); return; }
+  const itens = [
+    ['gcCheio', t('sj_btn')], ['gcRank', t('rank_btn_title')], ['gcComment', t('menu_comments')],
+    ['gcLike', null], ['gcSave', null], ['gcShare', t('menu_share')], ['gcReport', t('report_btn_title')]
+  ];
+  const m = document.createElement('div');
+  m.id = 'gcMenu'; m.className = 'gc-menu'; m.setAttribute('role', 'menu');
+  itens.forEach(([id, rotulo])=>{
+    const b0 = document.getElementById(id);
+    if(!b0 || b0.style.display === 'none') return;
+    if(id === 'gcLike') rotulo = b0.classList.contains('liked') ? t('menu_unlike') : t('menu_like');
+    if(id === 'gcSave') rotulo = b0.classList.contains('saved') ? t('menu_unsave') : t('menu_save');
+    const it = document.createElement('button');
+    it.type = 'button'; it.className = 'gc-menu-it' + (b0.classList.contains('liked') ? ' liked' : '') + (b0.classList.contains('saved') ? ' saved' : '');
+    it.setAttribute('role', 'menuitem');
+    const ic = b0.querySelector('svg');
+    it.innerHTML = (ic ? ic.outerHTML : '') + '<span></span>';
+    it.querySelector('span').textContent = rotulo;
+    it.addEventListener('click', e=>{ e.stopPropagation(); celMenuFechar(); b0.click(); });
+    m.appendChild(it);
+  });
+  document.body.appendChild(m);
+  const r = botao.getBoundingClientRect();
+  m.style.top = Math.round(r.bottom + 6) + 'px';
+  m.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + 'px';
+  /* deitado: se não couber pra baixo, a lista rola */
+  m.style.maxHeight = Math.max(160, window.innerHeight - r.bottom - 14) + 'px';
+  setTimeout(()=>{
+    const fora = ev=>{ if(!m.isConnected){ document.removeEventListener('pointerdown', fora, true); return; } if(!m.contains(ev.target) && ev.target !== botao && !botao.contains(ev.target)){ celMenuFechar(); document.removeEventListener('pointerdown', fora, true); } };
+    document.addEventListener('pointerdown', fora, true);
+  }, 0);
+}
 function setupGameControlsBar(g, displayName){
   const infoBar = document.getElementById('gameInfoBar');
   infoBar.classList.remove('hidden');
   soJogoLigar(false);
+  celMenuFechar();
+  let maisBtn = document.getElementById('gcMais');
+  if(!maisBtn){
+    maisBtn = document.createElement('button');
+    maisBtn.type = 'button'; maisBtn.id = 'gcMais'; maisBtn.className = 'game-controls-btn gc-mais';
+    maisBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg>';
+    maisBtn.addEventListener('click', e=>{ e.stopPropagation(); try{ playSound('click'); }catch(x){} celMenuAbrir(maisBtn); });
+    const barra = document.getElementById('gameControlsBar');
+    if(barra) barra.appendChild(maisBtn);
+  }
+  maisBtn.title = t('cel_mais'); maisBtn.setAttribute('aria-label', t('cel_mais'));
   const cheioBtn = document.getElementById('gcCheio');
   if(cheioBtn){ cheioBtn.innerHTML = ICONS.expand; cheioBtn.title = t('sj_btn'); cheioBtn.setAttribute('aria-label', t('sj_btn')); cheioBtn.onclick = ()=>{ try{ playSound('click'); }catch(e){} soJogoLigar(true); }; }
   const infoLeft = document.getElementById('gameInfoLeft');
@@ -30820,26 +31002,54 @@ Object.assign(TX, {
 });
 
 /* ---------------- tela deitada ou em pé? ---------------- */
-function orientacaoDoJogo(codigo){
+function orientacaoDoJogo(codigo){ return orientacaoComDetalhe(codigo).modo; }
+/* tela deitada, em pé ou tanto faz? {modo: 'deitada' | 'empe' | null, fixo: o jogo tem um tamanho fixo (não se ajusta à tela), motivo}
+   1) o próprio jogo trava a tela; 2) o tamanho fixo do jogo (800x450 é deitado, 400x700 é em pé);
+   3) jogo que se ajusta à tela: pra onde as coisas andam (nascem na direita e somem na esquerda = deitado;
+      nascem em cima e somem embaixo, ou o herói sobe = em pé) */
+function orientacaoComDetalhe(codigo){
   var c = String(codigo || '').replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, ''), m, w = null, h = null;
-  if(/orientation\s*\.\s*lock\s*\(\s*['"](landscape)/i.test(c)) return 'deitada';
-  if(/orientation\s*\.\s*lock\s*\(\s*['"](portrait)/i.test(c)) return 'empe';
+  if(/orientation\s*\.\s*lock\s*\(\s*['"](landscape)/i.test(c)) return {modo: 'deitada', fixo: true, motivo: 'trava'};
+  if(/orientation\s*\.\s*lock\s*\(\s*['"](portrait)/i.test(c)) return {modo: 'empe', fixo: true, motivo: 'trava'};
+  /* o jogo se ajusta à tela? (canvas.width = innerWidth, sem ser o .style) */
+  var adapta = false, rx = /(\w+)\s*\.\s*width\s*=\s*(?:window\s*\.\s*)?(?:innerWidth|visualViewport\s*\.\s*width|document\s*\.\s*(?:documentElement|body)\s*\.\s*clientWidth|[\w.]+\s*\.\s*(?:clientWidth|offsetWidth)|[\w.]+\s*\.\s*getBoundingClientRect\s*\(\s*\)\s*\.\s*width)\b/g;
+  while((m = rx.exec(c))){ if(m[1] !== 'style'){ adapta = true; break; } }
   if((m = /<canvas\b[^>]*?\bwidth\s*=\s*["']?(\d{3,4})["']?[^>]*?\bheight\s*=\s*["']?(\d{3,4})/i.exec(c))){ w = +m[1]; h = +m[2]; }
   else if((m = /<canvas\b[^>]*?\bheight\s*=\s*["']?(\d{3,4})["']?[^>]*?\bwidth\s*=\s*["']?(\d{3,4})/i.exec(c))){ w = +m[2]; h = +m[1]; }
   if(w == null){
-    var mw = /\.\s*width\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c), mh = /\.\s*height\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c);
-    if(mw && mh){ w = +mw[1]; h = +mh[1]; }
+    var mw = /(\w+)\s*\.\s*width\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c), mh = /(\w+)\s*\.\s*height\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c);
+    if(mw && mh && mw[1] !== 'style' && mh[1] !== 'style'){ w = +mw[2]; h = +mh[2]; }
   }
   if(w == null){
-    var cw = /\b(?:const|let|var)\s+(?:W|WIDTH|LARGURA|GAME_WIDTH|GAME_W|LARG|ANCHO|GW|LW)\s*=\s*(\d{3,4})\b/.exec(c), ch = /\b(?:const|let|var)\s+(?:H|HEIGHT|ALTURA|GAME_HEIGHT|GAME_H|ALT|ALTO|GH|LH)\s*=\s*(\d{3,4})\b/.exec(c);
+    var cw = /\b(?:const|let|var)\s+(?:W|WIDTH|LARGURA|GAME_WIDTH|GAME_W|LARG|ANCHO|GW|LW|VW|VIEW_W|BASE_W|LOGICAL_W)\s*=\s*(\d{3,4})\b/.exec(c), ch = /\b(?:const|let|var)\s+(?:H|HEIGHT|ALTURA|GAME_HEIGHT|GAME_H|ALT|ALTO|GH|LH|VH|VIEW_H|BASE_H|LOGICAL_H)\s*=\s*(\d{3,4})\b/.exec(c);
     if(cw && ch){ w = +cw[1]; h = +ch[1]; }
   }
-  /* jogo que se ajusta à tela inteira, sem tamanho fixo: funciona dos dois jeitos */
-  if(w == null || h == null || !w || !h) return null;
-  var r = w / h;
-  if(r >= 1.3) return 'deitada';
-  if(r <= 0.77) return 'empe';
-  return null;
+  if(w && h && (!adapta || /\b(?:const|let|var)\s+(?:W|WIDTH|GAME_WIDTH|GAME_W|VIEW_W|BASE_W|LOGICAL_W)\s*=\s*\d{3,4}\b/.test(c))){
+    var r = w / h;
+    if(r >= 1.3) return {modo: 'deitada', fixo: true, motivo: 'tamanho', w: w, h: h};
+    if(r <= 0.77) return {modo: 'empe', fixo: true, motivo: 'tamanho', w: w, h: h};
+    return {modo: null, fixo: true, motivo: 'tamanho', w: w, h: h};
+  }
+  /* se ajusta à tela: pra onde as coisas andam (o jogador não conta: ele anda pra todo lado) */
+  var semCom = c.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '');
+  function conta(re){ var n = 0, mm; re.lastIndex = 0; while((mm = re.exec(semCom))){ if(!JOGADOR.test(mm[1] || '')) n++; } return n; }
+  var JOGADOR = /^(jogador|player|heroi|hero|personagem|this|self|me|eu|boneco|avatar|p1|p2|bird|passaro|ship|nave|car|carro|eu)$/i;
+  var LARG = '(?:canvas\\.width|cv\\.width|c\\.width|ctx\\.canvas\\.width|W|WIDTH|width|innerWidth|window\\.innerWidth|largura|LARGURA|L|LARG|w|cw|tela\\.width|screenW|sw|vw|GAME_W|GAME_WIDTH)';
+  var ALT = '(?:canvas\\.height|cv\\.height|c\\.height|ctx\\.canvas\\.height|H|HEIGHT|height|innerHeight|window\\.innerHeight|altura|ALTURA|A|ALT|h|ch|tela\\.height|screenH|sh|vh|GAME_H|GAME_HEIGHT)';
+  var lado = conta(new RegExp('()\\bx\\s*:\\s*' + LARG + '\\b(?!\\s*[/*])', 'g'))                     /* nasce na direita: {x: L + 20} */
+    + conta(new RegExp('(\\w+)\\.x\\s*=\\s*' + LARG + '\\b(?!\\s*[/*-])', 'g'))
+    + conta(/(\w+)\.x\s*-=\s*(?!\d+\s*[;\n])[\w.]*(?:velo|vel|speed|spd|rapidez|scroll|mundo|world|game)/gi)   /* o mundo anda pra esquerda */
+    + conta(/(\w+)\.x\s*>\s*-\s*[\w.]+/g)                                                              /* fica enquanto não saiu pela esquerda */
+    + conta(/(\w+)\.x\s*\+\s*[\w.]+\s*<\s*0\b/g)
+    + 2 * conta(/()\b(?:scrollX|cameraX|camX|camx|worldX|bgX|fundoX|groundX|chaoX|offsetX)\s*(?:-=|\+=|=)/g);
+  var vert = conta(/()\by\s*:\s*-\s*[\w.]+/g)                                                         /* nasce em cima: {y: -30} */
+    + conta(new RegExp('(\\w+)\\.y\\s*<\\s*' + ALT + '\\b', 'g'))                                      /* fica enquanto não saiu por baixo */
+    + conta(new RegExp('(\\w+)\\.y\\s*>\\s*' + ALT + '\\b\\s*(?:\\+\\s*[\\w.]+\\s*)?\\)\\s*(?:\\{?\\s*[\\w.]+\\.splice|return\\s+false)', 'g'))
+    + conta(/(\w+)\.y\s*-=\s*\d/g)                                                                     /* tiros que sobem */
+    + 2 * conta(/()\b(?:scrollY|cameraY|camY|camy|worldY|alturaSubida|subida)\s*(?:-=|\+=|=)/g);
+  if(lado >= 2 && lado > vert * 1.5) return {modo: 'deitada', fixo: false, motivo: 'movimento', lado: lado, vert: vert};
+  if(vert >= 2 && vert > lado * 1.5) return {modo: 'empe', fixo: false, motivo: 'movimento', lado: lado, vert: vert};
+  return {modo: null, fixo: false, motivo: 'livre', lado: lado, vert: vert};
 }
 function entenderGirar(P){
   var n = P.n;
@@ -34342,6 +34552,7 @@ return {
   robo: function(id){ return '(' + kodaRoboNoJogo.toString() + ')(' + JSON.stringify(String(id)) + ');'; },
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
   /* (pra testes) */
+  orientacao: function(c){ try{ return orientacaoComDetalhe(c); }catch(e){ return {modo: null, fixo: false, motivo: "erro"}; } },
   _: {moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
       lojaCriar: lojaCriar, lojaRemover: lojaRemover, acharAtributos: acharAtributos, compila: compila, linhaDoErro: linhaDoErro,
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
@@ -49094,6 +49305,9 @@ var PZ_TXT = {
  ia_terminou:'O Agente Koda GB terminou! Toque pra ver.|Koda GB Agent is done! Tap to see.|¡El Agente Koda GB terminó! Toca para ver.|L’Agente Koda GB ha finito! Tocca per vedere.|L’Agent Koda GB a fini ! Touche pour voir.|Der Koda GB Agent ist fertig! Tippe zum Ansehen.|De Koda GB agent is klaar! Tik om te kijken.|Koda GBエージェントができたよ！タップして見てね。|Koda GB 助手完成了！点一下查看。|Koda GB 에이전트가 끝냈어요! 눌러서 봐요.',
  ia_terminou_nome:'O Agente Koda GB terminou “{nome}”! Toque pra ver.|Koda GB Agent finished “{nome}”! Tap to see.|¡El Agente Koda GB terminó “{nome}”! Toca para ver.|L’Agente Koda GB ha finito “{nome}”! Tocca per vedere.|L’Agent Koda GB a fini « {nome} » ! Touche pour voir.|Der Koda GB Agent ist mit „{nome}“ fertig! Tippe zum Ansehen.|De Koda GB agent is klaar met “{nome}”! Tik om te kijken.|Koda GBエージェントが「{nome}」をしあげたよ！タップして見てね。|Koda GB 助手完成了“{nome}”！点一下查看。|Koda GB 에이전트가 “{nome}”을(를) 끝냈어요! 눌러서 봐요.',
  ia_pronto_varios:'Pronto! Toque em Testar pra ver o que mudou.|Done! Tap Test to see what changed.|¡Listo! Toca Probar para ver qué cambió.|Fatto! Tocca Prova per vedere cosa è cambiato.|C’est fait ! Touche Tester pour voir ce qui a changé.|Fertig! Tippe auf Testen, um die Änderungen zu sehen.|Klaar! Tik op Testen om te zien wat er veranderd is.|できた！「テスト」で変わったところを見てみてね。|好了！点“测试”看看有什么变化。|완료! 테스트를 눌러 뭐가 바뀌었는지 봐요.',
+ giro_tit_empe:'Fique com o celular em pé|Hold your phone upright|Pon el celular de pie|Tieni il telefono in verticale|Tiens ton téléphone droit|Halte dein Handy hochkant|Houd je telefoon rechtop|スマホをたてにしてね|把手机竖起来|휴대폰을 세워 주세요',
+ giro_sub_empe:'Esse jogo é jogado com a tela em pé.|This game is played with the screen upright.|Este juego se juega con la pantalla de pie.|Questo gioco si gioca con lo schermo in verticale.|Ce jeu se joue avec l’écran à la verticale.|Dieses Spiel spielt man mit dem Bildschirm hochkant.|Deze game speel je met het scherm rechtop.|このゲームは画面をたてにして遊びます。|这个游戏要竖屏玩。|이 게임은 화면을 세로로 해서 해요.',
+ cel_mais:'Mais opções|More options|Más opciones|Altre opzioni|Plus d’options|Mehr Optionen|Meer opties|ほかのメニュー|更多选项|더 보기',
  sj_btn:'Só o jogo (tela toda)|Game only (full screen)|Solo el juego (pantalla completa)|Solo il gioco (schermo intero)|Jeu seul (plein écran)|Nur das Spiel (Vollbild)|Alleen de game (volledig scherm)|ゲームだけ（全画面）|只显示游戏（全屏）|게임만 보기(전체 화면)',
  sj_dica:'Toque em ⤡ pra voltar à barra, ou no X pra sair do jogo.|Tap ⤡ to go back to the bar, or the X to leave the game.|Toca ⤡ para volver a la barra, o la X para salir del juego.|Tocca ⤡ per tornare alla barra, o la X per uscire dal gioco.|Touche ⤡ pour revenir à la barre, ou la croix pour quitter le jeu.|Tippe auf ⤡, um zur Leiste zurückzukehren, oder auf das X, um das Spiel zu verlassen.|Tik op ⤡ om terug te gaan naar de balk, of op het kruisje om de game te verlaten.|⤡で下のバーにもどる、×でゲームを出るよ。|点 ⤡ 回到按钮栏，点 X 退出游戏。|⤡을 누르면 버튼 막대로 돌아가고, X를 누르면 게임에서 나가요.',
  sj_voltar:'Voltar pra barra (continuar no jogo)|Back to the bar (stay in the game)|Volver a la barra (seguir en el juego)|Torna alla barra (resta nel gioco)|Revenir à la barre (rester dans le jeu)|Zurück zur Leiste (im Spiel bleiben)|Terug naar de balk (in de game blijven)|バーにもどる（ゲームはそのまま）|回到按钮栏（继续玩游戏）|버튼 막대로 돌아가기 (게임은 그대로)',
