@@ -4,16 +4,20 @@
      POST /api/sync               a conferência da carteira (movimentos, tempo jogado, pontuações, convite)
      GET  /api/placar?jogo=ID     ranking de um jogo
      GET  /api/temporada          ranking da temporada (o mês)
+     POST /api/agente/erros       o que o Agente Koda GB errou (sem e-mail, sem dado pessoal; ver aprendiz.js)
+     GET  /api/agente/regras      o que o agente aprendeu com todo mundo (aprovado)
      /api/admin/...               só o dono do site (ver conta, ajustar saldo, banir, avisos)
    Tudo (menos /api/saude) precisa do login do Firebase. Ver servidor/LEIA-ME.md. */
 import { json, lerJson, ErroKoda, limpaEmail, emailOk, jogoOk, inteiro } from './util.js';
 import { quemE, ehAdmin } from './auth.js';
 import { lerRanking } from './firestore.js';
+import { codigoDaConta } from './aprendiz.js';
 export { Conta } from './conta.js';
 export { Placar, Temporada } from './placar.js';
 export { Indice, Vigia } from './indice.js';
 
-const VERSAO = '2026-11-07.1';
+const VERSAO = '2026-11-09.1';
+const agente = env => env.VIGIA.get(env.VIGIA.idFromName('agente'));
 
 /* limite simples por IP (por máquina da Cloudflare): pedidos por minuto */
 const porIp = new Map();
@@ -92,6 +96,12 @@ async function rota(req, env, url) {
     }
     return json(Object.assign({ ok: true }, r));
   }
+  if (p === '/api/agente/erros' && metodo === 'POST') {
+    const d = await lerJson(req, 24000);
+    const conta = await codigoDaConta(quem.email, env.SAL_AGENTE);
+    return json(Object.assign({ ok: true }, await agente(env).agErros(conta, Array.isArray(d.eventos) ? d.eventos.slice(0, 20) : [])));
+  }
+  if (p === '/api/agente/regras' && metodo === 'GET') return json({ ok: true, regras: await agente(env).agRegras() });
   if (p.startsWith('/api/admin/')) return rotaAdmin(req, env, url, quem);
   throw new ErroKoda(404, 'rota');
 }
@@ -105,8 +115,10 @@ async function rotaAdmin(req, env, url, quem) {
   if (p === 'alertas' && req.method === 'GET')
     return json({ ok: true, alertas: await env.VIGIA.get(env.VIGIA.idFromName('geral')).lista(inteiro(url.searchParams.get('n'), 1, 500) || 150) });
   if (p === 'conta' && req.method === 'GET') return json(await conta(pegarEmail(url.searchParams.get('email'))).admin('ver', {}));
+  if (p === 'agente' && req.method === 'GET') return json(Object.assign({ ok: true }, await agente(env).agLista(inteiro(url.searchParams.get('n'), 1, 300) || 100)));
   if (req.method !== 'POST') throw new ErroKoda(405, 'metodo');
   const d = await lerJson(req, 8000);
+  if (p === 'agente') return json(await agente(env).agAdmin(String(d.acao || ''), d));
   if (p === 'ajuste') return json(await conta(pegarEmail(d.email)).admin('ajuste', d));
   if (p === 'ban') return json(await conta(pegarEmail(d.email)).admin('ban', d));
   if (p === 'desban') return json(await conta(pegarEmail(d.email)).admin('desban', d));

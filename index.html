@@ -23707,7 +23707,12 @@ function econPainelAdmin(raiz){
       <input id="srvEmail" type="email" placeholder="e-mail da conta" style="flex:1;min-width:180px;padding:8px;border-radius:10px;border:1px solid #0002;">
       <button class="g-btn" id="srvContaBtn">Ver conta</button>
     </div>
-    <div id="srvConta"></div>`;
+    <div id="srvConta"></div>
+    <h3 style="margin-top:18px">Agente Koda GB: o que ele errou</h3>
+    <p class="mod-item-sub">Frases que o agente não entendeu, entendeu errado ou não conseguiu fazer, de todo mundo (sem nome nem e-mail).
+      Aprove o pedido certo e ele passa a valer para todos. Quando 3 pessoas ensinam a mesma coisa simples, vale sozinho só onde o agente não entendia, e sai se 3 pessoas reclamarem.</p>
+    <div class="mod-antigos"><button class="g-btn" id="agErrosBtn">Ver o que o agente errou</button> <span id="agResumo" class="mod-item-sub"></span></div>
+    <div id="agErros"></div>`;
   econAdmin('/api/saude').then(j=>{ raiz.querySelector('#srvSaude').textContent = 'no ar · versão ' + (j.versao || '?'); })
     .catch(()=>{ raiz.querySelector('#srvSaude').textContent = 'o servidor não respondeu'; });
   raiz.querySelector('#srvAvisosBtn').addEventListener('click', async ()=>{
@@ -23771,6 +23776,58 @@ function econPainelAdmin(raiz){
   }
   raiz.querySelector('#srvContaBtn').addEventListener('click', verConta);
   raiz.querySelector('#srvEmail').addEventListener('keydown', e=>{ if(e.key === 'Enter') verConta(); });
+  /* o que o Agente Koda GB errou (de todo mundo) e as regras que valem pra todos */
+  const PEDIDOS_PRONTOS = [
+    ['Verificar o código', {int: 'verificar'}], ['Avaliar o jogo', {int: 'avaliar'}], ['Colocar uma loja', {int: 'loja_criar'}],
+    ['Trocar as moedas do jogo pelas moedas do Koda GB', {int: 'moeda_converter', para: 'c', tudo: true}],
+    ['Trocar as moedas do jogo pelos diamantes do Koda GB', {int: 'moeda_converter', para: 'd', tudo: true}],
+    ['Mostrar as moedas do jogo', {int: 'moeda_ver'}], ['Placar online', {int: 'online_placar'}], ['Jogar com a skin', {int: 'skin'}],
+    ['Salvar o progresso', {int: 'salvar'}], ['Dar ideias', {int: 'ideias'}], ['Colocar música', {int: 'mod_musica'}]];
+  const rotuloPedido = it=>{
+    const pronto = PEDIDOS_PRONTOS.find(p=>JSON.stringify(p[1]) === JSON.stringify(it));
+    if(pronto) return pronto[0];
+    if(it.int === 'moeda_converter' && it.mapa) return 'Trocar cada moeda: ' + Object.keys(it.mapa).map(k=>k + ' → ' + (it.mapa[k] === 'd' ? 'diamantes' : 'moedas')).join(', ');
+    const resto = Object.assign({}, it); delete resto.int;
+    return it.int + (Object.keys(resto).length ? ' ' + JSON.stringify(resto).slice(0, 80) : '');
+  };
+  const TIPO_TXT = {nao_entendi: 'não entendeu', ensinou: 'ensinaram', errou: 'errou', quebrou: 'ia quebrar o jogo', moeda_sem_moeda: 'não achou a moeda', moeda_sem_compras: 'não achou compras', moeda_nao_deu: 'não conseguiu trocar', moeda_sobrou: 'sobraram compras', moeda_quebrou: 'troca ia quebrar o jogo'};
+  async function agVer(){
+    const box = raiz.querySelector('#agErros');
+    box.innerHTML = `<p class="g-msg">${t('loading')}</p>`;
+    try{
+      const j = await econAdmin('/api/admin/agente?n=150');
+      raiz.querySelector('#agResumo').textContent = j.total + ' frases · ' + j.regras + ' regras valendo pra todos';
+      if(!j.frases.length){ box.innerHTML = '<p class="mod-item-sub">Nada ainda.</p>'; return; }
+      box.innerHTML = j.frases.map((f, i)=>{
+        const tipos = Object.keys(f.tipos || {}).filter(k=>k.indexOf(':') < 0).map(k=>(TIPO_TXT[k] || k) + ' ' + f.tipos[k]).join(' · ');
+        const sug = (f.sugestoes || []).map((s2, n)=>`<div class="mod-item-sub">Ensinaram: <b>${esc(rotuloPedido(s2.it))}</b> (${s2.votos} ${s2.votos === 1 ? 'pessoa' : 'pessoas'})
+            <button class="g-btn ag-acao" data-i="${i}" data-s="${n}" data-acao="aprovar" style="padding:2px 8px;">Aprovar</button>
+            <button class="g-btn ag-acao" data-i="${i}" data-s="${n}" data-acao="aprovar" data-sempre="1" style="padding:2px 8px;">Aprovar sempre</button>
+            <button class="g-btn ag-acao" data-i="${i}" data-s="${n}" data-acao="recusar" style="padding:2px 8px;">Recusar</button></div>`).join('');
+        const regra = f.regra ? `<div class="mod-item-sub"><span class="mod-chip">${f.regra.por === 'dono' ? 'aprovada por você' : 'automática'}${f.regra.sobre ? ' · sempre' : ''}</span> ${esc(rotuloPedido(f.regra.it))}
+            <button class="g-btn ag-acao" data-i="${i}" data-acao="tirar" style="padding:2px 8px;">Tirar</button></div>` : '';
+        return `<div class="mod-item"><b>"${esc(f.frase)}"</b> <span class="mod-item-sub">${f.vezes}x · ${f.contas} ${f.contas === 1 ? 'pessoa' : 'pessoas'} · ${esc(data(f.ult))}${f.queixas ? ' · ' + f.queixas + ' reclamações' : ''}</span>
+          <div class="mod-item-sub">${esc(tipos)}</div>${regra}${sug}
+          <div class="mod-antigos" style="gap:6px;flex-wrap:wrap;">
+            <select class="ag-pronto" data-i="${i}" style="padding:4px;border-radius:8px;border:1px solid #0002;max-width:260px;"><option value="">Ensinar o pedido certo...</option>${PEDIDOS_PRONTOS.map((p, n)=>`<option value="${n}">${esc(p[0])}</option>`).join('')}</select>
+            <button class="g-btn ag-acao" data-i="${i}" data-acao="apagar" style="padding:2px 8px;">Apagar</button>
+          </div></div>`;
+      }).join('');
+      const fazer = async (corpo)=>{ try{ await econAdmin('/api/admin/agente', corpo); toast('Feito'); agVer(); }catch(e){ toast(e.message); } };
+      box.querySelectorAll('.ag-acao').forEach(b=>b.addEventListener('click', ()=>{
+        const f = j.frases[Number(b.dataset.i)], s2 = b.dataset.s != null ? f.sugestoes[Number(b.dataset.s)] : null;
+        if(b.dataset.acao === 'apagar' && !confirm('Apagar essa frase?')) return;
+        fazer({acao: b.dataset.acao, k: f.k, frase: f.frase, it: s2 ? s2.it : undefined, sobre: !!b.dataset.sempre});
+      }));
+      box.querySelectorAll('.ag-pronto').forEach(sel=>sel.addEventListener('change', ()=>{
+        if(sel.value === '') return;
+        const f = j.frases[Number(sel.dataset.i)], p = PEDIDOS_PRONTOS[Number(sel.value)];
+        if(!confirm('"' + f.frase + '" vai fazer: ' + p[0] + '. Vale para todo mundo. Confirmar?')) { sel.value = ''; return; }
+        fazer({acao: 'aprovar', k: f.k, frase: f.frase, it: p[1], sobre: false});
+      }));
+    }catch(e){ box.innerHTML = `<p class="g-msg">${esc(e.message)}</p>`; }
+  }
+  raiz.querySelector('#agErrosBtn').addEventListener('click', agVer);
 }
 
 /* o link "O que não pode ter no jogo" dos formulários de publicar */
@@ -28720,6 +28777,7 @@ function responderUm(est, texto, bruto){
     if(it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' || it.int === 'negou' || it.int === 'briefing_resp') est.pendente = null;
     r = (H[it.int] || H.nada)(it, ctx, est);
     r.intencao = it.int;
+    try{ r = autoconferir(est, ctx, it, r, texto); }catch(e){}
     try{ aprenderDepois(est, texto, it, r); }catch(e){}
   }catch(e){
     r = diz(novaResp(), T('ops'));
@@ -32311,7 +32369,7 @@ function inicioDeFrase(T, s){
 /* ---- achar as moedas ---- */
 function moedasDoJogo(codigo, opts){
   opts = opts || {};
-  var doc = opts.doc || lerDocumento(codigo), porNome = {};
+  var doc = opts.doc || lerDocumento(prepararParaMoedas(codigo)), porNome = {};
   doc.js.forEach(function(js){
     if(js.sc.koda) return;
     var T = js.T;
@@ -32355,7 +32413,7 @@ function moedasDoJogo(codigo, opts){
           }
         }
       }
-      else if(op === ':' && antes && (antes.v === '{' || antes.v === ',')){ if(T[j + 2] && T[j + 2].t === 'num') m.numero = true; else if(T[j + 2] && (T[j + 2].v === '[' || T[j + 2].v === '{')) m.lista = true; }
+      else if(op === ':' && antes && (antes.v === '{' || antes.v === ',')){ if(T[j + 2] && T[j + 2].t === 'num') m.numero = true; }   /* { ouro: [...] } é uma chave, não a moeda */
       if(/^(>=|>|<|<=)$/.test(op) || (antes && /^(>=|>|<|<=)$/.test(antes.v))) m.compara++;
     }
   });
@@ -32756,9 +32814,22 @@ function acharGuarda(js, cp, m){
     else if(!antes || antes.v === '(' || antes.v === ',' || antes.v === '=' || antes.v === ':') break;
     b = abreDoBloco(T, b);
   }
-  /* 2) uma guarda antes, no mesmo bloco: if(ouro < preco) return; */
-  var b0 = abreDoBloco(T, cp.gIni);
-  for(var k = cp.gIni - 1; k > b0; k--){
+  /* 2) uma guarda antes, no mesmo bloco: if(ouro < preco) return;
+     ou um bloco pra fora, quando o gasto está num if que não fala da moeda: if (ouro < 200) return; if (confirm('...')) { ouro -= 200; ... } */
+  var gAntes = guardaAntesNoBloco(abreDoBloco(T, cp.gIni), cp.gIni);
+  if(gAntes) return gAntes;
+  var bIn = abreDoBloco(T, cp.gIni), aIn = T[bIn - 1];
+  if(aIn && aIn.v === ')'){
+    var pIn = parAntes(T, bIn - 1);
+    if(pIn > 0 && T[pIn - 1].v === 'if' && !(T[par(T, bIn) + 1] && T[par(T, bIn) + 1].v === 'else')){
+      var falaDaMoeda = false;
+      for(var zz = pIn + 1; zz < bIn - 1; zz++) if(T[zz].t === 'id' && T[zz].v === m.nome) falaDaMoeda = true;
+      if(!falaDaMoeda){ var g3 = guardaAntesNoBloco(abreDoBloco(T, pIn - 1), pIn - 1); if(g3) return g3; }
+    }
+  }
+  return null;
+  function guardaAntesNoBloco(b0, ate){
+  for(var k = ate - 1; k > b0; k--){
     if(T[k].v !== 'if' || T[k].t !== 'id') continue;
     if(abreDoBloco(T, k) !== b0) continue;
     var pa = k + 1; if(!T[pa] || T[pa].v !== '(') continue;
@@ -32769,7 +32840,7 @@ function acharGuarda(js, cp, m){
     var corpoIni = pf + 1, corpoFim;
     if(T[corpoIni] && T[corpoIni].v === '{'){ corpoFim = par(T, corpoIni); }
     else corpoFim = fimDaFrase(T, corpoIni);
-    if(corpoFim < 0 || corpoFim >= cp.gIni) continue;
+    if(corpoFim < 0 || corpoFim >= ate) continue;
     var sai = false, quebra = false;
     for(var q = corpoIni; q <= corpoFim; q++){ if(T[q].v === 'return' || T[q].v === 'throw'){ sai = true; break; } if(T[q].v === 'break' && T[q].t === 'id') quebra = true; }
     if(T[corpoFim + 1] && T[corpoFim + 1].v === 'else') continue;
@@ -32788,9 +32859,10 @@ function acharGuarda(js, cp, m){
       return {tipo: 'retorno', sai: 'break', ifK: k, gFim: corpoFim, bloco: b0, fecha: par(T, b0), fimCaso: fimCaso, cIni: cmp3.cIni, cFim: cmp3.cFim, xIni: cmp3.xIni, xFim: cmp3.xFim};
     }
     if(!sai) continue;
-    return {tipo: 'retorno', ifK: k, gFim: corpoFim, bloco: b0, fecha: par(T, b0), cIni: cmp3.cIni, cFim: cmp3.cFim, xIni: cmp3.xIni, xFim: cmp3.xFim};
+    return {tipo: 'retorno', ifK: k, gFim: corpoFim, bloco: b0, fecha: par(T, b0), cIni: cmp3.cIni, cFim: cmp3.cFim, xIni: cmp3.xIni, xFim: cmp3.xFim, cont: continuacaoDoRamo(T, b0)};
   }
   return null;
+  }
 }
 function fimDaFrase(T, k){
   var e = fimDaExpr(T, k);
@@ -32935,7 +33007,24 @@ function tabelaDaVariavel(doc, js, k0, nome){
     /* nome = caminho[...] ou caminho.find(...) */
     if(nx && nx.v === '=' && T[k + 2]){
       var c = caminhoDesde(T, k + 2);
-      if(c && T[c.fim + 1] && T[c.fim + 1].v === '[') return tabelaDoCaminho(doc, c.txt, true);
+      if(c && T[c.fim + 1] && T[c.fim + 1].v === '['){
+        /* VITRINE[aba][i] no ramo "aba === 'ouro'" (ou VITRINE['ouro'][i]): a lista é VITRINE.ouro */
+        var pfx = par(T, c.fim + 1), kt = T[c.fim + 2];
+        if(pfx === c.fim + 3 && T[pfx + 1] && T[pfx + 1].v === '[' && kt){
+          var lit = kt.t === 'str' ? valorDoTexto(kt.v) : null;
+          if(kt.t === 'id' && !lit){
+            var rsK = restricoesDoRamo(js, k0).filter(function(r){ return r.caminho === kt.v; }), rr = rsK.filter(function(r){ return r.igual != null; })[0];
+            if(rr) lit = rr.igual;
+            else if(rsK.length){
+              /* no else de "aba === 'ouro'": se só sobra uma aba, é ela */
+              var tb9 = tabelaDoCaminho(doc, c.txt, true), sobra = tb9 && tb9.v && !Array.isArray(tb9.v) ? Object.keys(tb9.v).filter(function(k9){ return Array.isArray(tb9.v[k9]) && rsK.every(function(r){ return cumpre(r, k9); }); }) : [];
+              if(sobra.length === 1) lit = sobra[0];
+            }
+          }
+          if(lit && ehChaveSimples(lit)){ var tt = tabelaDoCaminho(doc, c.txt + '.' + lit, true); if(tt) return tt; }
+        }
+        return tabelaDoCaminho(doc, c.txt, true);
+      }
       if(c && c.txt.split('.').length >= 2 && /^(find|filter|at)$/.test(c.ultimo) && T[c.fim + 1] && T[c.fim + 1].v === '(') return tabelaDoCaminho(doc, c.txt.split('.').slice(0, -1).join('.'), true);
       return null;
     }
@@ -33334,7 +33423,10 @@ function itensDoHtml(doc, atributo){
     var pega = function(n){ var x = new RegExp('\\bdata-' + n + '\\s*=\\s*("([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i').exec(at); return x ? (x[2] != null ? x[2] : x[3] != null ? x[3] : x[4]) : ''; };
     var chave = pega('item') || pega('id') || pega('name') || pega('nome') || pega('key') || txt;
     var nome = pega('name') || pega('nome') || txt || chave;
-    if(chave) r.push({id: idDaCompra(chave), nome: String(nome).replace(/\s*[-–:]\s*\d+\s*(coins?|moedas?|gold|ouro|gems?|\$)?\s*$/i, '').slice(0, 40) || chave, preco: Number(m[3])});
+    var dados = {}, rd = /\bdata-([a-z0-9-]+)\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/gi, md;
+    while((md = rd.exec(at))) dados[md[1].toLowerCase()] = md[3] != null ? md[3] : md[4] != null ? md[4] : md[5];
+    var limpo = String(nome).replace(/\s*\(\s*\d+(?:[.,]\d+)?\s*[^)]{0,14}\)\s*$/, '').replace(/\s*[-–:]\s*\d+\s*(coins?|moedas?|gold|ouro|gems?|gemas?|diamantes?|\$)?\s*$/i, '');
+    if(chave) r.push({id: idDaCompra(chave), nome: limpo.slice(0, 40) || chave, preco: Number(m[3]), _dados: dados});
   }
   return r;
 }
@@ -33570,7 +33662,7 @@ function itensDinamicos(doc, js, cp){
     var campo = campoDe(tb.v);
     if(!campo) continue;
     var its = [];
-    tb.v.forEach(function(o){ var env = {}; env[V] = o; var pr = precoCom(env); if(pr) its.push({id: idDaCompra(o[campo]), nome: String(o[campo]).slice(0, 40), preco: pr}); });
+    tb.v.forEach(function(o){ var env = {}; env[V] = o; var pr = precoCom(env); if(pr) its.push({id: idDaCompra(o[campo]), nome: String(o[campo]).slice(0, 40), preco: pr, _o: o, _v: V}); });
     if(its.length) return {idExpr: 'kodaIdDoNome(' + V + '.' + campo + ')', nomeExpr: V + '.' + campo, itens: its};
   }
   if(!fn || !fn.params.length) return null;
@@ -33586,7 +33678,7 @@ function itensDinamicos(doc, js, cp){
       var cpo = campoDe(objs);
       if(cpo){
         var its2 = [];
-        objs.forEach(function(o){ var env = {}; env[pn] = o; var pr = precoCom(env); if(pr && !its2.some(function(x){ return x.id === idDaCompra(o[cpo]); })) its2.push({id: idDaCompra(o[cpo]), nome: String(o[cpo]).slice(0, 40), preco: pr}); });
+        objs.forEach(function(o){ var env = {}; env[pn] = o; var pr = precoCom(env); if(pr && !its2.some(function(x){ return x.id === idDaCompra(o[cpo]); })) its2.push({id: idDaCompra(o[cpo]), nome: String(o[cpo]).slice(0, 40), preco: pr, _o: o, _v: pn}); });
         if(its2.length) return {idExpr: 'kodaIdDoNome(' + pn + '.' + cpo + ')', nomeExpr: pn + '.' + cpo, itens: its2};
       }
       continue;
@@ -33934,7 +34026,7 @@ function idsDaCompra(cp){
   if(P.tipo === 'tabela') return {expr: 'kodaIdDoNome(' + P.chave + ')', agora: agora, nomeExpr: null, itens: P.itens.map(function(it){ var nm = it.doCodigo === false ? String(it.nome).slice(0, 40) : (nomeDasPalavras(palavrasDoId(it.nome), cp.lj) || capitalizar(it.nome)); return {id: idDaCompra(it.chave), nome: nm, preco: it.preco, unico: false}; })};
   if(P.tipo === 'dinamico'){
     var idn = identidadeDaCompra(cp.doc, js, cp);
-    if(idn.idExpr) return {expr: idn.idExpr, agora: P.expr, nomeExpr: idn.nomeExpr, itens: idn.itens.map(function(i){ return {id: i.id, nome: i.nome, preco: i.preco, unico: cp.unico}; })};
+    if(idn.idExpr) return {expr: idn.idExpr, agora: P.expr, nomeExpr: idn.nomeExpr, itens: idn.itens.map(function(i){ return {id: i.id, nome: i.nome, preco: i.preco, unico: cp.unico, _o: i._o, _v: i._v, _dados: i._dados}; })};
     var nm0 = cp.nome || '', id0 = idDaCompra(nm0 || ('compra ' + cp.n));
     return {expr: textoJs(id0, "'"), agora: P.expr, nomeExpr: null, itens: P.estimado ? [{id: id0, nome: nm0 || TL(cp.lj, 'dj_compra_n', {n: cp.n}), preco: P.estimado, unico: cp.unico}] : [], nomeFixo: nm0 || TL(cp.lj, 'dj_compra_n', {n: cp.n})};
   }
@@ -33949,20 +34041,21 @@ function recuar(txt, r){
   ls.slice(1).forEach(function(l){ if(!l.trim()) return; var k = /^[ \t]*/.exec(l)[0].length; if(min == null || k < min) min = k; });
   return ls.map(function(l, i){ if(!l.trim()) return ''; return r + (i === 0 ? l.replace(/^[ \t]*/, '') : l.slice(Math.min(min || 0, /^[ \t]*/.exec(l)[0].length))); }).join('\n');
 }
-function compraUnica(js, cp, a, b){
+function compraUnica(js, cp, a, b, mais){
   /* só liga coisas (temEscudo = true / it.comprado = true) = fica pra sempre */
   var T = js.T, temFlag = false, temOutro = false;
-  for(var k = a; k <= b; k++){
+  [[a, b]].concat(mais || []).forEach(function(fx){ for(var k = fx[0]; k <= fx[1]; k++){
     if(k >= cp.gIni && k <= cp.sFim) continue;
     var op = T[k] && T[k].v;
     if(op === '=' && T[k + 1] && T[k + 1].v === 'true') temFlag = true;
     else if(/^(\+\+|--|\+=|-=|\*=|\/=)$/.test(op)) temOutro = true;
     else if(op === '=' && T[k - 1] && T[k - 1].t === 'id' && !/^(msg|message|mensagem|aviso|texto|text|status)$/i.test(T[k - 1].v) && T[k + 1] && T[k + 1].v !== 'true' && T[k + 1].t !== 'str') temOutro = true;
-  }
+  } });
   return temFlag && !temOutro;
 }
 function converterMoedas(codigo, opts){
   opts = opts || {};
+  codigo = prepararParaMoedas(codigo);           /* recursos['ouro'] -> recursos.ouro; jogador[item.moeda] -> um ramo por moeda */
   var doc = lerDocumento(codigo), lj = opts.lingua || linguaDoJogo(doc), moeda = opts.moeda === 'd' ? 'd' : 'c';
   var moedas = moedasDoJogo(codigo, {doc: doc, ensinado: opts.ensinado});
   if(opts.alvo) moedas = moedas.filter(function(m){ return m.caminho === opts.alvo || m.nome === opts.alvo; });
@@ -33993,7 +34086,7 @@ function converterMoedas(codigo, opts){
   compras = compras.filter(function(cp){
     var h = ajudanteDaCompra(doc, cp);
     if(!h) return true;
-    var sitios = chamadasDoAjudante(doc, h, lj);
+    var sitios = sitiosDoRamo(cp, h, chamadasDoAjudante(doc, h, lj));
     if(!sitios.length) return h.tipo === 'cb';          /* sem chamada que dê pra trocar: o "cb" ainda dá pra trocar por dentro */
     sitios.forEach(function(st){ st.km = kmDe(cp.moeda); chamadasTrocadas.push(st); });
     feitas.push(cp);
@@ -34035,6 +34128,15 @@ function converterMoedas(codigo, opts){
     else if(g.tipo === 'expr'){ a = g.ifK; b = g.fim; }
     else { a = g.abre + 1; b = g.fecha - 1; }
     var ad = g.tipo === 'expr' ? {ok: true, txt: cp.emExpr.efeitos.join(';\n') + ';'} : codigoAdiado(js, cp, a, b, cp.juntas);
+    /* a guarda estava num ramo do if/else: o resto da função depois dele também roda depois de pagar */
+    if(g.tipo === 'retorno' && g.cont && g.cont.length && ad.ok){
+      g.cont.forEach(function(fx){
+        var ad2 = codigoAdiado(js, cp, fx[0], fx[1], cp.juntas);
+        if(!ad2.ok){ ad.ok = false; return; }
+        if(ad2.txt) ad.txt = (ad.txt ? ad.txt + '\n' : '') + ad2.txt;
+        ad.temReturn = ad.temReturn || ad2.temReturn; ad.temAwait = ad.temAwait || ad2.temAwait;
+      });
+    }
     /* conferências das outras moedas que ficam antes do ponto da troca */
     var trocasFora = [];
     (cp.juntas || []).forEach(function(c){
@@ -34045,8 +34147,14 @@ function converterMoedas(codigo, opts){
     });
     var rIni = js.base + T[g.tipo === 'retorno' || g.tipo === 'expr' ? g.ifK : g.abre].s, rFim = js.base + T[g.tipo === 'retorno' ? g.gFim : g.tipo === 'expr' ? g.fim : g.fecha].e;
     if(!ad.ok || !ad.txt || ocupado.some(function(o){ return !(rFim <= o[0] || rIni >= o[1]); })){ falhas.push(cp); return; }
-    cp.unico = cp.preco.tipo === 'num' ? (g.tipo === 'expr' ? compraUnica(js, cp, cp.emExpr.ea, cp.emExpr.eb) : compraUnica(js, cp, a, b)) : false;
+    cp.unico = cp.preco.tipo === 'num' ? (g.tipo === 'expr' ? compraUnica(js, cp, cp.emExpr.ea, cp.emExpr.eb) : compraUnica(js, cp, a, b, g.tipo === 'retorno' ? g.cont : null)) : false;
     var ids = idsDaCompra(cp);
+    /* no ramo "item.tipo === 'ouro'" só os itens de ouro (e no das gemas, só os de gemas) */
+    var rsRamo = restricoesDoRamo(js, cp.gIni);
+    if(rsRamo.length && ids.itens.length){
+      if(cp.preco.tipo === 'lista' && cp.preco.tabela && Array.isArray(cp.preco.tabela.v)) ids.itens.forEach(function(it, i){ it._o = cp.preco.tabela.v[i]; it._v = cp.preco.obj; });
+      ids.itens = filtrarItensDoRamo(js, cp.gIni, ids.itens, rsRamo);
+    }
     var lv = varsDeLaco(T, cp.gIni, a, b);
     var unicoTxt = cp.preco.tipo === 'lista' ? (ids.itens.some(function(i){ return i.unico; }) ? 'true' : 'false') : String(!!cp.unico);
     if(cp.juntas){
@@ -34173,6 +34281,9 @@ Object.assign(TX, {
   dj_sem_compra: 'Ela só é juntada no jogo: nada é comprado com ela.|It is only collected: nothing is bought with it.|Solo se junta en el juego: no se compra nada con ella.',
   dj_pergunta: 'Quer pagar essas compras com moedas ou diamantes do Koda GB? Quem joga paga com o saldo da conta.|Do you want to pay for these with Koda GB coins or diamonds? Players pay with their account balance.|¿Quieres pagar estas compras con monedas o diamantes de Koda GB? Quien juega paga con el saldo de la cuenta.',
   dj_pergunta_sem: 'Quer mudar o nome dela na tela? Por exemplo: "troca o ouro por cristais".|Do you want to change its name on screen? For example: "change gold to crystals".|¿Quieres cambiar su nombre en la pantalla? Por ejemplo: "cambia el oro por cristales".',
+  dj_entendi_como: 'Entendi {lista}.|I understood {lista}.|Entendí {lista}.',
+  dj_como_um: '"{palavra}" como "{nome}" ({tipo} do seu jogo)|"{palavra}" as "{nome}" (your game\'s {tipo})|"{palavra}" como "{nome}" ({tipo} de tu juego)',
+  dj_tipo_comum: 'a moeda comum|common currency|la moneda común', dj_tipo_rara: 'a moeda rara|rare currency|la moneda rara',
   dj_nenhuma_loja: 'Quer que eu crie uma loja com {destino}?|Do you want me to create a shop with {destino}?|¿Quieres que cree una tienda con {destino}?',
   dj_dest_c: 'moedas do Koda GB|Koda GB coins|monedas de Koda GB', dj_dest_d: 'diamantes do Koda GB|Koda GB diamonds|diamantes de Koda GB',
   dj_nenhuma: 'Não achei nenhuma moeda no seu jogo (procurei coins, ouro, gemas, cristais, dinheiro, fichas...). Se ela tiver outro nome no código, me diga assim: "a moeda do jogo é estrelas".|I did not find a currency in your game (I looked for coins, gold, gems, crystals, money, tokens...). If it has another name in the code, tell me: "the game currency is stars".|No encontré ninguna moneda en tu juego (busqué coins, oro, gemas, cristales, dinero, fichas...). Si tiene otro nombre en el código, dime: "la moneda del juego es estrellas".',
@@ -34323,7 +34434,7 @@ function entenderMoedaDoJogo(P, ctx){
   if(temLojaKoda && !falaDoJogo && !doJogo) return null;
   /* cada moeda com o seu destino ("todo ouro vira Koda Coins e todas as gemas viram Koda Diamonds") */
   var mapaPorMoeda = lerMapaDeMoedas(n, md, P.orig);
-  if(mapaPorMoeda) return {int: 'moeda_converter', mapa: mapaPorMoeda, para: null, alvo: null, tudo: true};
+  if(mapaPorMoeda) return {int: 'moeda_converter', mapa: mapaPorMoeda.m, como: mapaPorMoeda.como, para: null, alvo: null, tudo: true};
   /* para onde? (o que vem depois do último "em/por/pra/into/to/en") */
   var partes = n.split(/\b(?:em|por|pra|para|pelas|pelos|pela|pelo|into|to|for|en|by|with|com|con|vira|vire|virar|virem|virou|seja|sejam|become|becomes|sea|sean)\b/);
   var depois = partes.length > 1 ? partes[partes.length - 1] : '';
@@ -34366,24 +34477,26 @@ function lerMapaDeMoedas(n, md, orig){
   /* o texto limpo perde vírgula e dois-pontos; se não deu, tenta o original (que guarda a pontuação) */
   return lerMapaDeTexto(n, md) || (orig ? lerMapaDeTexto(' ' + norm(orig) + ' ', md) : null);
 }
+/* {m: {caminho: 'c'|'d'}, como: [{palavra, caminho}]} — "como": a pessoa disse "ouro", o jogo chama de "coins" */
 function lerMapaDeTexto(n, md){
   if(!md || !md.length) return null;
   var texto = ' ' + n.replace(/[,;&+]| e | and | y | mais | tambem /g, ' | ') + ' ', pedacos = texto.split('|').map(function(x){ return ' ' + x.trim() + ' '; }).filter(function(x){ return x.trim(); });
   var GEN = /^(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|currency)$/, so = /\b(so|somente|apenas|only|solo)\b/.test(n);
-  var mapa = {}, pendentes = [], achou = false;
+  var mapa = {}, pendentes = [], soltasPend = [], adiadas = [], achou = false;
   function fontes(parte){
     parte = parte.replace(/ (as |os |a |o |the |las |los |la |el )?(moeda|moedas|coin|coins|moneda|monedas|dinheiro|money|dinero|grana|currency) (do jogo|of the game|del juego|in the game|no jogo|en el juego) /g, ' ');
-    var toks = parte.split(/[^a-z0-9_$]+/).filter(Boolean), r = [];
-    md.forEach(function(m){
-      var ws = (m.rotulo.palavras || []).concat([semAcento(m.nome).toLowerCase()]).concat(palavrasDoId(m.nome)).filter(Boolean);
-      var bate = toks.some(function(t){
-        if(ws.indexOf(t) >= 0 && !(GEN.test(t) && md.length > 1 && !so)) return true;
-        var ft = familiaDaMoeda(t);
-        return ft >= 0 && !(GEN.test(t) && md.length > 1 && !so) && ws.some(function(w){ return familiaDaMoeda(w) === ft; });
+    var toks = parte.split(/[^a-z0-9_$]+/).filter(Boolean), r = [], soltas = [];
+    toks.forEach(function(t){
+      if(GEN.test(t) && md.length > 1 && !so) return;
+      var ft = familiaDaMoeda(t), achouT = false;
+      md.forEach(function(m){
+        var ws = (m.rotulo.palavras || []).concat([semAcento(m.nome).toLowerCase()]).concat(palavrasDoId(m.nome)).filter(Boolean);
+        if(ws.indexOf(t) >= 0 || (ft >= 0 && ws.some(function(w){ return familiaDaMoeda(w) === ft; }))){ achouT = true; if(r.indexOf(m.caminho) < 0) r.push(m.caminho); }
       });
-      if(bate && r.indexOf(m.caminho) < 0) r.push(m.caminho);
+      /* uma moeda que o jogo não tem com esse nome: guarda o tipo (comum ou rara) pra procurar a do mesmo tipo */
+      if(!achouT && ft >= 0 && t !== 'koda') soltas.push({palavra: t, rara: !!MOEDA_RARA[t]});
     });
-    return r;
+    return {r: r, soltas: soltas};
   }
   function destino(parte){
     var d = /\b(diamante|diamantes|diamond|diamonds|diamant|diamanten)\b/.test(parte), c = /\b(moeda|moedas|coin|coins|moneda|monedas|moneta|monete|monnaie|munt|munten)\b/.test(parte);
@@ -34391,16 +34504,27 @@ function lerMapaDeTexto(n, md){
   }
   pedacos.forEach(function(p){
     var m = TRANSICAO_MOEDA.exec(p);
-    if(!m){ var f0 = fontes(p); f0.forEach(function(k){ if(pendentes.indexOf(k) < 0) pendentes.push(k); }); return; }
+    if(!m){ var f0 = fontes(p); f0.r.forEach(function(k){ if(pendentes.indexOf(k) < 0) pendentes.push(k); }); soltasPend = soltasPend.concat(f0.soltas); return; }
     var antes = p.slice(0, m.index), depois = p.slice(m.index + m[0].length), d = destino(depois);
     if(!d) return;
     var f = fontes(antes);
-    if(!f.length) return;
-    pendentes.forEach(function(k){ if(f.indexOf(k) < 0) f.push(k); });
-    pendentes = [];
-    f.forEach(function(k){ mapa[k] = d; achou = true; });
+    if(!f.r.length && !f.soltas.length && !pendentes.length && !soltasPend.length) return;
+    pendentes.forEach(function(k){ if(f.r.indexOf(k) < 0) f.r.push(k); });
+    f.r.forEach(function(k){ mapa[k] = d; achou = true; });
+    f.soltas.concat(soltasPend).forEach(function(x){ adiadas.push({palavra: x.palavra, rara: x.rara, d: d}); });
+    pendentes = []; soltasPend = [];
   });
-  return achou ? mapa : null;
+  /* "ouro" num jogo que tem "coins": a moeda comum que sobrou. "gemas" num jogo com "diamantes": a rara que sobrou. */
+  var como = [];
+  adiadas.forEach(function(x){
+    var livres = md.filter(function(m){ return !mapa[m.caminho] && !!moedaRara(m) === x.rara; });
+    var comCompra = livres.filter(function(m){ return m.compras && m.compras.length; });
+    var alvo = comCompra.length === 1 ? comCompra[0] : (!comCompra.length && livres.length === 1 ? livres[0] : null);
+    if(!alvo) return;
+    mapa[alvo.caminho] = x.d; achou = true;
+    como.push({palavra: x.palavra, caminho: alvo.caminho, nome: alvo.rotulo && alvo.rotulo.nome || alvo.nome});
+  });
+  return achou ? {m: mapa, como: como} : null;
 }
 var RE_EDUCADO_W = /^(por|favor|pfv|pf|pls|please|ai|aí)$/;
 function descreverMoedas(r, md, est){
@@ -34418,7 +34542,7 @@ H.moeda_ver = function(it, ctx, est){
   if(precisaCodigo(ctx, r)) return r;
   var md = moedasDoCtx(ctx);
   if(it.alvo) md = md.filter(function(m){ return m.caminho === it.alvo; }).concat(md.filter(function(m){ return m.caminho !== it.alvo; })).slice(0, md.length);
-  if(!md.length){ diz(r, T('dj_nenhuma')); chip(r, T('ch_loja')); return r; }
+  if(!md.length){ diz(r, T('dj_nenhuma')); chip(r, T('ch_loja')); r.__falha = 'moeda_sem_moeda'; return r; }
   descreverMoedas(r, md, est);
   var comCompra = md.filter(function(m){ return m.compras.some(function(c){ return !c.convertida; }); });
   if(comCompra.length){
@@ -34441,6 +34565,7 @@ H.moeda_converter = function(it, ctx, est){
   if(precisaCodigo(ctx, r)) return r;
   var res = converterMoedas(ctx.codigo, {moeda: it.para || 'c', alvo: it.alvo, ensinado: est.moedaEnsinada, combinar: !it.alvo && !it.tudo, mapa: it.mapa});
   if(res.erro){
+    r.__falha = 'moeda_' + res.erro;
     var md = res.moedas || [], m0 = md[0];
     if(res.erro === 'sem_moeda'){ diz(r, T('dj_nenhuma')); diz(r, T('dj_nenhuma_loja', {destino: it.para === 'd' ? T('dj_dest_d') : T('dj_dest_c')})); est.pendente = {tipo: 'confirmar', acao: {int: 'loja_criar', moeda: it.para || 'c', confirmado: true}}; chip(r, T('ch_sim')); chip(r, T('ch_nao')); return r; }
     if(res.erro === 'ja'){ diz(r, T('dj_ja')); return r; }
@@ -34454,11 +34579,12 @@ H.moeda_converter = function(it, ctx, est){
     .concat((res.semPreco || []).map(function(n){ return '- ' + n + ': ' + T('dj_preco_jogo'); }));
   diz(r, (res.misto ? T('dj_feito_misto') : T('dj_feito', {moeda: T(res.moeda === 'd' ? 'w_diamantes_koda' : 'w_moedas_koda')})) + '\n' + linhas.join('\n'));
   if(res.misto) diz(r, T('dj_misto_como', {lista: res.porMoeda.map(function(x){ return '"' + nomeDaMoeda(x.m, est) + '" -> ' + T(x.km === 'c' ? 'w_moedas_koda' : 'w_diamantes_koda'); }).join(', ')}));
+  if(it.como && it.como.length) diz(r, T('dj_entendi_como', {lista: listaComE(it.como.map(function(x){ var mm = (res.moedas || []).filter(function(y){ return y.caminho === x.caminho; })[0]; return T('dj_como_um', {palavra: x.palavra, nome: mm ? nomeDaMoeda(mm, est) : x.nome, tipo: T(mm && moedaRara(mm) ? 'dj_tipo_rara' : 'dj_tipo_comum')}); }))}));
   if(res.itens.some(function(i){ return i.muda; })) diz(r, T('dj_sobe'));
   if(res.deFora && res.deFora.length) diz(r, T('dj_de_fora', {nomes: listaComE(res.deFora.map(function(x){ return '"' + nomeDaMoeda(x, est) + '"'; })), exemplo: '"' + nomeDaMoeda(res.deFora[0], est) + ' ' + T('dj_vira_ex') + '"'}));
   var usadas = res.moedas.filter(function(x){ return x.compras.length && res.feitas.some(function(c){ return c.moeda === x; }); });
   diz(r, T('dj_feito_como') + ' ' + (usadas.length > 1 ? T('dj_feito_sobra_n', {nomes: listaComE(usadas.map(function(x){ return '"' + nomeDaMoeda(x, est) + '"'; }))}) : T('dj_feito_sobra', {nome: nomeDaMoeda(m, est)})) + ' ' + T('dj_feito_teste'));
-  if(res.falhas.length) diz(r, T('dj_falhas', {n: res.falhas.length, nome: nomeDaMoeda(m, est)}));
+  if(res.falhas.length){ diz(r, T('dj_falhas', {n: res.falhas.length, nome: nomeDaMoeda(m, est)})); r.__falha = 'moeda_sobrou'; }
   if(res.moeda === 'd' && it.doNome) diz(r, T('dj_diamante_ou_nome'));
   chip(r, T('ch_testar')); chip(r, T(res.moeda === 'd' ? 'ch_so_moedas' : 'ch_so_diamantes')); chip(r, T('ch_mais_barato'));
   return aplicar(est, r, ctx.codigo, res.codigo, T('dj_desc', {moeda: T(res.moeda === 'd' ? 'w_diamantes_koda' : 'w_moedas_koda')}));
@@ -34510,6 +34636,285 @@ function responderMoedaPendente(P, ctx, est){
   if(/^ *(nao|no|nope|nada|deixa assim|deixa como esta|deixar como esta|deixa quieto|deixa do jeito que esta|nao precisa|leave it|leave it as it is|keep it|dejalo|dejar como esta|asi esta bien) *$/.test(P.n)) return {int: 'negou'};
   if(/\b(loja|shop|tienda)\b/.test(n)) return {int: 'loja_criar', confirmado: true};
   return null;
+}
+/* ---------------- mais jeitos de escrever uma compra ----------------
+   1) recursos['ouro']           -> recursos.ouro (é a mesma coisa; assim o resto do motor enxerga)
+   2) jogador[item.moeda] -= ... -> um ramo por moeda (if (item.moeda === 'ouro') {...} else if (... 'gemas') {...} else { o original })
+   3) a conferência dentro de um ramo do if/else: o "depois de pagar" vai até o fim da função
+   4) no ramo "item.tipo === 'ouro'" só entram os itens de ouro (lista, botões com data-moeda, pagar('ouro', 40)) */
+
+/* o fim de um comando que começa em s (if/else, for, while, try, bloco, ou uma frase até ; ou fim da linha) */
+function fimDoComando(T, s, lim){
+  if(s > lim) return lim;
+  var v = T[s].v, t = T[s].t;
+  function corpo(k){ if(k > lim) return lim; return T[k].v === '{' ? par(T, k) : fimDoComando(T, k, lim); }
+  if(t === 'id' && (v === 'if' || v === 'for' || v === 'while' || v === 'with') && T[s + 1] && T[s + 1].v === '('){
+    var pf = par(T, s + 1); if(pf < 0) return lim;
+    var e = corpo(pf + 1);
+    if(v === 'if' && T[e + 1] && T[e + 1].v === 'else') e = corpo(e + 2);
+    return e;
+  }
+  if(t === 'id' && v === 'do'){ var e2 = corpo(s + 1); if(T[e2 + 1] && T[e2 + 1].v === 'while' && T[e2 + 2] && T[e2 + 2].v === '('){ e2 = par(T, e2 + 2); if(T[e2 + 1] && T[e2 + 1].v === ';') e2++; } return e2; }
+  if(t === 'id' && v === 'try'){
+    var e3 = corpo(s + 1);
+    while(T[e3 + 1] && (T[e3 + 1].v === 'catch' || T[e3 + 1].v === 'finally')){
+      var q = e3 + 2; if(T[q] && T[q].v === '(') q = par(T, q) + 1;
+      e3 = T[q] && T[q].v === '{' ? par(T, q) : lim;
+    }
+    return e3;
+  }
+  if(t === 'id' && v === 'switch' && T[s + 1] && T[s + 1].v === '('){ var p2 = par(T, s + 1); return T[p2 + 1] && T[p2 + 1].v === '{' ? par(T, p2 + 1) : lim; }
+  if(t === 'p' && v === '{') return par(T, s);
+  if(t === 'id' && (v === 'function' || v === 'class')){
+    for(var z = s + 1; z <= lim; z++) if(T[z].v === '{'){ return par(T, z); }
+    return lim;
+  }
+  /* uma frase: até o ; ou até a linha acabar (quando dá pra acabar ali) */
+  var d = 0;
+  for(var k = s; k <= lim; k++){
+    var x = T[k];
+    if(x.t === 'p' && /^[([{]$/.test(x.v)) d++;
+    else if(x.t === 'p' && /^[)\]}]$/.test(x.v)){ if(d === 0) return k - 1; d--; }
+    else if(d === 0 && x.v === ';') return k;
+    if(d === 0 && k > s && T[k + 1] && T[k + 1].nl && podeTerminar(x) && !/^[.?:+\-*\/%&|^=<>,]/.test(T[k + 1].v) && T[k + 1].v !== '(' && T[k + 1].v !== '[') return k;
+  }
+  return lim;
+}
+/* os comandos de um bloco (b é o "{") */
+function comandosDoBloco(T, b){
+  var f = par(T, b), r = [], s = b + 1, n = 0;
+  while(s < f && n++ < 500){ var e = fimDoComando(T, s, f - 1); if(e < s) e = s; r.push([s, e]); s = e + 1; }
+  return r;
+}
+function ehChaveSimples(s){ return /^[A-Za-z_$][\w$]*$/.test(s); }
+
+/* 1) recursos['ouro'] -> recursos.ouro */
+function chavesFixasDeMoeda(codigo){
+  var doc = lerDocumento(codigo), ed = new Edicao(codigo), n = 0;
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T;
+    for(var j = 1; j + 2 < T.length; j++){
+      if(T[j].v !== '[' || T[j + 1].t !== 'str' || T[j + 2].v !== ']') continue;
+      var a = T[j - 1];
+      if(!(a.t === 'id' && !/^(return|typeof|in|of|case|new|delete|void|yield|await|else|do)$/.test(a.v)) && a.v !== ']' && a.v !== ')') continue;
+      var chave = valorDoTexto(T[j + 1].v);
+      if(!ehChaveSimples(chave) || !forcaDeMoeda(chave)) continue;
+      ed.trocar(js.base + T[j].s, js.base + T[j + 2].e, '.' + chave); n++;
+    }
+  });
+  return n ? ed.aplicar() : null;
+}
+/* 2) carteira com a moeda escolhida na hora: jogador[item.moeda], carteira[moeda] */
+function carteirasDoJogo(doc){
+  return tabelasDoJogo(doc).filter(function(t){
+    if(!t.v || typeof t.v !== 'object' || Array.isArray(t.v) || t.mapa) return false;
+    return Object.keys(t.v).some(function(k){ return typeof t.v[k] === 'number' && forcaDeMoeda(k) >= 1; });
+  }).map(function(t){ return {nome: semThis(t.nome), ultimo: t.ultimo, chaves: Object.keys(t.v).filter(function(k){ return typeof t.v[k] === 'number' && forcaDeMoeda(k) >= 1 && ehChaveSimples(k); })}; });
+}
+function desdobrarCarteiras(codigo){
+  var doc = lerDocumento(codigo), carts = carteirasDoJogo(doc);
+  if(!carts.length) return null;
+  var ed = new Edicao(codigo), n = 0;
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T, src = js.sc.corpo, porFn = [];
+    for(var j = 0; j + 3 < T.length; j++){
+      if(T[j].t !== 'id' || !T[j + 1] || T[j + 1].v !== '[') continue;
+      var c = caminhoAte(T, j); if(!c) continue;
+      var cart = carts.filter(function(x){ return x.nome === semThis(c.txt); })[0];
+      if(!cart) continue;
+      var pf = par(T, j + 1); if(pf < 0) continue;
+      /* a chave: um nome ou um caminho (item.moeda), nunca um texto fixo */
+      var ok = pf > j + 2;
+      for(var q = j + 2; q < pf && ok; q++) if(!((q - j) % 2 === 0 ? T[q].t === 'id' : T[q].v === '.')) ok = false;
+      if(!ok || (pf - j - 2) % 2 !== 1) continue;
+      var fn = funcaoEmVolta(T, j); if(!fn || T[fn.abre].v !== '{') continue;
+      var gasta = T[pf + 1] && (T[pf + 1].v === '-=' || T[pf + 1].v === '--') || (T[pf + 1] && T[pf + 1].v === '=' && caminhoDesde(T, pf + 2) && textoDosToks(js, pf + 2, pf + 2 + (pf - c.ini)) === textoDosToks(js, c.ini, pf) && T[pf + 3 + (pf - c.ini)] && T[pf + 3 + (pf - c.ini)].v === '-');
+      var grupo = porFn.filter(function(g){ return g.fn.abre === fn.abre; })[0];
+      if(!grupo){ grupo = {fn: fn, ocs: [], gasta: false}; porFn.push(grupo); }
+      grupo.ocs.push({ini: c.ini, fim: pf, cart: cart, base: textoDosToks(js, c.ini, j), chave: textoDosToks(js, j + 2, pf - 1)});
+      if(gasta) grupo.gasta = true;
+      j = pf;
+    }
+    porFn.forEach(function(g){
+      if(!g.gasta) return;
+      var chave = g.ocs[0].chave, base = g.ocs[0].base;
+      if(g.ocs.some(function(o){ return o.chave !== chave || o.base !== base; })) return;
+      var raiz = chave.split('.')[0], cmds = comandosDoBloco(T, g.fn.abre);
+      var i0 = cmds.findIndex(function(cm){ return cm[0] <= g.ocs[0].ini && cm[1] >= g.ocs[0].ini; });
+      if(i0 < 0) return;
+      var rIni = cmds[i0][0], rFim = cmds[cmds.length - 1][1];
+      /* já desdobrado antes (if (item.moeda === 'ouro') {...} else ... else { o original }): não desdobra de novo */
+      if(T[rIni].v === 'if' && T[rIni + 1] && T[rIni + 1].v === '('){
+        var cond0 = textoDosToks(js, rIni + 2, par(T, rIni + 1) - 1).replace(/\s+/g, '').replace(/"/g, "'"), ch0 = chave.replace(/\s+/g, '');
+        if(g.ocs[0].cart.chaves.some(function(k){ return cond0 === ch0 + "==='" + k + "'"; })) return;
+      }
+      /* a chave já existe antes do ramo (parâmetro, coisa de fora ou declarada antes) e não muda dentro dele */
+      for(var q = rIni; q <= rFim; q++){
+        if(T[q].t === 'id' && T[q].v === raiz && !(T[q - 1] && T[q - 1].v === '.')){
+          if(T[q - 1] && /^(var|let|const)$/.test(T[q - 1].v)) return;
+          if(T[q + 1] && /^(=|\+=|-=|\+\+|--)$/.test(T[q + 1].v) && caminhoDesde(T, q).fim === q) return;
+        }
+        if(T[q].t === 'id' && (T[q].v === 'function' || T[q].v === 'class') && T[q - 1] && /^[;{}]$/.test(T[q - 1].v)) return;
+        if(T[q].t === 'id' && (T[q].v === 'of' || T[q].v === 'in') && T[q + 1] && T[q + 1].t === 'id'){}
+      }
+      var a = T[rIni].s, b = T[rFim].e, orig = src.slice(a, b);
+      function com(chaveTxt){
+        var out = '', p = a;
+        g.ocs.forEach(function(o){ out += src.slice(p, T[o.ini].s) + o.base + '.' + chaveTxt; p = T[o.fim].e; });
+        return out + src.slice(p, b);
+      }
+      var ind = recuoDaLinha(src, a), partes = [];
+      g.ocs[0].cart.chaves.forEach(function(k){ partes.push('if (' + chave + ' === ' + textoJs(k, "'") + ') {\n' + recuar(com(k), ind + '  ') + '\n' + ind + '}'); });
+      if(!partes.length) return;
+      var novo = partes.join(' else ') + ' else {\n' + recuar(orig, ind + '  ') + '\n' + ind + '}';
+      ed.trocar(js.base + a, js.base + b, novo); n++;
+    });
+  });
+  return n ? ed.aplicar() : null;
+}
+function prepararParaMoedas(codigo){
+  var c = String(codigo || '');
+  if(c.indexOf('[') < 0) return c;
+  try{
+    var r1 = chavesFixasDeMoeda(c); if(r1 != null) c = r1;
+    var r2 = desdobrarCarteiras(c); if(r2 != null) c = r2;
+  }catch(e){}
+  return c;
+}
+
+/* 3) a guarda "if (ouro < preco) return;" num ramo do if/else: o que roda depois do if/else até o fim da função também é "depois de pagar" */
+function continuacaoDoRamo(T, b0){
+  var fn = funcaoEmVolta(T, b0 + 1);
+  if(!fn || fn.abre === b0 || T[fn.abre].v !== '{') return null;
+  var faixas = [], b = b0;
+  for(var volta = 0; b !== fn.abre && volta < 6; volta++){
+    var ant = T[b - 1], inicio = -1;
+    if(ant && ant.v === ')'){ var p = parAntes(T, b - 1); if(p > 0 && T[p - 1].v === 'if') inicio = p - 1; }
+    else if(ant && ant.v === 'else') inicio = b - 1;
+    if(inicio < 0) return null;                          /* laço, switch, try...: não sabe seguir */
+    var fe = par(T, b);
+    while(T[fe + 1] && T[fe + 1].v === 'else'){
+      if(T[fe + 2] && T[fe + 2].v === '{'){ fe = par(T, fe + 2); break; }
+      if(T[fe + 2] && T[fe + 2].v === 'if' && T[fe + 3] && T[fe + 3].v === '('){ var pc = par(T, fe + 3); if(T[pc + 1] && T[pc + 1].v === '{'){ fe = par(T, pc + 1); continue; } }
+      return null;
+    }
+    var pai = abreDoBloco(T, inicio);
+    if(pai < 0) return null;
+    var paiF = par(T, pai);
+    if(fe + 1 <= paiF - 1) faixas.push([fe + 1, paiF - 1]);
+    b = pai;
+  }
+  return b === fn.abre ? faixas : null;
+}
+
+/* 4) as condições dos ramos em volta de k: item.tipo === 'ouro', p.gemas, !p.gemas, aba === 'ouro', moeda !== 'gemas' */
+function condicoesSimples(js, a, b, negar){
+  var T = js.T, partes = [], ini = a, d = 0, r = [];
+  for(var k = a; k <= b + 1; k++){
+    if(k === b + 1 || (d === 0 && T[k].v === '&&')){ partes.push([ini, k - 1]); ini = k + 1; continue; }
+    if(T[k].t === 'p' && /^[([{]$/.test(T[k].v)) d++; else if(T[k].t === 'p' && /^[)\]}]$/.test(T[k].v)) d--;
+    if(d === 0 && T[k].v === '||') return [];
+  }
+  if(negar && partes.length !== 1) return [];
+  partes.forEach(function(pt){
+    var x = pt[0], y = pt[1];
+    while(T[x] && T[x].v === '(' && par(T, x) === y){ x++; y--; }
+    if(y < x) return;
+    var neg = false;
+    if(T[x].v === '!' && T[x + 1] && T[x + 1].t === 'id'){ neg = true; x++; }
+    var c = caminhoDesde(T, x);
+    if(c && c.fim === y){ r.push({caminho: c.txt, verdade: negar ? neg : !neg}); return; }
+    if(neg) return;
+    if(c && T[c.fim + 1] && /^(===|==|!==|!=)$/.test(T[c.fim + 1].v) && c.fim + 2 === y && T[y].t === 'str'){
+      var igual = /^(===|==)$/.test(T[c.fim + 1].v); if(negar) igual = !igual;
+      r.push(igual ? {caminho: c.txt, igual: valorDoTexto(T[y].v)} : {caminho: c.txt, diferente: valorDoTexto(T[y].v)});
+      return;
+    }
+    if(T[x].t === 'str' && T[x + 1] && /^(===|==|!==|!=)$/.test(T[x + 1].v)){
+      var c2 = caminhoDesde(T, x + 2);
+      if(c2 && c2.fim === y){ var ig = /^(===|==)$/.test(T[x + 1].v); if(negar) ig = !ig; r.push(ig ? {caminho: c2.txt, igual: valorDoTexto(T[x].v)} : {caminho: c2.txt, diferente: valorDoTexto(T[x].v)}); }
+    }
+  });
+  return r;
+}
+function restricoesDoRamo(js, k){
+  var T = js.T, r = [], fn = funcaoEmVolta(T, k), b = abreDoBloco(T, k);
+  for(var volta = 0; b > 0 && volta < 8 && (!fn || b !== fn.abre); volta++){
+    var ant = T[b - 1];
+    if(ant && ant.v === ')'){
+      var p = parAntes(T, b - 1);
+      if(p > 0 && T[p - 1].v === 'if'){
+        r = r.concat(condicoesSimples(js, p + 1, b - 2, false));
+        /* else if: os ifs de antes não valeram */
+        var q = p - 1;
+        while(T[q - 1] && T[q - 1].v === 'else' && T[q - 2] && T[q - 2].v === '}'){
+          var ab = parAntes(T, q - 2); if(ab < 1 || T[ab - 1].v !== ')') break;
+          var pp = parAntes(T, ab - 1); if(pp < 1 || T[pp - 1].v !== 'if') break;
+          r = r.concat(condicoesSimples(js, pp + 1, ab - 2, true)); q = pp - 1;
+        }
+      }
+    } else if(ant && ant.v === 'else' && T[b - 2] && T[b - 2].v === '}'){
+      var q2 = b - 1;
+      while(T[q2] && T[q2].v === 'else' && T[q2 - 1] && T[q2 - 1].v === '}'){
+        var ab2 = parAntes(T, q2 - 1); if(ab2 < 1 || T[ab2 - 1].v !== ')') break;
+        var pp2 = parAntes(T, ab2 - 1); if(pp2 < 1 || T[pp2 - 1].v !== 'if') break;
+        r = r.concat(condicoesSimples(js, pp2 + 1, ab2 - 2, true)); q2 = pp2 - 2;
+      }
+    }
+    b = abreDoBloco(T, b);
+  }
+  return r;
+}
+/* "moeda" que veio de "const moeda = b.dataset.moeda" (ou de uma lista de declarações) */
+function apelidoDoNome(js, k, nome){
+  var T = js.T, fn = funcaoEmVolta(T, k), ini = fn ? fn.abre : 0;
+  for(var q = k - 1; q > ini; q--){
+    if(T[q].t !== 'id' || T[q].v !== nome || !T[q + 1] || T[q + 1].v !== '=' || !T[q - 1] || !(/^(var|let|const)$/.test(T[q - 1].v) || T[q - 1].v === ',')) continue;
+    var c = caminhoDesde(T, q + 2);
+    var e = c ? c.fim : -1;
+    if(c && T[e + 1] && T[e + 1].v === '(') return null;
+    return c ? c.txt : null;
+  }
+  return null;
+}
+function valorNoItem(it, caminho, js, k){
+  var cam = caminho;
+  if(caminho.indexOf('.') < 0){ var ap = apelidoDoNome(js, k, caminho); if(ap) cam = ap; }
+  var ds = /\.dataset\.([A-Za-z_$][\w$]*)$/.exec(cam);
+  if(ds && it._dados){ var nm = ds[1].replace(/[A-Z]/g, function(x){ return '-' + x.toLowerCase(); }); return {sabe: true, v: it._dados[nm]}; }
+  if(it._o && it._v && cam.indexOf(it._v + '.') === 0){
+    var o = it._o, ps = cam.slice(it._v.length + 1).split('.');
+    for(var i = 0; i < ps.length; i++){ if(o == null || typeof o !== 'object') return {sabe: true, v: undefined}; o = o[ps[i]]; }
+    return {sabe: true, v: o};
+  }
+  return {sabe: false};
+}
+function cumpre(r, v){
+  if(r.igual != null) return String(v) === r.igual;
+  if(r.diferente != null) return String(v) !== r.diferente;
+  return r.verdade ? !!v : !v;
+}
+function filtrarItensDoRamo(js, k, itens, rs){
+  if(!rs.length || !itens.length) return itens;
+  return itens.filter(function(it){
+    return rs.every(function(r){ var x = valorNoItem(it, r.caminho, js, k); return !x.sabe || cumpre(r, x.v); });
+  });
+}
+/* pagar('ouro', 40): cada chamada só vale pro ramo da moeda dela */
+function sitiosDoRamo(cp, h, sitios){
+  var rs = restricoesDoRamo(cp.js, cp.gIni).filter(function(r){ return h.params.indexOf(r.caminho) >= 0; });
+  if(!rs.length) return sitios;
+  return sitios.filter(function(st){
+    var T = st.js.T, fe = st.fe, args = [], ini = st.k + 2, d = 0;
+    for(var q = st.k + 2; q <= fe; q++){ var t = T[q]; if(q === fe || (d === 0 && t.v === ',')){ args.push([ini, q - 1]); ini = q + 1; continue; } if(t.t === 'p' && /^[([{]$/.test(t.v)) d++; else if(t.t === 'p' && /^[)\]}]$/.test(t.v)) d--; }
+    return rs.every(function(r){
+      var a = args[h.params.indexOf(r.caminho)];
+      if(!a || a[0] !== a[1] || T[a[0]].t !== 'str') return false;
+      return cumpre(r, valorDoTexto(T[a[0]].v));
+    });
+  });
 }
 /* ====================================================================
    MAIS CLARO E ENTENDE MAIS
@@ -34828,8 +35233,9 @@ function apParecido(a, b){
   var comum = A.filter(function(w){ return B.indexOf(w) >= 0; }).length, uniao = A.length + B.length - comum;
   return comum / uniao >= 0.8;
 }
-function apAchar(est, k){
-  var lista = est.aprendido || [], i;
+function apAchar(est, k){ return apAcharEm(est.aprendido, k); }
+function apAcharEm(lista, k){
+  lista = lista || []; var i;
   for(i = 0; i < lista.length; i++) if(lista[i].k === k) return lista[i];
   for(i = 0; i < lista.length; i++) if(apParecido(lista[i].k, k)) return lista[i];
   return null;
@@ -34875,12 +35281,19 @@ function aprenderAntes(est, texto, it, ctx){
     var c = JSON.parse(JSON.stringify(ex.it)); c.aprendido = true;
     return c;
   }
+  /* o que o Koda GB aprendeu com todo mundo (aprovado): só onde eu não entendi (ou onde o dono mandou valer sempre) */
+  if(!ex){
+    var gl = apAcharEm(est.regras, k);
+    if(gl && (it.int === 'nada' || gl.sobre)){ var c2 = JSON.parse(JSON.stringify(gl.it)); c2.aprendido = true; c2.global = true; return c2; }
+  }
   return it;
 }
 /* depois de responder: se não entendi, aviso que dá pra me ensinar; se a pessoa acabou de me ensinar, guardo */
 function aprenderDepois(est, texto, it, r){
   var k = apChave(texto), te = est.talvezErro;
+  if(r.__falha) apAnotar(est, {t: r.__falha, f: texto, i: it.int});
   if(it.int === 'nada'){
+    apAnotar(est, {t: 'nao_entendi', f: texto});
     est.talvezErro = {k: k, frase: String(texto).trim(), turno: est.turnos};
     if(r.chips && r.chips.length) diz(r, T('ap_dica'));
     est.chipsVistos = (r.chips || []).map(function(c){ return c.msg || c.txt; });
@@ -34891,10 +35304,10 @@ function aprenderDepois(est, texto, it, r){
   if(te && apEnsinavel(it, r)){
     var tocou = (est.chipsVistos || []).indexOf(String(texto).trim()) >= 0;
     if(tocou || est.explicou || te.sobre){
-      if(apGuardar(est, te, it)){ diz(r, T(te.sobre ? 'ap_corrigi' : 'ap_aprendi', {frase: te.frase.slice(0, 60)})); est.talvezErro = null; }
+      if(apGuardar(est, te, it)){ diz(r, T(te.sobre ? 'ap_corrigi' : 'ap_aprendi', {frase: te.frase.slice(0, 60)})); apAnotar(est, {t: 'ensinou', f: te.frase, c: apLimpo(it), s: !!te.sobre}); est.talvezErro = null; }
     }
   }
-  if(apEnsinavel(it, r)) est.ultimoPedido = {k: k, frase: String(texto).trim(), turno: est.turnos};
+  if(apEnsinavel(it, r) || (it.aprendido && it.global)) est.ultimoPedido = {k: k, frase: String(texto).trim(), turno: est.turnos, int: it.int, global: !!it.global};
   est.chipsVistos = (r.chips || []).map(function(c){ return c.msg || c.txt; });
   est.explicou = false;
 }
@@ -34912,10 +35325,78 @@ H.aprendeu_limpar = function(it, ctx, est){
 H.aprendeu_errei = function(it, ctx, est){
   var u = est.ultimoPedido, r = novaResp();
   est.talvezErro = {k: u.k, frase: u.frase, turno: est.turnos, sobre: true};
+  apAnotar(est, {t: 'errou', f: u.frase, i: u.int, g: u.global ? 1 : 0});
   diz(r, T('ap_errei'));
   palpites(null, ctx).forEach(function(k){ chip(r, T(k)); });
   return r;
 };
+/* ---------------- aprendizado v2 ----------------
+   - diário: o que deu errado (sem nome, e-mail, endereço nem número comprido) vai pro servidor, se a pessoa estiver logada
+   - regras de todos: o dono aprova no painel (ou muita gente ensinou a mesma coisa) e vale pra todo mundo
+   - autoconferência: se a mudança deixasse o jogo sem funcionar, eu desfaço sozinho
+   - memória por jogo: o que me ensinaram de um jogo ("a moeda do jogo é estrelas") volta quando ele aparece de novo */
+var AP_DIARIO_MAX = 30;
+function apSeguro(f){
+  return String(f || '').replace(/\S+@\S+/g, ' ').replace(/https?:\/\/\S+|www\.\S+/gi, ' ').replace(/\d[\d\s().-]{3,}\d/g, '#').replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+}
+function apAnotar(est, ev){
+  ev.f = apSeguro(ev.f);
+  if(!ev.f || ev.f.length < 2) return;
+  ev.l = LING;
+  est.diario = est.diario || [];
+  est.diario.push(ev);
+  if(est.diario.length > AP_DIARIO_MAX) est.diario.splice(0, est.diario.length - AP_DIARIO_MAX);
+}
+function todosCompilam(codigo){
+  try{ return lerDocumento(codigo).js.every(function(js){ var c = compila(js.sc.corpo); return c === true || c === null; }); }catch(e){ return true; }
+}
+/* depois de mexer no código: tudo que compilava continua compilando? se não, desfaço e aviso */
+function autoconferir(est, ctx, it, r, texto){
+  if(r.codigo == null || r.desfez || !ctx.codigoBruto || !String(ctx.codigoBruto).trim()) return r;
+  if(!todosCompilam(ctx.codigoBruto) || todosCompilam(r.codigo)) return r;
+  apAnotar(est, {t: 'quebrou', f: texto, i: it.int});
+  var r2 = diz(novaResp(), T('ap_quebraria'));
+  chip(r2, T('ch_verificar'));
+  r2.intencao = it.int; r2.autoconferiu = true;
+  return r2;
+}
+function apRegraOk(e){ return e && typeof e.k === 'string' && e.it && typeof e.it.int === 'string' && H[e.it.int] && !AP_NAO_ENSINA.test(e.it.int); }
+function carregarRegras(est, l){
+  est.regras = (Array.isArray(l) ? l : []).filter(apRegraOk).slice(0, 2000).map(function(e){ return {k: apChave(e.k), it: apLimpo(e.it) || {int: 'nada'}, sobre: !!e.sobre}; }).filter(function(e){ return e.k && e.it.int !== 'nada'; });
+}
+function marcaDoJogo(codigo){
+  var c = String(codigo || '');
+  if(c.trim().length < 40) return null;
+  var nomes = {};
+  try{
+    lerDocumento(c).js.forEach(function(js){
+      if(js.sc.koda) return;
+      var T = js.T;
+      for(var k = 0; k + 1 < T.length; k++) if(T[k].t === 'id' && /^(function|class|let|const|var)$/.test(T[k].v) && T[k + 1].t === 'id' && !/^koda/i.test(T[k + 1].v)) nomes[T[k + 1].v] = 1;
+    });
+  }catch(e){ return null; }
+  var lista = Object.keys(nomes).sort();
+  if(lista.length < 2) return null;
+  var tit = (/<title[^>]*>([^<]*)/i.exec(c) || [])[1] || '';
+  var txt = tit.trim().toLowerCase() + '|' + lista.slice(0, 300).join(','), h = 5381;
+  for(var i = 0; i < txt.length; i++) h = ((h * 33) ^ txt.charCodeAt(i)) >>> 0;
+  return 'j' + h.toString(36) + lista.length.toString(36);
+}
+function memoriaDoJogo(est){
+  var m = {};
+  if(est.moedaEnsinada) m.me = String(est.moedaEnsinada).slice(0, 40);
+  if(est.ensinado && Object.keys(est.ensinado).length) m.en = est.ensinado;
+  if(est.nomesDeMoeda && Object.keys(est.nomesDeMoeda).length) m.nm = est.nomesDeMoeda;
+  return Object.keys(m).length ? JSON.parse(JSON.stringify(m)) : null;
+}
+function carregarMemoriaDoJogo(est, m){
+  est.moedaEnsinada = m && typeof m.me === 'string' ? m.me : null;
+  est.ensinado = m && m.en && typeof m.en === 'object' ? JSON.parse(JSON.stringify(m.en)) : {};
+  est.nomesDeMoeda = m && m.nm && typeof m.nm === 'object' ? JSON.parse(JSON.stringify(m.nm)) : {};
+}
+Object.assign(TX, {
+  ap_quebraria: 'Tentei fazer isso, mas o jogo ia parar de funcionar, então não mudei nada. Anotei esse erro pra eu aprender. Pode tentar falar de outro jeito?|I tried to do that, but the game would stop working, so I changed nothing. I noted this mistake so I can learn. Can you try saying it another way?|Intenté hacerlo, pero el juego iba a dejar de funcionar, así que no cambié nada. Anoté este error para aprender. ¿Puedes decirlo de otra forma?'
+});
 Object.assign(TX, {
   ap_dica: 'Se você tocar numa das opções, eu aprendo e da próxima vez já entendo.|If you tap one of the options, I learn it and understand next time.|Si tocas una de las opciones, aprendo y la próxima vez ya entiendo.',
   ap_aprendi: 'Aprendi! Quando você falar "{frase}", eu já faço isso. (Fica só neste aparelho. Pra apagar, diga "esquece o que você aprendeu".)|Learned! When you say "{frase}", I will do this. (It stays only on this device. To erase it, say "forget what you learned".)|¡Aprendí! Cuando digas "{frase}", ya hago esto. (Se queda solo en este aparato. Para borrarlo, di "olvida lo que aprendiste".)',
@@ -34933,6 +35414,11 @@ return {
   /* o que o agente aprendeu com os erros (o site guarda no aparelho) */
   aprendido: function(est){ return JSON.parse(JSON.stringify(est.aprendido || [])); },
   aprendidoV: function(est){ return est.aprendidoV || 0; },
+  tirarDiario: function(est){ var d = est.diario || []; est.diario = []; return JSON.parse(JSON.stringify(d)); },
+  carregarRegras: function(est, l){ carregarRegras(est, l); },
+  marcaDoJogo: function(c){ return marcaDoJogo(c); },
+  memoriaDoJogo: function(est){ return memoriaDoJogo(est); },
+  carregarMemoriaDoJogo: function(est, m){ carregarMemoriaDoJogo(est, m); },
   carregarAprendido: function(est, l){
     est.aprendido = (Array.isArray(l) ? l : []).filter(function(e){ return e && typeof e.k === 'string' && typeof e.f === 'string' && e.it && typeof e.it.int === 'string' && H[e.it.int] && !AP_NAO_ENSINA.test(e.it.int); }).slice(0, AP_MAX)
       .map(function(e){ return {k: e.k.slice(0, 120), f: e.f.slice(0, 120), it: apLimpo(e.it) || {int: 'nada'}, sobre: !!e.sobre, usos: e.usos | 0}; }).filter(function(e){ return e.it.int !== 'nada'; });
@@ -34947,6 +35433,7 @@ return {
       lojaCriar: lojaCriar, lojaRemover: lojaRemover, acharAtributos: acharAtributos, compila: compila, linhaDoErro: linhaDoErro,
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,
+      autoconferir: autoconferir, todosCompilam: todosCompilam, prepararParaMoedas: prepararParaMoedas,
       entender: entender, analisar: analisar, buscarFaq: buscarFaq, fazerSkin: fazerSkin, fazerSalvar: fazerSalvar, fazerPontuar: fazerPontuar,
       fazerSons: fazerSons, explicarJogo: explicarJogo, itensDaFrase: itensDaFrase, responderBriefing: responderBriefing, criarJogo: criarJogo, trocarTema: trocarTema, fazerOnline: fazerOnline, limparInformal: limparInformal, corrigirPalavra: corrigirPalavra, arrumarPalavras: arrumarPalavras, entenderMods: entenderMods, fazerFiltro: fazerFiltro, fazerFundo: fazerFundo, fazerPainel: fazerPainel, fazerMusica: fazerMusica, fazerNumero: fazerNumero, fazerTraducao: fazerTraducao, fazerTrocaTexto: fazerTrocaTexto, fazerCorJogador: fazerCorJogador, modeloDoCodigo: modeloDoCodigo, gerarIdeias: gerarIdeias, kodaRoboNoJogo: kodaRoboNoJogo, TX: TX, FAQ: FAQ}
 };
@@ -35096,6 +35583,73 @@ function kaSalvarAprendido(est){
     localStorage.setItem(KA_APRENDEU_CHAVE, JSON.stringify(lista.slice(0, 150)));
   }catch(e){}
 }
+/* ---- aprendizado v2 ----
+   regras de todos: o que o Agente Koda GB aprendeu com todo mundo (aprovado pelo dono ou ensinado igual por muita gente)
+   diário: o que deu errado vai pro servidor (só com login; sem e-mail, endereço ou número comprido)
+   memória por jogo: o que ensinaram ao agente sobre um jogo volta quando ele aparece de novo */
+const KA_REGRAS_CHAVE = 'koda_ag_regras', KA_FILA_CHAVE = 'koda_ag_fila', KA_JOGOS_CHAVE = 'koda_ag_jogos';
+const kaLerJson = (k, pad)=>{ try{ const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? pad : v; }catch(e){ return pad; } };
+const kaGravarJson = (k, v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+let kaRegrasBuscando = false;
+const KA_ESTADOS_ABERTOS = new Set();      /* as conversas abertas (pra receber as regras novas na hora) */
+function kaRegrasGuardadas(){ const r = kaLerJson(KA_REGRAS_CHAVE, null); return r && Array.isArray(r.l) ? r : {t: 0, l: []}; }
+function kaAtualizarRegras(){
+  const r = kaRegrasGuardadas();
+  if(kaRegrasBuscando || Date.now() - (r.t || 0) < 3 * 3600e3) return;
+  if(typeof econConta === 'function' && !econConta()) return;
+  kaRegrasBuscando = true;
+  econAdmin('/api/agente/regras').then(j=>{
+    const l = Array.isArray(j.regras) ? j.regras.slice(0, 2000) : [];
+    kaGravarJson(KA_REGRAS_CHAVE, {t: Date.now(), l});
+    KA_ESTADOS_ABERTOS.forEach(est=>{ try{ KA.carregarRegras(est, l); }catch(e){} });
+  }).catch(()=>{}).finally(()=>{ kaRegrasBuscando = false; });
+}
+let kaFilaTimer = null, kaMandando = false;
+function kaGuardarDiario(est){
+  let novos = [];
+  try{ novos = KA.tirarDiario(est); }catch(e){}
+  if(!novos.length) return;
+  const fila = kaLerJson(KA_FILA_CHAVE, []).concat(novos).slice(-60);
+  kaGravarJson(KA_FILA_CHAVE, fila);
+  clearTimeout(kaFilaTimer); kaFilaTimer = setTimeout(kaMandarDiario, 2500);
+}
+function kaMandarDiario(){
+  if(kaMandando) return;
+  if(typeof econConta === 'function' && !econConta()) return;
+  if(typeof navigator !== 'undefined' && navigator.onLine === false) return;
+  const fila = kaLerJson(KA_FILA_CHAVE, []);
+  if(!fila.length) return;
+  const lote = fila.slice(0, 20);
+  kaMandando = true;
+  econAdmin('/api/agente/erros', {eventos: lote}).then(()=>{
+    const agora = kaLerJson(KA_FILA_CHAVE, []);
+    kaGravarJson(KA_FILA_CHAVE, agora.slice(lote.length));
+    if(agora.length > lote.length) setTimeout(kaMandarDiario, 1500);
+  }).catch(()=>{}).finally(()=>{ kaMandando = false; });
+}
+/* o jogo da caixa mudou? guarda o que o agente sabia do anterior e traz o que ele sabe deste */
+function kaJogoDaConversa(conv, codigo){
+  let marca = null;
+  try{ marca = KA.marcaDoJogo(codigo); }catch(e){}
+  if(marca === conv.jogo) return;
+  /* foi o próprio agente que mudou o código: é o mesmo jogo, só muda a marca */
+  if(conv.codigoDoAgente != null && codigo === conv.codigoDoAgente && conv.jogo){ conv.jogo = marca; kaGuardarJogo(conv); return; }
+  kaGuardarJogo(conv);
+  conv.jogo = marca;
+  const mem = marca ? (kaLerJson(KA_JOGOS_CHAVE, {})[marca] || null) : null;
+  try{ KA.carregarMemoriaDoJogo(conv.estado, mem && mem.m); }catch(e){}
+}
+function kaGuardarJogo(conv){
+  if(!conv.jogo) return;
+  let m = null;
+  try{ m = KA.memoriaDoJogo(conv.estado); }catch(e){}
+  const todos = kaLerJson(KA_JOGOS_CHAVE, {});
+  if(!m){ if(todos[conv.jogo]){ delete todos[conv.jogo]; kaGravarJson(KA_JOGOS_CHAVE, todos); } return; }
+  todos[conv.jogo] = {m, t: Date.now()};
+  const ks = Object.keys(todos).sort((a, b)=>todos[b].t - todos[a].t);
+  ks.slice(40).forEach(k=>{ delete todos[k]; });
+  kaGravarJson(KA_JOGOS_CHAVE, todos);
+}
 /* abre a conversa ligada a uma caixa de código */
 function abrirAgente(caixa, opts){
   opts = opts || {};
@@ -35103,7 +35657,10 @@ function abrirAgente(caixa, opts){
   const esc = chatListEscape;
   let conv = KA_CONVERSAS.get(caixa);
   const nova = !conv;
-  if(!conv){ conv = {estado: KA.novoEstado(), lista: null, chips: []}; try{ KA.carregarAprendido(conv.estado, kaLerAprendido()); conv.estado.__apSalvoV = 0; }catch(e){} KA_CONVERSAS.set(caixa, conv); }
+  if(!conv){ conv = {estado: KA.novoEstado(), lista: null, chips: []}; try{ KA.carregarAprendido(conv.estado, kaLerAprendido()); conv.estado.__apSalvoV = 0; KA.carregarRegras(conv.estado, kaRegrasGuardadas().l); }catch(e){} KA_CONVERSAS.set(caixa, conv); }
+  KA_ESTADOS_ABERTOS.add(conv.estado); if(KA_ESTADOS_ABERTOS.size > 20) KA_ESTADOS_ABERTOS.delete(KA_ESTADOS_ABERTOS.values().next().value);
+  kaJogoDaConversa(conv, caixa.value);
+  kaAtualizarRegras(); kaMandarDiario();
   document.querySelectorAll('.ka-tela').forEach(e=>e.remove());
   const tela = document.createElement('div');
   tela.className = 'ka-tela';
@@ -35159,11 +35716,13 @@ function abrirAgente(caixa, opts){
   /* o que fazer com a resposta do motor: código novo na caixa, nome do jogo, texto, cartões e o robô */
   async function processar(r){
     if(r.erro) try{ console.warn('Agente Koda GB:', r.erro); }catch(e){}
-    if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); }
+    if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); conv.codigoDoAgente = caixa.value; }
     /* jogo criado do zero: o nome dele já vai pro campo "Nome" (se estiver vazio) */
     if(r.nomeJogo && opts.nomeEl && !opts.nomeEl.value.trim()){ opts.nomeEl.value = r.nomeJogo; try{ opts.nomeEl.dispatchEvent(new Event('input', {bubbles: true})); }catch(e){} }
     await mostrar(r);
     kaSalvarAprendido(conv.estado);
+    kaGuardarDiario(conv.estado);
+    kaGuardarJogo(conv);
     if(r.testar){
       /* o robô joga com o código que está na caixa (já arrumado, igual o Testar faz) */
       const prep = prepararCodigoDoJogo(caixa.value);
@@ -35184,6 +35743,7 @@ function abrirAgente(caixa, opts){
     bolhaEu(txt);
     const p = pensando();
     await new Promise(r=>setTimeout(r, 280 + Math.random() * 380));
+    kaJogoDaConversa(conv, caixa.value);
     const r = resolver();
     p.remove();
     await processar(r);
