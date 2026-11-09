@@ -16257,8 +16257,9 @@ async function chatOndaDe(id, src){
     if(!AC) return null;
     const buf = await (await fetch(src)).arrayBuffer();
     const ac = new AC();
-    const au = await new Promise((ok, no)=>{ const p = ac.decodeAudioData(buf, ok, no); if(p && p.then) p.then(ok, no); });
-    try{ ac.close(); }catch(e){}
+    let au;
+    try{ au = await new Promise((ok, no)=>{ const p = ac.decodeAudioData(buf, ok, no); if(p && p.then) p.then(ok, no); }); }
+    finally{ try{ ac.close(); }catch(e){} }
     const d = au.getChannelData(0), n = CHAT_AUDIO_BARRAS, passo = Math.max(1, Math.floor(d.length / n)), r = [];
     for(let i = 0; i < n; i++){ let m = 0; for(let k = i * passo; k < (i + 1) * passo && k < d.length; k += 8){ const v = Math.abs(d[k]); if(v > m) m = v; } r.push(m); }
     const max = Math.max.apply(null, r.concat([.01]));
@@ -20957,6 +20958,39 @@ function kodaDesempenhoDentroDoJogo(C){
     try{ Object.setPrototypeOf(K, O); }catch(e){}
     try{ W[n] = K; }catch(e){}
   });
+  /* Sem toque o navegador deixa o som do jogo parado, e o iPhone/iPad só libera dentro de um toque: jogo que cria o som e nunca
+     chama resume() (muitos fazem isso, porque no computador funciona) ficava mudo. Aqui, no primeiro toque (e em todo toque depois,
+     se o aparelho parar o som por ligação, outro app ou tela apagada), todo som do jogo que está parado volta.
+     Não mexe no que o próprio jogo pediu pra ficar parado (botão de mudo) nem enquanto o aviso de virar o celular está na tela. */
+  var sonsDoJogo = [];
+  ['AudioContext', 'webkitAudioContext'].forEach(function(n){
+    var K0 = W[n];
+    if(typeof K0 !== 'function' || K0.__kodaLiga) return;
+    var K2 = function(op){
+      var c = op ? new K0(op) : new K0();
+      try{
+        if(sonsDoJogo.indexOf(c) < 0){
+          sonsDoJogo.push(c);
+          var s0 = c.suspend, r0 = c.resume;
+          if(typeof s0 === 'function') c.suspend = function(){ c.__kodaMudo = 1; return s0.apply(c, arguments); };
+          if(typeof r0 === 'function') c.resume = function(){ c.__kodaMudo = 0; return r0.apply(c, arguments); };
+        }
+      }catch(e){}
+      return c;
+    };
+    K2.prototype = K0.prototype; K2.__koda = 1; K2.__kodaLiga = 1;
+    try{ Object.setPrototypeOf(K2, K0); }catch(e){}
+    try{ W[n] = K2; }catch(e){}
+  });
+  function liberarSons(){
+    if(W.__kodaPausado) return;
+    for(var i = 0; i < sonsDoJogo.length; i++){
+      var c = sonsDoJogo[i];
+      try{ if(c.state !== 'running' && c.state !== 'closed' && !c.__kodaMudo){ var p = c.resume(); if(p && p.catch) p.catch(function(){}); } }catch(e){}
+    }
+  }
+  ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach(function(ev){ try{ W.addEventListener(ev, liberarSons, {capture: true, passive: true}); }catch(e){} });
+  try{ D.addEventListener('visibilitychange', function(){ if(!D.hidden) setTimeout(liberarSons, 0); }); }catch(e){}
   try{
     ['log', 'info', 'debug', 'warn', 'trace', 'table', 'dir'].forEach(function(k){
       var f = console[k]; if(typeof f !== 'function') return;
@@ -21555,6 +21589,7 @@ function kodaPausaDentroDoJogo(){
     return st0.call(W, embrulho, ms);
   };
   var espera = [];
+  W.__kodaPausado = false;
   ['AudioContext', 'webkitAudioContext'].forEach(function(nome){
     var A = W[nome];
     if(!A) return;
@@ -21565,6 +21600,7 @@ function kodaPausaDentroDoJogo(){
   });
   function parar(sim){
     if(sim === pausado) return;
+    W.__kodaPausado = !!sim;
     if(sim){
       comecou = perf0 ? perf0() : 0; dnPausa = dn0();
       pausado = true;
@@ -39849,10 +39885,12 @@ function setSoundOn(on){
   musicaLobbyAtualizar();          // a música do lobby liga e desliga junto com o som
 }
 function audio(){
+  if(audioCtx && audioCtx.state === 'closed') audioCtx = null;           // o aparelho fechou o som (acontece no iPhone): faz outro
   if(!audioCtx){
     try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
   }
-  if(audioCtx && audioCtx.state === 'suspended'){ try{ audioCtx.resume(); }catch(e){} }
+  /* parado por falta de toque ('suspended') ou pelo aparelho depois de ligação, outro app, tela apagada ('interrupted' no iPhone) */
+  if(audioCtx && audioCtx.state !== 'running'){ try{ const p = audioCtx.resume(); if(p && p.catch) p.catch(()=>{}); }catch(e){} }
   return audioCtx;
 }
 /* cada efeito é uma sequência de notinhas */
@@ -40998,13 +41036,28 @@ const SONS_REAIS = (function(){
   const tem = nome=>{ if(S[nome]) return true; try{ const e = ENTRADAS.find(x=>'ent_' + x.id === nome); return !!(e && SOM_DA_FORMA[e.forma]); }catch(x){ return false; } };
   return {tocar, tem, somDoItemHalloween, _S: S, _prepara: prepara};
 })();
+let somPendente = null;
 function playSound(nome){
   if(!soundOn()) return;
-  { const c0 = audio(); if(c0 && SONS_REAIS.tocar(c0, nome)) return; }   // som de verdade; se não tiver, as notinhas de antes
+  const c = audio();
+  if(!c) return;
+  if(c.state !== 'running'){
+    /* o som ainda não foi liberado (1º toque) ou o aparelho parou ele (ligação, outro app): nada de empilhar notas esperando
+       (viravam uma barulheira de uma vez quando o som voltava). Só o último som pedido toca, se o som voltar logo. */
+    somPendente = {nome, quando: Date.now()};
+    let p = null; try{ p = c.resume(); }catch(e){}
+    if(p && p.then) p.then(()=>{
+      const d = somPendente; somPendente = null;
+      if(d && Date.now() - d.quando < 1500 && c.state === 'running' && soundOn()) tocarSomAgora(d.nome, c);
+    }, ()=>{});
+    return;
+  }
+  tocarSomAgora(nome, c);
+}
+function tocarSomAgora(nome, ctx){
+  if(SONS_REAIS.tocar(ctx, nome)) return;   // som de verdade; se não tiver, as notinhas de antes
   const receita = SOUNDS[nome];
   if(!receita) return;
-  const ctx = audio();
-  if(!ctx) return;
   const agora = ctx.currentTime;
   receita.forEach(nota=>{
     try{
@@ -41245,7 +41298,10 @@ function musicaLobbyAtualizar(){
     try{ c.resume().then(()=>{ if(liberado(c)){ ML.destravado = true; musicaLobbyAtualizar(); } }, ()=>{}); }catch(e){}
   };
   ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(ev=>window.addEventListener(ev, destravar, {capture: true, passive: true}));
-  document.addEventListener('visibilitychange', musicaLobbyAtualizar);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible'){ try{ audio(); }catch(e){} }      // voltou do fundo: já tenta trazer o som de volta (o toque seguinte termina o serviço)
+    musicaLobbyAtualizar();
+  });
   /* no computador o navegador às vezes já deixa tocar sem toque nenhum: aí a música começa sozinha */
   setTimeout(()=>{ try{ const c = audio(); if(c) c.resume().then(()=>{ if(liberado(c)){ ML.destravado = true; musicaLobbyAtualizar(); } }, ()=>{}); }catch(e){} }, 600);
   ML.timer = setInterval(()=>{
