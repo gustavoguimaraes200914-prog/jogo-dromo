@@ -12,7 +12,7 @@
      Só o dono pode fazer uma regra valer "sempre" (até onde o agente achava que tinha entendido). */
 import { texto } from './util.js';
 
-const NAO_ENSINA = /^(vazio|nada|oi|obrigado|quem|ajuda|sim|nao|negou|improprio|dados_pessoais|dinheiro_real|faq|faq_duvida|qual_item|escolheu_item|loja_nome_qual|deu_nome|confirmou|briefing_resp|ensinar|ensinar_qual|elogio|confuso|tudo_bem|xingou|historico|moedas_quer|faq_texto|desfazer|aprendeu_ver|aprendeu_limpar|aprendeu_errei)$/;
+const NAO_ENSINA = /^(vazio|nada|oi|obrigado|quem|ajuda|sim|nao|negou|improprio|dados_pessoais|dinheiro_real|faq|faq_duvida|qual_item|escolheu_item|loja_nome_qual|deu_nome|confirmou|briefing_resp|ensinar|ensinar_qual|elogio|confuso|tudo_bem|xingou|historico|moedas_quer|faq_texto|desfazer|aprendeu_ver|aprendeu_limpar|aprendeu_errei|midia_pergunta|midia_ruim|midia_usar|midia_tirar)$/;
 const SO_DONO = /^(loja_remover|consertar|criar_jogo|adaptar|outra_ia|mudar_tema|nome_jogo|mod_texto|mod_traduzir|loja_nome|loja_desc|moeda_renomear)$/;
 const TIPOS = /^(nao_entendi|ensinou|errou|quebrou|moeda_[a-z_]{2,20})$/;
 export const AUTO_VOTOS = 3, AUTO_QUEIXAS = 3, POR_DIA = 60, MAX_FRASES = 3000;

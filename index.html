@@ -3767,6 +3767,57 @@
   .ka-dica{flex-basis:100%;display:flex;align-items:center;gap:10px;margin:2px 0 0;padding:6px 14px 6px 8px;border:1.5px solid rgba(179,136,255,.8);border-radius:16px 16px 16px 4px;background:rgba(124,77,255,.2);color:inherit;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.9rem;text-align:left;cursor:pointer;animation:kaEntra .3s ease-out;}
   .ka-dica .ia-ico.ia-ag{height:34px;}
   @media (prefers-reduced-motion: reduce){ .ia-ico.ia-ag.mexe{animation:none;} .ka-dica{animation:none;} }
+
+  .ka-acoes{display:flex;gap:2px;margin:-3px 6px 1px;align-self:flex-start;}
+  .ka-acoes.eu{align-self:flex-end;}
+  .ka-acao{width:34px;height:30px;border:none;background:transparent;color:rgba(8,50,43,.5);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;}
+  .ka-acao svg{width:17px;height:17px;}
+  .ka-acao:hover,.ka-acao:focus-visible{background:rgba(124,77,255,.12);color:#5b34d6;}
+  .ka-acao.ok{color:#14a07e;}
+  .ka-acao:focus-visible{outline:3px solid #00e5ff;outline-offset:1px;}
+  @media (hover:hover){ .ka-acoes{opacity:0;transition:opacity .15s;} .ka-msg:hover + .ka-acoes,.ka-acoes:hover,.ka-acoes:focus-within{opacity:1;} }
+  .ka-editando{display:flex;align-items:center;gap:10px;background:#efe9ff;border-radius:14px;padding:8px 8px 8px 13px;margin-bottom:8px;color:#3b2a8a;font-family:'Nunito',sans-serif;}
+  .ka-editando[hidden]{display:none;}
+  .ka-editando div{flex:1;min-width:0;}
+  .ka-editando b{display:block;font-size:.92rem;}
+  .ka-editando small{display:block;opacity:.85;font-size:.78rem;line-height:1.25;}
+  .ka-edit-x{flex:none;width:34px;height:34px;border:none;border-radius:50%;background:rgba(59,42,138,.12);color:#3b2a8a;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .ka-edit-x svg{width:16px;height:16px;}
+  .ka-tela.editando .ka-form textarea{border-color:#7C4DFF;box-shadow:0 0 0 3px rgba(124,77,255,.18);}
+  .ka-mic{flex:none;width:46px;height:46px;border:none;border-radius:50%;background:#efe9ff;color:#5b34d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .ka-mic[hidden]{display:none;}
+  .ka-mic svg{width:22px;height:22px;}
+  .ka-mic.ouvindo{background:#E8413C;color:#fff;animation:kaMic 1.2s ease-in-out infinite;}
+  @keyframes kaMic{0%,100%{box-shadow:0 0 0 0 rgba(232,65,60,.45);}50%{box-shadow:0 0 0 9px rgba(232,65,60,0);}}
+  .ka-mic:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){ .ka-mic.ouvindo{animation:none;} }
+  .ka-form{position:relative;}
+  .ka-clipe{flex:none;width:46px;height:46px;border:none;border-radius:50%;background:#efe9ff;color:#5b34d6;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .ka-clipe svg{width:22px;height:22px;}
+  .ka-clipe[aria-expanded="true"]{background:#7C4DFF;color:#fff;}
+  .ka-clipe:focus-visible,.ka-menu-an button:focus-visible,.ka-an-x:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ka-menu-an{display:flex;flex-direction:column;gap:2px;background:#fff;border-radius:16px;box-shadow:0 8px 28px rgba(8,50,43,.22);padding:6px;margin:0 0 8px;max-width:260px;font-family:'Nunito',sans-serif;}
+  .ka-menu-an[hidden]{display:none;}
+  .ka-menu-an button{display:flex;align-items:center;gap:12px;border:none;background:transparent;padding:11px 12px;border-radius:12px;font:700 .95rem 'Nunito',sans-serif;color:#13312A;cursor:pointer;text-align:left;}
+  .ka-menu-an button:hover{background:#efe9ff;}
+  .ka-menu-an svg{width:22px;height:22px;color:#5b34d6;flex:none;}
+  .ka-anexo-prev{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid rgba(124,77,255,.3);border-radius:16px;padding:7px 8px 7px 8px;margin-bottom:8px;font-family:'Nunito',sans-serif;color:#13312A;}
+  .ka-anexo-prev[hidden]{display:none;}
+  .ka-an-corpo{flex:1;min-width:0;display:flex;align-items:center;gap:10px;font-weight:700;font-size:.9rem;}
+  .ka-an-corpo small{opacity:.7;font-weight:700;}
+  .ka-an-mini.imagem,.ka-an-mini.video{width:54px;height:54px;object-fit:cover;border-radius:10px;background:#ddd;}
+  .ka-an-mini.audio{height:34px;max-width:min(260px,70vw);}
+  .ka-an-x{flex:none;width:34px;height:34px;border:none;border-radius:50%;background:rgba(8,50,43,.08);color:#13312A;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .ka-an-x svg{width:15px;height:15px;}
+  .ka-an-giro{width:22px;height:22px;border-radius:50%;border:3px solid #d9ccff;border-top-color:#7C4DFF;animation:kaGiroAn .8s linear infinite;flex:none;}
+  @keyframes kaGiroAn{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .ka-an-giro{animation-duration:2.4s;} }
+  .ka-msg.eu.com-midia{display:flex;flex-direction:column;gap:6px;}
+  .ka-msg .ka-midia{display:block;max-width:100%;border-radius:12px;background:rgba(255,255,255,.18);}
+  .ka-msg .ka-midia.imagem,.ka-msg .ka-midia.video{max-height:240px;width:auto;object-fit:contain;}
+  .ka-msg .ka-midia.audio{width:min(260px,70vw);height:36px;}
+  .ka-form textarea::placeholder{font-size:14px;}
+  @media (max-width:430px){ .ka-form{gap:6px;} .ka-clipe,.ka-mic,.ka-enviar{width:42px;height:42px;} .ka-clipe svg,.ka-mic svg{width:21px;height:21px;} }
   /* ==== AGENTE KODA: CSS FIM ==== */
   .direct-test-btn{
     width:100%;padding:12px;border-radius:12px;border:1.5px solid #00e5ff;background:none;
@@ -16329,7 +16380,7 @@ function chatAudioLigar(raiz, area){
 const AUDIO_MAX_SEG = 120;
 const AUDIO_MIMES = ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
 /* abre o painel de gravação por cima da barra de escrever. aoTerminar({dataUrl, seg}) quando a pessoa manda. */
-async function chatGravarAudio(barra, aoTerminar){
+async function chatGravarAudio(barra, aoTerminar, maxSeg){
   let stream;
   try{
     stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1}});
@@ -16370,7 +16421,7 @@ async function chatGravarAudio(barra, aoTerminar){
       hist.push(Math.min(1, .08 + Math.sqrt(soma / dados.length) * 3.2)); hist.shift();
       niveis.forEach((el, i)=>{ el.style.transform = 'scaleY(' + hist[i].toFixed(2) + ')'; });
     }
-    if(seg >= AUDIO_MAX_SEG){ terminar(true); return; }
+    if(seg >= (maxSeg || AUDIO_MAX_SEG)){ terminar(true); return; }
     raf = requestAnimationFrame(quadro);
   };
   raf = requestAnimationFrame(quadro);
@@ -23959,6 +24010,12 @@ function ligarCapa(root, o){
     };
     reader.readAsDataURL(file);
   });
+  /* o Agente Koda GB também escolhe a capa (uma imagem que a pessoa mandou no chat dele) */
+  est.definir = function(dataUrl){
+    const img = new Image();
+    img.onload = ()=>{ est.img = img; est.cover = capaRecortada(img, est.shape); o.mostrarFoto(est.cover); };
+    img.src = dataUrl;
+  };
   mostrar();
   return est;
 }
@@ -24162,7 +24219,7 @@ async function abrirStudioDupla(id){
   let capaNova = null;
   const capa = ligarCapa(modalBody, {shape: P.formato || 'square', inputSel: '#fCover', previewSel: '#coverPreview',
     mostrarFoto: uri=>{ modalBody.querySelector('#coverPreview').innerHTML = `<img src="${uri}">`; capaNova = uri; agendar(); }});
-  ligarAssistente(modalBody, '#fCode', null);
+  ligarAssistente(modalBody, '#fCode', null, capa);
   /* Testar: igual ao do Koda GB Studio */
   const previewBg = modalBody.querySelector('#duplaPreviewBg'), previewFrame = modalBody.querySelector('#duplaPreviewFrame');
   modalBody.querySelector('#duplaTest').addEventListener('click', ()=>{
@@ -24352,7 +24409,7 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
     const campoNotas = root.querySelector('#fNotas');
     publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape, codigoTemLoja(code) || undefined, campoNotas ? campoNotas.value : '');
   });
-  ligarAssistente(root, '#fCode', editingId);
+  ligarAssistente(root, '#fCode', editingId, capa);
   /* "Criar em dupla" leva esse jogo (nome, código e capa) pro projeto da dupla */
   if(!duplaDoJogo(editingId)) duplaPorNoStudio(root, ()=>({nome: root.querySelector('#fName').value.trim(), codigo: root.querySelector('#fCode').value, capa: capa.cover || (recEditado && recEditado.cover) || null, formato: capa.shape}));
 }
@@ -27219,7 +27276,16 @@ function kodaSonsNoJogo(){
     fim: [[523, 0, .16, 'triangle', .09], [392, .16, .16, 'triangle', .09], [262, .32, .32, 'triangle', .09]],
     compra: [[660, 0, .08, 'sine', .08], [990, .08, .12, 'sine', .08]]
   };
+  var cacheMeu = {};
   window.kodaSom = function(nome){
+    /* o áudio que a pessoa mandou pro agente toca no lugar do bipe */
+    var meu = window.__kodaSomMeu && window.__kodaSomMeu[nome];
+    if(meu){
+      var t0 = Date.now(); if(ult['m' + nome] && t0 - ult['m' + nome] < 60) return; ult['m' + nome] = t0;
+      try{ var a = cacheMeu[nome] || (cacheMeu[nome] = new Audio(meu)); a.currentTime = 0; var pa = a.play(); if(pa && pa.catch) pa.catch(function(){}); }catch(e){}
+      return;
+    }
+    if(window.__kodaSomSo) return;
     var c = ctx(), s = SONS[nome];
     if(!c || !s || c.state !== 'running') return;
     var agora = c.currentTime;
@@ -27254,7 +27320,11 @@ function dentroDeIf(T, j){
   return false;
 }
 function fazerSons(codigo, quais){
-  if(/data-koda-sons/.test(codigo)) return {erro: 'ja_tem'};
+  if(/data-koda-sons/.test(codigo)){
+    /* só tinha os sons que a pessoa mandou: liga os bipes dos outros momentos também */
+    if(/__kodaSomSo=1/.test(codigo)) return conferirDepois(codigo, codigo.replace('__kodaSomSo=1', '__kodaSomSo=0'), {sons: {todos: 1}});
+    return {erro: 'ja_tem'};
+  }
   var doc = lerDocumento(codigo), ed = new Edicao(codigo), feitos = {};
   var pts = variavelDosPontos(doc);
   var at = acharAtributos(doc);
@@ -28772,7 +28842,8 @@ function responderUm(est, texto, bruto){
     var direto = null;
     Object.keys(CHIPS_DIRETOS).forEach(function(k){ if(String(texto).trim() === T(k)) direto = {int: 'efeito_curto', efeito: CHIPS_DIRETOS[k]}; });
     var it = direto || entender(texto, ctx);
-    if(!direto){ try{ it = aprenderAntes(est, texto, it, ctx); }catch(e){} }
+    if(!direto){ try{ it = midiaAntes(est, texto, it, ctx); }catch(e){} }
+    if(!direto && !/^midia_/.test(it.int)){ try{ it = aprenderAntes(est, texto, it, ctx); }catch(e){} }
     est.pendente = it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' ? est.pendente : (est.pendente && /^(confirmar|qual_item|nome_item|ideia|tipo_jogo|tema_jogo|briefing|mod_\w+)$/.test(est.pendente.tipo) && it.int !== 'nada' ? null : est.pendente);
     if(it.int === 'escolheu_item' || it.int === 'confirmou' || it.int === 'deu_nome' || it.int === 'negou' || it.int === 'briefing_resp') est.pendente = null;
     r = (H[it.int] || H.nada)(it, ctx, est);
@@ -30073,6 +30144,7 @@ function fazerFundo(codigo, cor){
   });
   var novo = ed.aplicar() || codigo;
   novo = tirarMarca(novo, 'data-koda-fundo');
+  novo = tirarMarca(novo, 'data-koda-img-fundo');
   novo = colocarNoComeco(novo, '<style data-koda-fundo="1">html,body{background:' + cor.css + ' !important;}canvas{background-color:' + cor.css + ';}</style>');
   var r = conferirDepois(codigo, novo, {canvas: n > 0, n: n});
   return r;
@@ -30122,11 +30194,11 @@ function kodaPainelNoJogo(C){
   }catch(e){}
   try{
     var pl = HTMLMediaElement.prototype.play;
-    HTMLMediaElement.prototype.play = function(){ try{ this.muted = mudo; }catch(e){} return pl.apply(this, arguments); };
+    HTMLMediaElement.prototype.play = function(){ try{ if(!this.__kodaArte) this.muted = mudo; }catch(e){} return pl.apply(this, arguments); };
   }catch(e){}
   function aplicarMudo(){
     masters.forEach(function(g){ try{ g.gain.value = mudo ? 0 : 1; }catch(e){} });
-    [].forEach.call(document.querySelectorAll('audio,video'), function(m){ try{ m.muted = mudo; }catch(e){} });
+    [].forEach.call(document.querySelectorAll('audio,video'), function(m){ try{ if(!m.__kodaArte) m.muted = mudo; }catch(e){} });
     if(bSom) bSom.innerHTML = icone(mudo ? 'mudo' : 'som');
   }
   var ICONES = {
@@ -30147,9 +30219,11 @@ function kodaPainelNoJogo(C){
     return b;
   }
   function caixa(css){ var d = document.createElement('div'); d.style.cssText = css; return d; }
+  var kodaMidiaPausa = [];        /* áudios e vídeos tocando na hora da pausa: voltam a tocar quando continua */
   function congelar(){
     pausado = true; marca = pn(); marcaD = dn();
     ctxs.forEach(function(c){ try{ c.suspend(); }catch(e){} });
+    [].forEach.call(document.querySelectorAll('audio,video'), function(m){ try{ if(!m.paused && !m.__kodaArte){ m.pause(); kodaMidiaPausa.push(m); } }catch(e){} });
   }
   function pausar(){
     if(pausado || !comecou) return;
@@ -30161,6 +30235,7 @@ function kodaPainelNoJogo(C){
     if(!pausado) return;
     pausado = false; off += pn() - marca;
     if(!mudo) ctxs.forEach(function(c){ try{ c.resume(); }catch(e){} });
+    kodaMidiaPausa.splice(0).forEach(function(m){ try{ var pm = m.play(); if(pm && pm.catch) pm.catch(function(){}); }catch(e){} });
     if(bPausa) bPausa.innerHTML = icone('pausa');
     if(veu) veu.style.display = 'none';
     var f = fila; fila = [];
@@ -30206,6 +30281,15 @@ function kodaPainelNoJogo(C){
       var t = document.createElement('div'); t.style.cssText = 'font-size:clamp(28px,7vw,52px);font-weight:800;margin-bottom:10px;text-shadow:0 3px 12px rgba(0,0,0,.45);max-width:90%;'; t.textContent = C.titulo || '';
       var d = document.createElement('div'); d.style.cssText = 'font-size:clamp(14px,3.4vw,19px);font-weight:600;opacity:.9;max-width:520px;margin-bottom:26px;'; d.textContent = C.dica || '';
       var b = document.createElement('div'); b.style.cssText = 'padding:14px 40px;border-radius:40px;background:#7CFFCB;color:#0b1030;font-size:clamp(20px,5vw,28px);font-weight:800;box-shadow:0 6px 0 #3fbf93;'; b.textContent = C.txt.jogar;
+      var A = window.__kodaArte;        /* imagem ou vídeo que a pessoa mandou pro agente: aparece em cima do título */
+      if(A && A.src){
+        var arte = document.createElement(A.tipo === 'video' ? 'video' : 'img');
+        arte.src = A.src; arte.__kodaArte = 1;
+        arte.style.cssText = 'max-width:min(86%,520px);max-height:36vh;border-radius:18px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.4);object-fit:contain;background:rgba(0,0,0,.25);';
+        if(A.tipo === 'video'){ arte.muted = true; arte.loop = true; arte.autoplay = true; arte.setAttribute('playsinline', ''); arte.setAttribute('muted', ''); try{ var pv = arte.play(); if(pv && pv.catch) pv.catch(function(){}); }catch(e){} }
+        else arte.alt = '';
+        inicioEl.appendChild(arte);
+      }
       inicioEl.appendChild(t); inicioEl.appendChild(d); inicioEl.appendChild(b);
       inicioEl.addEventListener('click', function(e){ e.stopPropagation(); comecar(); });
       document.body.appendChild(inicioEl);
@@ -31005,7 +31089,7 @@ H.nada = function(it, ctx, est){
   return r;
 };
 Object.assign(TX, {
-  ajuda_r: 'Eu consigo (é só falar do seu jeito, pode usar gíria):\n- colocar loja no jogo e mudar do seu jeito ("deixa tudo em diamantes", "o escudo custa 20 moedas", "tira o turbo")\n- mudar o visual: "deixa em preto e branco", "deixa tudo azul", "muda o fundo pra verde", "modo noite"\n- botões e telas: "coloca um botão de pausa", "botão de som", "tela inicial", "botão de reiniciar"\n- música de fundo: "coloca música alegre" (ou calma, de aventura, espacial...)\n- números do jogo: "mais vidas", "começa com 5 vidas", "deixa mais rápido", "pulo mais alto", "deixa mais difícil"\n- textos: "traduz pra inglês", "troque "Game Over" por "Acabou!""\n- verificar o código e achar erros, consertar, avaliar e dar nota\n- fazer o jogo salvar, mandar pontos pro ranking, colocar sons, usar sua skin e deixar online\n- tirar dúvidas do Koda GB e dar ideias de jogos|I can (just say it your way, slang is fine):\n- add a shop to the game and change it ("make it all diamonds", "the shield costs 20 coins", "remove the turbo")\n- change the look: "make it black and white", "make everything blue", "change the background to green", "night mode"\n- buttons and screens: "add a pause button", "sound button", "start screen", "restart button"\n- background music: "add cheerful music" (or calm, adventure, space...)\n- game numbers: "more lives", "start with 5 lives", "make it faster", "higher jump", "make it harder"\n- texts: "translate to Spanish", "replace "Game Over" with "It is over!""\n- check the code and find errors, fix, rate and give a score\n- make the game save, send points to the ranking, add sounds, use your skin and make it online\n- answer Koda GB questions and give game ideas|Puedo (solo dilo a tu manera, vale la jerga):\n- poner una tienda en el juego y cambiarla ("todo en diamantes", "el escudo cuesta 20 monedas", "quita el turbo")\n- cambiar el aspecto: "déjalo en blanco y negro", "todo azul", "cambia el fondo a verde", "modo noche"\n- botones y pantallas: "pon un botón de pausa", "botón de sonido", "pantalla de inicio", "botón de reiniciar"\n- música de fondo: "pon música alegre" (o tranquila, de aventura, espacial...)\n- números del juego: "más vidas", "empieza con 5 vidas", "más rápido", "salto más alto", "más difícil"\n- textos: "traduce al inglés", "cambia "Game Over" por "¡Se acabó!""\n- revisar el código y encontrar errores, arreglar, evaluar y dar nota\n- hacer que el juego guarde, mandar puntos al ranking, poner sonidos, usar tu skin y dejarlo online\n- resolver dudas de Koda GB y dar ideas de juegos'
+  ajuda_r: 'Eu consigo (é só falar do seu jeito, pode usar gíria):\n- colocar loja no jogo e mudar do seu jeito ("deixa tudo em diamantes", "o escudo custa 20 moedas", "tira o turbo")\n- mudar o visual: "deixa em preto e branco", "deixa tudo azul", "muda o fundo pra verde", "modo noite"\n- botões e telas: "coloca um botão de pausa", "botão de som", "tela inicial", "botão de reiniciar"\n- música de fundo: "coloca música alegre" (ou calma, de aventura, espacial...)\n- números do jogo: "mais vidas", "começa com 5 vidas", "deixa mais rápido", "pulo mais alto", "deixa mais difícil"\n- textos: "traduz pra inglês", "troque "Game Over" por "Acabou!""\n- verificar o código e achar erros, consertar, avaliar e dar nota\n- fazer o jogo salvar, mandar pontos pro ranking, colocar sons, usar sua skin e deixar online\n- tirar dúvidas do Koda GB e dar ideias de jogos\n- usar uma imagem, um vídeo ou um áudio que você mandar (botão do clipe): fundo, tela inicial, capa, música e sons do jogo|I can (just say it your way, slang is fine):\n- add a shop to the game and change it ("make it all diamonds", "the shield costs 20 coins", "remove the turbo")\n- change the look: "make it black and white", "make everything blue", "change the background to green", "night mode"\n- buttons and screens: "add a pause button", "sound button", "start screen", "restart button"\n- background music: "add cheerful music" (or calm, adventure, space...)\n- game numbers: "more lives", "start with 5 lives", "make it faster", "higher jump", "make it harder"\n- texts: "translate to Spanish", "replace "Game Over" with "It is over!""\n- check the code and find errors, fix, rate and give a score\n- make the game save, send points to the ranking, add sounds, use your skin and make it online\n- answer Koda GB questions and give game ideas\n- use an image, a video or an audio you send (paperclip button): background, start screen, cover, music and game sounds|Puedo (solo dilo a tu manera, vale la jerga):\n- poner una tienda en el juego y cambiarla ("todo en diamantes", "el escudo cuesta 20 monedas", "quita el turbo")\n- cambiar el aspecto: "déjalo en blanco y negro", "todo azul", "cambia el fondo a verde", "modo noche"\n- botones y pantallas: "pon un botón de pausa", "botón de sonido", "pantalla de inicio", "botón de reiniciar"\n- música de fondo: "pon música alegre" (o tranquila, de aventura, espacial...)\n- números del juego: "más vidas", "empieza con 5 vidas", "más rápido", "salto más alto", "más difícil"\n- textos: "traduce al inglés", "cambia "Game Over" por "¡Se acabó!""\n- revisar el código y encontrar errores, arreglar, evaluar y dar nota\n- hacer que el juego guarde, mandar puntos al ranking, poner sonidos, usar tu skin y dejarlo online\n- resolver dudas de Koda GB y dar ideas de juegos\n- usar una imagen, un video o un audio que envíes (botón del clip): fondo, pantalla de inicio, portada, música y sonidos del juego'
 });
 
 
@@ -31104,9 +31188,14 @@ function responderVarios(est, texto, bruto){
   out.intencao = 'varios';
   return out;
 }
-function responder(est, texto, bruto){
-  var multi = null;
-  try{ multi = responderVarios(est, texto, bruto); }catch(e){ multi = null; }
+function responder(est, texto, bruto, extras){
+  var multi = null, temAnexo = !!(extras && extras.anexo);
+  if(temAnexo){
+    var a = anexoOk(extras.anexo);
+    if(a){ est.anexo = a; est.anexoRuim = false; } else est.anexoRuim = true;
+    est.anexoTurno = (est.turnos || 0) + 1;        /* o turno em que ele chegou (responderUm soma 1 no começo) */
+  }
+  if(!temAnexo){ try{ multi = responderVarios(est, texto, bruto); }catch(e){ multi = null; } }
   return multi || responderUm(est, texto, bruto);
 }
 
@@ -35182,9 +35271,9 @@ entender = function(txt, ctx){
   };
   FAQ.forEach(function(f){ var n = NOVAS[f.id]; if(n) f.r = TX[n] || n; });
 })();
-TX.ajuda_r = 'Eu mexo no seu jogo. É só pedir do seu jeito, por exemplo:\n- Loja: "põe uma loja", "a espada custa 20 moedas", "deixa tudo em diamantes"\n- Moeda do jogo: "troca o ouro por moedas do Koda GB"\n- Visual: "fundo azul", "preto e branco", "modo noite"\n- Botões e música: "botão de pausa", "tela inicial", "música alegre"\n- Números: "mais vidas", "mais rápido", "pulo mais alto", "mais difícil"\n- Textos: "traduz pra inglês", troque "Game Over" por "Acabou!"\n- Koda GB: "joga com minha skin", "deixa online", "manda os pontos pro ranking", "salva o progresso"\n- Ajuda: "verifica o código", "avalia meu jogo", "me dá ideias"' +
-  '|I change your game. Just ask your way, for example:\n- Shop: "add a shop", "the sword costs 20 coins", "make everything diamonds"\n- Game currency: "change the gold to Koda GB coins"\n- Look: "blue background", "black and white", "night mode"\n- Buttons and music: "pause button", "start screen", "happy music"\n- Numbers: "more lives", "faster", "higher jump", "harder"\n- Texts: "translate to Spanish", replace "Game Over" with "The end!"\n- Koda GB: "play with my skin", "make it online", "send the points to the ranking", "save the progress"\n- Help: "check the code", "rate my game", "give me ideas"' +
-  '|Cambio tu juego. Solo pídelo a tu manera, por ejemplo:\n- Tienda: "pon una tienda", "la espada cuesta 20 monedas", "pon todo en diamantes"\n- Moneda del juego: "cambia el oro por monedas de Koda GB"\n- Aspecto: "fondo azul", "blanco y negro", "modo noche"\n- Botones y música: "botón de pausa", "pantalla de inicio", "música alegre"\n- Números: "más vidas", "más rápido", "salto más alto", "más difícil"\n- Textos: "traduce al inglés", cambia "Game Over" por "¡Fin!"\n- Koda GB: "juega con mi skin", "ponlo online", "manda los puntos al ranking", "guarda el progreso"\n- Ayuda: "revisa el código", "evalúa mi juego", "dame ideas"';
+TX.ajuda_r = 'Eu mexo no seu jogo. É só pedir do seu jeito, por exemplo:\n- Loja: "põe uma loja", "a espada custa 20 moedas", "deixa tudo em diamantes"\n- Moeda do jogo: "troca o ouro por moedas do Koda GB"\n- Visual: "fundo azul", "preto e branco", "modo noite"\n- Botões e música: "botão de pausa", "tela inicial", "música alegre"\n- Números: "mais vidas", "mais rápido", "pulo mais alto", "mais difícil"\n- Textos: "traduz pra inglês", troque "Game Over" por "Acabou!"\n- Koda GB: "joga com minha skin", "deixa online", "manda os pontos pro ranking", "salva o progresso"\n- Imagem, vídeo e áudio: mande pelo clipe e diga "usa de fundo", "põe na tela inicial", "toca quando pular"\n- Ajuda: "verifica o código", "avalia meu jogo", "me dá ideias"' +
+  '|I change your game. Just ask your way, for example:\n- Shop: "add a shop", "the sword costs 20 coins", "make everything diamonds"\n- Game currency: "change the gold to Koda GB coins"\n- Look: "blue background", "black and white", "night mode"\n- Buttons and music: "pause button", "start screen", "happy music"\n- Numbers: "more lives", "faster", "higher jump", "harder"\n- Texts: "translate to Spanish", replace "Game Over" with "The end!"\n- Koda GB: "play with my skin", "make it online", "send the points to the ranking", "save the progress"\n- Image, video and audio: send it with the paperclip and say "use it as the background", "put it on the start screen", "play it when jumping"\n- Help: "check the code", "rate my game", "give me ideas"' +
+  '|Cambio tu juego. Solo pídelo a tu manera, por ejemplo:\n- Tienda: "pon una tienda", "la espada cuesta 20 monedas", "pon todo en diamantes"\n- Moneda del juego: "cambia el oro por monedas de Koda GB"\n- Aspecto: "fondo azul", "blanco y negro", "modo noche"\n- Botones y música: "botón de pausa", "pantalla de inicio", "música alegre"\n- Números: "más vidas", "más rápido", "salto más alto", "más difícil"\n- Textos: "traduce al inglés", cambia "Game Over" por "¡Fin!"\n- Koda GB: "juega con mi skin", "ponlo online", "manda los puntos al ranking", "guarda el progreso"\n- Imagen, video y audio: envíalo con el clip y di "úsala de fondo", "ponla en la pantalla de inicio", "suena al saltar"\n- Ayuda: "revisa el código", "evalúa mi juego", "dame ideas"';
 /* números do jeito que criança lê: sem sinal de menos no pulo e com vírgula */
 function numeroAmigo(v, outro){
   var x = Number(v);
@@ -35216,7 +35305,7 @@ H.historico = function(it, ctx, est){
    explica "eu queria..." ou diz "não era isso" e depois fala de novo). Eu guardo "essa frase = esse pedido"
    e da próxima vez já faço certo. Fica só no aparelho de quem ensinou (o site guarda a lista, sem mandar pra ninguém). */
 var AP_MAX = 150;
-var AP_NAO_ENSINA = /^(vazio|nada|oi|obrigado|quem|ajuda|sim|nao|negou|improprio|dados_pessoais|dinheiro_real|faq|faq_duvida|qual_item|escolheu_item|loja_nome_qual|deu_nome|confirmou|briefing_resp|ensinar|ensinar_qual|elogio|confuso|tudo_bem|xingou|historico|moedas_quer|faq_texto|desfazer|aprendeu_ver|aprendeu_limpar|aprendeu_errei)$/;
+var AP_NAO_ENSINA = /^(vazio|nada|oi|obrigado|quem|ajuda|sim|nao|negou|improprio|dados_pessoais|dinheiro_real|faq|faq_duvida|qual_item|escolheu_item|loja_nome_qual|deu_nome|confirmou|briefing_resp|ensinar|ensinar_qual|elogio|confuso|tudo_bem|xingou|historico|moedas_quer|faq_texto|desfazer|aprendeu_ver|aprendeu_limpar|aprendeu_errei|midia_pergunta|midia_ruim|midia_usar|midia_tirar)$/;
 var AP_PARTE = /\b(eu )?(quis dizer|queria dizer|queria|quero dizer|eu falei|falei|na verdade|era pra|era para|i meant|i mean|what i meant|actually|quise decir|queria decir|en realidad|era para)\b[ :,-]*/;
 var AP_NAO_ERA = /^(nao (era|foi|e|eh) (isso|assim|bem isso|nada disso)|nao e isso que eu (pedi|quis|queria)|errou|voce errou|vc errou|que nao era isso|that (is|was) not (it|what i (meant|wanted|asked))|not what i (meant|wanted|asked)|you got it wrong|no era eso|eso no (era|es)|no es eso|te equivocaste)\b/;
 var AP_VER = /\b(o que (voce|vc|tu) (ja )?aprendeu|what (have )?you (have )?learn(ed|t)|que (has )?aprendido|lista (do que )?(voce|vc) aprendeu|show what you learned|what did you learn)\b/;
@@ -35408,12 +35497,346 @@ Object.assign(TX, {
   ap_limpou: 'Pronto, esqueci tudo o que aprendi com você.|Done, I forgot everything I learned from you.|Listo, olvidé todo lo que aprendí contigo.',
   ch_ap_limpar: 'Esquecer tudo|Forget everything|Olvidar todo'
 });
+
+/* ---------------- voltar a conversa ao ponto de antes de uma mensagem (editar uma mensagem já mandada) ----------------
+   tirarFoto: guarda, antes de responder, o que a conversa "sabia" (pergunta pendente, último item, desfazer...).
+   voltarFoto: devolve tudo isso (e tira do "desfazer" o que foi feito depois). O código do jogo quem guarda é o site. */
+var FOTO_CAMPOS = ['pendente', 'ultimoItem', 'aguardando', 'ultimaVerif', 'talvezErro', 'ultimoPedido', 'chipsVistos', 'explicou', 'ensinado', 'nomesDeMoeda', 'moedaEnsinada'];
+function tirarFoto(est){
+  var f = {turnos: est.turnos || 0, campos: {}};
+  FOTO_CAMPOS.forEach(function(k){
+    if(est[k] === undefined) return;
+    try{ f.campos[k] = est[k] == null ? est[k] : JSON.parse(JSON.stringify(est[k])); }catch(e){}
+  });
+  f.topo = est.historico && est.historico.length ? est.historico[est.historico.length - 1] : null;
+  f.anexo = est.anexo || null; f.anexoTurno = est.anexoTurno;       /* o anexo é pesado: guarda a referência, não uma cópia */
+  return f;
+}
+function voltarFoto(est, f){
+  if(!f) return;
+  est.turnos = f.turnos;
+  est.anexo = f.anexo || null; est.anexoTurno = f.anexoTurno; est.anexoRuim = false;
+  FOTO_CAMPOS.forEach(function(k){
+    if(k in f.campos) est[k] = f.campos[k] == null ? f.campos[k] : JSON.parse(JSON.stringify(f.campos[k]));
+    else delete est[k];
+  });
+  var h = est.historico || (est.historico = []);
+  if(!f.topo) h.length = 0;
+  else { var i = h.indexOf(f.topo); h.length = i >= 0 ? i + 1 : 0; }
+}
+/* ---------------- textos da tela: copiar, editar, microfone e anexos (pt|en|es|it|fr|de|nl|ja|zh|ko) ---------------- */
+function textosEm10(dados){
+  Object.keys(dados).forEach(function(k){
+    var p = dados[k].split('|');
+    TX[k] = p.slice(0, 3).join('|');
+    LINGUAS_EXTRA.forEach(function(l, i){ (TXL[l] = TXL[l] || {})[k] = p[3 + i] || p[1]; });
+  });
+}
+textosEm10({
+  ui_editar: 'Editar mensagem|Edit message|Editar mensaje|Modifica messaggio|Modifier le message|Nachricht bearbeiten|Bericht bewerken|メッセージを編集|编辑消息|메시지 수정',
+  ui_copiar_msg: 'Copiar mensagem|Copy message|Copiar mensaje|Copia messaggio|Copier le message|Nachricht kopieren|Bericht kopiëren|メッセージをコピー|复制消息|메시지 복사',
+  ui_editando: 'Editando a mensagem|Editing the message|Editando el mensaje|Modifica del messaggio|Modification du message|Nachricht wird bearbeitet|Bericht bewerken|メッセージを編集中|正在编辑消息|메시지 수정 중',
+  ui_editando_sub: 'O jogo volta pra antes dela e o que veio depois é apagado.|The game goes back to before it, and what came after is erased.|El juego vuelve a antes de ella y lo que vino después se borra.|Il gioco torna a prima di questo messaggio e ciò che è venuto dopo viene cancellato.|Le jeu revient à avant ce message et ce qui a suivi est effacé.|Das Spiel geht auf den Stand davor zurück und alles danach wird gelöscht.|Het spel gaat terug naar het moment ervoor en wat daarna kwam wordt gewist.|ゲームはこのメッセージの前にもどり、そのあとのものは消えます。|游戏会回到这条消息之前，之后的内容会被删除。|게임이 이 메시지 이전으로 돌아가고 그 뒤의 내용은 지워져요.',
+  ui_cancelar: 'Cancelar|Cancel|Cancelar|Annulla|Annuler|Abbrechen|Annuleren|キャンセル|取消|취소',
+  ui_reenviar: 'Enviar de novo|Send again|Enviar de nuevo|Invia di nuovo|Renvoyer|Erneut senden|Opnieuw versturen|もう一度送る|重新发送|다시 보내기',
+  ui_edit_confirma: 'Isso volta o jogo pra antes dessa mensagem e apaga o que veio depois. Continuar?|This takes the game back to before this message and erases what came after. Continue?|Esto vuelve el juego a antes de este mensaje y borra lo que vino después. ¿Continuar?|Questo riporta il gioco a prima di questo messaggio e cancella ciò che è venuto dopo. Continuare?|Cela remet le jeu comme avant ce message et efface ce qui a suivi. Continuer ?|Das setzt das Spiel auf den Stand vor dieser Nachricht zurück und löscht alles danach. Weiter?|Dit zet het spel terug naar voor dit bericht en wist wat daarna kwam. Doorgaan?|ゲームをこのメッセージの前にもどし、そのあとのものを消します。続けますか？|这会让游戏回到这条消息之前，并删除之后的内容。要继续吗？|게임을 이 메시지 이전으로 되돌리고 그 뒤의 내용을 지워요. 계속할까요?',
+  ui_continuar_btn: 'Continuar|Continue|Continuar|Continua|Continuer|Weiter|Doorgaan|続ける|继续|계속',
+  ui_mic: 'Falar em vez de escrever|Speak instead of typing|Hablar en vez de escribir|Parla invece di scrivere|Parler au lieu d\'écrire|Sprechen statt tippen|Praten in plaats van typen|話して入力|语音输入|말로 입력',
+  ui_mic_parar: 'Parar de ouvir|Stop listening|Dejar de escuchar|Smetti di ascoltare|Arrêter d\'écouter|Nicht mehr zuhören|Stop met luisteren|聞くのをやめる|停止收听|듣기 멈추기',
+  ui_mic_ouvindo: 'Estou ouvindo... pode falar|I\'m listening... go ahead|Te escucho... habla|Ti ascolto... parla pure|Je t\'écoute... parle|Ich höre zu... sprich ruhig|Ik luister... zeg het maar|聞いてるよ…話してね|我在听……请说|듣고 있어요... 말해 보세요',
+  ui_mic_erro: 'Não consegui ouvir. Veja se o microfone está liberado.|I couldn\'t hear you. Check that the microphone is allowed.|No pude oírte. Revisa que el micrófono esté permitido.|Non ho sentito. Controlla che il microfono sia consentito.|Je n\'ai pas entendu. Vérifie que le micro est autorisé.|Ich konnte dich nicht hören. Prüfe, ob das Mikrofon erlaubt ist.|Ik kon je niet horen. Controleer of de microfoon is toegestaan.|聞こえませんでした。マイクが許可されているか確認してね。|没听到。请检查是否允许使用麦克风。|듣지 못했어요. 마이크가 허용돼 있는지 확인해 주세요.',
+  ui_anexar: 'Mandar imagem, vídeo ou áudio|Send an image, video or audio|Enviar imagen, video o audio|Invia immagine, video o audio|Envoyer une image, une vidéo ou un son|Bild, Video oder Audio senden|Afbeelding, video of audio sturen|画像・動画・音声を送る|发送图片、视频或音频|이미지, 영상, 소리 보내기',
+  ui_an_imagem: 'Imagem|Image|Imagen|Immagine|Image|Bild|Afbeelding|画像|图片|이미지',
+  ui_an_video: 'Vídeo|Video|Video|Video|Vidéo|Video|Video|動画|视频|영상',
+  ui_an_audio: 'Arquivo de áudio|Audio file|Archivo de audio|File audio|Fichier audio|Audiodatei|Audiobestand|音声ファイル|音频文件|오디오 파일',
+  ui_an_gravar: 'Gravar áudio|Record audio|Grabar audio|Registra audio|Enregistrer un son|Audio aufnehmen|Audio opnemen|音声を録音|录音|소리 녹음',
+  ui_an_tirar: 'Tirar o anexo|Remove the attachment|Quitar el adjunto|Rimuovi l\'allegato|Retirer la pièce jointe|Anhang entfernen|Bijlage verwijderen|添付を外す|移除附件|첨부 빼기',
+  ui_an_lendo: 'Preparando...|Getting it ready...|Preparando...|Preparazione...|Préparation...|Wird vorbereitet...|Voorbereiden...|準備中…|准备中……|준비하는 중...',
+  ui_an_nao_serve: 'Esse arquivo não serve. Mande uma imagem, um vídeo ou um áudio.|That file doesn\'t work. Send an image, a video or an audio.|Ese archivo no sirve. Manda una imagen, un video o un audio.|Questo file non va bene. Invia un\'immagine, un video o un audio.|Ce fichier ne convient pas. Envoie une image, une vidéo ou un son.|Diese Datei geht nicht. Sende ein Bild, ein Video oder Audio.|Dit bestand werkt niet. Stuur een afbeelding, video of audio.|このファイルは使えません。画像・動画・音声を送ってね。|这个文件不能用。请发送图片、视频或音频。|이 파일은 쓸 수 없어요. 이미지, 영상, 소리를 보내 주세요.',
+  ui_an_grande: 'Esse arquivo é grande demais pro jogo. Tente um menor.|That file is too big for the game. Try a smaller one.|Ese archivo es demasiado grande para el juego. Prueba con uno más pequeño.|Questo file è troppo grande per il gioco. Provane uno più piccolo.|Ce fichier est trop gros pour le jeu. Essaie-en un plus petit.|Diese Datei ist zu groß für das Spiel. Probiere eine kleinere.|Dit bestand is te groot voor het spel. Probeer een kleiner bestand.|このファイルはゲームには大きすぎます。小さいものを試してね。|这个文件对游戏来说太大了。请试试小一点的。|이 파일은 게임에 쓰기엔 너무 커요. 더 작은 걸 써 보세요.',
+  ui_an_erro: 'Não consegui abrir esse arquivo.|I couldn\'t open that file.|No pude abrir ese archivo.|Non sono riuscito ad aprire questo file.|Impossible d\'ouvrir ce fichier.|Ich konnte diese Datei nicht öffnen.|Ik kon dit bestand niet openen.|このファイルを開けませんでした。|无法打开这个文件。|이 파일을 열 수 없어요.',
+  ui_an_sem_gravar: 'Gravar áudio não funciona neste navegador.|Recording audio doesn\'t work in this browser.|Grabar audio no funciona en este navegador.|La registrazione audio non funziona in questo browser.|L\'enregistrement du son ne marche pas dans ce navigateur.|Audioaufnahme funktioniert in diesem Browser nicht.|Audio opnemen werkt niet in deze browser.|このブラウザでは録音できません。|这个浏览器不能录音。|이 브라우저에서는 녹음이 안 돼요.',
+  ui_an_so_um: 'Só dá pra mandar um anexo por vez.|Only one attachment at a time.|Solo se puede enviar un adjunto a la vez.|Un solo allegato alla volta.|Une seule pièce jointe à la fois.|Nur ein Anhang auf einmal.|Maar één bijlage tegelijk.|添付は一度に1つだけです。|一次只能发送一个附件。|첨부는 한 번에 하나만 보낼 수 있어요.'
+});
+/* ---------------- imagem, áudio e vídeo que a pessoa manda no chat viram parte do jogo ----------------
+   O site passa o anexo já pequeno (imagem reduzida, áudio curto, vídeo curto). Aqui o agente:
+   - confere o anexo (tipo, tamanho);
+   - entende o que a pessoa quer ("usa de fundo", "toca quando pular") ou pergunta;
+   - coloca no jogo: imagem (fundo, tela inicial, capa), áudio (música, sons de pular/ponto/dano/fim), vídeo (tela inicial).
+   Tudo vira texto dentro do próprio jogo (data:), sem link de fora. */
+var MIDIA_MAX = 640000;      /* letras do código: o banco guarda ~1 MB por jogo e o código vai em base64 */
+var MIDIA_LIM = {imagem: 300000, audio: 330000, video: 450000};
+var MIDIA_RE = {
+  imagem: /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+\/=]+$/i,
+  audio: /^data:audio\/(mpeg|mp3|mp4|x-m4a|aac|webm|ogg|wav|x-wav|wave)(;codecs=[a-z0-9.,=-]+)?;base64,[A-Za-z0-9+\/=]+$/i,
+  video: /^data:video\/(mp4|webm|ogg|quicktime)(;codecs=[a-z0-9.,=-]+)?;base64,[A-Za-z0-9+\/=]+$/i
+};
+function anexoOk(a){
+  if(!a || typeof a !== 'object' || !MIDIA_RE[a.tipo] || typeof a.dataUrl !== 'string') return null;
+  if(a.dataUrl.length > MIDIA_LIM[a.tipo] || !MIDIA_RE[a.tipo].test(a.dataUrl)) return null;
+  return {tipo: a.tipo, dataUrl: a.dataUrl, nome: String(a.nome || '').replace(/[\u0000-\u001f<>]/g, '').slice(0, 40), seg: Number(a.seg) > 0 ? Math.round(Number(a.seg) * 10) / 10 : 0,
+    kb: Math.round(a.dataUrl.length * 0.75 / 1024)};
+}
+function grandeDemais(codigo){ return String(codigo).length > MIDIA_MAX; }
+
+/* ---- o que a pessoa quer fazer com o anexo ---- */
+var RE_MD_AFIRMA = /\b(usa|usar|use|usem|coloca|colocar|coloque|bota|botar|boto|poe|por|ponha|toca|tocar|toque|faz|fazer|faca|set|put|play|make|pon|poner|ponlo|usalo|ponla|usala)\b/;
+var RE_MD_ANAFORA = /\b(essa|esse|esta|este|isso|ela|ele|imagem|foto|figura|desenho|video|clipe|audio|som|gravacao|voz|this|it|image|picture|photo|sound|recording|esa|ese|imagen|sonido|grabacion)\b/;
+function destinoDaMidia(n, tipo){
+  n = ' ' + n + ' ';
+  if(tipo === 'audio'){
+    if(/\b(game over|fim de jogo|fim do jogo|acabar|acaba|acabou|morrer|morre|morreu|derrota|end of game|game ends?|fin del juego|termine|termina)\b/.test(n)) return 'som_fim';
+    if(/\b(dano|machucar|machuca|levar|leva|bater|bate|hit|hurt|damage|golpe|golpear|danio)\b/.test(n)) return 'som_dano';
+    if(/\b(pula|pulo|pular|pule|salto|saltar|salta|jump|jumps)\b/.test(n)) return 'som_pulo';
+    if(/\b(ponto|pontos|ganha|ganhar|pega|pegar|pegou|coleta|coletar|moeda|moedas|coin|coins|score|point|points|punto|puntos|acerta|acertar)\b/.test(n)) return 'som_ponto';
+    if(/\b(musica|trilha|music|cancion|fundo|loop|background|fondo|tema|theme)\b/.test(n)) return 'musica';
+    return null;
+  }
+  if(tipo === 'imagem' && /\b(capa|cover|miniatura|thumbnail|portada)\b/.test(n)) return 'capa';
+  if(/\b(tela inicial|inicio|abertura|menu|comeco|intro|titulo|start|portada|pantalla inicial|pantalla de inicio|title screen|home|apresentacao)\b/.test(n)) return 'tela';
+  if(/\b(fundo|background|wallpaper|papel de parede|cenario|fondo)\b/.test(n)) return tipo === 'video' ? 'tela' : 'fundo';
+  return null;
+}
+var RE_MD_TIRAR = /\b(tira|tirar|tire|remove|remover|remova|apaga|apagar|apague|retira|retirar|quita|quitar|delete|remove|take off|get rid)\b/;
+function midiaAntes(est, texto, it, ctx){
+  var n = apChave(texto);
+  var temMarca = ctx && ctx.codigo ? /data-koda-(img-fundo|arte|meusom)/.test(ctx.codigo) : false;
+  /* tirar o que foi colocado (só com palavras claras, pra não confundir com "tira o fundo azul") */
+  if(temMarca && RE_MD_TIRAR.test(n)){
+    var oq = null;
+    if(/data-koda-img-fundo/.test(ctx.codigo) && /\b(fundo|background|fondo)\b/.test(n) && /\b(imagem|foto|figura|picture|image|imagen)\b/.test(n)) oq = 'fundo';
+    else if(/data-koda-arte/.test(ctx.codigo) && /\b(tela inicial|abertura|intro|inicio|arte|imagem|foto|video|image|picture|imagen)\b/.test(n)) oq = 'tela';
+    else if(/data-koda-meusom/.test(ctx.codigo) && /\b(som|sons|audio|sound|sounds|sonido)\b/.test(n) && /\b(mandei|enviei|coloquei|personalizad\w*|meu|meus|my|custom|mande|envie)\b/.test(n)) oq = 'som';
+    if(oq) return {int: 'midia_tirar', oque: oq};
+  }
+  if(!est.anexo && !est.anexoRuim) return it;
+  var fresco = est.anexoTurno === est.turnos;
+  if(est.anexoRuim && fresco){ est.anexoRuim = false; return {int: 'midia_ruim'}; }
+  if(!est.anexo) return it;
+  /* só o anexo (sem texto) */
+  if(fresco && !n) return {int: 'midia_pergunta'};
+  var dest = RE_MD_TIRAR.test(n) ? null : destinoDaMidia(n, est.anexo.tipo);       /* "tira a imagem de fundo" não é pra usar a imagem */
+  /* pediu coisa de outro tipo ("usa de música" com uma imagem): a resposta explica o que dá pra fazer com o que veio */
+  if(!dest && fresco && !RE_MD_TIRAR.test(n)) dest = destinoDaMidia(n, est.anexo.tipo === 'audio' ? 'imagem' : 'audio');
+  if(dest){
+    var pedido = fresco || RE_MD_ANAFORA.test(n) || /^(usar|colocar|tocar) /.test(n);
+    var curto = n.split(' ').length <= 14;
+    if(pedido && curto && (fresco || RE_MD_AFIRMA.test(n) || it.int === 'nada' || RE_MD_ANAFORA.test(n))) return {int: 'midia_usar', oque: dest};
+  }
+  if(fresco && it.int === 'nada') return {int: 'midia_pergunta'};
+  return it;
+}
+
+/* ---- colocar no jogo ---- */
+function atualizarPainel(codigo){
+  var cfg = lerConfig(codigo, 'data-koda-painel');
+  if(!cfg) return codigo;
+  var m = /<script[^>]*data-koda-painel[^>]*>[\s\S]*?<\/script>/.exec(codigo);
+  if(m && m[0].indexOf('__kodaArte') >= 0 && m[0].indexOf('kodaMidiaPausa') >= 0) return codigo;
+  return colocarNoComeco(tirarMarca(codigo, 'data-koda-painel'), paraScript(kodaPainelNoJogo, cfg, 'painel'));
+}
+function fazerImagemFundo(codigo, dataUrl){
+  var doc = lerDocumento(codigo), ed = new Edicao(codigo), n = 0;
+  if(!/kodaFundoImg/.test(codigo)){
+    /* "ctx.fillStyle = cor; ctx.fillRect(0, 0, W, H)" no começo de uma frase vira "desenha a imagem (se já carregou), senão pinta a cor" */
+    doc.js.forEach(function(js){
+      if(js.sc.koda) return;
+      var corpo = js.sc.corpo, re = /(\b[\w$.]+)\s*\.\s*fillStyle\s*=\s*([^;\n]+?)\s*;?(\s*)\1\s*\.\s*fillRect\(\s*0\s*,\s*0\s*,\s*([\w$.]+(?:\s*[*\/]\s*[\w$.]+)?)\s*,\s*([\w$.]+(?:\s*[*\/]\s*[\w$.]+)?)\s*\)\s*;?/g, m;
+      while((m = re.exec(corpo))){
+        if(!/width|^w$|^W$|^cw$|^largura|WIDTH|innerWidth|^L$/i.test(m[4])) continue;
+        var antes = corpo.slice(0, m.index).replace(/[ \t]*$/, '');
+        if(antes && !/[;{}]\s*$/.test(antes) && !/\n$/.test(antes)) continue;
+        var q = m[1], w = m[4], h = m[5];
+        ed.trocar(js.base + m.index, js.base + m.index + m[0].length,
+          'if(window.kodaFundoImg && kodaFundoImg.complete && kodaFundoImg.naturalWidth){ ' + q + '.drawImage(kodaFundoImg, 0, 0, ' + w + ', ' + h + '); } else { ' + q + '.fillStyle = ' + m[2] + '; ' + q + '.fillRect(0, 0, ' + w + ', ' + h + '); }');
+        n++;
+      }
+    });
+  }
+  var novo = ed.aplicar() || codigo;
+  novo = tirarMarca(novo, 'data-koda-img-fundo');
+  novo = tirarMarca(novo, 'data-koda-fundo');
+  novo = colocarNoComeco(novo, '<script data-koda-img-fundo="1">(function(){var i=new Image();i.src=' + JSON.stringify(dataUrl) + ';window.kodaFundoImg=i;var s=document.createElement("style");s.textContent="html,body{background:#000 url(\\""+i.src+"\\") center/cover no-repeat fixed !important}";(document.head||document.documentElement).appendChild(s);})();<\/script>');
+  if(grandeDemais(novo)) return {erro: 'grande'};
+  var temCanvas = /<canvas\b|createElement\(\s*['"]canvas['"]/.test(codigo);
+  var r = conferirDepois(codigo, novo, {sitios: n, canvasSemFundo: temCanvas && n === 0 && !/kodaFundoImg/.test(codigo)});
+  return r;
+}
+function fazerArteDaTela(codigo, tipo, dataUrl){
+  if(eOnline(codigo)) return {erro: 'online'};
+  var base = codigo, criou = false, cfg = lerConfig(codigo, 'data-koda-painel');
+  if(!cfg || !cfg.inicio){
+    var p = fazerPainel(codigo, {inicio: true}, false);
+    if(p.erro && p.erro !== 'ja_tem') return p;
+    if(p.codigo){ base = p.codigo; criou = true; }
+  }
+  base = atualizarPainel(base);
+  base = tirarMarca(base, 'data-koda-arte');
+  var novo = colocarNoComeco(base, '<script data-koda-arte="1">window.__kodaArte={tipo:' + JSON.stringify(tipo) + ',src:' + JSON.stringify(dataUrl) + '};<\/script>');
+  if(grandeDemais(novo)) return {erro: 'grande'};
+  return conferirDepois(codigo, novo, {criouTela: criou, tipo: tipo});
+}
+function fazerMusicaArquivo(codigo, dataUrl){
+  var limpo = tirarMarca(codigo, 'data-koda-musica');          /* tira a música feita na hora e a de arquivo que já tinha */
+  var js = '(function(){var a=new Audio(' + JSON.stringify(dataUrl) + ');a.loop=true;a.volume=.6;a.preload="auto";a.setAttribute("data-koda-musica-arq","1");var ok=0;'
+    + 'function go(){if(ok)return;ok=1;try{var p=a.play();if(p&&p.catch)p.catch(function(){ok=0;});}catch(e){ok=0;}}'
+    + '["pointerdown","keydown","touchend"].forEach(function(e){window.addEventListener(e,go,{capture:true});});'
+    + 'document.addEventListener("visibilitychange",function(){if(document.hidden)a.pause();else if(ok)go();});'
+    + 'function pr(){if(document.body)document.body.appendChild(a);}if(document.body)pr();else document.addEventListener("DOMContentLoaded",pr);})();';
+  var novo = colocarNoComeco(limpo, '<script data-koda-musica-arq="1">' + js + '<\/script>');
+  if(grandeDemais(novo)) return {erro: 'grande'};
+  var r = conferirDepois(codigo, novo, {arquivo: true});
+  if(r.erro) return r;
+  var p = fazerPainel(r.codigo, {som: true}, false);
+  if(p.codigo){ r.codigo = p.codigo; r.res.botaoSom = true; }
+  return r;
+}
+function lerSonsMeus(codigo){
+  var m = /<script[^>]*data-koda-meusom[^>]*>[\s\S]*?window\.__kodaSomMeu=(\{[\s\S]*?\});window\.__kodaSomSo=/.exec(codigo);      /* o áudio tem ";" dentro (data:audio/wav;base64): lê até o marcador */
+  if(!m) return {};
+  try{ return JSON.parse(m[1]) || {}; }catch(e){ return {}; }
+}
+function escreverSonsMeus(codigo, sons, soMeus){
+  var limpo = tirarMarca(codigo, 'data-koda-meusom');
+  if(!Object.keys(sons).length) return limpo;
+  var j = JSON.stringify(sons).replace(/</g, '\\u003c');
+  return colocarNoComeco(limpo, '<script data-koda-meusom="1">window.__kodaSomMeu=' + j + ';window.__kodaSomSo=' + (soMeus ? 1 : 0) + ';<\/script>');
+}
+function atualizarSons(codigo){
+  var m = /<script[^>]*data-koda-sons[^>]*>[\s\S]*?<\/script>/.exec(codigo);
+  if(!m || m[0].indexOf('__kodaSomMeu') >= 0) return codigo;
+  return codigo.replace(m[0], '<script data-koda-sons="1">(' + kodaSonsNoJogo.toString() + ')();<\/script>');
+}
+function fazerSomPersonalizado(codigo, evento, dataUrl){
+  var nome = evento.replace(/^som_/, '');
+  var base = codigo, soMeus = false;
+  if(!/data-koda-sons/.test(codigo)){
+    var fs = fazerSons(codigo);
+    if(fs.erro) return {erro: fs.erro === 'nao_achei' ? 'nao_achei' : 'edicao'};
+    if(!fs.res || !fs.res.sons || !fs.res.sons[nome]) return {erro: 'nao_achei'};
+    base = fs.codigo; soMeus = true;          /* os bipes padrão dos outros momentos ficam calados: só toca o que a pessoa mandou */
+  } else {
+    base = atualizarSons(codigo);
+    soMeus = /__kodaSomSo=1/.test(codigo);
+    /* os sons já estão no jogo, mas esse momento tem gancho? (ex.: o jogo não tem um "fim" que eu reconheça) */
+    if(!new RegExp("kodaSom\\('" + nome + "'\\)").test(base)) return {erro: 'nao_achei'};
+  }
+  var sons = lerSonsMeus(base); sons[nome] = dataUrl;
+  var novo = escreverSonsMeus(base, sons, soMeus);
+  if(grandeDemais(novo)) return {erro: 'grande'};
+  return conferirDepois(codigo, novo, {evento: nome});
+}
+function tirarMidia(codigo, oque){
+  var novo = codigo;
+  if(oque === 'fundo') novo = tirarMarca(codigo, 'data-koda-img-fundo');
+  else if(oque === 'tela') novo = tirarMarca(codigo, 'data-koda-arte');
+  else if(oque === 'som') novo = tirarMarca(codigo, 'data-koda-meusom');
+  if(novo === codigo) return {erro: 'nada'};
+  return conferirDepois(codigo, novo, {tirou: oque});
+}
+
+/* ---- conversa ---- */
+textosEm10({
+  ch_md_fundo: 'Usar de fundo do jogo|Use as the game background|Usar de fondo del juego|Usa come sfondo del gioco|Mettre en fond du jeu|Als Spielhintergrund nehmen|Als achtergrond van het spel|ゲームの背景にする|设为游戏背景|게임 배경으로 쓰기',
+  ch_md_tela: 'Colocar na tela inicial|Put on the start screen|Poner en la pantalla de inicio|Metti nella schermata iniziale|Mettre sur l\'écran de départ|Auf den Startbildschirm|Op het startscherm zetten|スタート画面に置く|放到开始界面|시작 화면에 넣기',
+  ch_md_capa: 'Usar de capa do jogo|Use as the game cover|Usar de portada del juego|Usa come copertina del gioco|Mettre en couverture du jeu|Als Spielcover nehmen|Als cover van het spel|ゲームの表紙にする|设为游戏封面|게임 표지로 쓰기',
+  ch_md_musica: 'Usar de música do jogo|Use as the game music|Usar de música del juego|Usa come musica del gioco|Mettre en musique du jeu|Als Spielmusik nehmen|Als muziek van het spel|ゲームの音楽にする|设为游戏音乐|게임 음악으로 쓰기',
+  ch_md_pulo: 'Tocar quando pular|Play when jumping|Sonar al saltar|Suona quando salta|Jouer quand on saute|Beim Springen abspielen|Afspelen bij springen|ジャンプで鳴らす|跳跃时播放|점프할 때 재생',
+  ch_md_ponto: 'Tocar quando ganhar ponto|Play when scoring|Sonar al ganar punto|Suona quando fa punto|Jouer quand on marque|Bei einem Punkt abspielen|Afspelen bij een punt|得点で鳴らす|得分时播放|점수를 얻을 때 재생',
+  ch_md_dano: 'Tocar quando levar dano|Play when taking damage|Sonar al recibir daño|Suona quando prende danno|Jouer quand on prend un coup|Bei Schaden abspielen|Afspelen bij schade|ダメージで鳴らす|受伤时播放|피해를 입을 때 재생',
+  ch_md_fim: 'Tocar quando o jogo acabar|Play when the game ends|Sonar al terminar el juego|Suona quando il gioco finisce|Jouer à la fin du jeu|Am Spielende abspielen|Afspelen als het spel afgelopen is|ゲーム終了で鳴らす|游戏结束时播放|게임이 끝날 때 재생'
+});
+Object.assign(TX, {
+  md_recebi_imagem: 'Recebi sua imagem! O que eu faço com ela no jogo?|Got your image! What should I do with it in the game?|¡Recibí tu imagen! ¿Qué hago con ella en el juego?',
+  md_recebi_audio: 'Recebi seu áudio! Pra que você quer ele no jogo?|Got your audio! What do you want it for in the game?|¡Recibí tu audio! ¿Para qué lo quieres en el juego?',
+  md_recebi_video: 'Recebi seu vídeo! Eu posso colocar na tela inicial do jogo.|Got your video! I can put it on the game\'s start screen.|¡Recibí tu video! Puedo ponerlo en la pantalla de inicio del juego.',
+  md_sem_anexo: 'Primeiro me manda uma imagem, um vídeo ou um áudio (botão do clipe, aqui embaixo).|First send me an image, a video or an audio (the paperclip button below).|Primero mándame una imagen, un video o un audio (el botón del clip, aquí abajo).',
+  md_tipo_imagem: 'Uma imagem eu posso colocar de fundo do jogo, na tela inicial ou de capa.|I can put an image as the game background, on the start screen or as the cover.|Una imagen la puedo poner de fondo del juego, en la pantalla de inicio o de portada.',
+  md_tipo_audio: 'Um áudio eu posso colocar de música do jogo ou tocar quando acontecer algo: pular, ganhar ponto, levar dano ou o jogo acabar.|I can use an audio as the game music or play it when something happens: jumping, scoring, taking damage or the game ending.|Un audio lo puedo poner de música del juego o sonarlo cuando pase algo: saltar, ganar punto, recibir daño o terminar el juego.',
+  md_tipo_video: 'Um vídeo eu posso colocar na tela inicial do jogo.|I can put a video on the game\'s start screen.|Un video lo puedo poner en la pantalla de inicio del juego.',
+  md_fundo_ok: 'Pronto! A imagem agora é o fundo do jogo.|Done! The image is now the game background.|¡Listo! La imagen ahora es el fondo del juego.',
+  md_fundo_canvas: 'Mas esse jogo pinta a tela toda de uma cor, então a imagem pode não aparecer. Teste pra ver.|But this game paints the whole screen one color, so the image may not show. Test it to see.|Pero este juego pinta toda la pantalla de un color, así que la imagen puede no verse. Pruébalo para ver.',
+  md_tela_img: 'Pronto! A imagem aparece na tela inicial do jogo, a que tem o botão Jogar.|Done! The image shows on the game\'s start screen, the one with the Play button.|¡Listo! La imagen aparece en la pantalla de inicio del juego, la del botón Jugar.',
+  md_tela_video: 'Pronto! O vídeo toca (sem som) na tela inicial do jogo, a que tem o botão Jogar.|Done! The video plays (muted) on the game\'s start screen, the one with the Play button.|¡Listo! El video se reproduce (sin sonido) en la pantalla de inicio del juego, la del botón Jugar.',
+  md_tela_criada: 'Esse jogo não tinha tela inicial, então criei uma.|This game had no start screen, so I made one.|Este juego no tenía pantalla de inicio, así que creé una.',
+  md_online: 'Jogo online não tem tela inicial do Koda GB. Posso usar a imagem de fundo do jogo, se quiser.|Online games don\'t have a Koda GB start screen. I can use the image as the game background if you want.|Los juegos en línea no tienen pantalla de inicio de Koda GB. Puedo usar la imagen de fondo del juego, si quieres.',
+  md_capa_ok: 'Pronto! Usei essa imagem de capa do jogo. Ela aparece no Koda GB quando você publicar.|Done! I used this image as the game cover. It shows in Koda GB when you publish.|¡Listo! Usé esta imagen de portada del juego. Aparece en Koda GB cuando publiques.',
+  md_musica_ok: 'Pronto! Esse áudio agora é a música de fundo do jogo. Ela repete e começa no primeiro toque; o botão de som no canto liga e desliga.|Done! This audio is now the game\'s background music. It loops and starts on the first tap; the sound button in the corner turns it on and off.|¡Listo! Este audio ahora es la música de fondo del juego. Se repite y empieza con el primer toque; el botón de sonido en la esquina lo enciende y apaga.',
+  md_som_ok: 'Pronto! Esse áudio vai tocar quando {quando}.|Done! This audio will play when {quando}.|¡Listo! Este audio sonará cuando {quando}.',
+  md_q_pulo: 'o jogador pular|the player jumps|el jugador salte',
+  md_q_ponto: 'o jogador ganhar ponto|the player scores|el jugador gane punto',
+  md_q_dano: 'o jogador levar dano|the player takes damage|el jugador reciba daño',
+  md_q_fim: 'o jogo acabar|the game ends|el juego termine',
+  md_som_nao: 'Não achei no código onde {quando}. Posso usar esse áudio de música do jogo.|I couldn\'t find in the code where {quando}. I can use this audio as the game music.|No encontré en el código dónde {quando}. Puedo usar este audio de música del juego.',
+  md_aviso: 'Lembrete: tudo que entra no jogo aparece pra quem jogar. Não use fotos ou vozes suas, de amigos ou de outras pessoas.|Reminder: everything you put in the game shows to whoever plays. Don\'t use photos or voices of yourself, friends or other people.|Recuerda: todo lo que pones en el juego lo ve quien juega. No uses fotos ni voces tuyas, de amigos o de otras personas.',
+  md_grande: 'Com esse arquivo o jogo ficaria grande demais. Tente uma imagem, áudio ou vídeo menor.|With this file the game would be too big. Try a smaller image, audio or video.|Con este archivo el juego quedaría demasiado grande. Prueba con una imagen, audio o video más pequeño.',
+  md_ruim: 'Não consegui usar esse arquivo: o tipo não serve ou ele é grande demais.|I couldn\'t use that file: the type doesn\'t work or it\'s too big.|No pude usar ese archivo: el tipo no sirve o es demasiado grande.',
+  md_tirou_fundo: 'Tirei a imagem de fundo.|I removed the background image.|Quité la imagen de fondo.',
+  md_tirou_tela: 'Tirei a imagem (ou vídeo) da tela inicial.|I removed the start screen image (or video).|Quité la imagen (o video) de la pantalla de inicio.',
+  md_tirou_som: 'Tirei os sons que você mandou.|I removed the sounds you sent.|Quité los sonidos que enviaste.',
+  md_nada_tirar: 'Não achei isso no jogo pra tirar.|I couldn\'t find that in the game to remove.|No encontré eso en el juego para quitar.',
+  d_img_fundo: 'a imagem de fundo|the background image|la imagen de fondo', d_arte_tela: 'a imagem da tela inicial|the start screen image|la imagen de la pantalla de inicio',
+  d_musica_arq: 'a música que você mandou|the music you sent|la música que enviaste', d_som_meu: 'o som que você mandou|the sound you sent|el sonido que enviaste',
+  d_tirar_midia: 'o que você tinha mandado|what you had sent|lo que habías enviado'
+});
+function sugestoesDeMidia(r, tipo){
+  if(tipo === 'imagem'){ chip(r, T('ch_md_fundo')); chip(r, T('ch_md_tela')); chip(r, T('ch_md_capa')); }
+  else if(tipo === 'audio'){ chip(r, T('ch_md_musica')); chip(r, T('ch_md_pulo')); chip(r, T('ch_md_ponto')); chip(r, T('ch_md_dano')); chip(r, T('ch_md_fim')); }
+  else chip(r, T('ch_md_tela'));
+  return r;
+}
+H.midia_pergunta = function(it, ctx, est){
+  var a = est.anexo, r = novaResp();
+  if(!a) return diz(r, T('md_sem_anexo'));
+  diz(r, T(a.tipo === 'imagem' ? 'md_recebi_imagem' : a.tipo === 'audio' ? 'md_recebi_audio' : 'md_recebi_video'));
+  return sugestoesDeMidia(r, a.tipo);
+};
+H.midia_ruim = function(){ return diz(novaResp(), T('md_ruim')); };
+H.midia_usar = function(it, ctx, est){
+  var a = est.anexo, r = novaResp();
+  if(!a) return diz(r, T('md_sem_anexo'));
+  var o = it.oque;
+  var serve = a.tipo === 'imagem' ? /^(fundo|tela|capa)$/ : a.tipo === 'audio' ? /^(musica|som_pulo|som_ponto|som_dano|som_fim)$/ : /^tela$/;
+  if(!serve.test(o)){ diz(r, T(a.tipo === 'imagem' ? 'md_tipo_imagem' : a.tipo === 'audio' ? 'md_tipo_audio' : 'md_tipo_video')); return sugestoesDeMidia(r, a.tipo); }
+  if(o === 'capa'){
+    diz(r, T('md_capa_ok')); diz(r, T('md_aviso'));
+    r.capa = a.dataUrl;
+    return r;
+  }
+  var x = precisaCodigo(ctx); if(x) return x;
+  var res;
+  if(o === 'fundo') res = fazerImagemFundo(ctx.codigo, a.dataUrl);
+  else if(o === 'tela') res = fazerArteDaTela(ctx.codigo, a.tipo, a.dataUrl);
+  else if(o === 'musica') res = fazerMusicaArquivo(ctx.codigo, a.dataUrl);
+  else res = fazerSomPersonalizado(ctx.codigo, o, a.dataUrl);
+  if(res.erro === 'grande') return diz(r, T('md_grande'));
+  if(res.erro === 'online'){ diz(r, T('md_online')); if(a.tipo === 'imagem') chip(r, T('ch_md_fundo')); return r; }
+  if(res.erro === 'nao_achei'){ diz(r, T('md_som_nao', {quando: T('md_q_' + o.replace('som_', ''))})); chip(r, T('ch_md_musica')); return r; }
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  if(o === 'fundo'){ diz(r, T('md_fundo_ok')); if(res.res && res.res.canvasSemFundo) diz(r, T('md_fundo_canvas')); }
+  else if(o === 'tela'){ diz(r, T(a.tipo === 'video' ? 'md_tela_video' : 'md_tela_img')); if(res.res && res.res.criouTela) diz(r, T('md_tela_criada')); }
+  else if(o === 'musica') diz(r, T('md_musica_ok'));
+  else diz(r, T('md_som_ok', {quando: T('md_q_' + o.replace('som_', ''))}));
+  diz(r, T('md_aviso'));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T(o === 'fundo' ? 'd_img_fundo' : o === 'tela' ? 'd_arte_tela' : o === 'musica' ? 'd_musica_arq' : 'd_som_meu'));
+};
+H.midia_tirar = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp(), res = tirarMidia(ctx.codigo, it.oque);
+  if(res.erro === 'nada') return diz(r, T('md_nada_tirar'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  diz(r, T('md_tirou_' + it.oque));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_tirar_midia'));
+};
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T, TL: TL,
   /* o que o agente aprendeu com os erros (o site guarda no aparelho) */
   aprendido: function(est){ return JSON.parse(JSON.stringify(est.aprendido || [])); },
   aprendidoV: function(est){ return est.aprendidoV || 0; },
+  tirarFoto: function(est){ return tirarFoto(est); },
+  voltarFoto: function(est, f){ voltarFoto(est, f); },
   tirarDiario: function(est){ var d = est.diario || []; est.diario = []; return JSON.parse(JSON.stringify(d)); },
   carregarRegras: function(est, l){ carregarRegras(est, l); },
   marcaDoJogo: function(c){ return marcaDoJogo(c); },
@@ -35462,8 +35885,168 @@ const KA_ICO = {
   aviso: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l10 18H2z" fill="#F5A623" stroke="#F5A623" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 9v5.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.4" fill="#fff"/></svg>',
   dica: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a7 7 0 0 0-4 12.7V18h8v-2.8A7 7 0 0 0 12 2.5z" fill="#3D6FE0"/><rect x="8.5" y="19" width="7" height="2.6" rx="1.3" fill="#3D6FE0"/><path d="M10 9.5l2 2.5 2-2.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   ok: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#17C79E"/><path d="M7 12.5l3.3 3.3L17 9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  copiar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 5.5A2.5 2.5 0 0 0 13.5 3H6a3 3 0 0 0-3 3v7.5A2.5 2.5 0 0 0 5.5 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
+  copiar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 5.5A2.5 2.5 0 0 0 13.5 3H6a3 3 0 0 0-3 3v7.5A2.5 2.5 0 0 0 5.5 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  editar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20h4L19.2 8.8a2.1 2.1 0 0 0 0-3L18.2 4.8a2.1 2.1 0 0 0-3 0L4 16z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="2.1"/></svg>',
+  certo: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.3 4.3L19 7.2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  clipe: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 11.5l-7.6 7.6a5 5 0 0 1-7.1-7.1l8-8a3.3 3.3 0 0 1 4.7 4.7l-8 8a1.7 1.7 0 0 1-2.4-2.4l7.3-7.3" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  mic: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>',
+  parar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6.5" y="6.5" width="11" height="11" rx="2.4" fill="currentColor"/></svg>',
+  imagem: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="4.5" width="17" height="15" rx="2.6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 17l5-4.6 3.4 3 3-2.6 4.6 4.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>',
+  video: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="6" width="12.5" height="12" rx="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 10.5l5-2.8v8.6l-5-2.8z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+  audio: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18V6l10-2v12" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.6" fill="currentColor"/><circle cx="16.5" cy="16" r="2.6" fill="currentColor"/></svg>'
 };
+/* copiar um texto pro "copiar e colar" */
+async function kaCopiarTexto(texto){
+  let ok = false;
+  try{ await navigator.clipboard.writeText(texto); ok = true; }catch(e){}
+  if(!ok){ try{ const ta = document.createElement('textarea'); ta.value = texto; ta.style.cssText = 'position:fixed;left:-999px;top:0;opacity:0;'; document.body.appendChild(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); }catch(e){} }
+  return ok;
+}
+/* os botõezinhos de baixo de cada mensagem: copiar (todas) e editar (as da pessoa) */
+function kaAcoesPara(bolha, texto, editavel){
+  if(!bolha || bolha.nextElementSibling && bolha.nextElementSibling.classList.contains('ka-acoes')) return;
+  const eu = bolha.classList.contains('eu');
+  const linha = document.createElement('div');
+  linha.className = 'ka-acoes ' + (eu ? 'eu' : 'ele');
+  bolha.__texto = texto;
+  const bt = (acao, ico, rotulo)=>`<button type="button" class="ka-acao" data-acao="${acao}" aria-label="${chatListEscape(rotulo)}" title="${chatListEscape(rotulo)}">${KA_ICO[ico]}</button>`;
+  linha.innerHTML = (texto ? bt('copiar', 'copiar', KA.T('ui_copiar_msg')) : '') + (editavel ? bt('editar', 'editar', KA.T('ui_editar')) : '');
+  bolha.after(linha);
+}
+function kaLinguaDaVoz(){
+  const m = {pt: 'pt-BR', en: 'en-US', es: 'es-ES', it: 'it-IT', fr: 'fr-FR', de: 'de-DE', nl: 'nl-NL', ja: 'ja-JP', zh: 'zh-CN', ko: 'ko-KR'};
+  return m[currentLang] || navigator.language || 'pt-BR';
+}
+/* ---- anexos: imagem, vídeo e áudio. Tudo vira texto dentro do jogo, então precisa ficar pequeno. ---- */
+const KA_AN = {imgMax: 200000, audMax: 320000, vidMax: 440000, audSeg: 20, vidSeg: 6};
+function kaLerDataUrl(blob){ return new Promise((ok, no)=>{ const r = new FileReader(); r.onload = ()=>ok(r.result); r.onerror = ()=>no(new Error('erro')); r.readAsDataURL(blob); }); }
+function kaTipoDoArquivo(f){
+  const t = String(f.type || '').toLowerCase().split(';')[0], n = String(f.name || '').toLowerCase();
+  if(/^image\//.test(t)) return 'imagem';
+  if(/^video\//.test(t)) return 'video';
+  if(/^audio\//.test(t)) return 'audio';
+  if(/\.(png|jpe?g|gif|webp|bmp)$/.test(n)) return 'imagem';
+  if(/\.(mp4|mov|m4v|ogv)$/.test(n)) return 'video';
+  if(/\.(mp3|wav|ogg|m4a|aac|opus)$/.test(n)) return 'audio';
+  return null;
+}
+function kaDuracao(url, tipo){
+  return new Promise(ok=>{
+    const m = document.createElement(tipo === 'video' ? 'video' : 'audio'); m.preload = 'metadata'; m.muted = true;
+    const fim = d=>{ clearTimeout(tm); m.removeAttribute('src'); try{ m.load(); }catch(e){} ok(isFinite(d) && d > 0 ? Math.round(d * 10) / 10 : 0); };
+    const tm = setTimeout(()=>fim(0), 3000);
+    m.onloadedmetadata = ()=>fim(m.duration); m.onerror = ()=>fim(0);
+    m.src = url;
+  });
+}
+async function kaPrepararImagem(file){
+  if(file.size > 30e6) throw new Error('grande');
+  const url = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((ok, no)=>{ const i = new Image(); i.onload = ()=>ok(i); i.onerror = ()=>no(new Error('erro')); i.src = url; });
+    const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+    if(!w0 || !h0) throw new Error('erro');
+    const jpg = /jpe?g/i.test(file.type);
+    let lado = 640, q = .85;
+    for(let i = 0; i < 9; i++){
+      const esc = Math.min(1, lado / Math.max(w0, h0));
+      const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w0 * esc)); c.height = Math.max(1, Math.round(h0 * esc));
+      const g = c.getContext('2d');
+      if(jpg){ g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
+      g.drawImage(img, 0, 0, c.width, c.height);
+      let d = jpg ? c.toDataURL('image/jpeg', q) : c.toDataURL('image/webp', q);
+      if(!jpg && !/^data:image\/webp/.test(d)) d = c.toDataURL('image/png');      /* navegador que não grava webp */
+      if(d.length <= KA_AN.imgMax) return {dataUrl: d, w: c.width, h: c.height};
+      if(i % 2 === 0) q = Math.max(.5, q - .15); else lado = Math.round(lado * .75);
+    }
+    throw new Error('grande');
+  } finally { URL.revokeObjectURL(url); }
+}
+/* grava o áudio já decodificado de novo, curto e leve (toca de verdade, então leva o tempo do áudio) */
+function kaRegravarAudio(buf, seg){
+  return new Promise((ok, no)=>{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    let ac; try{ ac = new AC(); }catch(e){ no(new Error('erro')); return; }
+    if(!ac.createMediaStreamDestination || typeof MediaRecorder === 'undefined'){ try{ ac.close(); }catch(e){} no(new Error('erro')); return; }
+    try{ ac.resume(); }catch(e){}
+    const dest = ac.createMediaStreamDestination(), src = ac.createBufferSource(); src.buffer = buf; src.connect(dest);
+    let mime = ''; try{ mime = AUDIO_MIMES.find(m=>MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || ''; }catch(e){}
+    let rec; try{ rec = new MediaRecorder(dest.stream, mime ? {mimeType: mime, audioBitsPerSecond: 32000} : {audioBitsPerSecond: 32000}); }catch(e){ try{ ac.close(); }catch(x){} no(new Error('erro')); return; }
+    const partes = []; rec.ondataavailable = e=>{ if(e.data && e.data.size) partes.push(e.data); };
+    rec.onstop = async ()=>{
+      try{ ac.close(); }catch(e){}
+      try{
+        const d = await kaLerDataUrl(new Blob(partes, {type: (rec.mimeType || mime || 'audio/webm').split(';')[0]}));
+        if(d.length <= KA_AN.audMax) ok({dataUrl: d, seg: Math.round(seg * 10) / 10}); else no(new Error('grande'));
+      }catch(e){ no(new Error('erro')); }
+    };
+    rec.start(250); src.start(0, 0, seg);
+    setTimeout(()=>{ try{ rec.stop(); }catch(e){} }, Math.ceil(seg * 1000) + 300);
+  });
+}
+async function kaPrepararAudio(file){
+  const tipo = String(file.type || '').toLowerCase().split(';')[0];
+  if(file.size <= 235000 && /^audio\/(mpeg|mp3|mp4|x-m4a|aac|webm|ogg|wav|x-wav|wave)$/.test(tipo)){
+    const d = await kaLerDataUrl(file);
+    if(d.length <= KA_AN.audMax) return {dataUrl: d, seg: await kaDuracao(d, 'audio')};
+  }
+  if(file.size > 60e6) throw new Error('grande');
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) throw new Error('erro');
+  const ac = new AC(); let buf;
+  try{
+    const ab = await file.arrayBuffer();
+    buf = await new Promise((ok, no)=>{ const p = ac.decodeAudioData(ab, ok, no); if(p && p.catch) p.catch(no); });
+  }catch(e){ throw new Error('erro'); }
+  finally{ try{ ac.close(); }catch(e){} }
+  return kaRegravarAudio(buf, Math.min(buf.duration, KA_AN.audSeg));
+}
+async function kaPrepararVideo(file){
+  const tipo = String(file.type || '').toLowerCase().split(';')[0];
+  if(file.size <= 300000 && /^video\/(mp4|webm|ogg)$/.test(tipo)){
+    const d = await kaLerDataUrl(file);
+    if(d.length <= KA_AN.vidMax) return {dataUrl: d, seg: await kaDuracao(d, 'video')};
+  }
+  if(file.size > 300e6) throw new Error('grande');
+  /* toca o vídeo escondido e grava de novo, pequeno e curto */
+  const url = URL.createObjectURL(file), v = document.createElement('video');
+  v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = url;
+  v.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+  document.body.appendChild(v);
+  try{
+    await new Promise((ok, no)=>{ v.onloadedmetadata = ok; v.onerror = ()=>no(new Error('erro')); setTimeout(()=>no(new Error('erro')), 9000); });
+    const w0 = v.videoWidth, h0 = v.videoHeight;
+    if(!w0 || !h0) throw new Error('erro');
+    const esc = Math.min(1, 360 / Math.max(w0, h0)), cw = Math.max(2, Math.round(w0 * esc) & ~1), ch = Math.max(2, Math.round(h0 * esc) & ~1);
+    const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+    const g = c.getContext('2d');
+    if(!c.captureStream || typeof MediaRecorder === 'undefined') throw new Error('erro');
+    const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(m=>MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
+    const rec = new MediaRecorder(c.captureStream(15), mime ? {mimeType: mime, videoBitsPerSecond: 170000} : {videoBitsPerSecond: 170000});
+    const partes = []; rec.ondataavailable = e=>{ if(e.data && e.data.size) partes.push(e.data); };
+    const seg = Math.min(isFinite(v.duration) && v.duration > 0 ? v.duration : KA_AN.vidSeg, KA_AN.vidSeg);
+    const parou = new Promise(ok=>{ rec.onstop = ok; });
+    g.drawImage(v, 0, 0, cw, ch);
+    rec.start(300);
+    await v.play();
+    const t0 = performance.now();
+    await new Promise(ok=>{ const tm = setInterval(()=>{ g.drawImage(v, 0, 0, cw, ch); if(v.ended || (performance.now() - t0) / 1000 >= seg){ clearInterval(tm); ok(); } }, 66); });
+    try{ rec.stop(); }catch(e){}
+    await parou;
+    const d = await kaLerDataUrl(new Blob(partes, {type: (rec.mimeType || mime || 'video/webm').split(';')[0]}));
+    if(d.length > KA_AN.vidMax) throw new Error('grande');
+    return {dataUrl: d, seg: Math.round(seg * 10) / 10, w: cw, h: ch};
+  } finally { try{ v.pause(); }catch(e){} v.remove(); URL.revokeObjectURL(url); }
+}
+/* o anexo dentro da bolha da pessoa */
+function kaMidiaNaBolha(an){
+  const el = document.createElement(an.tipo === 'imagem' ? 'img' : an.tipo === 'video' ? 'video' : 'audio');
+  el.className = 'ka-midia ' + an.tipo;
+  el.src = an.dataUrl;
+  if(an.tipo === 'imagem') el.alt = '';
+  else { el.controls = true; el.preload = 'metadata'; if(an.tipo === 'video'){ el.playsInline = true; el.setAttribute('playsinline', ''); } }
+  return el;
+}
 /* o robô: roda o jogo num quadro pequeno por uns segundos e devolve o que viu */
 function kaRobo(codigo, onde){
   const prep = prepararCodigoDoJogo(codigo) || codigo;
@@ -35673,7 +36256,16 @@ function abrirAgente(caixa, opts){
     <div class="ka-corpo"><div class="ka-lista" aria-live="polite"></div></div>
     <div class="ka-baixo">
       <div class="ka-chips"></div>
-      <form class="ka-form"><textarea rows="1" maxlength="600" enterkeyhint="send" placeholder="${esc(KA.T('ui_ph'))}" aria-label="${esc(KA.T('ui_ph'))}"></textarea><button type="submit" class="ka-enviar" aria-label="${esc(KA.T('ui_enviar'))}">${ICONS.send}</button></form>
+      <div class="ka-editando" hidden><div><b>${esc(KA.T('ui_editando'))}</b><small>${esc(KA.T('ui_editando_sub'))}</small></div><button type="button" class="ka-edit-x" aria-label="${esc(KA.T('ui_cancelar'))}" title="${esc(KA.T('ui_cancelar'))}">${KA_ICO.x}</button></div>
+      <div class="ka-anexo-prev" hidden></div>
+      <div class="ka-menu-an" role="menu" hidden>
+        <button type="button" role="menuitem" data-an="imagem">${KA_ICO.imagem}<span>${esc(KA.T('ui_an_imagem'))}</span></button>
+        <button type="button" role="menuitem" data-an="video">${KA_ICO.video}<span>${esc(KA.T('ui_an_video'))}</span></button>
+        <button type="button" role="menuitem" data-an="audio">${KA_ICO.audio}<span>${esc(KA.T('ui_an_audio'))}</span></button>
+        <button type="button" role="menuitem" data-an="gravar">${KA_ICO.mic}<span>${esc(KA.T('ui_an_gravar'))}</span></button>
+      </div>
+      <input type="file" class="ka-in" data-tipo="imagem" accept="image/*" hidden><input type="file" class="ka-in" data-tipo="video" accept="video/*" hidden><input type="file" class="ka-in" data-tipo="audio" accept="audio/*" hidden>
+      <form class="ka-form"><button type="button" class="ka-clipe" aria-haspopup="true" aria-expanded="false" aria-label="${esc(KA.T('ui_anexar'))}" title="${esc(KA.T('ui_anexar'))}">${KA_ICO.clipe}</button><textarea rows="1" maxlength="600" enterkeyhint="send" placeholder="${esc(KA.T('ui_ph'))}" aria-label="${esc(KA.T('ui_ph'))}"></textarea><button type="button" class="ka-mic" aria-label="${esc(KA.T('ui_mic'))}" title="${esc(KA.T('ui_mic'))}">${KA_ICO.mic}</button><button type="submit" class="ka-enviar" aria-label="${esc(KA.T('ui_enviar'))}">${ICONS.send}</button></form>
     </div>`;
   document.body.appendChild(tela);
   requestAnimationFrame(()=>tela.classList.add('show'));
@@ -35696,7 +36288,18 @@ function abrirAgente(caixa, opts){
     });
     chipsEl.hidden = !conv.chips.length;
   }
-  function bolhaEu(txt){ const d = document.createElement('div'); d.className = 'ka-msg eu'; d.textContent = txt; lista.appendChild(d); rolar(); }
+  function bolhaEu(txt, extra){
+    const d = document.createElement('div'); d.className = 'ka-msg eu';
+    const an = extra && extra.anexo;
+    if(an) d.appendChild(kaMidiaNaBolha(an));
+    if(txt || !an){ const t = document.createElement('div'); t.className = 'ka-p'; t.textContent = txt; d.appendChild(t); }
+    if(an) d.classList.add('com-midia');
+    if(extra){ d.__foto = extra.foto; d.__msg = extra.msg; d.__anexo = an || null; }
+    lista.appendChild(d);
+    kaAcoesPara(d, txt, !!(extra && extra.foto));
+    rolar();
+    return d;
+  }
   function pensando(){ const d = document.createElement('div'); d.className = 'ka-msg ele ka-pensando'; d.innerHTML = '<span class="ka-pontos" aria-hidden="true"><i></i><i></i><i></i></span>'; lista.appendChild(d); rolar(); return d; }
   /* o código novo entra na caixa do Studio */
   function aplicarCodigo(novo, desfez){
@@ -35708,7 +36311,7 @@ function abrirAgente(caixa, opts){
   async function mostrar(r){
     for(const b of r.blocos){
       if(!tela.isConnected) return;
-      if(b.t === 'txt'){ const d = document.createElement('div'); d.className = 'ka-msg ele'; lista.appendChild(d); await kaDigitar(d, b.s, rolar); }
+      if(b.t === 'txt'){ const d = document.createElement('div'); d.className = 'ka-msg ele'; lista.appendChild(d); await kaDigitar(d, b.s, rolar); kaAcoesPara(d, b.s, false); rolar(); }
       else { lista.appendChild(kaCartao(b)); rolar(); }
     }
     pintarChips(r.chips);
@@ -35718,6 +36321,7 @@ function abrirAgente(caixa, opts){
     if(r.erro) try{ console.warn('Agente Koda GB:', r.erro); }catch(e){}
     if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); conv.codigoDoAgente = caixa.value; }
     /* jogo criado do zero: o nome dele já vai pro campo "Nome" (se estiver vazio) */
+    if(r.capa && opts.aoCapa){ try{ opts.aoCapa(r.capa); }catch(e){} }
     if(r.nomeJogo && opts.nomeEl && !opts.nomeEl.value.trim()){ opts.nomeEl.value = r.nomeJogo; try{ opts.nomeEl.dispatchEvent(new Event('input', {bubbles: true})); }catch(e){} }
     await mostrar(r);
     kaSalvarAprendido(conv.estado);
@@ -35736,11 +36340,16 @@ function abrirAgente(caixa, opts){
       } else conv.estado.aguardando = null;
     }
   }
-  async function executar(txt, resolver){
+  async function executar(txt, resolver, msg, an){
     if(ocupado) return;
+    pararMic();
     ocupado = true; enviar.disabled = true; entrada.value = ''; ajustarAltura();
     chipsEl.hidden = true;
-    bolhaEu(txt);
+    kaJogoDaConversa(conv, caixa.value);
+    /* a "foto" do jogo e da conversa antes dessa mensagem: é pra ela que se volta se a pessoa editar a mensagem */
+    let foto = null;
+    try{ foto = {codigo: caixa.value, est: KA.tirarFoto(conv.estado)}; }catch(e){}
+    bolhaEu(txt, {foto, msg: msg == null ? txt : msg, anexo: an || null});
     const p = pensando();
     await new Promise(r=>setTimeout(r, 280 + Math.random() * 380));
     kaJogoDaConversa(conv, caixa.value);
@@ -35750,10 +36359,10 @@ function abrirAgente(caixa, opts){
     ocupado = false; enviar.disabled = false;
     if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) try{ entrada.focus(); }catch(e){}
   }
-  function falar(txt, rotulo){
+  function falar(txt, rotulo, an){
     txt = String(txt || '').trim().slice(0, 600);
-    if(!txt) return Promise.resolve();
-    return executar(rotulo || txt, ()=>KA.responder(conv.estado, txt, caixa.value));
+    if(!txt && !an) return Promise.resolve();
+    return executar(rotulo != null ? rotulo : txt, ()=>KA.responder(conv.estado, txt, caixa.value, an ? {anexo: an} : undefined), txt, an);
   }
   /* uma opção da oferta ("Colocar uma loja"): o agente pergunta como a pessoa quer */
   function falarOpcao(id, txt){
@@ -35761,10 +36370,171 @@ function abrirAgente(caixa, opts){
   }
   function ajustarAltura(){ entrada.style.height = 'auto'; entrada.style.height = Math.min(120, entrada.scrollHeight) + 'px'; }
   entrada.addEventListener('input', ajustarAltura);
-  q('.ka-form').addEventListener('submit', e=>{ e.preventDefault(); playSound('click'); falar(entrada.value); });
-  entrada.addEventListener('keydown', e=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); playSound('click'); falar(entrada.value); } });
+  /* ---- editar uma mensagem que já foi mandada ---- */
+  const barraEdit = q('.ka-editando');
+  let editando = null;
+  function sairEdicao(){
+    if(!editando) return;
+    editando = null; tela.classList.remove('editando'); barraEdit.hidden = true;
+    anexo = null; pintarAnexo();
+    entrada.value = ''; ajustarAltura();
+    if(!ocupado) pintarChips(conv.chips);
+  }
+  function entrarEdicao(bolha){
+    if(ocupado || !bolha || !bolha.__foto) return;
+    editando = {bolha};
+    tela.classList.add('editando'); barraEdit.hidden = false; chipsEl.hidden = true;
+    anexo = bolha.__anexo || null; pintarAnexo();
+    entrada.value = String(bolha.__texto || '').slice(0, 600); ajustarAltura();
+    try{ entrada.focus(); entrada.setSelectionRange(entrada.value.length, entrada.value.length); }catch(e){}
+    rolar();
+  }
+  async function mandarEdicao(){
+    const ed = editando; if(!ed || ocupado) return;
+    const txt = String(entrada.value || '').trim().slice(0, 600), an = anexo;
+    if(preparando || (!txt && !an)) return;
+    const bolha = ed.bolha, foto = bolha.__foto;
+    const nos = [...lista.children], depois = nos.slice(nos.indexOf(bolha) + 1).filter(n=>!n.classList.contains('ka-acoes'));
+    const seguir = ()=>{
+      const todos = [...lista.children], i = todos.indexOf(bolha);
+      if(i < 0){ sairEdicao(); return; }
+      const mudouTexto = txt !== String(bolha.__texto || '').trim();
+      const ant = anexo; anexo = null; pintarAnexo();
+      const msgOriginal = bolha.__msg, rotulo = bolha.__texto;
+      try{ KA.voltarFoto(conv.estado, foto.est); }catch(e){}
+      todos.slice(i).forEach(n=>n.remove());
+      if(caixa.value !== foto.codigo){ aplicarCodigo(foto.codigo, true); conv.codigoDoAgente = null; }
+      conv.chips = []; chipsEl.hidden = true;
+      pintarDesfazer();
+      sairEdicao();
+      if(!mudouTexto && msgOriginal != null && msgOriginal !== rotulo) falar(msgOriginal, rotulo, ant);
+      else falar(txt, null, ant);
+    };
+    /* se o jogo mudou depois dessa mensagem, confirma antes de voltar */
+    if(caixa.value !== foto.codigo || depois.length > 2){
+      showConfirm(chatListEscape(KA.T('ui_edit_confirma')), KA.T('ui_continuar_btn'), seguir);
+      const cc = document.querySelector('.confirm-bg:last-of-type .confirm-cancel'); if(cc) cc.textContent = KA.T('ui_cancelar');
+    } else seguir();
+  }
+  function enviarOuEditar(){
+    if(editando){ mandarEdicao(); return; }
+    if(preparando) return;
+    const an = anexo;
+    if(!String(entrada.value).trim() && !an) return;
+    anexo = null; pintarAnexo();
+    falar(entrada.value, null, an);
+  }
+  /* ---- mandar imagem, vídeo ou áudio ---- */
+  const prevAn = q('.ka-anexo-prev'), menuAn = q('.ka-menu-an'), btClipe = q('.ka-clipe');
+  let anexo = null, preparando = false;
+  function pintarAnexo(){
+    prevAn.innerHTML = '';
+    if(!anexo && !preparando){ prevAn.hidden = true; return; }
+    prevAn.hidden = false;
+    const corpo = document.createElement('div'); corpo.className = 'ka-an-corpo';
+    if(preparando){ corpo.innerHTML = '<span class="ka-an-giro" aria-hidden="true"></span>'; const t = document.createElement('span'); t.textContent = KA.T('ui_an_lendo'); corpo.appendChild(t); }
+    else {
+      const m = kaMidiaNaBolha(anexo); m.classList.add('ka-an-mini');
+      if(anexo.tipo === 'video'){ m.controls = false; m.muted = true; }
+      corpo.appendChild(m);
+      if(anexo.seg){ const d = document.createElement('small'); d.textContent = Math.floor(anexo.seg / 60) + ':' + String(Math.round(anexo.seg % 60)).padStart(2, '0'); corpo.appendChild(d); }
+    }
+    prevAn.appendChild(corpo);
+    if(anexo && !preparando){
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'ka-an-x'; x.innerHTML = KA_ICO.x;
+      x.setAttribute('aria-label', KA.T('ui_an_tirar')); x.title = KA.T('ui_an_tirar');
+      x.addEventListener('click', ()=>{ playSound('click'); anexo = null; pintarAnexo(); });
+      prevAn.appendChild(x);
+    }
+    rolar();
+  }
+  function fecharMenuAn(){ menuAn.hidden = true; btClipe.setAttribute('aria-expanded', 'false'); }
+  btClipe.addEventListener('click', e=>{
+    e.stopPropagation(); playSound('click');
+    const abrir = menuAn.hidden; menuAn.hidden = !abrir; btClipe.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+  });
+  tela.addEventListener('click', e=>{ if(!menuAn.hidden && !e.target.closest('.ka-menu-an, .ka-clipe')) fecharMenuAn(); });
+  async function prepararArquivo(file, tipoEsperado){
+    if(!file) return;
+    const tipo = kaTipoDoArquivo(file) || tipoEsperado;
+    if(!tipo){ toast(KA.T('ui_an_nao_serve')); return; }
+    preparando = true; pintarAnexo();
+    try{
+      const res = tipo === 'imagem' ? await kaPrepararImagem(file) : tipo === 'audio' ? await kaPrepararAudio(file) : await kaPrepararVideo(file);
+      if(!tela.isConnected) return;
+      anexo = {tipo, dataUrl: res.dataUrl, nome: String(file.name || '').slice(0, 40), seg: res.seg || 0, w: res.w || 0, h: res.h || 0};
+    }catch(e){ toast(KA.T(e && e.message === 'grande' ? 'ui_an_grande' : 'ui_an_erro')); }
+    finally{ preparando = false; if(tela.isConnected) pintarAnexo(); }
+  }
+  tela.querySelectorAll('.ka-in').forEach(inp=>inp.addEventListener('change', ()=>{ const f = inp.files && inp.files[0]; inp.value = ''; prepararArquivo(f, inp.dataset.tipo); }));
+  menuAn.querySelectorAll('[data-an]').forEach(b=>b.addEventListener('click', ()=>{
+    playSound('click'); fecharMenuAn();
+    const k = b.dataset.an;
+    if(k === 'gravar'){
+      if(typeof chatGravarAudio !== 'function' || !navigator.mediaDevices || typeof MediaRecorder === 'undefined'){ toast(KA.T('ui_an_sem_gravar')); return; }
+      pararMic();
+      chatGravarAudio(q('.ka-form'), ({dataUrl, seg})=>{
+        if(!tela.isConnected) return;
+        if(dataUrl.length > KA_AN.audMax){ toast(KA.T('ui_an_grande')); return; }
+        anexo = {tipo: 'audio', dataUrl, nome: '', seg: seg || 0, w: 0, h: 0}; pintarAnexo();
+      }, 25);
+    } else { const inp = tela.querySelector('.ka-in[data-tipo="' + k + '"]'); if(inp) inp.click(); }
+  }));
+  q('.ka-edit-x').addEventListener('click', ()=>{ playSound('click'); sairEdicao(); });
+  /* as ações de baixo das mensagens (a lista continua a mesma quando a tela fecha e abre: um ouvinte só, que chama a tela de agora) */
+  conv.aoAcao = (acao, linha)=>{
+    const bolha = linha && linha.previousElementSibling;
+    if(!bolha) return;
+    if(acao === 'copiar'){
+      kaCopiarTexto(String(bolha.__texto != null ? bolha.__texto : bolha.textContent)).then(ok=>{
+        playSound('click');
+        const b = linha.querySelector('[data-acao="copiar"]');
+        if(ok && b){ b.classList.add('ok'); b.innerHTML = KA_ICO.certo; setTimeout(()=>{ b.classList.remove('ok'); b.innerHTML = KA_ICO.copiar; }, 1400); }
+        toast(KA.T(ok ? 'ui_copiado' : 'ui_nao_copiou'));
+      });
+    } else if(acao === 'editar'){ playSound('click'); entrarEdicao(bolha); }
+  };
+  if(!lista.__kaOuve){ lista.__kaOuve = true; lista.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('.ka-acao'); if(b && conv.aoAcao) conv.aoAcao(b.dataset.acao, b.closest('.ka-acoes')); }); }
+  /* ---- falar em vez de escrever (o navegador escreve o que a pessoa diz) ---- */
+  const btMic = q('.ka-mic'), RecVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recVoz = null, ouvindo = false, baseVoz = '', fimVoz = null;
+  const phNormal = entrada.placeholder;
+  function pararMic(){ if(recVoz){ try{ recVoz.stop(); }catch(e){} } }
+  if(!RecVoz) btMic.hidden = true;
+  else btMic.addEventListener('click', ()=>{
+    if(ouvindo){ pararMic(); return; }
+    if(ocupado) return;
+    baseVoz = entrada.value ? entrada.value.replace(/\s+$/, '') + ' ' : '';
+    try{
+      recVoz = new RecVoz();
+      recVoz.lang = kaLinguaDaVoz(); recVoz.interimResults = true; recVoz.continuous = true; recVoz.maxAlternatives = 1;
+      recVoz.onstart = ()=>{
+        ouvindo = true; btMic.classList.add('ouvindo'); btMic.innerHTML = KA_ICO.parar;
+        btMic.setAttribute('aria-label', KA.T('ui_mic_parar')); btMic.title = KA.T('ui_mic_parar');
+        entrada.placeholder = KA.T('ui_mic_ouvindo');
+        clearTimeout(fimVoz); fimVoz = setTimeout(pararMic, 90000);
+      };
+      recVoz.onresult = e=>{
+        let t = ''; for(let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+        entrada.value = (baseVoz + t).slice(0, 600); ajustarAltura();
+      };
+      recVoz.onerror = e=>{ if(e && e.error && !/^(aborted|no-speech)$/.test(e.error)) toast(KA.T('ui_mic_erro')); };
+      recVoz.onend = ()=>{
+        ouvindo = false; clearTimeout(fimVoz); btMic.classList.remove('ouvindo'); btMic.innerHTML = KA_ICO.mic;
+        btMic.setAttribute('aria-label', KA.T('ui_mic')); btMic.title = KA.T('ui_mic'); entrada.placeholder = phNormal;
+        try{ entrada.focus(); }catch(e){}
+      };
+      recVoz.start();
+    }catch(e){ toast(KA.T('ui_mic_erro')); }
+  });
+  q('.ka-form').addEventListener('submit', e=>{ e.preventDefault(); playSound('click'); enviarOuEditar(); });
+  entrada.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); playSound('click'); enviarOuEditar(); }
+    else if(e.key === 'Escape' && !menuAn.hidden){ e.stopPropagation(); fecharMenuAn(); }
+    else if(e.key === 'Escape' && editando){ e.stopPropagation(); sairEdicao(); }
+  });
   btDesfazer.addEventListener('click', ()=>{ if(ocupado) return; playSound('click'); falar(KA.TL('pt', 'ch_desfazer'), KA.T('ch_desfazer')); });
-  const fechar = ()=>{ conv.visto = caixa.value; document.removeEventListener('keydown', teclas); tela.classList.remove('show'); tela.style.pointerEvents = 'none'; setTimeout(()=>tela.remove(), 220); if(opts.aoFechar) opts.aoFechar(); };
+  const fechar = ()=>{ pararMic(); conv.visto = caixa.value; document.removeEventListener('keydown', teclas); tela.classList.remove('show'); tela.style.pointerEvents = 'none'; setTimeout(()=>tela.remove(), 220); if(opts.aoFechar) opts.aoFechar(); };
   const teclas = e=>{ if(e.key === 'Escape' && tela.isConnected){ e.stopPropagation(); fechar(); } };
   document.addEventListener('keydown', teclas);
   q('[data-fechar]').addEventListener('click', ()=>{ playSound('click'); fechar(); });
@@ -35815,12 +36585,13 @@ function kaOferta(caixa, o){
   bg.querySelector('.ka-of-sair').addEventListener('click', ()=>{ playSound('click'); fechar(); if(o.depois) o.depois(); });
   bg.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click', ()=>{
     playSound('click'); fechar();
-    abrirAgente(caixa, {aoMudar: o.aoMudar, nomeEl: o.nomeEl, comecar: b.dataset.op});
+    abrirAgente(caixa, {aoMudar: o.aoMudar, nomeEl: o.nomeEl, aoCapa: o.aoCapa, comecar: b.dataset.op});
   }));
   return true;
 }
 /* liga o botão do Agente Koda GB; codeSel = a caixa do código; editingId = o jogo que está sendo editado (se for edição) */
-function ligarAssistente(root, codeSel, editingId){
+function ligarAssistente(root, codeSel, editingId, capa){
+  const aoCapa = capa && capa.definir ? capa.definir : null;
   const box = root.querySelector('.ia-assist');
   if(!box) return;
   const caixa = root.querySelector(codeSel), abrir = box.querySelector('[data-ia-abrir]'), status = box.querySelector('[data-ia-status]'), desfazer = box.querySelector('[data-ia-desfazer]');
@@ -35833,7 +36604,7 @@ function ligarAssistente(root, codeSel, editingId){
     mostrarStatus(KA.T(desfez ? 'ui_desfeito' : 'ui_codigo_mudou'), desfez ? '' : 'ok');
   };
   const nomeEl = root.querySelector('#fName, #directName');
-  abrir.addEventListener('click', ()=>{ playSound('click'); ocultarDica(); abrirAgente(caixa, {aoMudar, nomeEl}); });
+  abrir.addEventListener('click', ()=>{ playSound('click'); ocultarDica(); abrirAgente(caixa, {aoMudar, nomeEl, aoCapa}); });
   /* a dica: logo depois de colar o código, o agente pergunta se a pessoa quer adicionar alguma coisa */
   let dica = null, dicaTm = null, dicaFeita = false;
   const ocultarDica = ()=>{ if(dica){ dica.remove(); dica = null; } };
@@ -35845,7 +36616,7 @@ function ligarAssistente(root, codeSel, editingId){
     dica = document.createElement('button');
     dica.type = 'button'; dica.className = 'ka-dica';
     dica.innerHTML = `${iconeAgenteKoda(true)}<span>${chatListEscape(KA.T('ui_dica'))}</span>`;
-    dica.addEventListener('click', ()=>{ playSound('click'); ocultarDica(); kaOferta(caixa, {aoMudar, nomeEl}); });
+    dica.addEventListener('click', ()=>{ playSound('click'); ocultarDica(); kaOferta(caixa, {aoMudar, nomeEl, aoCapa}); });
     box.insertBefore(dica, status);
   }
   caixa.addEventListener('input', ()=>{ clearTimeout(dicaTm); dicaTm = setTimeout(mostrarDica, 900); });
@@ -35860,7 +36631,7 @@ function ligarAssistente(root, codeSel, editingId){
     KA_OFERTADO.add(caixa);
     e.preventDefault(); e.stopImmediatePropagation();
     ocultarDica(); dicaFeita = true;
-    kaOferta(caixa, {publicar: true, aoMudar, nomeEl, depois: ()=>{ try{ b.click(); }catch(x){} }});
+    kaOferta(caixa, {publicar: true, aoMudar, nomeEl, aoCapa, depois: ()=>{ try{ b.click(); }catch(x){} }});
   };
   root.addEventListener('click', root._kaPublicar, true);
   /* o "desfazer" do lado do botão faz o mesmo que o da conversa (e fica anotado nela) */
@@ -35964,7 +36735,7 @@ function renderDirectPublish(root, onBack){
     const category = root.querySelector('#directCat').value.trim();
     publishGame(name, code, capa.cover, null, category || null, undefined, undefined, capa.shape, (LOJA_NO_CRIAR && root.querySelector('#directLoja').checked) || codigoTemLoja(code) || undefined);
   });
-  ligarAssistente(root, '#directCode');
+  ligarAssistente(root, '#directCode', undefined, capa);
   duplaPorNoStudio(root, ()=>({nome: root.querySelector('#directName').value.trim(), codigo: root.querySelector('#directCode').value, capa: capa.cover, formato: capa.shape}));
 }
 
