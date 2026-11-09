@@ -6,6 +6,7 @@
    movimento recusado grande, pontuação suspeita) pro dono ver no painel. */
 import { DurableObject } from 'cloudflare:workers';
 import { limpaEmail, emailOk, obj } from './util.js';
+import * as Aprendiz from './aprendiz.js';
 
 export class Indice extends DurableObject {
   async registrar(email) {
@@ -41,6 +42,11 @@ export class Vigia extends DurableObject {
     if (Math.random() < 0.05) this.sql.exec('DELETE FROM alerta WHERE s < (SELECT MAX(s) - 2000 FROM alerta)');
     return { ok: true };
   }
+  /* a instância "agente": o Agente Koda GB aprendendo com os erros de todo mundo (ver aprendiz.js) */
+  async agErros(conta, eventos) { return Aprendiz.receberErros(this.sql, conta, eventos); }
+  async agRegras() { return Aprendiz.regras(this.sql); }
+  async agLista(n) { return Aprendiz.lista(this.sql, n); }
+  async agAdmin(acao, d) { return Aprendiz.admin(this.sql, acao, d); }
   async lista(n) {
     const rows = this.sql.exec('SELECT s, t, email, tipo, info FROM alerta ORDER BY s DESC LIMIT ?', Math.min(500, Math.max(1, Number(n) || 100))).toArray();
     return rows.map(r => { let info = {}; try { info = JSON.parse(r.info); } catch (e) {} return { s: r.s, t: r.t, email: r.email, tipo: r.tipo, info }; });
