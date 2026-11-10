@@ -38,6 +38,12 @@ Para **ajustar o rigor**, mude `KODA_LIMITES` e `KODA_FORTES` no worker (e rode 
 em vez de deixar o jogo esperando (fica marcado `koda`, política 0).
 Dá pra conferir em `https://jogodromo-agente.gamersite.workers.dev/` (campo `modo_da_analise`).
 
+**Avaliar de dentro do Koda (painel do dono):** em *Moderação* (o escudo no perfil do dono) tem a seção **Avaliar jogos com a IA do Koda**.
+Ela chama a rota `POST /avaliar` do worker (só o e-mail do dono passa; os outros recebem 403). Dá para avaliar **os jogos que estão no site**
+(lê o catálogo de 5 em 5), **arquivos `.html`** ou **um código colado**. Mostra aprovado/recusado, o motivo, as categorias, os avisos
+(imagem, vídeo ou áudio dentro do jogo) e, para cada jogo do site, se o site hoje o mostra e a IA do Koda recusaria.
+**Só olha: não grava nada no banco e não tira nenhum jogo do site.** Funciona em qualquer modo e não usa IA paga. Para valer, publique o worker novo no Cloudflare.
+
 **Pra testar antes de publicar o worker:** abra `agente/avaliador-koda.html` no navegador e arraste os jogos de `agente/jogos-de-avaliacao/`.
 
 **Pra religar a análise quando tiver a chave da API com crédito:**

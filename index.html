@@ -23692,12 +23692,14 @@ async function openModeracaoView(){
   const alertas = logs.filter(l=>l.alerta);
   modalBody.innerHTML = `
     <div class="mod-painel">
+      <div id="kodaAvalia"></div>
       <div id="srvPainel"></div>
       <div class="mod-antigos"><button class="g-btn" id="modAntigosBtn">${t('mod_admin_old_btn')}</button><span id="modAntigosInfo"></span></div>
       ${alertas.length ? `<h3>${t('mod_admin_alerts')}</h3>` + alertas.map(l=>`<div class="mod-item mod-item-alerta"><b>${esc(l.nome || l.gameId)}</b> ${chip(l.status)} <div class="mod-item-sub">${esc(l.criador || '')}</div><div class="mod-cats">${textoDasCategorias(l.categorias)}</div></div>`).join('') : ''}
       <h3>${t('mod_admin_recent')}</h3>
       ${logs.map(l=>`<div class="mod-linha">${chip(l.status)} <b>${esc(l.nome || l.gameId)}</b> <span class="mod-item-sub">${esc(l.criador || '')} · ${esc(l.tipo || '')}</span> ${textoDasCategorias(l.categorias)}</div>`).join('')}
     </div>`;
+  try{ kodaAvaliadorPainel(modalBody.querySelector('#kodaAvalia')); }catch(e){}
   try{ econPainelAdmin(modalBody.querySelector('#srvPainel')); }catch(e){}
   const btn = modalBody.querySelector('#modAntigosBtn');
   btn.addEventListener('click', async ()=>{
@@ -23715,6 +23717,113 @@ async function openModeracaoView(){
       info.textContent = t('mod_admin_old_done', {n: feitos});
     }catch(e){ info.textContent = t('mod_admin_fail', {msg: e.message}); }
     btn.disabled = false;
+  });
+}
+
+/* ============================================================
+   AVALIAR JOGOS COM A IA DO KODA (só o dono, dentro do painel de moderação)
+   A análise roda no servidor da IA (rota /avaliar), é só código (sem IA paga) e SÓ OLHA: não muda nem tira nenhum jogo do site.
+   Dá pra avaliar os jogos que já estão no site, arquivos .html ou um código colado. Os textos ficam em português.
+============================================================ */
+function kodaAvaliadorPainel(raiz){
+  if(!raiz || !isAdmin()) return;
+  const esc = chatListEscape;
+  const GRAV = {gravissima:'gravíssima', grave:'grave', media:'média', leve:'leve'};
+  const AVISO = {imagens_nao_conferidas:'tem imagem dentro do jogo: a IA do Koda não enxerga o que está desenhado (só a IA completa enxerga)', videos_nao_conferidos:'tem vídeo dentro do jogo: o conteúdo não foi conferido', audios_nao_conferidos:'tem áudio dentro do jogo: o conteúdo não foi conferido'};
+  raiz.innerHTML = `
+    <h3>Avaliar jogos com a IA do Koda</h3>
+    <p class="mod-item-sub">A IA do Koda confere os jogos só pelo código (sem IA paga) e mostra se cada um seria aprovado ou recusado, e por quê. Aqui ela só olha: não muda nem tira nenhum jogo do site.</p>
+    <div class="mod-antigos"><button class="g-btn" id="kavSite">Avaliar os jogos do site</button> <span id="kavInfo" class="mod-item-sub"></span></div>
+    <div class="mod-antigos" style="gap:6px;flex-wrap:wrap;margin-top:6px;">
+      <label class="g-btn" for="kavArq" style="cursor:pointer;">Escolher arquivos .html</label><input id="kavArq" type="file" accept=".html,.htm,text/html" multiple style="display:none;">
+      <button class="g-btn" id="kavColarBtn" type="button">Colar o código de um jogo</button>
+    </div>
+    <div id="kavColar" style="display:none;margin-top:6px;">
+      <input id="kavNome" type="text" placeholder="Nome do jogo (opcional)" style="width:100%;padding:8px;border-radius:10px;border:1px solid #0002;margin-bottom:6px;box-sizing:border-box;">
+      <textarea id="kavCodigo" rows="6" placeholder="Cole aqui o código HTML do jogo" style="width:100%;padding:8px;border-radius:10px;border:1px solid #0002;font-family:monospace;font-size:.8rem;box-sizing:border-box;"></textarea>
+      <button class="g-btn" id="kavColarGo" type="button" style="margin-top:6px;">Avaliar</button>
+    </div>
+    <div id="kavResumo" class="mod-item-sub" style="margin-top:8px;font-weight:800;"></div>
+    <div id="kavLista"></div>`;
+  const info = raiz.querySelector('#kavInfo'), resumo = raiz.querySelector('#kavResumo'), lista = raiz.querySelector('#kavLista');
+  const btnSite = raiz.querySelector('#kavSite');
+  const chip = st => `<span class="mod-chip mod-chip-${esc(st)}">${st === 'aprovado' ? 'Aprovado' : 'Recusado'}</span>`;
+  const avisoTexto = a => { const k = String(a).split(':'); return (AVISO[k[0]] || esc(k[0])) + (k[1] ? ' (' + esc(k[1]) + ')' : ''); };
+  function cartao(it){
+    const rec = it.status === 'recusado';
+    const hoje = it.noSite ? `no site hoje: ${esc(it.noSite.status)}${it.noSite.por ? ' (por ' + esc(it.noSite.por) + ')' : ''}` : '';
+    const contradiz = rec && it.noSite && it.noSite.status === 'aprovado';
+    let h = `<div class="mod-item${rec && it.alerta ? ' mod-item-alerta' : ''}"><div class="mod-item-topo">${chip(it.status)} <b>${esc(it.nome || it.id)}</b>${it.criador ? ` <span class="mod-item-sub">${esc(it.criador)}</span>` : ''}${hoje ? ` <span class="mod-item-sub">${hoje}</span>` : ''}</div>`;
+    if(contradiz) h += `<div class="mod-item-sub" style="opacity:1;color:#E5483A;font-weight:800;">O site mostra esse jogo, mas a IA do Koda recusaria.</div>`;
+    if(rec){
+      h += `<div class="mod-item-sub" style="opacity:1;margin-top:4px;">${esc(it.motivo || '')}${it.alerta ? ' <b>(gravíssimo)</b>' : ''}</div>`;
+      if(it.categorias && it.categorias.length) h += `<div class="mod-cats">${textoDasCategorias(it.categorias)}</div>`;
+      if(it.violacoes && it.violacoes.length) h += it.violacoes.map(v=>`<div class="mod-linha"><b>${esc(t('mod_cat_' + v.categoria))}</b> <span class="mod-item-sub">${esc(GRAV[v.gravidade] || v.gravidade)}</span> <span>"${esc(v.trecho)}"</span> <span class="mod-item-sub">${esc(v.explicacao)}</span></div>`).join('');
+    }
+    if(it.avisos && it.avisos.length) h += `<div class="mod-item-sub" style="opacity:1;margin-top:4px;">${it.avisos.map(a=>'Aviso: ' + avisoTexto(a)).join('<br>')}</div>`;
+    const det = [];
+    (it.sinais || []).forEach(x=>det.push(`<div class="mod-item-sub">${esc(x.nivel)} · ${esc(x.id)}: ${esc(x.detalhe)}${x.exemplos && x.exemplos.length ? ' — ' + esc(x.exemplos.join(' | ')) : ''}</div>`));
+    if(it.lexico && it.lexico.length) det.push(`<div class="mod-item-sub">Palavras do dicionário: ${it.lexico.map(l=>esc(l.termo) + ' (' + esc(l.nivel) + ', ' + l.vezes + 'x)').join(' · ')}</div>`);
+    if(det.length) h += `<details style="margin-top:4px;"><summary class="mod-item-sub" style="cursor:pointer;">Ver detalhes</summary>${det.join('')}</details>`;
+    return h + '</div>';
+  }
+  function mostrar(itens, andamento){
+    const ap = itens.filter(x=>x.status === 'aprovado'), rec = itens.filter(x=>x.status === 'recusado');
+    const com = ap.filter(x=>x.avisos && x.avisos.length);
+    resumo.textContent = itens.length + ' jogo(s) avaliado(s): ' + ap.length + ' aprovado(s) e ' + rec.length + ' recusado(s)' + (com.length ? ', ' + com.length + ' com aviso' : '') + (andamento ? ' (continua...)' : '.');
+    const aprovados = ap.filter(x=>!(x.avisos && x.avisos.length));
+    lista.innerHTML = rec.map(cartao).join('') + com.map(cartao).join('')
+      + (aprovados.length ? `<details style="margin-top:6px;"><summary class="mod-item-sub" style="cursor:pointer;">Ver os ${aprovados.length} aprovado(s) sem nenhum problema</summary>${aprovados.map(cartao).join('')}</details>` : '');
+  }
+  async function avaliarCodigos(fontes){
+    btnSite.disabled = true;
+    const itens = [];
+    try{
+      for(let i = 0; i < fontes.length; i++){
+        if(!raiz.isConnected) return;
+        info.textContent = 'Avaliando ' + (i + 1) + ' de ' + fontes.length + '...';
+        const r = await chamarServidorComoAdmin('/avaliar', {codigo: fontes[i].codigo, nome: fontes[i].nome});
+        (r.itens || []).forEach(x=>{ if(fontes[i].nome) x.nome = fontes[i].nome; itens.push(x); });
+        mostrar(itens, i + 1 < fontes.length);
+      }
+      info.textContent = '';
+    }catch(e){ info.textContent = 'Não deu: ' + e.message; }
+    btnSite.disabled = false;
+  }
+  btnSite.addEventListener('click', async ()=>{
+    btnSite.disabled = true;
+    const itens = [];
+    let pagina = null, voltas = 0;
+    try{
+      while(voltas++ < 400){
+        if(!raiz.isConnected) return;
+        info.textContent = 'Avaliando os jogos do site... ' + itens.length;
+        const r = await chamarServidorComoAdmin('/avaliar', {catalogo: true, pagina, porVez: 5});
+        (r.itens || []).forEach(x=>itens.push(x));
+        pagina = r.proximaPagina || null;
+        mostrar(itens, !r.fim);
+        if(r.fim) break;
+      }
+      info.textContent = '';
+    }catch(e){ info.textContent = 'Não deu: ' + e.message; }
+    btnSite.disabled = false;
+  });
+  raiz.querySelector('#kavArq').addEventListener('change', async e=>{
+    const arqs = Array.from(e.target.files || []);
+    e.target.value = '';
+    if(!arqs.length) return;
+    const fontes = [];
+    for(const f of arqs){ try{ fontes.push({nome: f.name, codigo: await f.text()}); }catch(x){} }
+    avaliarCodigos(fontes);
+  });
+  raiz.querySelector('#kavColarBtn').addEventListener('click', ()=>{
+    const c = raiz.querySelector('#kavColar');
+    c.style.display = c.style.display === 'none' ? 'block' : 'none';
+  });
+  raiz.querySelector('#kavColarGo').addEventListener('click', ()=>{
+    const cod = raiz.querySelector('#kavCodigo').value;
+    if(!cod.trim()) return;
+    avaliarCodigos([{nome: raiz.querySelector('#kavNome').value.trim(), codigo: cod}]);
   });
 }
 

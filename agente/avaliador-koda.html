@@ -2055,6 +2055,51 @@ async function moderarAntigos(db, cfg, pagina, porVez){
 }
 
 /* ---------------------------------------------------------------------------
+   AVALIAR (só o dono do site): a IA do Koda confere um jogo colado, ou os jogos do catálogo, e MOSTRA o resultado.
+   Não muda nada no banco: é só pra olhar. Funciona em qualquer modo e não usa IA paga (é a mesma análise do modo "koda").
+--------------------------------------------------------------------------- */
+function codigoParaB64(txt){
+  const bytes = new TextEncoder().encode(String(txt || ''));
+  let bin = '';
+  for(let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+  return btoa(bin);
+}
+function itemDaAvaliacao(id, jogo, r, ms){
+  const d = r.decisao, a = r.analise;
+  const ver = jogo.moderacao && jogo.moderacao.status ? { status: jogo.moderacao.status, por: jogo.moderacao.por || 'ia' } : null;
+  return {
+    id, nome: String(jogo.name || '').slice(0, 120), criador: String(jogo.creatorEmail || ''),
+    status: d.status, motivo: d.motivo || '', categorias: d.categorias || [], alerta: !!d.alerta,
+    violacoes: (d.violacoes || []).slice(0, 12).map(v => ({ categoria: v.categoria, gravidade: v.gravidade, trecho: String(v.trecho || '').slice(0, 160), explicacao: String(v.explicacao || '').slice(0, 240) })),
+    avisos: d.avisos || [],
+    sinais: a ? a.sinais.slice(0, 12).map(x => ({ id: x.id, nivel: x.nivel, detalhe: String(x.detalhe || '').slice(0, 200), exemplos: (x.exemplos || []).slice(0, 3).map(e => String(e).slice(0, 120)) })) : [],
+    lexico: a ? a.lexico.slice(0, 15).map(l => ({ cat: l.cat, nivel: l.nivel, termo: l.termo, vezes: l.vezes })) : [],
+    noSite: ver, ms,
+  };
+}
+const AVALIAR_CAMPOS = ['name', 'category', 'codeB64', 'codeTooLargeForCloud', 'creatorEmail', 'moderacao'];
+async function avaliarComoDono(db, cfg, corpo){
+  corpo = corpo || {};
+  const lang = NOME_IDIOMA[corpo.lang] ? corpo.lang : 'pt';
+  const uma = (id, jogo) => {
+    const t0 = agora();
+    return itemDaAvaliacao(id, jogo, revisarComKoda(jogo, { lang }), agora() - t0);
+  };
+  if(typeof corpo.codigo === 'string'){
+    if(corpo.codigo.length > 3 * 1024 * 1024) return { erro: 'codigo_grande_demais', httpStatus: 413 };
+    const titulo = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(corpo.codigo);
+    const nome = String(corpo.nome || (titulo && titulo[1].trim()) || 'Jogo colado').slice(0, 120);
+    return { itens: [uma('colado', { id: 'colado', name: nome, codeB64: codigoParaB64(corpo.codigo), creatorEmail: '' })], fim: true };
+  }
+  if(corpo.catalogo){
+    const porVez = Math.max(1, Math.min(8, parseInt(corpo.porVez, 10) || 5));
+    const lista = await db.listar('publicGames', AVALIAR_CAMPOS, typeof corpo.pagina === 'string' && corpo.pagina ? corpo.pagina : null, porVez);
+    return { itens: lista.docs.map(d => uma(d.id, d.dados)), proximaPagina: lista.proxima || null, fim: !lista.proxima };
+  }
+  return { erro: 'pedido_invalido', detalhe: 'mande "codigo" (um jogo colado) ou "catalogo": true', httpStatus: 400 };
+}
+
+/* ---------------------------------------------------------------------------
    ENTRADA DO WORKER
 --------------------------------------------------------------------------- */
 async function lerCorpo(request, maxBytes){
@@ -2332,6 +2377,23 @@ var __servidorKoda = {
 
     if(rota.indexOf('/conta/') === 0) return rotaDeConta(request, cfg, rota);
 
+    if(rota === '/avaliar'){
+      /* só o dono; só olha (não grava nada) */
+      let quem;
+      try{ quem = await quemEsta(request, cfg); }
+      catch(e){ return respJSON({ erro: 'nao_autorizado', detalhe: e.message }, 401); }
+      if(quem.email !== cfg.admin) return respJSON({ erro: 'so_admin' }, 403);
+      let corpo;
+      try{ corpo = await lerCorpo(request, 4 * 1024 * 1024); }
+      catch(e){ return respJSON({ erro: 'pedido_invalido', detalhe: e.message }, 400); }
+      if(corpo.catalogo && !cfg.sa) return respJSON({ erro: 'nao_configurado', detalhe: cfg.saErro || 'falta FIREBASE_SERVICE_ACCOUNT' }, 503);
+      try{
+        const r = await avaliarComoDono(corpo.catalogo ? new Banco(cfg) : null, cfg, corpo);
+        return respJSON(r, r.httpStatus || 200);
+      }catch(e){
+        return respJSON({ erro: 'falha', detalhe: String(e && e.message || e).slice(0, 200) }, 502);
+      }
+    }
     if(rota === '/moderar' || rota === '/decidir' || rota === '/moderar-antigos'){
       /* não existe mais decisão "na mão": o resultado é sempre o da análise */
       if(rota === '/decidir') return respJSON({ erro: 'desativado', detalhe: 'o Koda não tem revisão por pessoa: o resultado é sempre o da análise' }, 410);
