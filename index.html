@@ -13954,30 +13954,58 @@ async function removePublicGame(id){
   try{ await fbDb().collection('publicGames').doc(id).delete(); }catch(e){}
   try{ await fbDb().collection('gameSubmissions').doc(id).delete(); }catch(e){}   // e o envio para análise
 }
+/* ============================================================
+   LEITURAS DO BANCO COM MEMÓRIA
+   O plano grátis do Firebase dá 50 mil leituras por dia: cada documento lido conta 1 (e uma consulta vazia também conta 1).
+   Antes, uma aba aberta lia o catálogo inteiro, a lista inteira de perfis e a presença a cada poucos segundos, e a cota
+   do dia acabava (o servidor da análise levava erro 429). Agora o que muda pouco fica guardado por um tempo, e o que muda
+   muito só é pedido "a partir de onde parou". Tudo continua atualizando sozinho; só deixa de reler o que já sabe.
+============================================================ */
+const leituraMemo = {};
+function esquecerLeitura(nome){ delete leituraMemo[nome]; }
+/* a coleção inteira, lida no máximo 1 vez a cada "ms" (várias telas pedindo juntas dividem a mesma leitura; falha não fica guardada) */
+function lerColecaoMemo(nome, ms){
+  const m = leituraMemo[nome];
+  if(m && Date.now() - m.t < (ms || 300000)) return m.p;
+  const p = fbDb().collection(nome).get();
+  leituraMemo[nome] = {t: Date.now(), p};
+  p.catch(()=>{ if(leituraMemo[nome] && leituraMemo[nome].p === p) delete leituraMemo[nome]; });
+  return p;
+}
+let criadoresVerificadosMemo = {t: 0, mapa: null};
+const VERIFICADOS_MS = 30 * 60000;      // quem tem o selo muda raramente (o dono vê a própria mudança na hora)
 async function fetchVerifiedCreatorsMap(){
   if(!FIREBASE_ENABLED) return {};
+  const m = criadoresVerificadosMemo;
+  if(m.mapa && Date.now() - m.t < VERIFICADOS_MS) return m.mapa;
   try{
     const snap = await fbDb().collection('verifiedCreators').get();
     const map = {};
     snap.docs.forEach(d=>{ map[d.id] = !!(d.data()||{}).verified; });
+    criadoresVerificadosMemo = {t: Date.now(), mapa: map};
     return map;
-  }catch(e){ return {}; }
+  }catch(e){
+    /* sem permissão (visitante) ou sem cota: tenta de novo daqui a 5 minutos e, até lá, usa o que já tinha */
+    criadoresVerificadosMemo = {t: Date.now() - VERIFICADOS_MS + 5 * 60000, mapa: m.mapa || {}};
+    return criadoresVerificadosMemo.mapa;
+  }
 }
 async function setCreatorVerified(email, verified){
   if(!FIREBASE_ENABLED || !isAdmin()) return false;
   try{
     await fbDb().collection('verifiedCreators').doc(email).set({verified: !!verified, updatedAt: Date.now()});
+    if(criadoresVerificadosMemo.mapa) criadoresVerificadosMemo.mapa[email] = !!verified;   // o dono vê o selo mudar na hora
     return true;
   }catch(e){ return false; }
 }
 let publicCatalogSig = null; // "retrato" do catálogo do servidor, pra saber se mudou algo
 /* opts.live = chamada automática (sem a pessoa pedir): nesse caso só mexe na tela
    se o catálogo realmente mudou, e sem repetir a animação de entrada dos cards. */
-/* visitante não lê a lista de perfis: olha só o perfil de quem publicou, uma vez a cada 5 minutos.
+/* visitante não lê a lista de perfis: olha só o perfil de quem publicou, uma vez a cada 15 minutos.
    Quem deixou os jogos publicados privados continua escondido; se não deu pra conferir, na dúvida esconde. */
 var visPrivCache = {t:0, map:{}, vistos:{}};
 async function visitantePrivados(emails){
-  if(Date.now() - visPrivCache.t > 300000) visPrivCache = {t: Date.now(), map:{}, vistos:{}};
+  if(Date.now() - visPrivCache.t > 15 * 60000) visPrivCache = {t: Date.now(), map:{}, vistos:{}};
   const falta = [...new Set((emails || []).filter(e=>e && !visPrivCache.vistos[e]))];
   await Promise.all(falta.map(async e=>{
     visPrivCache.vistos[e] = true;
@@ -13989,23 +14017,66 @@ async function visitantePrivados(emails){
   }));
   return visPrivCache.map;
 }
+/* O catálogo é lido "a partir de onde parou": depois da primeira leitura completa, cada batida só pede os jogos que mudaram
+   (updatedAt mais novo que o último visto, com uma folga de 5 min). De 30 em 30 minutos relê tudo de novo, que é como o site
+   percebe um jogo que saiu do ar. Se algo no meio falhar, volta a ler tudo. */
+let catalogoMemo = null;   // {mapa: {id: jogo}, maior: updatedAt mais novo visto, tudoEm: quando leu tudo pela última vez}
+const CATALOGO_TUDO_MS = 30 * 60000;
+const CATALOGO_FOLGA_MS = 5 * 60000;
+function maiorAtualizacao(docs, ate, base){
+  let m = base || 0;
+  docs.forEach(d=>{ const u = Number(d.updatedAt); if(isFinite(u) && u > m) m = u; });
+  return Math.min(m, ate);          // relógio adiantado de quem publicou não pode travar as próximas leituras
+}
+async function lerCatalogoPublico(forcarTudo){
+  const agora = Date.now(), c = catalogoMemo, col = fbDb().collection('publicGames');
+  if(c && !forcarTudo && c.maior > 0 && agora - c.tudoEm < CATALOGO_TUDO_MS){
+    const snap = await col.where('updatedAt', '>', c.maior - CATALOGO_FOLGA_MS).get();
+    const novos = snap.docs.map(d=>({id: d.id, rec: d.data()})).filter(x=>x.rec);
+    novos.forEach(x=>{ c.mapa[x.id] = x.rec; });
+    c.maior = maiorAtualizacao(novos.map(x=>x.rec), agora, c.maior);
+    return Object.keys(c.mapa).map(id=>c.mapa[id]);
+  }
+  const snap = await col.get();
+  const mapa = {}, todos = [];
+  snap.docs.forEach(d=>{ const rec = d.data(); if(rec){ mapa[d.id] = rec; todos.push(rec); } });
+  catalogoMemo = {mapa, maior: maiorAtualizacao(todos, agora, 0), tudoEm: agora};
+  return todos;
+}
+/* quem deixou os jogos publicados privados: em vez de ler TODOS os perfis, pede só os que escolheram esconder (e guarda 10 min) */
+let perfisPrivadosMemo = {t: 0, mapa: null};
+const PRIVADOS_MS = 10 * 60000;
+async function lerPerfisPrivados(){
+  const m = perfisPrivadosMemo;
+  if(m.mapa && Date.now() - m.t < PRIVADOS_MS) return m.mapa;
+  try{
+    const snap = await fbDb().collection('publicProfiles').where('showPublishedPublicly', '==', false).get();
+    const mapa = {};
+    snap.docs.forEach(d=>{ const pd = d.data() || {}; mapa[pd.email || d.id] = true; });
+    perfisPrivadosMemo = {t: Date.now(), mapa};
+    return mapa;
+  }catch(e){
+    perfisPrivadosMemo = {t: Date.now() - PRIVADOS_MS + 60000, mapa: m.mapa || {}};   // não deu: usa o que tinha e tenta de novo em 1 min
+    return perfisPrivadosMemo.mapa;
+  }
+}
 async function fetchAndMergePublicGames(opts){
   opts = opts || {};
   if(!FIREBASE_ENABLED) return false;
   const user = fbAuth().currentUser;
   if(!user && !souVisitante()) return false;
   try{
-    const [snap, verifiedMap, perfisSnap] = await Promise.all([
-      fbDb().collection('publicGames').get(),
+    const [docsDoCatalogo, verifiedMap, perfisPrivados] = await Promise.all([
+      lerCatalogoPublico(!!opts.tudo),
       fetchVerifiedCreatorsMap(),
-      user ? fbDb().collection('publicProfiles').get().catch(()=>null) : Promise.resolve(null)   // visitante só lê um perfil de cada vez (abaixo)
+      user ? lerPerfisPrivados() : Promise.resolve(null)   // visitante só lê um perfil de cada vez (abaixo)
     ]);
     const myEmail = user ? user.email : '';
     // quem deixou os jogos publicados privados não aparece no catálogo pra ninguém
     const publicadosPrivados = {};
-    if(perfisSnap) perfisSnap.docs.forEach(d=>{ const pd=d.data()||{}; if(pd.showPublishedPublicly===false) publicadosPrivados[pd.email||d.id] = true; });
-    else if(!user) Object.assign(publicadosPrivados, await visitantePrivados(snap.docs.map(d=>(d.data()||{}).creatorEmail)));
-    const fromOthers = snap.docs.map(d=>d.data())
+    if(perfisPrivados) Object.assign(publicadosPrivados, perfisPrivados);
+    else if(!user) Object.assign(publicadosPrivados, await visitantePrivados(docsDoCatalogo.map(rec=>(rec||{}).creatorEmail)));
+    const fromOthers = docsDoCatalogo
       .filter(rec=>rec && rec.creatorEmail !== myEmail && !publicadosPrivados[rec.creatorEmail]); // os meus proprios ja vem do customGames local
     const sig = JSON.stringify(fromOthers.map(rec=>[
       rec.id, rec.name, rec.updatedAt||0, rec.cover?1:0, !!verifiedMap[rec.creatorEmail]
@@ -14053,13 +14124,14 @@ async function syncPublicProfile(){
       showPublishedPublicly: showPublishedPublicly(),
       updatedAt: Date.now()
     }, {merge:true});   // merge: o campo "invitedBy" (quem me convidou) não pode sumir a cada atualização
+    perfisPrivadosMemo = {t: 0, mapa: null};   // se mudei "mostrar meus jogos publicados", a lista de escondidos é relida
   }catch(e){}
 }
 async function searchPeople(query){
   if(!FIREBASE_ENABLED) return [];
   try{
     const [snap, verifiedMap] = await Promise.all([
-      fbDb().collection('publicProfiles').get(),
+      lerColecaoMemo('publicProfiles', 5 * 60000),   // a lista toda de perfis: cada letra digitada na busca não pode ler tudo de novo
       fetchVerifiedCreatorsMap()
     ]);
     const q = (query||'').trim().toLowerCase();
@@ -14141,6 +14213,7 @@ async function syncGameSaveStatus(gameId, saved, recompensa){
     } else {
       await fbDb().collection('gameSaves').doc(docId).delete();
     }
+    esquecerLeitura('gameSaves');
   }catch(e){}
 }
 /* quem já tinha jogos salvos antes dessa mudança entra na conta uma vez só */
@@ -14166,6 +14239,7 @@ async function syncGameLikeStatus(gameId, liked, recompensa){
     } else {
       await fbDb().collection('gameLikes').doc(docId).delete();
     }
+    esquecerLeitura('gameLikes');
   }catch(e){}
 }
 async function fetchGameLikeCount(gameId){
@@ -14367,6 +14441,7 @@ async function bumpGamePlays(gameId){
     const FV = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue) ? firebase.firestore.FieldValue : null;
     if(FV && FV.increment){
       await ref.set({plays: FV.increment(1), updatedAt: Date.now()}, {merge:true});
+      esquecerLeitura('gameStats');
     } else {
       const doc = await ref.get();
       const cur = doc.exists ? Number((doc.data()||{}).plays)||0 : 0;
@@ -14387,9 +14462,9 @@ async function fetchRankingCounts(){
   }
   try{
     const [curtidas, salvos, comentarios] = await Promise.all([
-      fbDb().collection('gameLikes').get(),
-      fbDb().collection('gameSaves').get(),
-      fbDb().collection('gameComments').get()
+      lerColecaoMemo('gameLikes'),
+      lerColecaoMemo('gameSaves'),
+      lerColecaoMemo('gameComments')
     ]);
     return {likes: contar(curtidas), saves: contar(salvos), comments: contar(comentarios)};
   }catch(e){ return {likes:{}, saves:{}, comments:{}}; }
@@ -14397,7 +14472,7 @@ async function fetchRankingCounts(){
 async function fetchGamePlaysMap(){
   if(!FIREBASE_ENABLED) return {};
   try{
-    const snap = await fbDb().collection('gameStats').get();
+    const snap = await lerColecaoMemo('gameStats');
     const map = {};
     snap.docs.forEach(d=>{
       const n = Number((d.data()||{}).plays);
@@ -14406,8 +14481,10 @@ async function fetchGamePlaysMap(){
     return map;
   }catch(e){ return {}; }
 }
+let presencaMemo = {t: 0, v: null};
 async function fetchPresenceCounts(){
   if(!FIREBASE_ENABLED) return {total:0, byGame:{}};
+  if(presencaMemo.v && Date.now() - presencaMemo.t < 40000) return presencaMemo.v;   // várias telas pedindo juntas dividem a mesma leitura
   try{
     const snap = await fbDb().collection('gamePresence').where('playing','==',true).get();
     const now = Date.now();
@@ -14419,7 +14496,8 @@ async function fetchPresenceCounts(){
       byGame[p.gameId] = (byGame[p.gameId]||0) + 1;
       total++;
     });
-    return {total, byGame};
+    presencaMemo = {t: Date.now(), v: {total, byGame}};
+    return presencaMemo.v;
   }catch(e){ return {total:0, byGame:{}}; }
 }
 async function submitGameReport(gameId, gameName, reason){
@@ -14474,12 +14552,13 @@ async function postComment(gameId, text, parentId){
     });
     try{ msGuardarId('comentar', gameId); }catch(e){}   // missão "comente em jogos"
     try{ criadorRegistrar('comment', gameId, novo && novo.id); }catch(e){}   // o criador do jogo ganha moedas
+    esquecerLeitura('gameComments');
     return true;
   }catch(e){ return false; }
 }
 async function deleteComment(commentId){
   if(!FIREBASE_ENABLED) return false;
-  try{ await fbDb().collection('gameComments').doc(commentId).delete(); return true; }
+  try{ await fbDb().collection('gameComments').doc(commentId).delete(); esquecerLeitura('gameComments'); return true; }
   catch(e){ return false; }
 }
 function directKeyFor(a,b){ return [a,b].sort().join('__'); }
@@ -15146,7 +15225,7 @@ async function openOtherProfilePage(email){
         fetchFollowCounts(email),
         isFollowingUser(email),
         fetchGamePlaysMap(),
-        fbDb().collection('gameLikes').get()
+        lerColecaoMemo('gameLikes')
       ]);
       if(profDoc.exists) profile = Object.assign(profile, profDoc.data());
       if(verDoc.exists && (verDoc.data()||{}).verified) verified = true;
@@ -19416,14 +19495,26 @@ function paratiPesoTag(tag){ return tag.indexOf('cat:') === 0 ? 1.2 : tag.indexO
 /* o que os outros jogadores curtiram e salvaram (pra achar "quem gosta do que você gosta").
    Guarda por 1 minuto pra não ler o banco toda hora. */
 let paratiSocialCache = null, paratiSocialEm = 0;
+/* O "Para você" lê as curtidas, os salvos e as jogadas de TODO MUNDO. Isso é guardado no aparelho por 30 minutos
+   (sobrevive a fechar e abrir o site), senão cada abertura do site relia tudo e gastava a cota do banco. */
+const PARATI_SOCIAL_KEY = 'koda_parati_social_v1', PARATI_SOCIAL_MS = 30 * 60000;
+function paratiSocialGuardado(){
+  try{
+    const o = JSON.parse(localStorage.getItem(PARATI_SOCIAL_KEY) || 'null');
+    if(o && o.em && Date.now() - o.em < PARATI_SOCIAL_MS && o.dados && Array.isArray(o.dados.pares) && o.dados.jogadas) return o;
+  }catch(e){}
+  return null;
+}
 async function paratiSocial(){
   if(souVisitante() || !FIREBASE_ENABLED || !fbAuth().currentUser) return null;
-  if(paratiSocialCache && Date.now() - paratiSocialEm < 60000) return paratiSocialCache;
+  if(paratiSocialCache && Date.now() - paratiSocialEm < PARATI_SOCIAL_MS) return paratiSocialCache;
+  const guardado = paratiSocialGuardado();
+  if(guardado){ paratiSocialCache = guardado.dados; paratiSocialEm = guardado.em; return paratiSocialCache; }
   try{
     const [cur, sal, est] = await Promise.all([
-      fbDb().collection('gameLikes').get(),
-      fbDb().collection('gameSaves').get(),
-      fbDb().collection('gameStats').get().catch(()=>null)
+      lerColecaoMemo('gameLikes'),
+      lerColecaoMemo('gameSaves'),
+      lerColecaoMemo('gameStats').catch(()=>null)
     ]);
     const pares = [];
     cur.docs.forEach(d=>{ const x = d.data() || {}; if(x.userEmail && x.gameId) pares.push({u: x.userEmail, g: x.gameId, w: 1}); });
@@ -19431,6 +19522,7 @@ async function paratiSocial(){
     const jogadas = {};
     if(est) est.docs.forEach(d=>{ jogadas[d.id] = Number((d.data() || {}).plays) || 0; });
     paratiSocialCache = {pares, jogadas}; paratiSocialEm = Date.now();
+    try{ localStorage.setItem(PARATI_SOCIAL_KEY, JSON.stringify({em: paratiSocialEm, dados: {pares: pares.slice(0, 4000), jogadas}})); }catch(e){}   // (se não couber, só não guarda)
     return paratiSocialCache;
   }catch(e){ return null; }
 }
@@ -19531,7 +19623,7 @@ function paratiRecomendar(social){
    A ordem fica parada enquanto a pessoa olha: só muda quando ela está no topo da página
    (ao abrir o site, quando chegam as curtidas dos outros, e ao voltar de um jogo — aí já vêm sugestões novas). */
 var inicioEscolhidos = null, inicioPendente = false, inicioBuscando = false, inicioSocialEm = 0, inicioQtdJogos = -1;
-var INICIO_SOCIAL_MS = 5 * 60000;          // lê as curtidas/salvos de todo mundo no máximo a cada 5 minutos
+var INICIO_SOCIAL_MS = 15 * 60000;         // lê as curtidas/salvos de todo mundo no máximo a cada 15 minutos
 function inicioCalcular(){
   let r = {lista: []};
   try{ r = paratiRecomendar(paratiSocialCache); }catch(e){}
@@ -19606,6 +19698,9 @@ function liveCanRun(){
   return true;
 }
 let liveLastForce = 0;
+/* "voltei pro site" não relê o que foi lido há pouco: trocar de aba várias vezes por hora gastava leituras à toa. As consultas de fundo
+   só rodam de novo se já passou esse tempo; o resto (os seus dados em outro aparelho, as conversas abertas) continua na hora. */
+const LIVE_VOLTA_MIN_MS = 90000;
 async function liveTick(force){
   if(force){
     if(Date.now() - liveLastForce < 1500) return; // "voltei pro site" costuma disparar 2 eventos juntos
@@ -19618,6 +19713,7 @@ async function liveTick(force){
     for(const w of Array.from(liveWatchers.values())){
       if(jogando && LIVE_PAUSA_NO_JOGO.indexOf(w.id) >= 0) continue;
       if(!force && now - w.lastRun < liveCada(w)) continue;
+      if(force && LIVE_DE_FUNDO.indexOf(w.id) >= 0 && now - w.lastRun < LIVE_VOLTA_MIN_MS) continue;
       w.lastRun = Date.now();
       try{ await w.run(); }catch(e){}
     }
@@ -19733,15 +19829,17 @@ async function liveWatchUnread(){
   });
   setUnreadBadge(n);
 }
-/* Ritmos dos vigias de fundo. O plano grátis do Firebase dá 50 mil leituras por dia, e o catálogo inteiro (jogos + perfis)
-   é lido a cada batida do vigia "catalog": a 20 s, uma aba aberta gastava ~30 mil leituras por hora e estourava a cota
-   do dia (o servidor da análise começou a levar erro 429). Voltar para o site ainda atualiza na hora (liveTick(true)). */
+/* Ritmos dos vigias de fundo. O plano grátis do Firebase dá 50 mil leituras por dia (veja "LEITURAS DO BANCO COM MEMÓRIA").
+   Uma aba aberta chegou a gastar ~30 mil leituras por hora e estourou a cota do dia (o servidor da análise levou erro 429).
+   O catálogo agora é lido só no que mudou, os perfis e os selos ficam guardados, e a presença/mensagens não lidas rodam mais espaçadas.
+   Voltar para o site ainda atualiza (liveTick(true)), mas sem reler o que acabou de ser lido. */
 function startLiveSync(){
-  addLiveWatcher('stats', 45000, refreshGameStats);
+  criadoresVerificadosMemo = {t: 0, mapa: null}; perfisPrivadosMemo = {t: 0, mapa: null}; catalogoMemo = null;   // entrou/trocou de conta: começa limpo
+  addLiveWatcher('stats', 120000, refreshGameStats);
   addLiveWatcher('catalog', 120000, liveWatchCatalog);
   addLiveWatcher('ownData', 60000, liveWatchOwnData);
-  addLiveWatcher('unread', 30000, liveWatchUnread);
-  addLiveWatcher('presence', 45000, refreshPresencaVisivel);
+  addLiveWatcher('unread', 120000, liveWatchUnread);
+  addLiveWatcher('presence', 90000, refreshPresencaVisivel);
   addLiveWatcher('minhaAnalise', 20000, ()=>sincronizarMinhasAnalises(false));
   refreshGameStats(); // já mostra os números na primeira vez, sem esperar a batida
   if(liveTimer) return;
@@ -19749,6 +19847,7 @@ function startLiveSync(){
 }
 /* visitante: só a lista de jogos se atualiza sozinha */
 function startLiveSyncVisitante(){
+  criadoresVerificadosMemo = {t: 0, mapa: null}; perfisPrivadosMemo = {t: 0, mapa: null}; catalogoMemo = null;
   addLiveWatcher('catalog', 120000, liveWatchCatalog);
   if(liveTimer) return;
   liveTimer = setInterval(()=>liveTick(false), LIVE_TICK_MS);
@@ -19757,6 +19856,7 @@ function stopLiveSync(){
   if(liveTimer){ clearInterval(liveTimer); liveTimer = null; }
   liveWatchers.clear();
   publicCatalogSig = null;
+  catalogoMemo = null; criadoresVerificadosMemo = {t: 0, mapa: null}; perfisPrivadosMemo = {t: 0, mapa: null};
 }
 /* volta a olhar o servidor na hora em que a pessoa volta pro site ou
    recupera a internet — é isso que substitui o "recarregar pra atualizar" */
