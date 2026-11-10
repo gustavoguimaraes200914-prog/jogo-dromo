@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Ninja das Frutas</title>
+<style>
+  html,body{margin:0;height:100%;background:#1a1330;overflow:hidden;touch-action:none}
+  canvas{display:block;width:100vw;height:100vh}
+</style>
+</head>
+<body>
+<canvas id="tela"></canvas>
+<script>
+/* Ninja das Frutas: mova o ninja (setas, WASD ou arrastando o dedo), pegue as frutas e fuja das bombas. */
+var cv = document.getElementById('tela'), ctx = cv.getContext('2d');
+var W = 0, H = 0;
+function ajustar(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
+ajustar(); addEventListener('resize', ajustar);
+
+var ninja = { x: 200, y: 300, dir: 'baixo', vel: 3.4, andando: false, passo: 0 };
+var frutas = [], bombas = [], pontos = 0, tempo = 60, acabou = false, teclas = {}, alvo = null;
+
+addEventListener('keydown', function(e){ teclas[e.key.toLowerCase()] = true; if (acabou && e.key === ' ') reiniciar(); });
+addEventListener('keyup', function(e){ teclas[e.key.toLowerCase()] = false; });
+cv.addEventListener('pointerdown', function(e){ if (acabou) { reiniciar(); return; } alvo = { x: e.clientX, y: e.clientY }; });
+cv.addEventListener('pointermove', function(e){ if (alvo) alvo = { x: e.clientX, y: e.clientY }; });
+addEventListener('pointerup', function(){ alvo = null; });
+
+function reiniciar(){ pontos = 0; tempo = 60; acabou = false; frutas = []; bombas = []; ninja.x = W / 2; ninja.y = H / 2; }
+
+function desenharNinja(c, x, y, dir, passo){
+  /* corpo */
+  c.fillStyle = '#222a44'; c.fillRect(x - 14, y - 6, 28, 30);
+  /* faixa */
+  c.fillStyle = '#e63946'; c.fillRect(x - 14, y + 8, 28, 5);
+  /* cabeça */
+  c.fillStyle = '#222a44'; c.beginPath(); c.arc(x, y - 18, 15, 0, Math.PI * 2); c.fill();
+  /* rosto */
+  c.fillStyle = '#f3c9a0'; c.fillRect(x - 11, y - 24, 22, 9);
+  c.fillStyle = '#111'; var olho = dir === 'esq' ? -3 : dir === 'dir' ? 3 : 0;
+  c.fillRect(x - 6 + olho, y - 21, 3, 3); c.fillRect(x + 3 + olho, y - 21, 3, 3);
+  /* pernas */
+  c.fillStyle = '#161c30';
+  var o = Math.sin(passo) * 4;
+  c.fillRect(x - 11, y + 24, 9, 10 + o); c.fillRect(x + 2, y + 24, 9, 10 - o);
+}
+
+function criar(){
+  if (Math.random() < 0.03) frutas.push({ x: 30 + Math.random() * (W - 60), y: 70 + Math.random() * (H - 110), cor: ['#ff4d4d', '#ffb703', '#7bd957'][Math.floor(Math.random() * 3)], vida: 400 });
+  if (Math.random() < 0.012) bombas.push({ x: 30 + Math.random() * (W - 60), y: 70 + Math.random() * (H - 110), vida: 500 });
+}
+function atualizar(){
+  if (acabou) return;
+  var dx = 0, dy = 0;
+  if (teclas['arrowleft'] || teclas['a']) dx -= 1;
+  if (teclas['arrowright'] || teclas['d']) dx += 1;
+  if (teclas['arrowup'] || teclas['w']) dy -= 1;
+  if (teclas['arrowdown'] || teclas['s']) dy += 1;
+  if (alvo) { var ax = alvo.x - ninja.x, ay = alvo.y - ninja.y, d = Math.hypot(ax, ay); if (d > 8) { dx = ax / d; dy = ay / d; } }
+  ninja.andando = dx !== 0 || dy !== 0;
+  if (ninja.andando) {
+    var m = Math.hypot(dx, dy) || 1;
+    ninja.x += dx / m * ninja.vel; ninja.y += dy / m * ninja.vel; ninja.passo += 0.25;
+    ninja.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'esq' : 'dir') : (dy < 0 ? 'cima' : 'baixo');
+  }
+  ninja.x = Math.max(16, Math.min(W - 16, ninja.x)); ninja.y = Math.max(50, Math.min(H - 36, ninja.y));
+  criar();
+  frutas.forEach(function(f){ f.vida--; if (Math.hypot(f.x - ninja.x, f.y - ninja.y) < 30) { f.vida = 0; pontos += 10; } });
+  bombas.forEach(function(b){ b.vida--; if (Math.hypot(b.x - ninja.x, b.y - ninja.y) < 28) { b.vida = 0; pontos = Math.max(0, pontos - 15); tempo = Math.max(0, tempo - 4); } });
+  frutas = frutas.filter(function(f){ return f.vida > 0; }); bombas = bombas.filter(function(b){ return b.vida > 0; });
+  tempo -= 1 / 60;
+  if (tempo <= 0) { tempo = 0; acabou = true; }
+}
+function desenhar(){
+  ctx.fillStyle = '#2a1f4d'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(255,255,255,.05)'; for (var i = 0; i < W; i += 40) ctx.fillRect(i, 0, 1, H);
+  frutas.forEach(function(f){ ctx.fillStyle = f.cor; ctx.beginPath(); ctx.arc(f.x, f.y, 12, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#3a7d2a'; ctx.fillRect(f.x - 1, f.y - 16, 3, 6); });
+  bombas.forEach(function(b){ ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(b.x, b.y, 13, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#ff8c00'; ctx.fillRect(b.x - 1, b.y - 19, 3, 7); });
+  desenharNinja(ctx, ninja.x, ninja.y, ninja.dir, ninja.passo);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 20px system-ui';
+  ctx.fillText('Pontos: ' + pontos, 14, 30); ctx.textAlign = 'right'; ctx.fillText('Tempo: ' + Math.ceil(tempo), W - 14, 30); ctx.textAlign = 'left';
+  if (acabou) {
+    ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = 'bold 38px system-ui';
+    ctx.fillText('Acabou o tempo!', W / 2, H / 2 - 12); ctx.font = '22px system-ui';
+    ctx.fillText('Você fez ' + pontos + ' pontos. Toque para jogar de novo.', W / 2, H / 2 + 24); ctx.textAlign = 'left';
+  }
+}
+ninja.x = W / 2; ninja.y = H / 2;
+(function laco(){ atualizar(); desenhar(); requestAnimationFrame(laco); })();
+</script>
+</body>
+</html>

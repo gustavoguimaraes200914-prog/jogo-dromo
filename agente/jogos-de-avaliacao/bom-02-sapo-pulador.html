@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Sapo Pulador</title>
+<style>
+  html,body{margin:0;height:100%;background:#0e2a1d;overflow:hidden;touch-action:manipulation}
+  canvas{display:block;width:100vw;height:100vh}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+/* Sapo Pulador: o sapo corre sozinho, toque ou espaço pula. Desvie dos troncos e pegue as moscas. */
+class Sapo {
+  constructor(game) {
+    this.game = game;
+    this.x = 90; this.y = 0; this.vy = 0; this.w = 46; this.h = 40;
+    this.jumpForce = 13.5;
+    this.noChao = true;
+  }
+  pular() { if (this.noChao) { this.vy = -this.jumpForce; this.noChao = false; } }
+  update() {
+    this.vy += 0.75;
+    this.y += this.vy;
+    const chao = this.game.chaoY - this.h;
+    if (this.y >= chao) { this.y = chao; this.vy = 0; this.noChao = true; }
+  }
+  draw(ctx) {
+    ctx.fillStyle = '#39c96b';
+    ctx.fillRect(this.x, this.y + 10, this.w, this.h - 10);
+    ctx.fillStyle = '#2fae5b';
+    ctx.fillRect(this.x + 8, this.y, 30, 16);
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(this.x + 14, this.y + 4, 6, 0, 7); ctx.arc(this.x + 32, this.y + 4, 6, 0, 7); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(this.x + 15, this.y + 4, 3, 0, 7); ctx.arc(this.x + 33, this.y + 4, 3, 0, 7); ctx.fill();
+  }
+}
+class Game {
+  constructor(canvas) {
+    this.canvas = canvas; this.ctx = canvas.getContext('2d');
+    this.lives = 3;
+    this.gameSpeed = 5;
+    this.score = 0;
+    this.sapo = new Sapo(this);
+    this.troncos = []; this.moscas = [];
+    this.timer = 0; this.invencivel = 0; this.fim = false;
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    const pula = e => { e.preventDefault(); if (this.fim) this.reiniciar(); else this.sapo.pular(); };
+    window.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'ArrowUp') pula(e); });
+    canvas.addEventListener('pointerdown', pula);
+  }
+  resize() {
+    this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight;
+    this.chaoY = Math.floor(this.canvas.height * 0.78);
+  }
+  reiniciar() {
+    this.lives = 3; this.gameSpeed = 5; this.score = 0; this.troncos = []; this.moscas = []; this.fim = false;
+  }
+  criar() {
+    this.timer--;
+    if (this.timer <= 0) {
+      const alto = 30 + Math.random() * 30;
+      this.troncos.push({ x: this.canvas.width + 20, w: 34, h: alto });
+      if (Math.random() < 0.6) this.moscas.push({ x: this.canvas.width + 140, y: this.chaoY - 90 - Math.random() * 60, pega: false });
+      this.timer = 55 + Math.random() * 50 - this.gameSpeed * 2;
+    }
+  }
+  update() {
+    if (this.fim) return;
+    this.criar();
+    this.sapo.update();
+    this.gameSpeed += 0.0015;
+    if (this.invencivel > 0) this.invencivel--;
+    const s = this.sapo;
+    this.troncos.forEach(t => {
+      t.x -= this.gameSpeed;
+      const topo = this.chaoY - t.h;
+      if (this.invencivel === 0 && s.x + s.w > t.x && s.x < t.x + t.w && s.y + s.h > topo) {
+        this.lives--; this.invencivel = 70;
+        if (this.lives <= 0) this.fim = true;
+      }
+    });
+    this.moscas.forEach(m => {
+      m.x -= this.gameSpeed;
+      if (!m.pega && Math.abs(m.x - (s.x + s.w / 2)) < 30 && Math.abs(m.y - (s.y + s.h / 2)) < 36) { m.pega = true; this.score += 10; }
+    });
+    this.troncos = this.troncos.filter(t => t.x > -60);
+    this.moscas = this.moscas.filter(m => m.x > -30 && !m.pega);
+    this.score += 0.05;
+  }
+  draw() {
+    const c = this.ctx, W = this.canvas.width, H = this.canvas.height;
+    c.fillStyle = '#12402b'; c.fillRect(0, 0, W, H);
+    c.fillStyle = '#1b6b44'; c.fillRect(0, this.chaoY, W, H - this.chaoY);
+    c.fillStyle = '#7a4b22';
+    this.troncos.forEach(t => c.fillRect(t.x, this.chaoY - t.h, t.w, t.h));
+    c.fillStyle = '#ffe14d';
+    this.moscas.forEach(m => { c.beginPath(); c.arc(m.x, m.y, 8, 0, 7); c.fill(); });
+    if (this.invencivel % 10 < 5) this.sapo.draw(c);
+    c.fillStyle = '#fff'; c.font = 'bold 20px system-ui';
+    c.fillText('Pontos: ' + Math.floor(this.score), 16, 34);
+    c.fillText('Vidas: ' + this.lives, 16, 62);
+    if (this.fim) {
+      c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#fff'; c.font = 'bold 40px system-ui'; c.textAlign = 'center';
+      c.fillText('Fim de jogo', W / 2, H / 2 - 10);
+      c.font = '22px system-ui'; c.fillText('Toque para jogar de novo', W / 2, H / 2 + 28);
+      c.textAlign = 'left';
+    }
+  }
+  loop() { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); }
+}
+const jogo = new Game(document.getElementById('c'));
+jogo.loop();
+</script>
+</body>
+</html>

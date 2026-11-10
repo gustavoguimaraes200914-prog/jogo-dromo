@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Cobrinha Neon</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0f1f;color:#7df9ff;font-family:system-ui,sans-serif;overflow:hidden;touch-action:none}
+  #topo{display:flex;justify-content:space-between;padding:10px 16px;font-weight:700;font-size:1.05rem}
+  #area{display:flex;justify-content:center}
+  canvas{background:#050814;border:3px solid #7df9ff;border-radius:10px;box-shadow:0 0 20px #19d3ff55}
+  #fim{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(5,8,20,.85);gap:12px;text-align:center}
+  #fim.on{display:flex}
+  #fim h2{margin:0;font-size:2rem;color:#ff5c8a}
+  #fim button{border:none;border-radius:12px;background:#7df9ff;color:#031018;font-weight:800;font-size:1.1rem;padding:12px 26px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="topo"><span>Pontos: <b id="pts">0</b></span><span>Recorde: <b id="rec">0</b></span></div>
+<div id="area"><canvas id="c" width="320" height="320"></canvas></div>
+<div id="fim"><h2>Game Over</h2><div id="final"></div><button id="again">Jogar de novo</button></div>
+<script>
+var N = 16, TAM = 20;
+var canvas = document.getElementById('c'), g = canvas.getContext('2d');
+var cobra, dir, prox, comida, score, best = 0, timer = null, vivo = false;
+
+function iniciar(){
+  cobra = [{x: 8, y: 8}, {x: 7, y: 8}, {x: 6, y: 8}];
+  dir = {x: 1, y: 0}; prox = {x: 1, y: 0};
+  score = 0; vivo = true;
+  document.getElementById('fim').classList.remove('on');
+  novaComida(); mostrar();
+  clearInterval(timer); timer = setInterval(passo, 130);
+}
+function novaComida(){
+  do { comida = {x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N)}; }
+  while (cobra.some(function(p){ return p.x === comida.x && p.y === comida.y; }));
+}
+function passo(){
+  dir = prox;
+  var cab = {x: cobra[0].x + dir.x, y: cobra[0].y + dir.y};
+  if (cab.x < 0 || cab.y < 0 || cab.x >= N || cab.y >= N || cobra.some(function(p){ return p.x === cab.x && p.y === cab.y; })) { gameOver(); return; }
+  cobra.unshift(cab);
+  if (cab.x === comida.x && cab.y === comida.y) { score += 10; novaComida(); } else cobra.pop();
+  mostrar();
+}
+function gameOver(){
+  vivo = false; clearInterval(timer);
+  if (score > best) best = score;
+  document.getElementById('final').textContent = 'Você fez ' + score + ' pontos.';
+  document.getElementById('fim').classList.add('on');
+  mostrar();
+}
+function mostrar(){
+  g.fillStyle = '#050814'; g.fillRect(0, 0, 320, 320);
+  g.fillStyle = '#ff5c8a'; g.beginPath(); g.arc(comida.x * TAM + 10, comida.y * TAM + 10, 7, 0, 7); g.fill();
+  cobra.forEach(function(p, i){ g.fillStyle = i === 0 ? '#c8fffe' : '#19d3ff'; g.fillRect(p.x * TAM + 1, p.y * TAM + 1, TAM - 2, TAM - 2); });
+  document.getElementById('pts').textContent = score;
+  document.getElementById('rec').textContent = best;
+}
+function virar(x, y){ if (x !== -dir.x || y !== -dir.y) prox = {x: x, y: y}; }
+document.addEventListener('keydown', function(e){
+  var k = e.key;
+  if (k === 'ArrowUp' || k === 'w') virar(0, -1);
+  if (k === 'ArrowDown' || k === 's') virar(0, 1);
+  if (k === 'ArrowLeft' || k === 'a') virar(-1, 0);
+  if (k === 'ArrowRight' || k === 'd') virar(1, 0);
+});
+var ini = null;
+document.addEventListener('touchstart', function(e){ ini = {x: e.touches[0].clientX, y: e.touches[0].clientY}; }, {passive: true});
+document.addEventListener('touchend', function(e){
+  if (!ini) return;
+  var dx = e.changedTouches[0].clientX - ini.x, dy = e.changedTouches[0].clientY - ini.y;
+  if (Math.abs(dx) > Math.abs(dy)) virar(dx > 0 ? 1 : -1, 0); else virar(0, dy > 0 ? 1 : -1);
+  ini = null;
+}, {passive: true});
+document.getElementById('again').onclick = iniciar;
+iniciar();
+</script>
+</body>
+</html>

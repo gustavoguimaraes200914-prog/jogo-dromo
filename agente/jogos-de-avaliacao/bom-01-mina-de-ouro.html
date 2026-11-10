@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mina de Ouro</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:system-ui,sans-serif;background:#2b1d12;color:#ffe9b8;min-height:100vh}
+  header{padding:14px;text-align:center;background:#3d2916;border-bottom:3px solid #6b4a24}
+  h1{margin:0;font-size:1.4rem}
+  .moedas{display:flex;justify-content:center;gap:18px;margin-top:6px;font-weight:700}
+  #minerar{display:block;margin:18px auto;width:170px;height:170px;border-radius:50%;border:6px solid #f5b301;background:radial-gradient(circle at 35% 30%,#ffe27a,#d99a00);font-size:1.2rem;font-weight:800;color:#4a2f00;cursor:pointer}
+  #minerar:active{transform:scale(.94)}
+  #aviso{min-height:22px;text-align:center;color:#ff9c8a;font-weight:700}
+  #loja{max-width:520px;margin:0 auto;padding:0 12px 30px}
+  .item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#40301f;border:2px solid #6b4a24;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .item b{display:block}
+  .item small{opacity:.8}
+  .item button{border:none;border-radius:10px;background:#f5b301;color:#3a2600;font-weight:800;padding:10px 14px;cursor:pointer;min-width:92px}
+  .item button:disabled{opacity:.4}
+</style>
+</head>
+<body>
+<header>
+  <h1>Mina de Ouro</h1>
+  <div class="moedas"><span>Ouro: <span id="ouro">0</span></span><span>Gemas: <span id="gemas">0</span></span></div>
+  <div style="font-size:.85rem;opacity:.8;margin-top:4px">Por clique: <span id="porClique">1</span> | Por segundo: <span id="porSeg">0</span></div>
+</header>
+<button id="minerar">MINERAR</button>
+<div id="aviso"></div>
+<div id="loja"></div>
+<script>
+let gold = 0, gems = 0, perClick = 1, perSec = 0;
+const UPGRADES = [
+  { id: 'picareta', name: 'Picareta de ferro', desc: '+1 ouro por clique', baseCost: 15, owned: 0, click: 1, sec: 0 },
+  { id: 'furadeira', name: 'Furadeira', desc: '+3 ouro por clique', baseCost: 120, owned: 0, click: 3, sec: 0 },
+  { id: 'anao', name: 'Anão ajudante', desc: '+2 ouro por segundo', baseCost: 60, owned: 0, click: 0, sec: 2 },
+  { id: 'robo', name: 'Robô minerador', desc: '+10 ouro por segundo', baseCost: 400, owned: 0, click: 0, sec: 10 }
+];
+const MAPA = { id: 'mapa', name: 'Mapa do tesouro', desc: 'Compra única: dobra o ouro por clique', cost: 500, bought: false };
+const CAPACETE = { id: 'capacete', name: 'Capacete de diamante', desc: 'Compra única: acha gemas com mais frequência', gemCost: 3, bought: false };
+
+function custo(u){ return Math.floor(u.baseCost * Math.pow(1.35, u.owned)); }
+function recalcular(){
+  perClick = 1; perSec = 0;
+  UPGRADES.forEach(u => { perClick += u.click * u.owned; perSec += u.sec * u.owned; });
+  if (MAPA.bought) perClick *= 2;
+}
+function aviso(txt){ const a = document.getElementById('aviso'); a.textContent = txt; setTimeout(() => { a.textContent = ''; }, 1800); }
+
+function comprar(id){
+  const u = UPGRADES.find(x => x.id === id);
+  const price = custo(u);
+  if (gold < price) { aviso('Ouro insuficiente!'); return; }
+  gold -= price;
+  u.owned++;
+  recalcular();
+  desenhar();
+}
+function comprarMapa(){
+  if (MAPA.bought) return;
+  if (gold < MAPA.cost) { aviso('Ouro insuficiente!'); return; }
+  gold -= MAPA.cost;
+  MAPA.bought = true;
+  recalcular();
+  desenhar();
+}
+function comprarCapacete(){
+  if (CAPACETE.bought) return;
+  if (gems < CAPACETE.gemCost) { aviso('Faltam gemas!'); return; }
+  gems -= CAPACETE.gemCost;
+  CAPACETE.bought = true;
+  desenhar();
+}
+function desenhar(){
+  document.getElementById('ouro').textContent = Math.floor(gold);
+  document.getElementById('gemas').textContent = gems;
+  document.getElementById('porClique').textContent = perClick;
+  document.getElementById('porSeg').textContent = perSec;
+  const loja = document.getElementById('loja');
+  loja.innerHTML = UPGRADES.map(u => `
+    <div class="item"><div><b>${u.name} (x${u.owned})</b><small>${u.desc}</small></div>
+    <button onclick="comprar('${u.id}')" ${gold < custo(u) ? 'disabled' : ''}>${custo(u)} ouro</button></div>`).join('')
+    + `<div class="item"><div><b>${MAPA.name}</b><small>${MAPA.desc}</small></div>
+       <button onclick="comprarMapa()" ${MAPA.bought || gold < MAPA.cost ? 'disabled' : ''}>${MAPA.bought ? 'Comprado' : MAPA.cost + ' ouro'}</button></div>`
+    + `<div class="item"><div><b>${CAPACETE.name}</b><small>${CAPACETE.desc}</small></div>
+       <button onclick="comprarCapacete()" ${CAPACETE.bought || gems < CAPACETE.gemCost ? 'disabled' : ''}>${CAPACETE.bought ? 'Comprado' : CAPACETE.gemCost + ' gemas'}</button></div>`;
+}
+document.getElementById('minerar').addEventListener('click', () => {
+  gold += perClick;
+  const chance = CAPACETE.bought ? 0.12 : 0.04;
+  if (Math.random() < chance) { gems++; aviso('Achou uma gema!'); }
+  desenhar();
+});
+setInterval(() => { gold += perSec; desenhar(); }, 1000);
+recalcular();
+desenhar();
+</script>
+</body>
+</html>

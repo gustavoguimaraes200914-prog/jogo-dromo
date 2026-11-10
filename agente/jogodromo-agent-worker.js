@@ -34,11 +34,18 @@
  *  MODO DA ANÁLISE DE JOGOS (variável comum "MODERACAO"; se não existir vale o padrão do código, abaixo):
  *    desligada ... o jogo é publicado na hora, sem nenhuma análise (não precisa de chave nem de crédito)
  *    basica ...... só os bloqueios automáticos e grátis (código de mineração, carregar coisa de outro site...); sem IA
+ *    koda ........ a IA do Koda, feita só de código (grátis, sem crédito, sem internet): os bloqueios automáticos MAIS o
+ *                  dicionário de palavras e frases proibidas em 10 idiomas, com regras de quantas aparecem e onde.
+ *                  Decide "aprovado" ou "recusado" sozinha e explica o motivo para a criança. Não enxerga o que tem DENTRO
+ *                  de imagens e vídeos (só a IA completa enxerga): jogos com imagem/vídeo/áudio colocados pela pessoa
+ *                  ficam marcados e o botão "Analisar jogos antigos" passa por eles quando a IA completa estiver ligada.
  *    completa .... a análise inteira, com a IA (precisa da ANTHROPIC_API_KEY com crédito)
  *    Valor com erro de digitação vira "completa" (na dúvida, o mais rigoroso).
  *    Jogos publicados em "desligada" ou "basica" ficam marcados; quando o modo voltar pra "completa",
  *    o botão "Analisar jogos antigos" do painel do admin passa todos eles pela análise de verdade.
  *  OPCIONAIS (variáveis comuns):
+ *    MODERACAO_FALLBACK ....... "koda": no modo "completa", se a IA falhar (sem crédito, fora do ar), usa a análise do Koda em vez
+ *                               de deixar o jogo esperando. Sem essa variável, o jogo espera a IA voltar.
  *    MODELO_MODERACAO ......... modelo da IA (padrão: claude-sonnet-4-6)
  *    ADMIN_EMAIL .............. e-mail do admin (padrão: o do site)
  *
@@ -52,10 +59,10 @@
 --------------------------------------------------------------------------- */
 const VERSAO_DO_CODIGO = 'moderacao-sim-ou-nao-2026-10-31-jogo-em-dupla';
 const PROJETO_PADRAO   = 'jogodromo';
-/* modo da análise de jogos quando a variável MODERACAO não existe: 'desligada' | 'basica' | 'completa'.
-   Está 'desligada' enquanto não há chave/crédito da IA. Pra religar: crie a variável MODERACAO = completa no Cloudflare. */
-const MODERACAO_PADRAO = 'desligada';
-const MODOS_DA_MODERACAO = ['desligada', 'basica', 'completa'];
+/* modo da análise de jogos quando a variável MODERACAO não existe: 'desligada' | 'basica' | 'koda' | 'completa'.
+   Está 'koda' (a IA do Koda, só de código, grátis). Pra usar a IA paga: crie a variável MODERACAO = completa no Cloudflare. */
+const MODERACAO_PADRAO = 'koda';
+const MODOS_DA_MODERACAO = ['desligada', 'basica', 'koda', 'completa'];
 function modoDaModeracao(env){
   const bruto = env && env.MODERACAO !== undefined && String(env.MODERACAO).trim() !== '' ? String(env.MODERACAO) : MODERACAO_PADRAO;
   const m = bruto.trim().toLowerCase();
@@ -213,6 +220,7 @@ function lerConfig(env){
     admin: (env.ADMIN_EMAIL || ADMIN_PADRAO).toLowerCase(),
     modelo: env.MODELO_MODERACAO || MODELO_PADRAO,
     modo: modoDaModeracao(env),
+    fallbackKoda: String(env.MODERACAO_FALLBACK || '').trim().toLowerCase() === 'koda',
     brevo: env.BREVO_API_KEY || '',
     remetente: String(env.EMAIL_REMETENTE || '').trim(),
   };
@@ -1541,6 +1549,127 @@ function revisarSemIA(jogo, extras, modo){
   const analise = analisarJogo(jogo, extras);
   return { decisao: bloqueioEstatico(analise) || aprovado, analise, votos: {} };
 }
+
+/* ---------------------------------------------------------------------------
+   ANÁLISE DO KODA (modo "koda"): a IA do Koda, feita só de código.
+   Usa o MESMO analisador (analisarJogo) e o MESMO dicionário da análise completa, mas decide sozinha, sem IA paga.
+   Passos: (1) os bloqueios automáticos de sempre; (2) qualquer termo de "alto risco" do dicionário; (3) termos de "atenção"
+   só contam quando aparecem em quantidade ou em lugar que pesa (o nome do jogo, o texto na tela...), pra um jogo de
+   monstros ou de ladrão não ser recusado por uma palavra solta; (4) coisas do código que não combinam com um site de
+   crianças (câmera, microfone, localização, prender a pessoa na página, frases tentando enganar a análise).
+   O que ela NÃO enxerga: o que há DENTRO de imagens e vídeos. Isso fica anotado ("avisos") pra IA completa conferir depois.
+--------------------------------------------------------------------------- */
+const KODA_GRAVISSIMAS = ['sexual', 'autolesao', 'odio', 'contato', 'dados_pessoais'];
+/* PONTOS: cada termo de "atenção" do dicionário vale 1 ponto, e 3 pontos se for um termo FORTE (que quase nunca é inocente:
+   "maconha", "cassino", "nazista"...). A categoria derruba o jogo quando passa do limite de pontos (padrão 3) ou de ocorrências.
+   Assim "slots" e "depósito" num jogo de inventário, "presidente" e "eleição" num jogo de clube, ou "lula" (a lula do mar) não derrubam
+   nada, mas uma palavra forte sozinha derruba. Marca famosa no NOME ou no título do jogo vale 3 (derruba na hora). */
+const KODA_LIMITES = {
+  violencia: { pontos: 8, vezes: 40 }, palavrao: { pontos: 3, vezes: 6 }, religiao: { pontos: 4 }, crime: { pontos: 4 },
+  autolesao: { pontos: 3 }, contato: { pontos: 3 }, apostas: { pontos: 4 },
+};
+const KODA_LIMITE_PADRAO = { pontos: 3 };
+const KODA_FORTES = {
+  odio: ['nazista', 'nazistas', 'nazi', 'nazis', 'hitler', 'suastica', 'swastika', '卐', 'heil', 'judiaria', 'sapatao', 'debil mental', 'cabelo ruim', 'a coisa ta preta', 'coon', 'gypsy', 'zingaro', 'neguinho', 'neguinha', 'chinoca', '支那', '棒子', 'チョン'],
+  sexual: ['sexo', 'pelado', 'pelada', 'pelados', 'peladas', 'naked', 'gostosa', 'safada', 'safado', 'gozar', 'penis', 'vagina', 'peitos', 'peitinho', 'bunda', 'bundinha', 'boobs', 'pussy', 'dick', 'cock', 'xxx', 'loli', 'shota', 'novinha', 'novinho', 'beijo de lingua', 'motel', 'nackt', 'エロ', 'おっぱい'],
+  drogas: ['maconha', 'cocaina', 'cocaine', 'crack', 'heroina', 'heroin', 'meth', 'metanfetamina', 'lsd', 'ecstasy', 'lanca-perfume', 'lanca perfume', 'marijuana', 'cannabis', 'traficante', 'fentanyl', 'fentanil', 'opio', 'opium', 'maconheiro', 'baseado de maconha'],
+  apostas: ['aposta', 'apostas', 'apostar', 'aposte', 'cassino', 'casino', 'caca-niquel', 'caca niquel', 'caca-niqueis', 'tigrinho', 'aviator', 'fichas de cassino', 'slot machine', 'jackpot', 'apostador'],
+  politica: ['bolsonaro', 'haddad', 'dilma', 'alckmin', 'sergio moro', 'ciro gomes', 'marina silva', 'boulos', 'nikolas ferreira', 'janja', 'trump', 'biden', 'kamala', 'obama', 'putin', 'zelensky', 'xi jinping', 'maduro', 'milei', 'macron', 'netanyahu', 'hamas', 'hezbollah', 'petista', 'petistas', 'bolsonarista', 'bolsonaristas', 'lulista', 'lulistas', 'partido politico', 'political party', 'propaganda eleitoral', 'campanha eleitoral', 'partido dos trabalhadores', 'golpe de estado', 'extrema direita'],
+  autolesao: ['suicidio', 'suicida', 'suicide', 'suicidal', 'se matar', 'kys', '自杀', '자살'],
+  assedio: ['vou te matar', 'i will kill you'],
+  contato: ['whatsapp', 'telegram', 't.me', 'wa.me', 'discord.gg', 'discord', 'instagram', 'tiktok', 'snapchat', 'add me', 'me adiciona', 'meu numero', 'my number', 'me segue', 'follow me', 'meu insta', 'dm me', 'chama no privado'],
+  dados_pessoais: ['seu endereco', 'endereco completo', 'your address', 'seu telefone', 'numero de telefone', 'phone number', 'sua escola', 'your school', 'seu nome completo', 'full name', 'data de nascimento', 'date of birth', 'envie uma foto'],
+  golpe: ['chave pix', 'cartao de credito', 'credit card', 'codigo de verificacao', 'verification code', 'conta bancaria', 'bank account', 'carteira de bitcoin', 'parabens voce ganhou', 'premio gratis', 'ganhe gratis'],
+};
+const KODA_SO_CODIGO = '[comentário no código]';
+const KODA_MASCARAR = ['palavrao', 'sexual', 'odio', 'autolesao'];
+const MOTIVOS_KODA = {
+  odio: { pt: 'O jogo tem palavras de ódio ou de preconceito{a}. O Koda é para todo mundo: tire isso e envie de novo.', en: 'The game has hateful or prejudiced words{a}. Koda is for everyone: remove them and send it again.', es: 'El juego tiene palabras de odio o de prejuicio{a}. Koda es para todos: quítalas y envíalo de nuevo.' },
+  sexual: { pt: 'O jogo tem conteúdo que não é para crianças{a}. Tire isso e envie de novo.', en: "The game has content that isn't for kids{a}. Remove it and send it again.", es: 'El juego tiene contenido que no es para niños{a}. Quítalo y envíalo de nuevo.' },
+  violencia: { pt: 'O jogo tem violência demais{a}. Jogos com monstros e naves de mentirinha são bem-vindos, mas sem crueldade. Ajuste e envie de novo.', en: 'The game has too much violence{a}. Games with pretend monsters and ships are welcome, but no cruelty. Adjust it and send it again.', es: 'El juego tiene demasiada violencia{a}. Los juegos con monstruos y naves de mentira son bienvenidos, pero sin crueldad. Ajústalo y envíalo de nuevo.' },
+  autolesao: { pt: 'O jogo fala de se machucar ou de suicídio{a}. Isso não pode no Koda. Tire e envie de novo. Se você precisar de ajuda, converse com um adulto de confiança.', en: 'The game talks about self-harm or suicide{a}. That is not allowed on Koda. Remove it and send it again. If you need help, talk to a trusted adult.', es: 'El juego habla de hacerse daño o de suicidio{a}. Eso no se permite en Koda. Quítalo y envíalo de nuevo. Si necesitas ayuda, habla con un adulto de confianza.' },
+  drogas: { pt: 'O jogo fala de drogas, álcool ou cigarro{a}. Tire isso e envie de novo.', en: 'The game mentions drugs, alcohol or cigarettes{a}. Remove it and send it again.', es: 'El juego habla de drogas, alcohol o cigarrillos{a}. Quítalo y envíalo de nuevo.' },
+  apostas: { pt: 'O jogo parece de apostas ou cassino{a}. Isso não pode no Koda. Ajuste e envie de novo.', en: 'The game looks like betting or a casino{a}. That is not allowed on Koda. Adjust it and send it again.', es: 'El juego parece de apuestas o casino{a}. Eso no se permite en Koda. Ajústalo y envíalo de nuevo.' },
+  politica: { pt: 'O jogo fala de política, partidos ou candidatos{a}. Tire isso e envie de novo.', en: 'The game mentions politics, parties or candidates{a}. Remove it and send it again.', es: 'El juego habla de política, partidos o candidatos{a}. Quítalo y envíalo de nuevo.' },
+  religiao: { pt: 'O jogo mexe com religião de um jeito que pode ofender{a}. Tire isso e envie de novo.', en: 'The game touches on religion in a way that could offend{a}. Remove it and send it again.', es: 'El juego toca la religión de una forma que puede ofender{a}. Quítalo y envíalo de nuevo.' },
+  golpe: { pt: 'O jogo parece pedir senha, cartão ou dinheiro, ou prometer prêmio falso{a}. Isso não pode. Tire e envie de novo.', en: 'The game seems to ask for passwords, cards or money, or promise fake prizes{a}. That is not allowed. Remove it and send it again.', es: 'El juego parece pedir contraseñas, tarjetas o dinero, o prometer premios falsos{a}. Eso no se permite. Quítalo y envíalo de nuevo.' },
+  dados_pessoais: { pt: 'O jogo pede dados pessoais, como endereço, escola, telefone ou foto{a}. Nunca peça isso. Tire e envie de novo.', en: 'The game asks for personal data such as address, school, phone or photo{a}. Never ask for that. Remove it and send it again.', es: 'El juego pide datos personales, como dirección, escuela, teléfono o foto{a}. Nunca pidas eso. Quítalo y envíalo de nuevo.' },
+  contato: { pt: 'O jogo chama a pessoa para conversar ou seguir fora do Koda{a} (WhatsApp, Discord, Instagram...). Isso não pode. Tire e envie de novo.', en: 'The game invites people to chat or follow outside Koda{a} (WhatsApp, Discord, Instagram...). That is not allowed. Remove it and send it again.', es: 'El juego invita a hablar o seguir fuera de Koda{a} (WhatsApp, Discord, Instagram...). Eso no se permite. Quítalo y envíalo de nuevo.' },
+  palavrao: { pt: 'O jogo tem palavrões ou xingamentos{a}. Tire e envie de novo.', en: 'The game has swear words or insults{a}. Remove them and send it again.', es: 'El juego tiene groserías o insultos{a}. Quítalos y envíalo de nuevo.' },
+  assedio: { pt: 'O jogo tem frases que podem humilhar ou ameaçar alguém{a}. Tire e envie de novo.', en: 'The game has sentences that could humiliate or threaten someone{a}. Remove them and send it again.', es: 'El juego tiene frases que pueden humillar o amenazar a alguien{a}. Quítalas y envíalo de nuevo.' },
+  propriedade_intelectual: { pt: 'O jogo usa nome de personagem ou marca famosa{a} (como Mario, Pokémon ou Minecraft). Crie personagens e nomes só seus e envie de novo.', en: 'The game uses the name of a famous character or brand{a} (like Mario, Pokémon or Minecraft). Create your own characters and names and send it again.', es: 'El juego usa el nombre de un personaje o marca famosa{a} (como Mario, Pokémon o Minecraft). Crea personajes y nombres propios y envíalo de nuevo.' },
+  desinformacao: { pt: 'O jogo tem informação falsa{a}. Tire e envie de novo.', en: 'The game has false information{a}. Remove it and send it again.', es: 'El juego tiene información falsa{a}. Quítala y envíalo de nuevo.' },
+  crime: { pt: 'O jogo ensina ou incentiva coisas ilegais{a}. Tire e envie de novo.', en: 'The game teaches or encourages illegal things{a}. Remove it and send it again.', es: 'El juego enseña o incentiva cosas ilegales{a}. Quítalo y envíalo de nuevo.' },
+  codigo_malicioso: { pt: 'O jogo tem um código que não é seguro (usa câmera ou microfone, prende a pessoa na página ou enche a tela de avisos){a}. Tire e envie de novo.', en: 'The game has code that is not safe (uses the camera or microphone, traps people on the page or floods the screen with alerts){a}. Remove it and send it again.', es: 'El juego tiene un código que no es seguro (usa la cámara o el micrófono, atrapa a la persona en la página o llena la pantalla de avisos){a}. Quítalo y envíalo de nuevo.' },
+  manipulacao: { pt: 'O jogo tem frases tentando enganar a análise{a}. Tire e envie de novo.', en: 'The game has sentences trying to trick the review{a}. Remove them and send it again.', es: 'El juego tiene frases que intentan engañar a la revisión{a}. Quítalas y envíalo de nuevo.' },
+};
+/* "f***k": mostra só o começo e o fim de uma palavra pesada */
+function koda_mascara(t){
+  return String(t || '').split(/\s+/).filter(Boolean).slice(0, 4).map(w => w.length <= 2 ? '*'.repeat(w.length) : w[0] + '*'.repeat(Math.min(w.length - 2, 6)) + w[w.length - 1]).join(' ');
+}
+/* motivos que dependem do sinal do código (não de uma palavra) */
+const MOTIVOS_SINAL_KODA = {
+  dispositivos: { pt: 'O jogo tenta usar a câmera, o microfone ou a localização do aparelho. Isso não pode no Koda. Tire e envie de novo.', en: 'The game tries to use the camera, microphone or location of the device. That is not allowed on Koda. Remove it and send it again.', es: 'El juego intenta usar la cámara, el micrófono o la ubicación del aparato. Eso no se permite en Koda. Quítalo y envíalo de nuevo.' },
+  prende_pagina: { pt: 'O jogo tenta impedir a pessoa de sair da página. Tire isso e envie de novo.', en: 'The game tries to stop people from leaving the page. Remove it and send it again.', es: 'El juego intenta impedir que la persona salga de la página. Quítalo y envíalo de nuevo.' },
+  trava: { pt: 'O jogo pode encher a tela de avisos sem parar. Tire isso e envie de novo.', en: 'The game can flood the screen with alerts non-stop. Remove it and send it again.', es: 'El juego puede llenar la pantalla de avisos sin parar. Quítalo y envíalo de nuevo.' },
+  campo_senha: { pt: 'O jogo tem um campo de senha. Nunca peça senha em um jogo. Tire e envie de novo.', en: 'The game has a password field. Never ask for a password in a game. Remove it and send it again.', es: 'El juego tiene un campo de contraseña. Nunca pidas contraseñas en un juego. Quítalo y envíalo de nuevo.' },
+  ofuscacao: { pt: 'O código do jogo está embaralhado ou escondido, e não dá para garantir o que ele mostra. Deixe o código normal e envie de novo.', en: "The game's code is scrambled or hidden, so we can't be sure what it shows. Use normal code and send it again.", es: 'El código del juego está embaralhado o escondido y no se puede garantizar lo que muestra. Usa código normal y envíalo de nuevo.'.replace('embaralhado', 'revuelto') },
+};
+function koda_origem(ex){ const m = /^\[([^\]]+)\]/.exec(String(ex || '')); return m ? m[1] : ''; }
+function revisarComKoda(jogo, extras){
+  extras = extras || {};
+  const analise = analisarJogo(jogo, extras);
+  const lang = NOME_IDIOMA[extras.lang] ? extras.lang : 'pt';
+  const bloqueio = bloqueioEstatico(analise);
+  if(bloqueio) return { decisao: bloqueio, analise, votos: {} };
+  const viol = [];
+  const add = (cat, gravidade, trecho, explicacao) => viol.push({ categoria: cat, gravidade, trecho: String(trecho || '').slice(0, 160), explicacao, por: 'koda' });
+  /* (2) termos de alto risco */
+  analise.lexico.filter(l => l.nivel === 'grave').forEach(l => add(l.cat, KODA_GRAVISSIMAS.indexOf(l.cat) >= 0 ? 'gravissima' : 'grave', l.termo, 'termo de alto risco no ' + (koda_origem(l.exemplos[0]) || 'jogo')));
+  /* (4) sinais do código que pesam (os de bloqueio já saíram acima; "lexico_grave" já foi contado) */
+  analise.sinais.forEach(s => {
+    if(s.id === 'lexico_grave') return;
+    if(s.nivel === 'grave'){ add(s.cat, 'grave', (s.exemplos || [])[0] || s.id, s.detalhe); viol[viol.length - 1].sinal = s.id; }
+    else if(s.nivel === 'atencao' && ['dispositivos', 'prende_pagina', 'trava', 'diz_que_e_seguro'].indexOf(s.id) >= 0){ add(s.cat, 'media', (s.exemplos || [])[0] || s.id, s.detalhe); viol[viol.length - 1].sinal = s.id; }
+  });
+  /* (3) termos de atenção: quantos e onde */
+  const porCat = {};
+  analise.lexico.filter(l => l.nivel !== 'grave').forEach(l => {
+    const origens = (l.exemplos || []).map(koda_origem);
+    if(origens.length && origens.every(o => '[' + o + ']' === KODA_SO_CODIGO)) return;            /* só em comentário: não conta */
+    const c = porCat[l.cat] || (porCat[l.cat] = { termos: [], vezes: 0, pontos: 0, noNome: false });
+    const forte = (KODA_FORTES[l.cat] || []).indexOf(normalizarBase(l.termo)) >= 0 || (KODA_FORTES[l.cat] || []).indexOf(l.termo) >= 0;
+    const noNome = origens.some(o => o === 'nome do jogo' || o === 'título da página');
+    c.termos.push(l.termo); c.vezes += l.vezes;
+    /* uma palavra forte (ou marca famosa no nome) derruba sozinha: vale o limite da categoria inteiro */
+    c.pontos += (forte || (l.cat === 'propriedade_intelectual' && noNome)) ? Math.max(3, (KODA_LIMITES[l.cat] || KODA_LIMITE_PADRAO).pontos) : 1;
+    if(noNome) c.noNome = true;
+  });
+  Object.keys(porCat).forEach(cat => {
+    const lim = KODA_LIMITES[cat] || KODA_LIMITE_PADRAO, c = porCat[cat];
+    if(c.pontos >= lim.pontos || (lim.vezes && c.vezes >= lim.vezes))
+      add(cat, 'media', c.termos.slice(0, 3).join(', '), c.termos.length + ' termo(s) de atenção, ' + c.pontos + ' ponto(s)' + (c.noNome ? ' (um deles no nome do jogo)' : ' (' + c.vezes + 'x)'));
+  });
+  /* (5) o que ela não enxerga: imagens, vídeos e áudios que vieram embutidos */
+  const avisos = [];
+  const cod = analise.codigo || '';
+  const nImg = (cod.match(/data:image\/(?:png|jpe?g|webp|gif);base64,/gi) || []).length, nVid = (cod.match(/data:video\/[a-z0-9.+-]+(?:;codecs=[^;,]+)?;base64,/gi) || []).length, nAud = (cod.match(/data:audio\/[a-z0-9.+-]+(?:;codecs=[^;,]+)?;base64,/gi) || []).length;
+  if(nImg) avisos.push('imagens_nao_conferidas:' + nImg); if(nVid) avisos.push('videos_nao_conferidos:' + nVid); if(nAud) avisos.push('audios_nao_conferidos:' + nAud);
+  if(/data:(?:text\/html|application\/[a-z0-9.+-]+|image\/svg\+xml)/i.test(cod)) add('codigo_malicioso', 'grave', 'data:', 'arquivo embutido que pode rodar código (html, svg ou aplicativo)');
+  if(!viol.length) return { decisao: { status: 'aprovado', categorias: [], motivo: '', detalhes: [], idadeMinima: 0, confianca: 0.8, alerta: false, violacoes: [], avisos }, analise, votos: {} };
+  /* recusado: o motivo da pior categoria, falando com a criança */
+  const ordem = { gravissima: 3, grave: 2, media: 1 };
+  viol.sort((a, b) => ordem[b.gravidade] - ordem[a.gravidade]);
+  const pior = viol[0], cat = pior.categoria;
+  const mascarar = KODA_MASCARAR.indexOf(cat) >= 0;
+  const porPalavra = !pior.sinal;                         /* veio do dicionário (uma palavra ou frase), não de um sinal do código */
+  const achei = porPalavra && pior.trecho ? ' (achei: "' + (mascarar ? koda_mascara(pior.trecho.split(',')[0].trim()) : pior.trecho.split(',').slice(0, 2).join(',').trim()) + '")' : '';
+  const m = MOTIVOS_SINAL_KODA[pior.sinal] || MOTIVOS_KODA[cat];
+  const motivo = m && (lang === 'pt' || lang === 'en' || lang === 'es') ? m[lang].replace('{a}', achei) : msgPadrao('duvida', lang);
+  const cats = Array.from(new Set(viol.map(v => v.categoria)));
+  return { decisao: { status: 'recusado', categorias: cats, motivo, detalhes: [], idadeMinima: pior.gravidade === 'gravissima' ? 18 : 12, confianca: 0.9, alerta: viol.some(v => v.gravidade === 'gravissima'), violacoes: viol.slice(0, 12), avisos }, analise, votos: {} };
+}
+
 /* análise completa de um jogo */
 async function revisarCompleto(cfg, jogo, extras){
   const analise = analisarJogo(jogo, extras);
@@ -1659,6 +1788,7 @@ function moderacaoParaGuardar(decisao, versao, por, politica){
     detalhes: decisao.detalhes || [],
     idadeMinima: decisao.idadeMinima === undefined ? null : decisao.idadeMinima,
     soTraducao: !!decisao.soTraducao,
+    avisos: decisao.avisos || [],
     em: agora(),
     versao,
     politica: politica === undefined ? POLITICA_VERSAO : politica,
@@ -1787,17 +1917,27 @@ async function moderarEnvio(db, cfg, id, quem, extras){
       if(!lim.ok){ await liberar(); return { erro: 'limite', tenteEm: lim.tenteEm, status: 'analise', httpStatus: 429 }; }
     }
     const lang = NOME_IDIOMA[extras.lang] ? extras.lang : 'pt';
-    const comIA = modo === 'completa';
-    const por = comIA ? 'ia' : (modo === 'basica' ? 'basica' : 'sem-analise');
+    let comIA = modo === 'completa', tipoDoLog = modo;
+    let r;
+    if(modo === 'koda') r = revisarComKoda(sub, extras);
+    else if(!comIA) r = revisarSemIA(sub, extras, modo);
+    else {
+      try{ r = soTraducao ? await revisarTraducoes(cfg, sub, pub, lang) : await revisarCompleto(cfg, sub, extras); tipoDoLog = soTraducao ? 'traducao' : 'completo'; }
+      catch(e){
+        /* a IA falhou (sem crédito, fora do ar...): com MODERACAO_FALLBACK = koda, a análise do Koda decide no lugar dela */
+        if(!cfg.fallbackKoda) throw e;
+        r = revisarComKoda(sub, extras); comIA = false; tipoDoLog = 'koda-reserva';
+      }
+    }
+    const por = comIA ? 'ia' : (tipoDoLog === 'koda' || tipoDoLog === 'koda-reserva' ? 'koda' : (modo === 'basica' ? 'basica' : 'sem-analise'));
     const politica = comIA ? POLITICA_VERSAO : 0;
-    const r = !comIA ? revisarSemIA(sub, extras, modo) : soTraducao ? await revisarTraducoes(cfg, sub, pub, lang) : await revisarCompleto(cfg, sub, extras);
     const decisao = r.decisao;
     if(decisao.status === 'aprovado') await publicarNoCatalogo(db, id, sub, decisao, versao, por, !pub, politica);
     const mod = moderacaoParaGuardar(decisao, versao, por, politica);
     const gravou = await db.gravar(caminho, { status: decisao.status, moderacao: mod }, { campos: ['status', 'moderacao', 'moderando'], seAtualizadoEm: trava.atualizadoEm });
     await registrarLog(db, Object.assign({
       gameId: id, nome: String(sub.name || '').slice(0, 120), criador: sub.creatorEmail || '', quemPediu: quem.email,
-      tipo: !comIA ? modo : soTraducao ? 'traducao' : 'completo', status: decisao.status, categorias: decisao.categorias || [], alerta: !!decisao.alerta,
+      tipo: tipoDoLog, status: decisao.status, categorias: decisao.categorias || [], alerta: !!decisao.alerta,
       idadeMinima: decisao.idadeMinima === undefined ? null : decisao.idadeMinima, versao, politica: POLITICA_VERSAO, em: agora(), ms: agora() - t0,
       versaoMudouNoMeio: gravou === false,
     }, resumoParaLog(r)));
@@ -2063,7 +2203,7 @@ async function diagnostico(cfg, testar){
     modelo: cfg.modelo,
     versao_da_politica: POLITICA_VERSAO,
     versao_do_codigo: VERSAO_DO_CODIGO,
-    modo_da_analise: cfg.modo + (cfg.modo === 'desligada' ? ' (os jogos são publicados na hora, sem análise)' : cfg.modo === 'basica' ? ' (só os bloqueios automáticos, sem IA)' : ' (análise completa com IA)'),
+    modo_da_analise: cfg.modo + (cfg.modo === 'desligada' ? ' (os jogos são publicados na hora, sem análise)' : cfg.modo === 'basica' ? ' (só os bloqueios automáticos, sem IA)' : cfg.modo === 'koda' ? ' (a IA do Koda, só de código: grátis, sem crédito)' : ' (análise completa com IA)') + (cfg.fallbackKoda ? ' + reserva: se a IA falhar, a análise do Koda decide' : ''),
     resultado: 'so_sim_ou_nao (sem revisao por pessoa; na duvida, nao publica)',
     email_de_recuperacao: cfg.brevo && cfg.remetente ? 'configurado' : 'falta ' + [!cfg.brevo && 'BREVO_API_KEY', !cfg.remetente && 'EMAIL_REMETENTE'].filter(Boolean).join(' e '),
   };

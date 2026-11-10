@@ -4,18 +4,39 @@ Esta pasta **não vai para o ar com o site** (está no `.assetsignore`): a lista
 
 - `jogodromo-agent-worker.js` — o código do worker. É o que fica publicado no Cloudflare como **jogodromo-agente**.
 - `teste-moderacao.mjs` — testes (sem internet e sem gastar IA). Rodar: `node agente/teste-moderacao.mjs`.
+- `jogos-de-avaliacao/` — 34 jogos para testar: `bom-*` (têm que ser aprovados) e `ruim-*` (cada um com um problema, têm que ser recusados). `node agente/teste-moderacao.mjs` passa os 34 pela análise do Koda sozinho.
 
 ## Modo da análise de jogos (ligar e desligar a segurança)
 Uma variável do Cloudflare decide: **Workers & Pages → jogodromo-agente → Settings → Variables and Secrets → `MODERACAO`** (tipo **Text**).
 
 | Valor | O que acontece |
 |---|---|
-| `desligada` | O jogo é publicado **na hora**, sem nenhuma análise. Não usa a IA, então não precisa de chave nem de crédito. **É o padrão do código agora.** |
+| `desligada` | O jogo é publicado **na hora**, sem nenhuma análise. Não usa a IA, então não precisa de chave nem de crédito. |
 | `basica` | Só os bloqueios automáticos e grátis (código de mineração de criptomoeda, carregar coisa de outro site...). Sem IA. |
+| `koda` | **A IA do Koda, feita só de código (grátis, sem crédito, sem internet). É o padrão do código agora.** Os bloqueios automáticos **mais** o dicionário de palavras e frases proibidas em 10 idiomas (com disfarces como letras separadas e números no lugar de letras), câmera/microfone, campo de senha, frases tentando enganar a análise... Decide aprovado ou recusado sozinha e explica o motivo para a criança. |
 | `completa` | A análise inteira com a IA, como era antes. Precisa da `ANTHROPIC_API_KEY` com crédito. |
 
-Sem a variável vale o `desligada`. Valor com erro de digitação vira `completa` (na dúvida, o mais rigoroso).
+Sem a variável vale o `koda`. Valor com erro de digitação vira `completa` (na dúvida, o mais rigoroso).
+**Se você já tinha criado a variável `MODERACAO` (com `desligada`, `basica` ou `completa`), ela continua mandando:** troque o valor para `koda` ou apague a variável.
+
+### Como a análise do Koda decide (modo `koda`)
+1. **Bloqueios de sempre** (mineração, carregar coisa de outro site, enviar dados pra fora...): recusa.
+2. **Termo de alto risco** do dicionário (palavrão pesado, conteúdo sexual, ódio, golpe, pedir dados pessoais, "nosso segredo"...): recusa na hora.
+3. **Termos de atenção** valem pontos: uma palavra comum de jogo vale 1 ponto (slots, depósito, presidente, lula, cerveja...) e uma palavra forte
+   (maconha, cassino, nazista, nome de político...) vale o limite inteiro. A categoria só derruba o jogo ao passar do limite de pontos
+   (3 na maioria, 4 em apostas, religião e crime, 8 em violência). Palavra só em comentário do código não conta. Marca famosa no **nome** do jogo recusa.
+4. **Código que não combina com um site de crianças**: usar câmera, microfone ou localização, prender a pessoa na página, encher a tela de avisos, código embaralhado.
+5. **O que ela não enxerga:** o que está desenhado dentro de imagens, vídeos e áudios. Esses jogos são **publicados** mas ficam marcados
+   (`moderacao.avisos`, política 0) para a análise completa conferir depois ("Analisar jogos antigos" quando a IA voltar).
+
+A recusa mostra o motivo na língua da criança (português, inglês e espanhol; nos outros idiomas, a mensagem padrão do idioma) e esconde parte do palavrão.
+Para **ajustar o rigor**, mude `KODA_LIMITES` e `KODA_FORTES` no worker (e rode os testes).
+
+**Reserva:** com `MODERACAO` = `completa`, crie também `MODERACAO_FALLBACK` = `koda`. Se a IA falhar (sem crédito, fora do ar), a análise do Koda decide no lugar dela
+em vez de deixar o jogo esperando (fica marcado `koda`, política 0).
 Dá pra conferir em `https://jogodromo-agente.gamersite.workers.dev/` (campo `modo_da_analise`).
+
+**Pra testar antes de publicar o worker:** rode `node agente/teste-moderacao.mjs`. Ele passa os 34 jogos de `agente/jogos-de-avaliacao/` pela análise do Koda e confere que os `bom-*` são aprovados e os `ruim-*` recusados.
 
 **Pra religar a análise quando tiver a chave da API com crédito:**
 1. Confira a `ANTHROPIC_API_KEY` (Secret) no mesmo lugar.
