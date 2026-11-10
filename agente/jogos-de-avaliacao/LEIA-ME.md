@@ -1,6 +1,6 @@
 # Jogos para testar a análise do Koda
 
-Abra `../avaliador-koda.html` no navegador e arraste estes arquivos (todos de uma vez).
+`node agente/teste-moderacao.mjs` passa todos estes arquivos pela análise do Koda e confere o resultado de cada um.
 
 - `bom-01` a `bom-06`: os 6 jogos de teste do agente (mina de ouro, sapo, ninja, cobrinha, nave, memória). **Têm que ser aprovados.**
 - `bom-07` a `bom-12`: jogos simples que têm palavras que parecem perigosas mas não são (monstros, roleta, slots, a lula do mar) e jogos com imagem ou som

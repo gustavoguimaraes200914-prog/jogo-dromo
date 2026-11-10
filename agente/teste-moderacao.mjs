@@ -554,5 +554,21 @@ console.log('== 21. projeto em grupo');
   t('grupo: uma pessoa sozinha não vale', (await com(['a@x.com'])) === null);
   t('grupo: id que não é de grupo não vale', (await W.projetoDaDupla(bancoFalso(), 'custom_1')) === null);
 }
+/* ---------- 23. os 34 jogos de avaliação passam pela análise do Koda ---------- */
+console.log('== 23. os 34 jogos de avaliação (bom-* aprovados, ruim-* recusados)');
+{
+  const pasta = path.join(aqui, 'jogos-de-avaliacao');
+  const arqs = fs.readdirSync(pasta).filter(f => /^(bom|ruim)-.*\.html$/.test(f)).sort();
+  t('avaliação: os 34 jogos estão na pasta (12 bons e 22 ruins)', arqs.length === 34 && arqs.filter(f => /^bom-/.test(f)).length === 12, arqs.length);
+  for(const f of arqs){
+    const cod = fs.readFileSync(path.join(pasta, f), 'utf8');
+    const d = W.revisarComKoda({ id: 'x', name: f.replace(/\.html$/, ''), codeB64: b64(cod), creatorEmail: 'c@x.com' }, { lang: 'pt' }).decisao;
+    const esperado = /^bom-/.test(f) ? 'aprovado' : 'recusado';
+    t('avaliação: ' + f + ' → ' + esperado, d.status === esperado && (esperado === 'aprovado' || !!d.motivo || (d.detalhes || []).length > 0 || (d.categorias || []).length > 0), [d.status, d.motivo, d.detalhes, d.categorias]);
+  }
+  const avisos = f => W.revisarComKoda({ id: 'x', name: f, codeB64: b64(fs.readFileSync(path.join(pasta, f), 'utf8')), creatorEmail: 'c@x.com' }, { lang: 'pt' }).decisao.avisos || [];
+  t('avaliação: o jogo com imagem dentro é aprovado COM aviso', avisos('bom-11-com-imagem-dentro.html').some(a => /^imagens/.test(a)));
+  t('avaliação: o jogo com som dentro é aprovado COM aviso', avisos('bom-12-com-som-dentro.html').some(a => /^audios/.test(a)));
+}
 console.log('\n' + ok + ' ok, ' + falhas + ' falhas');
 process.exit(falhas ? 1 : 0);

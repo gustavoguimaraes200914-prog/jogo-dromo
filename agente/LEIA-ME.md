@@ -4,9 +4,7 @@ Esta pasta **não vai para o ar com o site** (está no `.assetsignore`): a lista
 
 - `jogodromo-agent-worker.js` — o código do worker. É o que fica publicado no Cloudflare como **jogodromo-agente**.
 - `teste-moderacao.mjs` — testes (sem internet e sem gastar IA). Rodar: `node agente/teste-moderacao.mjs`.
-- `avaliador-koda.html` — a análise do Koda **no navegador**: abra o arquivo, arraste jogos `.html` e veja aprovado/recusado, o motivo e o que ela achou.
-  Não usa internet, banco nem IA. É gerado a partir do código do worker: `node agente/gerar-avaliador.mjs` (rode de novo depois de mudar o worker).
-- `jogos-de-avaliacao/` — 34 jogos para testar: `bom-*` (têm que ser aprovados) e `ruim-*` (cada um com um problema, têm que ser recusados).
+- `jogos-de-avaliacao/` — 34 jogos para testar: `bom-*` (têm que ser aprovados) e `ruim-*` (cada um com um problema, têm que ser recusados). `node agente/teste-moderacao.mjs` passa os 34 pela análise do Koda sozinho.
 
 ## Modo da análise de jogos (ligar e desligar a segurança)
 Uma variável do Cloudflare decide: **Workers & Pages → jogodromo-agente → Settings → Variables and Secrets → `MODERACAO`** (tipo **Text**).
@@ -32,13 +30,13 @@ Sem a variável vale o `koda`. Valor com erro de digitação vira `completa` (na
    (`moderacao.avisos`, política 0) para a análise completa conferir depois ("Analisar jogos antigos" quando a IA voltar).
 
 A recusa mostra o motivo na língua da criança (português, inglês e espanhol; nos outros idiomas, a mensagem padrão do idioma) e esconde parte do palavrão.
-Para **ajustar o rigor**, mude `KODA_LIMITES` e `KODA_FORTES` no worker (e rode os testes e `gerar-avaliador.mjs`).
+Para **ajustar o rigor**, mude `KODA_LIMITES` e `KODA_FORTES` no worker (e rode os testes).
 
 **Reserva:** com `MODERACAO` = `completa`, crie também `MODERACAO_FALLBACK` = `koda`. Se a IA falhar (sem crédito, fora do ar), a análise do Koda decide no lugar dela
 em vez de deixar o jogo esperando (fica marcado `koda`, política 0).
 Dá pra conferir em `https://jogodromo-agente.gamersite.workers.dev/` (campo `modo_da_analise`).
 
-**Pra testar antes de publicar o worker:** abra `agente/avaliador-koda.html` no navegador e arraste os jogos de `agente/jogos-de-avaliacao/`.
+**Pra testar antes de publicar o worker:** rode `node agente/teste-moderacao.mjs`. Ele passa os 34 jogos de `agente/jogos-de-avaliacao/` pela análise do Koda e confere que os `bom-*` são aprovados e os `ruim-*` recusados.
 
 **Pra religar a análise quando tiver a chave da API com crédito:**
 1. Confira a `ANTHROPIC_API_KEY` (Secret) no mesmo lugar.
