@@ -5,7 +5,7 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-const exportados = 'avaliarComoDono, revisarComKoda, analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta, modoDaModeracao, projetoDaDupla';
+const exportados = 'revisarComKoda, analisarJogo, decidir, limparVoto, revisarCompleto, moderarEnvio, buscarNoLexico, normalizarBase, carimboCompleto, lerConfig, MENSAGENS_PADRAO, msgPadrao, Banco, nomeDeUsuario, mascararEmail, freioDeEnvio, emailDoCodigo, contaLivre, contaSeguranca, contaSegurancaConfirma, contaCodigo, contaNovaSenha, rotaDeConta, modoDaModeracao, projetoDaDupla';
 const temp = path.join(os.tmpdir(), 'koda-worker-teste-' + process.pid + '.mjs');
 fs.writeFileSync(temp, fs.readFileSync(path.join(aqui, 'jogodromo-agent-worker.js'), 'utf8') + '\nexport { ' + exportados + ' };\n');
 const W = await import(pathToFileURL(temp).href);
@@ -553,54 +553,6 @@ console.log('== 21. projeto em grupo');
   t('grupo: 21 pessoas não valem', (await com(Array.from({ length: 21 }, (_, i) => 'p' + i + '@x.com'))) === null);
   t('grupo: uma pessoa sozinha não vale', (await com(['a@x.com'])) === null);
   t('grupo: id que não é de grupo não vale', (await W.projetoDaDupla(bancoFalso(), 'custom_1')) === null);
-}
-/* ---------- 23. avaliar de dentro do Koda (só o dono, só olha) ---------- */
-console.log('== 23. avaliar pelo painel do dono');
-{
-  const bom = html('<h1>Pegue as estrelas</h1><canvas id="c" width="300" height="200"></canvas><script>var c=document.getElementById("c").getContext("2d");c.fillText("Jogar",10,20);</script>');
-  const ruim = html('<h1>Jogo</h1><p>Me chama no whatsapp: manda seu numero</p><script>var x=1;</script>');
-  const r1 = await W.avaliarComoDono(null, {}, { codigo: bom, nome: 'Estrelas' });
-  t('avaliar: um jogo bom colado é aprovado', r1.itens.length === 1 && r1.itens[0].status === 'aprovado' && r1.itens[0].nome === 'Estrelas' && r1.fim === true, r1);
-  const r2 = await W.avaliarComoDono(null, {}, { codigo: ruim });
-  t('avaliar: um jogo ruim colado é recusado com motivo e categorias', r2.itens[0].status === 'recusado' && !!r2.itens[0].motivo && r2.itens[0].categorias.length > 0, r2.itens[0]);
-  t('avaliar: sem nome usa o título do jogo', r2.itens[0].nome === 'Meu jogo');
-  const r3 = await W.avaliarComoDono(null, {}, { codigo: ruim, lang: 'en' });
-  t('avaliar: o aviso sai no idioma pedido', r3.itens[0].status === 'recusado' && r3.itens[0].motivo !== r2.itens[0].motivo, [r2.itens[0].motivo, r3.itens[0].motivo]);
-  const r4 = await W.avaliarComoDono(null, {}, {});
-  t('avaliar: pedido vazio dá erro 400', r4.erro === 'pedido_invalido' && r4.httpStatus === 400);
-  const r5 = await W.avaliarComoDono(null, {}, { codigo: 'x'.repeat(3 * 1024 * 1024 + 1) });
-  t('avaliar: código grande demais dá erro 413', r5.erro === 'codigo_grande_demais' && r5.httpStatus === 413);
-
-  /* catálogo: banco de mentira com 7 jogos, lidos 3 por vez; nada pode ser gravado */
-  const dbC = bancoFalso();
-  const todos = [['a1', 'Bom 1', bom], ['a2', 'Ruim 2', ruim], ['a3', 'Bom 3', bom], ['a4', 'Bom 4', bom], ['a5', 'Ruim 5', ruim], ['a6', 'Bom 6', bom], ['a7', 'Bom 7', bom]];
-  for(const [id, nome, cod] of todos) await dbC.gravar('publicGames/' + id, { name: nome, codeB64: b64(cod), creatorEmail: 'c@x.com', moderacao: { status: 'aprovado', por: 'ia', politica: 1 } });
-  let leituras = 0;
-  dbC.listar = async (colecao, campos, pagina, tamanho) => {
-    leituras++;
-    const ini = pagina ? parseInt(pagina, 10) : 0;
-    const fatia = todos.slice(ini, ini + tamanho);
-    return { docs: fatia.map(([id]) => ({ id, dados: JSON.parse(JSON.stringify(dbC.docs.get('publicGames/' + id).dados)) })), proxima: ini + tamanho < todos.length ? String(ini + tamanho) : null };
-  };
-  const antes = JSON.stringify([...dbC.docs.entries()]);
-  let pagina = null, vistos = [], voltas = 0;
-  do {
-    const r = await W.avaliarComoDono(dbC, {}, { catalogo: true, pagina, porVez: 3 });
-    vistos = vistos.concat(r.itens); pagina = r.proximaPagina; voltas++;
-    if(r.fim) break;
-  } while(voltas < 10);
-  t('catálogo: percorre todos os jogos em páginas de 3', vistos.length === 7 && voltas === 3, [vistos.length, voltas]);
-  t('catálogo: acerta quem é bom e quem é ruim', vistos.filter(v => v.status === 'recusado').map(v => v.id).join() === 'a2,a5', vistos.map(v => v.id + ':' + v.status));
-  t('catálogo: mostra o que o site tem hoje (aprovado pela ia)', vistos[0].noSite && vistos[0].noSite.status === 'aprovado' && vistos[0].noSite.por === 'ia');
-  t('catálogo: NÃO muda nada no banco', JSON.stringify([...dbC.docs.entries()]) === antes && dbC.adicionados.length === 0);
-  t('catálogo: porVez grande demais é limitado a 8', (await W.avaliarComoDono(dbC, {}, { catalogo: true, porVez: 500 })).itens.length === 7);
-
-  /* a rota: sem crachá 401; sem conta de serviço, o catálogo dá 503 (precisa passar pelo crachá antes, então só 401 aqui) */
-  const rotaAv = (c, h) => worker.fetch(new Request('https://w.dev/avaliar', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, h || {}), body: JSON.stringify({ codigo: bom }) }), c);
-  const sem = await rotaAv({}, {});
-  t('rota /avaliar: sem crachá dá 401', sem.status === 401, sem.status);
-  const lixo = await rotaAv({}, { Authorization: 'Bearer lixo' });
-  t('rota /avaliar: crachá falso dá 401', lixo.status === 401, lixo.status);
 }
 console.log('\n' + ok + ' ok, ' + falhas + ' falhas');
 process.exit(falhas ? 1 : 0);
