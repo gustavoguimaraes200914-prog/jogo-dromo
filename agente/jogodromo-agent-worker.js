@@ -488,13 +488,13 @@ const LEXICO = {
       'porno','porn','pornografia','pornography','putaria','boquete','punheta','siririca','transar','transando','transa','foder','fodendo','buceta','boceta',
       'xoxota','piroca','nude','nudes','manda nudes','tesao','orgasmo','orgasm','hentai','onlyfans','xvideos','pornhub','xhamster','pedofilia','pedofilo','pedofila',
       'pedophile','pedophilia','lolicon','shotacon','novinha safada','blowjob','handjob','horny','masturb*','nsfw','rule34','rule 34','milf',
-      'tits','titties','strip club','stripper','estupro','estuprar','estuprada','estuprador','rape','raped','rapist','follar','tetas','mamada','chupapollas',
+      'titties','strip club','stripper','estupro','estuprar','estuprada','estuprador','rape','raped','rapist','follar','tetas','mamada','chupapollas',
       'salope','nichons','branlette','scopare','pompino','tette','ficken','titten','schlampe','wichsen','neuken','tieten','hoer',
       'セックス','ポルノ','ちんこ','まんこ','中出し','ロリコン','援交','ヌード','色情','做爱','性交','鸡巴','屄','约炮','萝莉控','黄片','섹스','야동','포르노','자지','조건만남','몸캠'
     ],
     atencao: [
       'sexo','sexy','sex','sexual','pelado','pelada','pelados','peladas','naked','gostosa','gostoso','safada','safado','gozar','penis','vagina','peitos','peitinho','bunda',
-      'bundinha','camisinha','preservativo','boobs','pussy','dick','cock','cum','xxx','pedo','loli','shota','novinha','novinho','beijo de lingua','polla','verga','paja','baiser','chatte',
+      'bundinha','camisinha','preservativo','boobs','pussy','tits','dick','cock','cum','xxx','pedo','loli','shota','novinha','novinho','beijo de lingua','polla','verga','paja','baiser','chatte',
       'sucer','troia','figa','nackt','pijpen','エロ','おっぱい','裸体','namorar','namorada','namorado','motel','lingerie','biquini','calcinha','cueca'
     ]
   },
@@ -1571,7 +1571,7 @@ const KODA_LIMITES = {
 const KODA_LIMITE_PADRAO = { pontos: 3 };
 const KODA_FORTES = {
   odio: ['nazista', 'nazistas', 'nazi', 'nazis', 'hitler', 'suastica', 'swastika', '卐', 'heil', 'judiaria', 'sapatao', 'debil mental', 'cabelo ruim', 'a coisa ta preta', 'coon', 'gypsy', 'zingaro', 'neguinho', 'neguinha', 'chinoca', '支那', '棒子', 'チョン'],
-  sexual: ['sexo', 'pelado', 'pelada', 'pelados', 'peladas', 'naked', 'gostosa', 'safada', 'safado', 'gozar', 'penis', 'vagina', 'peitos', 'peitinho', 'bunda', 'bundinha', 'boobs', 'pussy', 'dick', 'cock', 'xxx', 'loli', 'shota', 'novinha', 'novinho', 'beijo de lingua', 'motel', 'nackt', 'エロ', 'おっぱい'],
+  sexual: ['sexo', 'pelado', 'pelada', 'pelados', 'peladas', 'naked', 'gostosa', 'safada', 'safado', 'gozar', 'penis', 'vagina', 'peitos', 'peitinho', 'bunda', 'bundinha', 'boobs', 'pussy', 'xxx', 'loli', 'shota', 'novinha', 'novinho', 'beijo de lingua', 'motel', 'nackt', 'エロ', 'おっぱい'],   /* (dick e cock: nome de gente e de bicho; ficam só como "atenção" no léxico) */
   drogas: ['maconha', 'cocaina', 'cocaine', 'crack', 'heroina', 'heroin', 'meth', 'metanfetamina', 'lsd', 'ecstasy', 'lanca-perfume', 'lanca perfume', 'marijuana', 'cannabis', 'traficante', 'fentanyl', 'fentanil', 'opio', 'opium', 'maconheiro', 'baseado de maconha'],
   apostas: ['aposta', 'apostas', 'apostar', 'aposte', 'cassino', 'casino', 'caca-niquel', 'caca niquel', 'caca-niqueis', 'tigrinho', 'aviator', 'fichas de cassino', 'slot machine', 'jackpot', 'apostador'],
   politica: ['bolsonaro', 'haddad', 'dilma', 'alckmin', 'sergio moro', 'ciro gomes', 'marina silva', 'boulos', 'nikolas ferreira', 'janja', 'trump', 'biden', 'kamala', 'obama', 'putin', 'zelensky', 'xi jinping', 'maduro', 'milei', 'macron', 'netanyahu', 'hamas', 'hezbollah', 'petista', 'petistas', 'bolsonarista', 'bolsonaristas', 'lulista', 'lulistas', 'partido politico', 'political party', 'propaganda eleitoral', 'campanha eleitoral', 'partido dos trabalhadores', 'golpe de estado', 'extrema direita'],
