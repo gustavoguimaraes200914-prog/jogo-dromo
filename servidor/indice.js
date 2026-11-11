@@ -27,6 +27,32 @@ export class Indice extends DurableObject {
     await this.ctx.storage.put('pend', pend);
     return { ok: true, guardado: true };
   }
+  /* A PASSAGEM: guichê temporário da mudança de endereço (koda.gamersite.workers.dev -> kodagb.com).
+     Cada endereço do navegador tem o seu cofre; pra levar o login e os dados de um pro outro, o aparelho deixa aqui um pacote
+     JÁ CRIPTOGRAFADO (a chave só vai no endereço, depois do #, e nunca chega no servidor), pega do outro lado e o pacote some.
+     Cada pacote usa um Indice só dele (nome "passagem:<id>"). Vale 10 minutos e só dá pra pegar uma vez. */
+  async guardarPassagem(texto) {
+    texto = String(texto || '');
+    if (!texto || texto.length > 4200000) return { ok: false };
+    const o = {};
+    let n = 0;
+    for (let i = 0; i < texto.length; i += 100000) o['p' + n++] = texto.slice(i, i + 100000);
+    o.n = n; o.t = Date.now();
+    await this.ctx.storage.deleteAll();
+    await this.ctx.storage.put(o);
+    await this.ctx.storage.setAlarm(Date.now() + 10 * 60 * 1000);
+    return { ok: true };
+  }
+  async pegarPassagem() {
+    const n = await this.ctx.storage.get('n'), t = await this.ctx.storage.get('t');
+    if (!n || !t || Date.now() - t > 10 * 60 * 1000) { await this.ctx.storage.deleteAll(); return { ok: false }; }
+    const ks = []; for (let i = 0; i < n; i++) ks.push('p' + i);
+    const m = await this.ctx.storage.get(ks);
+    let texto = ''; for (const k of ks) texto += m.get(k) || '';
+    await this.ctx.storage.deleteAll();
+    return { ok: true, texto };
+  }
+  async alarm() { await this.ctx.storage.deleteAll(); }
 }
 
 export class Vigia extends DurableObject {

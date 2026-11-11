@@ -3,6 +3,179 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script id="koda-migracao">
+/* MUDANÇA DE ENDEREÇO (koda.gamersite.workers.dev -> kodagb.com)
+   Cada endereço do navegador tem o seu próprio "cofre" (localStorage e o login do Firebase), então quem entra no endereço novo
+   parecia uma pessoa nova. Aqui o cofre do endereço antigo vai junto pro novo:
+   - no endereço NOVO, quem ainda não trouxe nada dá uma passadinha no antigo e volta (só na primeira vez), levando um código
+     secreto da aba (nonce): só o pacote que carrega ESSE código é aceito (ninguém consegue mandar um link com um pacote
+     "de outra conta" e deixar a pessoa logada na conta errada);
+   - no endereço ANTIGO, o login (IndexedDB do Firebase) e o localStorage viram um pacote criptografado (AES-GCM): o pacote
+     vai pro guichê do servidor (/api/passagem, vale 10 min, uma vez) e a chave vai só no endereço, depois do #;
+     quem abre o endereço antigo direto (link velho) é mandado pro novo, que cuida do resto;
+   - de volta no NOVO, o pacote é aberto, o cofre é preenchido e a página recarrega já com tudo (e a pessoa continua logada).
+   Se alguma coisa der errado, a pessoa só entra normal (sem perder nada onde ela já está).
+   Pra desligar tudo: ATIVO = false. Pra ver o endereço antigo sem ir pro novo: ?semmig=1 */
+(function(){
+  var NOVO = 'kodagb.com', ANTIGO = 'koda.gamersite.workers.dev', ATIVO = true;
+  try{
+    if(!ATIVO) return;
+    var loc = location, h = loc.hostname;
+    if(h !== NOVO && h !== 'www.' + NOVO && h !== ANTIGO) return;
+    /* sem armazenamento no navegador não dá pra levar nada (e evitamos qualquer ida e volta sem fim) */
+    try{ localStorage.setItem('__koda_t', '1'); localStorage.removeItem('__koda_t'); sessionStorage.setItem('__koda_t', '1'); sessionStorage.removeItem('__koda_t'); }catch(e){ return; }
+    var caminho = loc.pathname + loc.search, hash = loc.hash;
+    var q = new URLSearchParams(loc.search);
+    function parar(){ try{ window.stop(); }catch(e){} }
+    function tela(){ try{ document.documentElement.innerHTML = '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Koda GB</title></head><body style="margin:0;background:#0b0620;color:#fff;font:800 20px/1.2 system-ui,sans-serif;display:grid;place-items:center;height:100vh;letter-spacing:.04em">Koda GB</body>'; }catch(e){} }
+    function ir(url){ parar(); try{ loc.replace(url); }catch(e){ loc.href = url; } }
+    function novoNonce(){ var a = crypto.getRandomValues(new Uint8Array(16)), r = ''; for(var i = 0; i < a.length; i++) r += ('0' + a[i].toString(16)).slice(-2); return r; }
+    function junta(search, par){ return search ? search + '&' + par : '?' + par; }
+    function semParametro(nome){ var u = new URLSearchParams(loc.search); u.delete(nome); var s = u.toString(); return loc.pathname + (s ? '?' + s : ''); }
+
+    /* www.kodagb.com e kodagb.com são "endereços" diferentes pro navegador: sempre o sem www */
+    if(h === 'www.' + NOVO){ ir('https://' + NOVO + caminho + hash); return; }
+
+    /* ---------- base64 / criptografia / compressão ---------- */
+    function b64u(buf){ var b = new Uint8Array(buf), s = ''; for(var i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+    function deb64u(s){ s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while(s.length % 4) s += '='; var b = atob(s), a = new Uint8Array(b.length); for(var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+    function comprimir(bytes){
+      if(typeof CompressionStream !== 'function') return Promise.resolve({z: 0, bytes: bytes});
+      var cs = new CompressionStream('gzip'), w = cs.writable.getWriter(); w.write(bytes); w.close();
+      return new Response(cs.readable).arrayBuffer().then(function(b){ return {z: 1, bytes: new Uint8Array(b)}; });
+    }
+    function descomprimir(bytes){
+      if(typeof DecompressionStream !== 'function') return Promise.reject(new Error('sem_gzip'));
+      var ds = new DecompressionStream('gzip'), w = ds.writable.getWriter(); w.write(bytes); w.close();
+      return new Response(ds.readable).arrayBuffer().then(function(b){ return new Uint8Array(b); });
+    }
+
+    /* ---------- endereço ANTIGO: monta o pacote, entrega no guichê e manda a pessoa pro endereço novo ---------- */
+    function lerLogin(cb){
+      var feito = false; function fim(r){ if(!feito){ feito = true; cb(r || []); } }
+      setTimeout(function(){ fim([]); }, 2500);
+      try{
+        var rq = indexedDB.open('firebaseLocalStorageDb');
+        rq.onerror = function(){ fim([]); };
+        rq.onupgradeneeded = function(){ try{ rq.transaction.abort(); }catch(e){} fim([]); };       // não existia: não cria
+        rq.onsuccess = function(){
+          var db = rq.result;
+          try{
+            if(!db.objectStoreNames.contains('firebaseLocalStorage')){ db.close(); return fim([]); }
+            var g = db.transaction('firebaseLocalStorage', 'readonly').objectStore('firebaseLocalStorage').getAll();
+            g.onsuccess = function(){ db.close(); fim((g.result || []).filter(function(x){ return x && /^firebase:authUser:/.test(String(x.fbase_key)); })); };
+            g.onerror = function(){ db.close(); fim([]); };
+          }catch(e){ try{ db.close(); }catch(x){} fim([]); }
+        };
+      }catch(e){ fim([]); }
+    }
+    var LIMITE = 3400000, PROTEGIDAS = {jogodromo_custom_games: 1, jogodromo_drafts: 1, koda_studio_rascunho: 1, koda_ugc_rascunho: 1};
+    function juntarLocal(){
+      var ls = {}, total = 0, k, i;
+      for(i = 0; i < localStorage.length; i++){ k = localStorage.key(i); if(k === 'koda_mig_ok' || k === 'koda_mig_enviado') continue; var v = localStorage.getItem(k); if(v == null) continue; ls[k] = v; total += k.length + v.length; }
+      /* passou do guichê: larga primeiro o que é só cache (os maiores), nunca os jogos e rascunhos da pessoa */
+      if(total > LIMITE){
+        Object.keys(ls).filter(function(x){ return !PROTEGIDAS[x] && !/^firebase:/.test(x); }).sort(function(a, b){ return ls[b].length - ls[a].length; }).forEach(function(x){ if(total > LIMITE){ total -= x.length + ls[x].length; delete ls[x]; } });
+      }
+      return ls;
+    }
+    function entregar(nonce, cb){     // cb(resultado) -> {id, chave} ou null
+      lerLogin(function(auth){
+        var pacote = {v: 1, de: ANTIGO, t: Date.now(), n: nonce, ls: juntarLocal(), auth: auth};
+        var bytes = new TextEncoder().encode(JSON.stringify(pacote));
+        comprimir(bytes).then(function(c){
+          var iv = crypto.getRandomValues(new Uint8Array(12)), raw = crypto.getRandomValues(new Uint8Array(32)), claro = new Uint8Array(1 + c.bytes.length);
+          claro[0] = c.z; claro.set(c.bytes, 1);
+          return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt']).then(function(k){ return crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, k, claro); }).then(function(ct){
+            var saida = new Uint8Array(12 + ct.byteLength); saida.set(iv, 0); saida.set(new Uint8Array(ct), 12);
+            return fetch('/api/passagem', {method: 'POST', headers: {'content-type': 'text/plain'}, body: b64u(saida)}).then(function(r){ return r.json(); }).then(function(j){
+              if(!j || !j.ok || !j.id) throw new Error('sem_id');
+              cb({id: j.id, chave: b64u(raw)});
+            });
+          });
+        }).catch(function(){ cb(null); });
+      });
+    }
+    if(h === ANTIGO){
+      if(q.get('semmig') === '1') return;            // só o dono, pra ver o endereço antigo
+      var nonce = q.get('kmig');
+      if(!/^[0-9a-f]{32}$/.test(String(nonce))){
+        /* abriu o endereço antigo direto (link velho): vai pro novo, que busca o cofre com o código secreto dele */
+        parar(); tela(); ir('https://' + NOVO + loc.pathname + loc.search + hash);
+        return;
+      }
+      parar(); tela();                                  // veio do endereço novo pedindo o cofre
+      entregar(nonce, function(r){
+        var limpo = semParametro('kmig'), busca = limpo.indexOf('?') < 0 ? '' : limpo.slice(limpo.indexOf('?'));
+        if(!r){ ir(loc.origin + loc.pathname + junta(busca, 'semmig=1') + hash); return; }      // não deu pra montar o pacote: fica no endereço antigo (nada se perde); a próxima vez tenta de novo
+        try{ localStorage.setItem('koda_mig_enviado', String(Date.now())); }catch(e){}
+        ir('https://' + NOVO + loc.pathname + junta(busca, 'mig=' + r.id) + '#mk=' + r.chave + (hash ? '&h=' + encodeURIComponent(hash) : ''));
+      });
+      return;
+    }
+
+    /* ---------- endereço NOVO ---------- */
+    var mig = q.get('mig');
+    var hs = new URLSearchParams(loc.hash.replace(/^#/, ''));
+    function marcar(v){ try{ localStorage.setItem('koda_mig_ok', v); }catch(e){} }
+    function limparEIr(){
+      var s = semParametro('mig'), volta = hs.get('h') || '';
+      ir(loc.origin + s + (volta ? (volta.charAt(0) === '#' ? volta : '#' + volta) : ''));
+    }
+    function gravarLogin(linhas, cb){
+      if(!linhas || !linhas.length) return cb();
+      var feito = false; function fim(){ if(!feito){ feito = true; cb(); } }
+      setTimeout(fim, 3000);
+      try{
+        var rq = indexedDB.open('firebaseLocalStorageDb', 1);
+        rq.onupgradeneeded = function(){ var db = rq.result; if(!db.objectStoreNames.contains('firebaseLocalStorage')) db.createObjectStore('firebaseLocalStorage', {keyPath: 'fbase_key'}); };
+        rq.onerror = fim;
+        rq.onsuccess = function(){
+          var db = rq.result;
+          try{
+            var tx = db.transaction('firebaseLocalStorage', 'readwrite'), st = tx.objectStore('firebaseLocalStorage');
+            linhas.forEach(function(x){ if(x && /^firebase:authUser:/.test(String(x.fbase_key))) st.put(x); });
+            tx.oncomplete = function(){ db.close(); fim(); };
+            tx.onerror = tx.onabort = function(){ db.close(); fim(); };
+          }catch(e){ try{ db.close(); }catch(x){} fim(); }
+        };
+      }catch(e){ fim(); }
+    }
+    if(mig !== null){
+      parar(); tela();
+      /* sem ter pedido o cofre nesta aba (link mandado por alguém, por exemplo): ignora o pacote e abre normal, sem marcar nada */
+      var pediu = null; try{ pediu = sessionStorage.getItem('koda_mig_n'); }catch(e){}
+      if(!pediu){ limparEIr(); return; }
+      if(mig === '0'){ marcar('sem_pacote'); limparEIr(); return; }
+      if(!/^[0-9a-f]{32}$/.test(mig) || !hs.get('mk')){ limparEIr(); return; }
+      fetch('/api/passagem?id=' + mig).then(function(r){ return r.json(); }).then(function(j){
+        if(!j || !j.ok || !j.d) throw new Error('sumiu');
+        var dados = deb64u(j.d), iv = dados.subarray(0, 12), ct = dados.subarray(12);
+        return crypto.subtle.importKey('raw', deb64u(hs.get('mk')), 'AES-GCM', false, ['decrypt']).then(function(k){ return crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, k, ct); });
+      }).then(function(claro){
+        var b = new Uint8Array(claro), z = b[0], corpo = b.subarray(1);
+        return (z ? descomprimir(corpo) : Promise.resolve(corpo));
+      }).then(function(bytes){
+        var pacote = JSON.parse(new TextDecoder().decode(bytes)), ls = pacote.ls || {}, esperado = null;
+        try{ esperado = sessionStorage.getItem('koda_mig_n'); sessionStorage.removeItem('koda_mig_n'); }catch(e){}
+        /* só vale o pacote pedido por ESTA aba (com o código secreto dela) e vindo do endereço antigo */
+        if(!esperado || pacote.n !== esperado || pacote.de !== ANTIGO) throw new Error('rejeitado');
+        Object.keys(ls).forEach(function(k){ if(k === 'koda_mig_ok' || k === 'koda_mig_enviado') return; try{ localStorage.setItem(k, ls[k]); }catch(e){} });
+        gravarLogin(pacote.auth, function(){ marcar('ok'); limparEIr(); });
+      }).catch(function(e){ marcar(e && e.message === 'rejeitado' ? 'rejeitado' : 'falhou'); limparEIr(); });
+      return;
+    }
+    /* primeira vez neste endereço: busca o cofre do endereço antigo (uma vez só por aparelho) */
+    var jaTentou = null, robo = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless|lighthouse/i.test(navigator.userAgent || '');
+    try{ jaTentou = localStorage.getItem('koda_mig_ok') || sessionStorage.getItem('koda_mig_tent'); }catch(e){}
+    if(!jaTentou && !robo && h === NOVO){
+      var n = novoNonce();
+      try{ sessionStorage.setItem('koda_mig_tent', '1'); sessionStorage.setItem('koda_mig_n', n); }catch(e){}
+      ir('https://' + ANTIGO + loc.pathname + junta(loc.search, 'kmig=' + n) + hash);
+    }
+  }catch(e){ /* qualquer problema: o site abre normal */ }
+})();
+</script>
 <script>try{var __ap=null;try{__ap=localStorage.getItem('koda_dispositivo');}catch(e){}if(!__ap){try{var __m=document.cookie.match(/(?:^|;\s*)koda_dispositivo=([a-z]+)/);__ap=__m&&__m[1];}catch(e){}}if(!__ap){try{__ap=sessionStorage.getItem('koda_dispositivo');}catch(e){}}if(!__ap){try{var __w=String(window.name||'').match(/(?:^|;)koda_dispositivo=([a-z]+)/);__ap=__w&&__w[1];}catch(e){}}if(__ap==='celular'||__ap==='computador'||__ap==='ipad')document.documentElement.setAttribute('data-disp',__ap);}catch(e){}</script>
 <title>Koda GB</title>
 <meta name="apple-mobile-web-app-title" content="Koda GB">
