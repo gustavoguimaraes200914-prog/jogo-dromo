@@ -12,7 +12,7 @@
      "de outra conta" e deixar a pessoa logada na conta errada);
    - no endereço ANTIGO, o login (IndexedDB do Firebase) e o localStorage viram um pacote criptografado (AES-GCM): o pacote
      vai pro guichê do servidor (/api/passagem, vale 10 min, uma vez) e a chave vai só no endereço, depois do #;
-     quem abre o endereço antigo direto (link velho) é mandado pro novo, que cuida do resto;
+     quem abre o endereço antigo direto continua nele, normal (os dois endereços ficam no ar por enquanto);
    - de volta no NOVO, o pacote é aberto, o cofre é preenchido e a página recarrega já com tudo (e a pessoa continua logada).
    Se alguma coisa der errado, a pessoa só entra normal (sem perder nada onde ela já está).
    Pra desligar tudo: ATIVO = false. Pra ver o endereço antigo sem ir pro novo: ?semmig=1 */
@@ -99,11 +99,8 @@
     if(h === ANTIGO){
       if(q.get('semmig') === '1') return;            // só o dono, pra ver o endereço antigo
       var nonce = q.get('kmig');
-      if(!/^[0-9a-f]{32}$/.test(String(nonce))){
-        /* abriu o endereço antigo direto (link velho): vai pro novo, que busca o cofre com o código secreto dele */
-        parar(); tela(); ir('https://' + NOVO + loc.pathname + loc.search + hash);
-        return;
-      }
+      /* abriu o endereço antigo direto: ele continua funcionando normal (por enquanto os dois endereços ficam no ar) */
+      if(!/^[0-9a-f]{32}$/.test(String(nonce))) return;
       parar(); tela();                                  // veio do endereço novo pedindo o cofre
       entregar(nonce, function(r){
         var limpo = semParametro('kmig'), busca = limpo.indexOf('?') < 0 ? '' : limpo.slice(limpo.indexOf('?'));

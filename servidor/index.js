@@ -46,7 +46,17 @@ function cabecalhosCors(req, url, env) {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    if (!url.pathname.startsWith('/api/')) return env.ASSETS ? env.ASSETS.fetch(req) : new Response('Não achei.', { status: 404 });
+    if (!url.pathname.startsWith('/api/')) {
+      if (!env.ASSETS) return new Response('Não achei.', { status: 404 });
+      /* o endereço antigo continua com a versão de antes (pasta legado/); as novidades ficam só no kodagb.com */
+      const antigo = String(env.ENDERECO_ANTIGO || 'koda.gamersite.workers.dev');
+      if (url.hostname === antigo && (url.pathname === '/' || url.pathname === '/index.html')) {
+        const r = await env.ASSETS.fetch(new Request(new URL('/legado/' + url.search, url), req));
+        const h = new Headers(r.headers); h.set('cache-control', 'no-cache');
+        return new Response(r.body, { status: r.status, headers: h });
+      }
+      return env.ASSETS.fetch(req);
+    }
     const cors = cabecalhosCors(req, url, env);
     try {
       if (!origemOk(req, url, env)) throw new ErroKoda(403, 'origem');
