@@ -1,7 +1,8 @@
 /* TESTES DO SERVIDOR (rodam contra o servidor no computador):
    cd jogo-dromo && npx wrangler dev --port 8787 --var CHAVES_TESTE:"$(node servidor/testes/ajudante.mjs chaves)" --var SEM_FIRESTORE:1 --var TESTE_TEMPO_LIVRE:1
    node servidor/testes/servidor.mjs */
-import { api, token, pessoa, tx, confere, fim, novoId } from './ajudante.mjs';
+import { api, token, pessoa, tx, confere, fim, novoId, BASE } from './ajudante.mjs';
+const BASE_PASSAGEM = BASE;
 
 const sync = (p, corpo) => api('/api/sync', { tk: p.tk, corpo });
 const base = (extra = {}) => Object.assign({ c: 1000, d: 10, a: 0, pg: 1 }, extra);
@@ -394,5 +395,29 @@ console.log('== o resto ==');
   confere('movimento torto: recusado', recusou(r, t4, 'formato'), r.j.nao);
   r = await api('/api/sync', { tk: p.tk, corpo: { txs: [], lixo: 'x'.repeat(300000) } });
   confere('pedido gigante: recusado', r.status === 413, r.status);
+}
+console.log('== passagem (mudança de endereço: login e dados do endereço antigo pro novo) ==');
+{
+  const pacote = 'x'.repeat(250000) + 'fim';        // maior que um pedaço (100 mil) de propósito
+  let r = await api('/api/passagem', { metodo: 'POST', corpo: undefined });
+  confere('sem corpo: recusa', r.status === 413 || r.status === 400, r.status);
+  const resp = await fetch(BASE_PASSAGEM + '/api/passagem', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: pacote });
+  const j = await resp.json();
+  confere('guardar não precisa de login e devolve um id grande', resp.status === 200 && j.ok && /^[0-9a-f]{32}$/.test(j.id), j);
+  const pega = id => fetch(BASE_PASSAGEM + '/api/passagem?id=' + id).then(async x => ({ status: x.status, j: await x.json() }));
+  let g = await pega(j.id);
+  confere('pegar devolve o pacote inteiro, igualzinho', g.status === 200 && g.j.d === pacote, g.status);
+  g = await pega(j.id);
+  confere('só dá pra pegar UMA vez (depois some)', g.status === 404, g.status);
+  g = await pega('0'.repeat(32));
+  confere('id que nunca existiu: 404', g.status === 404, g.status);
+  g = await pega('../../etc');
+  confere('id torto: 400', g.status === 400, g.status);
+  const grande = await fetch(BASE_PASSAGEM + '/api/passagem', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'y'.repeat(4300000) });
+  confere('pacote enorme: recusado (413)', grande.status === 413, grande.status);
+  const outro = await fetch(BASE_PASSAGEM + '/api/passagem', { method: 'POST', headers: { 'content-type': 'text/plain', origin: 'https://site-malvado.com' }, body: 'oi' });
+  confere('de outro site: 403', outro.status === 403, outro.status);
+  const dois = await Promise.all([1, 2].map(async () => (await (await fetch(BASE_PASSAGEM + '/api/passagem', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'oi' })).json()).id));
+  confere('dois pacotes têm ids diferentes', dois[0] !== dois[1], dois);
 }
 fim();

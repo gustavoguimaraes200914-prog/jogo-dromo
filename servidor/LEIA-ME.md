@@ -111,3 +111,23 @@ computador (localhost), nunca no site de verdade. `testes/ajudante.mjs` cria as 
 O site continua funcionando mesmo com o servidor fora do ar: as moedas mudam na hora e os
 movimentos esperam numa fila no celular até o servidor voltar. Para desligar o servidor de vez,
 apague a linha `main = "servidor/index.js"` do `wrangler.toml`. O site volta a funcionar como antes.
+
+## Mudança de endereço (koda.gamersite.workers.dev → kodagb.com)
+
+Cada endereço do navegador tem o seu próprio "cofre" (localStorage e o login do Firebase), então quem entrava no endereço novo
+parecia uma pessoa nova. O começo do `index.html` (o `<script id="koda-migracao">`) leva o cofre de um endereço pro outro:
+
+1. quem abre o endereço **novo** pela primeira vez (e ainda não trouxe nada) dá uma passadinha no antigo levando um código secreto da aba;
+2. o endereço **antigo** monta um pacote com o login (IndexedDB do Firebase) e o localStorage, **criptografa no aparelho** (AES-GCM) e deixa no guichê
+   `POST /api/passagem` (vale 10 minutos, só dá pra pegar uma vez). A chave vai só no endereço, depois do `#`, e nunca chega no servidor;
+3. de volta no endereço novo, `GET /api/passagem?id=…` entrega o pacote, ele é aberto, o cofre é preenchido e a página recarrega já logada.
+
+Só vale o pacote que carrega o código secreto da própria aba (ninguém consegue mandar um link com o pacote de outra conta).
+Quem abre o endereço antigo direto (link velho) é mandado pro novo. Se o guichê falhar, a pessoa fica no endereço antigo (nada se perde).
+`www.kodagb.com` vai pra `kodagb.com`.
+
+- Desligar tudo: `ATIVO = false` no começo do script.
+- Ver o endereço antigo sem ir pro novo: `?semmig=1`.
+- O guichê usa o objeto `Indice` (um por pacote, nome `passagem:<id>`), então não precisa de nenhuma configuração nova na Cloudflare.
+- Antes de usar o endereço novo: `kodagb.com` e `www.kodagb.com` em Firebase → Authentication → Settings → Authorized domains (senão o "Entrar com Google" não funciona lá),
+  e em `ORIGENS` do `multiplayer/` (as salas online).
