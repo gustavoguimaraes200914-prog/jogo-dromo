@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cristais Mágicos</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#1a0033;color:#e1bee7}.grade{display:grid;grid-template-columns:repeat(4,64px);gap:8px;justify-content:center;margin:14px}.carta{height:64px;border-radius:10px;background:#4a148c;font-size:32px;display:flex;align-items:center;justify-content:center;cursor:pointer}.carta.v{background:#7b1fa2}.hud{font-size:22px}</style></head>
+<body>
+<h1>Cristais Mágicos</h1><div class="hud">Cristais: <span id="cristais">0</span></div><div class="grade" id="g"></div><div class="msg" id="msg">Ache os pares!</div>
+<script>
+var crystals = 0, abertas = [], travado = false;
+var simbolos = ['🔮', '🌙', '⭐', '🍀', '🔥', '❄', '🌈', '🦋'];
+var baralho = simbolos.concat(simbolos).sort(function(){ return Math.random() - 0.5; });
+var g = document.getElementById('g');
+baralho.forEach(function(s, i){
+  var d = document.createElement('div'); d.className = 'carta'; d.dataset.s = s;
+  d.onclick = function(){
+    if(travado || d.classList.contains('v')) return;
+    d.classList.add('v'); d.textContent = s; abertas.push(d);
+    if(abertas.length === 2){
+      travado = true;
+      setTimeout(function(){
+        if(abertas[0].dataset.s === abertas[1].dataset.s){ crystals += 3; document.getElementById('cristais').textContent = crystals; document.getElementById('msg').textContent = 'Par! +3 cristais'; }
+        else abertas.forEach(function(x){ x.classList.remove('v'); x.textContent = ''; });
+        abertas = []; travado = false;
+      }, 600);
+    }
+  };
+  g.appendChild(d);
+});
+</script>
+</body></html>

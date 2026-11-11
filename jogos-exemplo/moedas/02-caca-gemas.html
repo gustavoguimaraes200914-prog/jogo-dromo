@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Caça-Gemas</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#0d1b2a;color:#e0f7fa}canvas{background:#102a43;border-radius:12px;max-width:100%;touch-action:none}</style></head>
+<body>
+<h1>Caça-Gemas</h1><canvas id="c" width="360" height="480"></canvas><div class="msg">Arraste para mexer a cesta</div>
+<script>
+var c = document.getElementById('c'), ctx = c.getContext('2d');
+var gems = 0, vidas = 3, cesta = 180, itens = [], t = 0;
+c.addEventListener('pointermove', function(e){ var r = c.getBoundingClientRect(); cesta = (e.clientX - r.left) * (c.width / r.width); });
+function loop(){
+  t++; if(t % 40 === 0) itens.push({x: 20 + Math.random() * 320, y: -10, tipo: Math.random() < 0.8 ? 'gema' : 'pedra'});
+  ctx.clearRect(0, 0, 360, 480);
+  itens.forEach(function(i){ i.y += 3; });
+  itens = itens.filter(function(i){
+    if(i.y > 440 && Math.abs(i.x - cesta) < 36){ if(i.tipo === 'gema') gems += 1; else vidas -= 1; return false; }
+    return i.y < 500;
+  });
+  itens.forEach(function(i){
+    ctx.beginPath(); ctx.fillStyle = i.tipo === 'gema' ? '#4dd0e1' : '#8d6e63';
+    ctx.moveTo(i.x, i.y - 10); ctx.lineTo(i.x + 9, i.y); ctx.lineTo(i.x, i.y + 10); ctx.lineTo(i.x - 9, i.y); ctx.closePath(); ctx.fill();
+  });
+  ctx.fillStyle = '#ffcc80'; ctx.fillRect(cesta - 32, 450, 64, 14);
+  ctx.fillStyle = '#fff'; ctx.font = '20px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('Gemas: ' + gems, 10, 28); ctx.fillText('Vidas: ' + vidas, 10, 54);
+  if(vidas <= 0){ ctx.textAlign = 'center'; ctx.font = '30px system-ui'; ctx.fillText('Fim! Gemas: ' + gems, 180, 240); return; }
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body></html>

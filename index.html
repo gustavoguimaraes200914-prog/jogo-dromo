@@ -3679,6 +3679,15 @@
   .ka-msg .ka-li{position:relative;padding-left:16px;margin:2px 0;white-space:pre-wrap;}
   .ka-msg .ka-li::before{content:'';position:absolute;left:3px;top:.62em;width:6px;height:6px;border-radius:50%;background:#7C4DFF;}
   @keyframes kaEntra{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .ka-trab{align-self:flex-start;max-width:min(88%,600px);background:#fff;border-radius:16px;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:11px 14px;font-family:'Nunito',sans-serif;font-size:.93rem;color:#08322B;animation:kaEntra .22s ease-out;}
+  .ka-trab ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .ka-trab li{display:flex;align-items:center;gap:9px;opacity:.4;transition:opacity .25s;}
+  .ka-trab li.agora,.ka-trab li.feito{opacity:1;}
+  .ka-trab-i{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(124,77,255,.35);box-sizing:border-box;}
+  .ka-trab li.agora .ka-trab-i{border-color:#7C4DFF;border-top-color:transparent;animation:kaGira .8s linear infinite;}
+  .ka-trab li.feito .ka-trab-i{border-color:#2BB673;background:#2BB673 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 12.5l4 4L18.5 8' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center/100% no-repeat;}
+  .ka-trab small{display:block;margin-top:9px;opacity:.65;font-size:.8rem;line-height:1.3;}
+  @keyframes kaGira{to{transform:rotate(360deg);}}
   .ka-pensando{padding:12px 16px;}
   .ka-pontos{display:inline-flex;gap:5px;align-items:center;}
   .ka-pontos i{width:8px;height:8px;border-radius:50%;background:#7C4DFF;opacity:.35;animation:kaPonto 1s ease-in-out infinite;}
@@ -3744,7 +3753,7 @@
   .ka-barra{height:6px;border-radius:999px;background:rgba(124,77,255,.15);overflow:hidden;}
   .ka-barra i{display:block;height:100%;width:100%;background:#7C4DFF;transform-origin:left;animation:kaEnche 4.3s linear forwards;}
   @keyframes kaEnche{from{transform:scaleX(0);}to{transform:scaleX(1);}}
-  @media (prefers-reduced-motion: reduce){ .ka-msg,.ka-card{animation:none;} .ka-pontos i{animation-duration:2.4s;} .ka-barra-l b{animation:none;} }
+  @media (prefers-reduced-motion: reduce){ .ka-msg,.ka-card,.ka-trab{animation:none;} .ka-trab li.agora .ka-trab-i{animation-duration:2.4s;} .ka-pontos i{animation-duration:2.4s;} .ka-barra-l b{animation:none;} }
   /* ---- Agente Koda GB: a oferta antes de publicar, a dica e o agente como cara da IA ---- */
   .ia-assist-abrir .ia-ico.ia-ag{height:34px;margin:-3px 0;}
   .ka-tit .ia-ico.ia-ag{height:38px;margin:-4px 0;}
@@ -31501,12 +31510,12 @@ function orientacaoComDetalhe(codigo){
   if(/orientation\s*\.\s*lock\s*\(\s*['"](landscape)/i.test(c)) return {modo: 'deitada', fixo: true, motivo: 'trava'};
   if(/orientation\s*\.\s*lock\s*\(\s*['"](portrait)/i.test(c)) return {modo: 'empe', fixo: true, motivo: 'trava'};
   /* o jogo se ajusta à tela? (canvas.width = innerWidth, sem ser o .style) */
-  var adapta = false, rx = /\b(\w+)\s*\.\s*width\s*=\s*(?:window\s*\.\s*)?(?:innerWidth|visualViewport\s*\.\s*width|document\s*\.\s*(?:documentElement|body)\s*\.\s*clientWidth|[\w.]+\s*\.\s*(?:clientWidth|offsetWidth)|[\w.]+\s*\.\s*getBoundingClientRect\s*\(\s*\)\s*\.\s*width)\b/g;
+  var adapta = false, rx = /(\w+)\s*\.\s*width\s*=\s*(?:window\s*\.\s*)?(?:innerWidth|visualViewport\s*\.\s*width|document\s*\.\s*(?:documentElement|body)\s*\.\s*clientWidth|[\w.]+\s*\.\s*(?:clientWidth|offsetWidth)|[\w.]+\s*\.\s*getBoundingClientRect\s*\(\s*\)\s*\.\s*width)\b/g;
   while((m = rx.exec(c))){ if(m[1] !== 'style'){ adapta = true; break; } }
   if((m = /<canvas\b[^>]*?\bwidth\s*=\s*["']?(\d{3,4})["']?[^>]*?\bheight\s*=\s*["']?(\d{3,4})/i.exec(c))){ w = +m[1]; h = +m[2]; }
   else if((m = /<canvas\b[^>]*?\bheight\s*=\s*["']?(\d{3,4})["']?[^>]*?\bwidth\s*=\s*["']?(\d{3,4})/i.exec(c))){ w = +m[2]; h = +m[1]; }
   if(w == null){
-    var mw = /\b(\w+)\s*\.\s*width\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c), mh = /\b(\w+)\s*\.\s*height\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c);
+    var mw = /(\w+)\s*\.\s*width\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c), mh = /(\w+)\s*\.\s*height\s*=\s*(\d{3,4})\s*[;\n,]/.exec(c);
     if(mw && mh && mw[1] !== 'style' && mh[1] !== 'style'){ w = +mw[2]; h = +mh[2]; }
   }
   if(w == null){
@@ -36026,6 +36035,851 @@ H.midia_tirar = function(it, ctx, est){
   diz(r, T('md_tirou_' + it.oque));
   return aplicar(est, r, ctx.codigo, res.codigo, T('d_tirar_midia'));
 };
+/* ====================================================================
+   MOEDAS: valor, loja com vários itens, aparência, e a trava de vantagem no Koda GB
+   - "a cada clique eu ganho 1 Koda Coin": o agente RECUSA (as moedas e diamantes do Koda GB só vêm de dentro do Koda;
+     o que o jogo pode é ter uma moeda PRÓPRIA e uma loja onde se gasta Koda Coins/Diamonds);
+   - "cada moeda vale 10": muda quanto a moeda soma quando é pega;
+   - "faz uma loja com vários itens": cria a loja (ou põe mais itens) com coisas que funcionam no jogo;
+   - "muda a aparência / a cor da moeda": troca o desenho, o símbolo ou a cor da moeda do jogo.
+==================================================================== */
+function nTxt(s){ return semAcento(String(s || '')).toLowerCase().replace(/[^a-z0-9$€£#%+=\- ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function escRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&'); }
+
+/* ---------------- 1) a trava: o jogo NÃO pode dar moeda ou diamante de verdade do Koda GB ---------------- */
+var MOEDA_PALAVRAS = 'moeda|moedas|coin|coins|moneda|monedas|moneta|monete|piece|pieces|munze|munzen|munt|munten|diamante|diamantes|diamond|diamonds|diamant|diamanten';
+var GASTA_PALAVRAS = 'custa|custar|custe|custam|custando|preco|precos|pagar|paga|pague|pagam|pagando|comprar|compra|compre|compram|gastar|gasta|gaste|gastam|cobrar|cobra|cobre|vender|vende|venda|loja|shop|tienda|item|itens|items|cost|costs|price|pay|buy|spend|sell|costa|prezzo|prezzi|pagare|comprare|negozio|vendere|prix|payer|acheter|boutique|vendre|coute|kostet|preis|bezahlen|kaufen|verkaufen|kost|prijs|betalen|kopen|winkel|verkopen';
+var GANHA_PALAVRAS = 'ganh\\w*|receb\\w*|dar|da|de|der|dou|ganar|gana|recibir|recibe|dame|gerar|gera|gere|gerando|produz\\w*|criar|cria|crie|aumenta\\w*|enche\\w*|encher|earn\\w*|get|gets|give|gives|gain\\w*|generate\\w*|receive\\w*|pega|pegar|pegou|pego|coleta|coletar|junta|juntar|catar|guadagn\\w*|ricev\\w*|ottien\\w*|dammi|dare|gagn\\w*|recoi\\w*|recev\\w*|obtien\\w*|donne\\w*|bekomm\\w*|erhalt\\w*|gewinn\\w*|gib\\w*|geben|krijg\\w*|win\\w*|verdien\\w*|geef\\w*|geven';
+var ACAO_PALAVRAS = 'a cada|cada|toda vez|sempre que|quando|por clique|por click|cada vez|every|each|whenever|when|per click|ogni|ogni volta|a chaque|chaque|chaque fois|quand|jede|jedes|jeder|jedem|jeden|bei jedem|jedes mal|immer wenn|wenn|elke|bij elke|elke keer|als|wanneer';
+var INFINITO_PALAVRAS = 'infinit\\w*|ilimitad\\w*|sem parar|de graca|gratis|free|unlimited|infinite|illimitat\\w*|gratuit\\w*|infini\\w*|illimit\\w*|unendlich\\w*|unbegrenzt\\w*|kostenlos|oneindig\\w*|onbeperkt\\w*';
+var RE_VK = {
+  moeda: new RegExp('\\b(' + MOEDA_PALAVRAS + ')\\b'),
+  gasta: new RegExp('\\b(' + GASTA_PALAVRAS + ')\\b'),
+  ganha: new RegExp('\\b(' + GANHA_PALAVRAS + ')\\b'),
+  troca: /\b(troca|trocar|troque|transforma\w*|converte|converter|converta|vira|viram|virar|virem|vire|passa|vale|valem|valer|equivale|equivalem|turn|convert|change|worth|equals|cambia|convierte|vaut|valent|wert|waard|diventa|devient|wird)\b/,
+  acao: new RegExp('\\b(' + ACAO_PALAVRAS + ')\\b'),
+  infinito: new RegExp('\\b(' + INFINITO_PALAVRAS + ')\\b')
+};
+function pedeVantagemKoda(n, orig){
+  var o = String(orig || '');
+  /* japonês, chinês, coreano: as palavras não têm espaço, então olha o texto direto */
+  if(/koda/i.test(o) && /[぀-ヿ㐀-鿿가-힯]/.test(o) && /コイン|ダイヤ|金币|金幣|钻石|鑽石|코인|다이아|coin|diamond/i.test(o)){
+    if(/値段|価格|買|ショップ|お店|払|使う|价格|购买|购|商店|花费|支付|消费|가격|구매|상점|사려|사는|결제|쓰는/.test(o)) return false;
+    return /たびに|毎回|ごとに|もらえ|もらう|もらい|無限|無料|每次|每当|每点|每个|获得|得到|无限|免费|마다|매번|받고|받는|받아|무한|무료/.test(o);
+  }
+  n = ' ' + n + ' ';
+  var koda = /\bkoda\b/.test(n) || /\b(diamante|diamantes|diamond|diamonds)\b/.test(n) || /\b(moedas?|diamantes?|coins?|diamonds?) (reais|de verdade|da conta|da carteira|real)\b|\b(na|da|minha) (conta|carteira)\b/.test(n);
+  if(!koda || !RE_VK.moeda.test(n)) return false;
+  if(/\bkoda (pass|passe|studio|gb pass)\b|\bpasse\b/.test(n)) return false;
+  /* gastar / pagar na loja do jogo é o que pode */
+  if(RE_VK.gasta.test(n)) return false;
+  var ganha = RE_VK.ganha.test(n), troca = RE_VK.troca.test(n), porAcao = RE_VK.acao.test(n), infinito = RE_VK.infinito.test(n);
+  var pede = /\b(me da|me de|me dá|me dê|dame|give me|quero ganhar|quero receber|quero moedas|quero diamantes|quero mais moedas|aumenta (o |meu )?saldo|bota|coloca|poe) .{0,40}\b(na minha conta|na carteira|do koda|de verdade)\b/.test(n) || /\b(me da|me de|dame|give me|dammi|donne moi|gib mir|geef me)\b.{0,25}\b(moedas|diamantes|coins|diamonds|monete|pieces|munzen|munten)\b/.test(n);
+  return (porAcao && (ganha || troca)) || infinito || pede || (ganha && /\b(jogando|enquanto jogo|enquanto eu jogo|ao jogar|por jogar|pra mim|para mim|for me|para mi|per me|pour moi|fur mich|voor mij)\b/.test(n));
+}
+H.vantagem_koda = function(it, ctx, est){
+  var r = diz(novaResp(), T('vk_nao'));
+  chip(r, T('vk_ch_loja')); chip(r, T('vk_ch_moeda'));
+  return r;
+};
+
+/* ---------------- 2) o valor da moeda ---------------- */
+var RE_COIN_WORD = /\b(moeda|moedas|coin|coins|moneda|monedas|moneta|monete|piece|pieces|munze|munzen|munt|munten|ouro|gold|oro|gema|gemas|gem|gems|estrela|estrelas|star|stars|estrella|estrellas|ficha|fichas|token|tokens|cristal|cristais|crystal|crystals|biscoito|biscoitos|cookie|cookies|dinheiro|money|dinero|grana|cash|ponto|pontos|point|points|puntos|diamante|diamantes|diamond|diamonds)\b/;
+function pedeValorMoeda(n){
+  n = ' ' + String(n).normalize('NFC') + ' ';
+  if(!RE_COIN_WORD.test(n) || /\bkoda\b/.test(n)) return null;
+  if(/\b(custa|custar|custe|preco|precos|pagar|comprar|compra|loja|item|itens|items|cost|price|buy|shop)\b/.test(n)) return null;
+  /* pergunta ("quanto vale um diamante?") não é pedido */
+  if(/^\s*(quanto|quantos|quantas|qual|quais|how much|how many|what|cuanto|cuantos|cual|cuales|que valor)\b/.test(n)) return null;
+  var todos = n.match(/\b\d{1,5}\b/g), num = todos ? [null, todos[todos.length - 1]] : null;
+  var verbo = /\b(vale|valem|valer|valor|vai valer|passa a valer|worth|value|valen|vaut|valent|wert|waard|da|dar|dao|soma|somar|ganha|ganhar|ganho|rende|render|equivale|each|cada|ogni|chaque|jede|jedes|elke)\b/.test(n) || /\u5024\s*\d|\u503c\s*\d|\d\s*(にして|にする)|\u0020\ud558\ub098\ub294|\ud558\ub098\ub294/.test(n);
+  if(!verbo) return null;
+  /* "cada moeda vale 10", "a moeda dá 5", "ganha 10 por moeda", "muda o valor da moeda pra 5" */
+  if(!(/\b(vale|valem|valer|valor|worth|value|valen|vaut|valent|wert|waard|equivale|rende|render|soma|somar)\b/.test(n) || /\b(cada|por|each|per|ogni|chaque|jede|jedes|elke)\b/.test(n) || /\u5024|\u503c|にして|にする|\ud558\ub098\ub294/.test(n))) return null;
+  var alvo = null;
+  return {int: 'moeda_valor', valor: num ? Number(num[1]) : null, alvo: alvo};
+}
+function moedasSimples(codigo){
+  /* quando o detector grande não acha (jogo sem compras), procura por nome: coins, gems, stars, tokens... que sobem com ++ ou += */
+  var achadas = {};
+  var re = /([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*(\+\+|\+=)/g, m;
+  while((m = re.exec(codigo))){
+    var nome = m[1], ult = nome.split('.').pop();
+    if(forcaDeMoeda(ult) < 1) continue;
+    if(CONSUMIVEL[palavrasDoId(ult)[0]]) continue;
+    if(!achadas[nome]) achadas[nome] = {caminho: nome, nome: ult, forca: forcaDeMoeda(ult)};
+  }
+  return Object.keys(achadas).map(function(k){ return achadas[k]; }).sort(function(a, b){ return b.forca - a.forca; });
+}
+/* troca o número que a moeda soma quando é pega: "x += 5" / "x++" / "x += variavel" (muda o começo da variável) */
+function mudarValorDaMoeda(codigo, caminho, valor){
+  var novo = codigo, feitos = [], c = escRe(caminho), igual = false;
+  /* x += 5   (só número solto; "x += poder" fica pro segundo passo) */
+  novo = novo.replace(new RegExp('(' + c + ')\\s*\\+=\\s*(\\d+(?:\\.\\d+)?)(?![\\w.])', 'g'), function(m0, v, n0){
+    if(Number(n0) === valor){ igual = true; return m0; }
+    feitos.push(n0 + '→' + valor); return v + ' += ' + valor;
+  });
+  /* x++   /   ++x */
+  novo = novo.replace(new RegExp('(?<![\\w$.])' + c + '\\s*\\+\\+(?![\\w$])', 'g'), function(){ feitos.push('1→' + valor); return caminho + ' += ' + valor; });
+  novo = novo.replace(new RegExp('\\+\\+\\s*' + c + '(?![\\w$.])', 'g'), function(){ feitos.push('1→' + valor); return '(' + caminho + ' += ' + valor + ')'; });
+  /* x += colheita * 12  →  o número que multiplica (quanto vale cada uma) */
+  if(!feitos.length){
+    var rm = new RegExp('(' + c + '\\s*\\+=\\s*[^;\\n}]*?\\*\\s*)(\\d+(?:\\.\\d+)?)(?=\\s*[;\\n}])', 'g');
+    novo = novo.replace(rm, function(m0, a, n0){ if(Number(n0) === valor){ igual = true; return m0; } feitos.push(n0 + '→' + valor); return a + valor; });
+  }
+  /* x += poder  →  o "poder" começa valendo o novo número */
+  if(!feitos.length){
+    var reV = new RegExp('(' + c + ')\\s*\\+=\\s*([A-Za-z_$][\\w$]*)\\s*(?=[;\\n}])', 'g'), mv, ids = {};
+    while((mv = reV.exec(codigo))) ids[mv[2]] = 1;
+    Object.keys(ids).forEach(function(id){
+      if(CONSUMIVEL[palavrasDoId(id)[0]]) return;
+      var rd = new RegExp('((?:var|let|const)\\s+(?:[\\w$]+\\s*=\\s*[^,;]+,\\s*)*' + escRe(id) + '\\s*=\\s*)(\\d+(?:\\.\\d+)?)', '');
+      var md = rd.exec(novo);
+      if(md && Number(md[2]) !== valor){ novo = novo.replace(rd, function(m0, a, b){ feitos.push(id + ': ' + b + '→' + valor); return a + valor; }); }
+    });
+  }
+  return {codigo: novo, feitos: feitos, igual: igual};
+}
+H.moeda_valor = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  if(it.valor == null || !(it.valor >= 0) || it.valor > 100000){
+    diz(r, T('mv_pergunta')); chip(r, T('mv_ch_5')); chip(r, T('mv_ch_10')); return r;
+  }
+  var cands = [];
+  try{ moedasDoCtx(ctx).forEach(function(m){ cands.push({caminho: m.caminho, nome: m.nome, forca: m.forca, obj: m}); }); }catch(e){}
+  moedasSimples(ctx.codigo).forEach(function(m){ if(!cands.some(function(c){ return c.caminho === m.caminho; })) cands.push(m); });
+  /* se a pessoa falou o nome de uma moeda ("o ouro vale 10"), é essa */
+  var n = ' ' + ((it.P && it.P.n) || nTxt(it.orig || '')) + ' ';
+  var falada = escolherMoedaFalada(cands, n.trim());
+  var ordem = falada.length ? falada : cands.filter(function(c){ return forcaDeMoeda(c.nome) >= 1; });
+  if(!ordem.length) ordem = cands;
+  var novo = ctx.codigo, onde = [], alvos = [], jaIgual = null;
+  for(var i = 0; i < ordem.length; i++){
+    var res = mudarValorDaMoeda(novo, ordem[i].caminho, it.valor);
+    if(res.igual && !res.feitos.length) jaIgual = jaIgual || ordem[i];
+    if(res.feitos.length){ novo = res.codigo; onde = onde.concat(res.feitos); alvos.push(ordem[i]); if(!falada.length) break; }
+  }
+  if(!alvos.length && jaIgual){
+    diz(r, T('mv_ja', {moeda: jaIgual.obj ? nomeDaMoeda(jaIgual.obj, est) : capitalizar(palavrasDoId(jaIgual.nome).join(' ')), n: it.valor}));
+    chip(r, T('mv_ch_5')); chip(r, T('mn_ch_aparencia'));
+    return r;
+  }
+  if(!alvos.length || novo === ctx.codigo){
+    diz(r, T('mv_nada'));
+    chip(r, T('mn_ch_loja')); chip(r, T('mn_ch_aparencia'));
+    return r;
+  }
+  var ok = conferirDepois(ctx.codigo, novo, {});
+  if(ok.erro){ diz(r, T('mv_nada')); return r; }
+  diz(r, T('mv_ok', {moeda: alvos.map(function(a){ return a.obj ? nomeDaMoeda(a.obj, est) : capitalizar(palavrasDoId(a.nome).join(' ')); }).join(', '), n: it.valor, onde: onde.length}));
+  diz(r, T('mv_aviso'));
+  chip(r, T('mn_ch_loja')); chip(r, T('mn_ch_aparencia'));
+  return aplicar(est, r, ctx.codigo, ok.codigo, T('mv_desc'));
+};
+
+/* ---------------- 3) "faz uma loja com vários itens" ---------------- */
+function pedeLojaVariada(n){
+  n = ' ' + n + ' ';
+  var loja = /\b(loja|lojinha|shop|store|tienda)\b/.test(n) || /\bbotao de compra|compras no jogo|sistema de compra/.test(n);
+  if(!loja) return false;
+  var varios = /\b(varios|varias|alguns|algumas|aleatori\w*|qualquer|diversos|diversas|cheia|cheio|um monte|muitos|muitas|bastante|several|random|many|some|various|varios|variados|vario)\b/.test(n);
+  var cria = /\b(faz|fazer|faca|cria|criar|crie|coloca|colocar|coloque|bota|botar|poe|por|ponha|monta|montar|monte|gera|gerar|invent\w*|add|adiciona|adicionar|adicione|make|create|put|build|haz|crea|pon|agrega)\b/.test(n);
+  var itens = /\b(item|itens|items|coisa|coisas|produto|produtos|cosa|cosas)\b/.test(n);
+  if(/\b(tira|tirar|remove|remover|apaga|apagar|esconde|esconder|some)\b/.test(n)) return false;
+  return cria && (varios || itens);
+}
+H.loja_variada = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  if(ctx.loja.tipo === 'nenhuma' && !it.forcar){
+    var propria = null;
+    try{ propria = moedasDoCtx(ctx).filter(function(m){ return m.compras && m.compras.length; })[0]; }catch(e){}
+    if(propria){
+      var lista = [];
+      try{ lista = comprasParaMostrar(propria).map(function(c){ return c.nome; }).filter(Boolean).slice(0, 4); }catch(e){}
+      est.pendente = {tipo: 'confirmar', acao: {int: 'loja_variada', forcar: true}};
+      var rp = diz(novaResp(), T('lv_propria', {moeda: nomeDaMoeda(propria, est), lista: lista.join(', ') || '...'}));
+      chip(rp, T('ch_sim')); chip(rp, T('ch_nao'));
+      return rp;
+    }
+  }
+  if(ctx.loja.tipo === 'nenhuma'){
+    var r = H.loja_criar({confirmado: true}, ctx, est);
+    if(r && !r.erro){ chip(r, T('mn_ch_aparencia')); }
+    return r;
+  }
+  if(ctx.loja.tipo === 'complexa') return diz(novaResp(), T('lv_complexa'));
+  /* já tem loja: junta mais itens que funcionam no jogo (os que ainda não estão lá) */
+  var doc = lerDocumento(ctx.codigo), at = acharAtributos(doc, est.ensinado);
+  var jaTem = {}; (ctx.loja.itens || []).forEach(function(i){ jaTem[semAcento(String(i.nome || '')).toLowerCase()] = 1; });
+  var lj = linguaDoJogo(doc), genero = generoDoJogo(doc).id;
+  var ord = Object.keys(at).sort(function(a, b){ return CONCEITOS[a].prio - CONCEITOS[b].prio; }).concat(['neon', 'arcoiris', 'dourado', 'noite', 'retro']);
+  var novos = [];
+  for(var i = 0; i < ord.length && novos.length < 3; i++){
+    var ef = ord[i]; if(!CONCEITOS[ef]) continue;
+    var base = itemDoEfeito(ef, lj, genero, at[ef] ? passoDaSoma(at[ef][0]) : 1);
+    if(!base || jaTem[semAcento(String(base.nome)).toLowerCase()]) continue;
+    jaTem[semAcento(String(base.nome)).toLowerCase()] = 1;
+    novos.push({nome: base.nome, efeito: ef});
+  }
+  if(!novos.length) return diz(novaResp(), T('lv_cheia'));
+  return H.loja_novo({itens: novos}, ctx, est);
+};
+
+/* jogo sem compras (só pega estrelas, gemas...): o detector grande não acha; aqui ele aprende o nome pelo uso (stars++ / gems += 3) */
+var moedasDoCtxAntesDeNovas = moedasDoCtx;
+moedasDoCtx = function(ctx){
+  var r = moedasDoCtxAntesDeNovas(ctx);
+  if(r.length || !ctx || !ctx.codigo) return r;
+  try{
+    var s = moedasSimples(ctx.codigo);
+    s = s.filter(function(c){ return c.forca >= 2; });
+    for(var i = 0; i < s.length && i < 3; i++){
+      var r2 = moedasDoJogo(ctx.codigo, {ensinado: s[i].nome});
+      if(r2 && r2.length){ ctx._moedas = r2; return r2; }
+    }
+  }catch(e){}
+  return r;
+};
+
+/* ---------------- ligar tudo no entendimento das frases ---------------- */
+function moedasAntes(P, ctx, est){
+  var n = (P.n && P.n.trim()) || nTxt(P.orig || '');
+  if(!n) return null;
+  if(pedeVantagemKoda(n, P.orig)) return {int: 'vantagem_koda'};
+  if(est && est.pendente && est.pendente.tipo !== 'mod_moeda') return null;
+  if(ctx.temCodigo){
+    var v = pedeValorMoeda(n); if(v){ v.orig = P.orig; return v; }
+    var a = pedeAparenciaMoeda(n, P, ctx); if(a){ a.orig = P.orig; return a; }
+    if(pedeLojaVariada(n)) return {int: 'loja_variada'};
+  }
+  return null;
+}
+var entenderAntesDeMoedasNovas = entender;
+entender = function(txt, ctx){
+  var P = null;
+  try{
+    try{ if(DEP.improprio(txt)) return entenderAntesDeMoedasNovas(txt, ctx); }catch(e){}
+    P = analisar(txt, ctx);
+    if(P.ws.length){
+      var a = moedasAntes(P, ctx, ctx.estado || {});
+      if(a){ a.P = P; return a; }
+    }
+  }catch(e){}
+  return entenderAntesDeMoedasNovas(txt, ctx);
+};
+/* depois de mostrar a moeda do jogo: o que dá pra fazer com ela */
+var moedaVerAntesDasNovas = H.moeda_ver;
+H.moeda_ver = function(it, ctx, est){
+  var r = moedaVerAntesDasNovas(it, ctx, est);
+  try{
+    if(r && r.blocos && r.chips){
+      if(ctx.loja && ctx.loja.tipo === 'nenhuma') chip(r, T('mn_ch_loja'));
+      chip(r, T('mn_ch_aparencia')); chip(r, T('mn_ch_valor'));
+    }
+  }catch(e){}
+  return r;
+};
+
+/* ---------------- textos (pt|en|es|it|fr|de|nl|ja|zh|ko) ---------------- */
+textosEm10({
+  vk_nao: 'Isso eu não faço. As moedas e os diamantes do Koda GB só vêm de dentro do Koda (missões, baú, convites...). Se um jogo desse Koda Coin a cada clique, logo todo mundo teria moedas demais. O que eu consigo é deixar o seu jogo com uma moeda própria (ouro, gemas...) que só vale nele, e uma loja onde a pessoa gasta Koda Coins ou Diamonds.|I won\'t do that. Koda GB coins and diamonds only come from inside Koda (missions, chest, invites...). If a game gave a Koda Coin on every click, everyone would soon have way too many. What I can do is give your game its own currency (gold, gems...) that only counts inside it, and a shop where people spend Koda Coins or Diamonds.|Eso no lo hago. Las monedas y los diamantes de Koda GB solo vienen de dentro de Koda (misiones, cofre, invitaciones...). Si un juego diera una Koda Coin por cada clic, pronto todos tendrían demasiadas. Lo que sí puedo es darle a tu juego una moneda propia (oro, gemas...) que solo vale dentro de él, y una tienda donde se gastan Koda Coins o Diamonds.|Questo non lo faccio. Le monete e i diamanti di Koda GB arrivano solo da dentro Koda (missioni, scrigno, inviti...). Se un gioco desse una Koda Coin a ogni clic, presto tutti ne avrebbero troppe. Posso dare al tuo gioco una valuta propria (oro, gemme...) che vale solo al suo interno e un negozio dove si spendono Koda Coins o Diamonds.|Ça, je ne le fais pas. Les pièces et les diamants de Koda GB viennent seulement de l\'intérieur de Koda (missions, coffre, invitations...). Si un jeu donnait une Koda Coin à chaque clic, tout le monde en aurait vite beaucoup trop. Je peux donner à ton jeu sa propre monnaie (or, gemmes...) qui ne vaut que dedans, et une boutique où l\'on dépense des Koda Coins ou des Diamonds.|Das mache ich nicht. Münzen und Diamanten von Koda GB kommen nur aus Koda selbst (Missionen, Truhe, Einladungen...). Würde ein Spiel bei jedem Klick eine Koda Coin geben, hätten bald alle viel zu viele. Ich kann deinem Spiel eine eigene Währung (Gold, Edelsteine...) geben, die nur darin zählt, und einen Shop, in dem man Koda Coins oder Diamonds ausgibt.|Dat doe ik niet. Munten en diamanten van Koda GB komen alleen uit Koda zelf (missies, kist, uitnodigingen...). Als een game bij elke klik een Koda Coin gaf, had iedereen er snel veel te veel. Ik kan je game een eigen munt geven (goud, edelstenen...) die alleen daarin telt, en een winkel waar je Koda Coins of Diamonds uitgeeft.|それはできません。Koda GBのコインとダイヤは、Kodaの中（ミッション、宝箱、招待など）からしか手に入りません。クリックのたびにKoda Coinがもらえたら、すぐにみんなが持ちすぎてしまいます。できるのは、ゲームの中だけで使える自分のお金（金、宝石など）を作ることと、Koda CoinsやDiamondsを使うお店を作ることです。|这个我不做。Koda GB 的金币和钻石只能从 Koda 里面获得（任务、宝箱、邀请……）。如果游戏每点一下就给一个 Koda Coin，很快每个人都会有太多。我可以给你的游戏做一种只在游戏里有用的自己的货币（金子、宝石……），再做一个用 Koda Coins 或 Diamonds 购买的商店。|그건 하지 않아요. Koda GB의 코인과 다이아몬드는 Koda 안에서만(미션, 상자, 초대...) 얻을 수 있어요. 게임이 클릭할 때마다 Koda Coin을 주면 곧 모두가 너무 많이 갖게 돼요. 대신 게임 안에서만 쓰는 나만의 돈(금, 보석...)과, Koda Coins나 Diamonds로 사는 상점을 만들어 줄 수 있어요.',
+  vk_ch_loja: 'Fazer uma loja|Make a shop|Hacer una tienda|Crea un negozio|Faire une boutique|Shop bauen|Winkel maken|お店を作る|做一个商店|상점 만들기',
+  vk_ch_moeda: 'Mudar a moeda do jogo|Change the game currency|Cambiar la moneda del juego|Cambia la valuta del gioco|Changer la monnaie du jeu|Spielwährung ändern|Munt van de game veranderen|ゲームのお金を変える|更换游戏货币|게임 돈 바꾸기',
+  mv_pergunta: 'Quanto cada moeda deve valer? Por exemplo: "cada moeda vale 5".|How much should each coin be worth? For example: "each coin is worth 5".|¿Cuánto debe valer cada moneda? Por ejemplo: "cada moneda vale 5".|Quanto deve valere ogni moneta? Per esempio: "ogni moneta vale 5".|Combien doit valoir chaque pièce ? Par exemple : « chaque pièce vaut 5 ».|Wie viel soll jede Münze wert sein? Zum Beispiel: „jede Münze ist 5 wert".|Hoeveel moet elke munt waard zijn? Bijvoorbeeld: "elke munt is 5 waard".|コイン1枚はいくつにする？ たとえば「コイン1枚は5」。|每个金币值多少？例如：“每个金币值 5”。|코인 하나가 얼마가 되면 좋을까요? 예: "코인 하나는 5".',
+  mv_ch_5: 'Cada moeda vale 5|Each coin is worth 5|Cada moneda vale 5|Ogni moneta vale 5|Chaque pièce vaut 5|Jede Münze ist 5 wert|Elke munt is 5 waard|コイン1枚は5|每个金币值 5|코인 하나는 5',
+  mv_ch_10: 'Cada moeda vale 10|Each coin is worth 10|Cada moneda vale 10|Ogni moneta vale 10|Chaque pièce vaut 10|Jede Münze ist 10 wert|Elke munt is 10 waard|コイン1枚は10|每个金币值 10|코인 하나는 10',
+  mv_nada: 'Não achei onde a moeda soma um número fixo (tipo "ouro += 1"). Se ela tiver outro nome no código, me diga assim: "a moeda do jogo é stars". Posso também mudar o nome ou a aparência dela.|I couldn\'t find where the coin adds a fixed number (like "gold += 1"). If it has another name in the code, tell me: "the game currency is stars". I can also change its name or look.|No encontré dónde la moneda suma un número fijo (como "oro += 1"). Si tiene otro nombre en el código, dime: "la moneda del juego es stars". También puedo cambiar su nombre o aspecto.|Non ho trovato dove la moneta somma un numero fisso (tipo "oro += 1"). Se nel codice ha un altro nome, dimmi: "la valuta del gioco è stars". Posso anche cambiarne il nome o l\'aspetto.|Je n\'ai pas trouvé où la pièce ajoute un nombre fixe (comme « or += 1 »). Si elle a un autre nom dans le code, dis-moi : « la monnaie du jeu est stars ». Je peux aussi changer son nom ou son apparence.|Ich habe nicht gefunden, wo die Münze eine feste Zahl addiert (wie „gold += 1"). Hat sie im Code einen anderen Namen, sag mir: „die Spielwährung ist stars". Ich kann auch Namen oder Aussehen ändern.|Ik vond niet waar de munt een vast getal optelt (zoals "gold += 1"). Heeft ze in de code een andere naam, zeg dan: "de munt van de game is stars". Ik kan ook de naam of het uiterlijk veranderen.|コインが決まった数を足す場所が見つかりませんでした（「gold += 1」のような）。コードで別の名前なら「ゲームのお金はstars」と教えてね。名前や見た目も変えられます。|没找到金币加固定数字的地方（比如“gold += 1”）。如果代码里叫别的名字，请告诉我：“游戏的货币是 stars”。我也可以改它的名字或外观。|코인이 정해진 숫자를 더하는 곳을 못 찾았어요("gold += 1" 같은). 코드에서 이름이 다르면 "게임 돈은 stars"라고 알려 주세요. 이름이나 모양도 바꿀 수 있어요.',
+  mv_ok: 'Pronto! Agora, cada vez que a pessoa ganha "{moeda}", entram {n}. Mudei em {onde} lugar(es) do código.|Done! Now every time the player earns "{moeda}", they get {n}. I changed {onde} place(s) in the code.|¡Listo! Ahora cada vez que la persona gana "{moeda}", recibe {n}. Lo cambié en {onde} lugar(es) del código.|Fatto! Ora ogni volta che la persona guadagna "{moeda}", ottiene {n}. Cambiato in {onde} punto/i del codice.|C\'est fait ! Maintenant, chaque fois que la personne gagne « {moeda} », elle en reçoit {n}. Changé à {onde} endroit(s) du code.|Fertig! Jedes Mal, wenn jemand „{moeda}" bekommt, gibt es jetzt {n}. An {onde} Stelle(n) im Code geändert.|Klaar! Elke keer dat iemand "{moeda}" krijgt, zijn dat er nu {n}. Op {onde} plek(ken) in de code aangepast.|できました！「{moeda}」を手に入れるたびに {n} 増えます。コードの{onde}か所を変えました。|好了！现在每次获得“{moeda}”都会加 {n}。在代码的 {onde} 处做了修改。|됐어요! 이제 "{moeda}"을(를) 얻을 때마다 {n}씩 늘어나요. 코드 {onde}곳을 바꿨어요.',
+  mv_ja: 'Cada "{moeda}" já vale {n}. Quer outro número?|Each "{moeda}" is already worth {n}. Want another number?|Cada "{moeda}" ya vale {n}. ¿Quieres otro número?|Ogni "{moeda}" vale già {n}. Vuoi un altro numero?|Chaque « {moeda} » vaut déjà {n}. Tu veux un autre nombre ?|Jedes „{moeda}" ist schon {n} wert. Willst du eine andere Zahl?|Elke "{moeda}" is al {n} waard. Wil je een ander getal?|「{moeda}」はもう {n} です。別の数にする？|每个“{moeda}”已经是 {n} 了。想换个数字吗？|"{moeda}" 하나는 이미 {n}이에요. 다른 숫자로 할까요?',
+  mv_aviso: 'Isso vale só pra moeda DO JOGO. As moedas do Koda GB não mudam: elas só se gastam na loja.|This only applies to the GAME\'s currency. Koda GB coins don\'t change: they\'re only spent in the shop.|Esto vale solo para la moneda DEL JUEGO. Las monedas de Koda GB no cambian: solo se gastan en la tienda.|Vale solo per la valuta DEL GIOCO. Le monete di Koda GB non cambiano: si spendono solo nel negozio.|Cela ne vaut que pour la monnaie DU JEU. Les pièces Koda GB ne changent pas : elles se dépensent seulement à la boutique.|Das gilt nur für die Währung DES SPIELS. Koda-GB-Münzen ändern sich nicht: Sie werden nur im Shop ausgegeben.|Dit geldt alleen voor de munt VAN DE GAME. Koda GB-munten veranderen niet: die geef je alleen uit in de winkel.|これはゲームの中のお金だけ。Koda GBのコインは変わらず、お店で使うだけです。|这只适用于游戏自己的货币。Koda GB 的金币不会变，只能在商店里花。|이건 게임 안의 돈에만 해당돼요. Koda GB 코인은 그대로이고 상점에서만 써요.',
+  mv_desc: 'valor da moeda|coin value|valor de la moneda|valore della moneta|valeur de la pièce|Münzwert|muntwaarde|コインの値|金币的值|코인 값',
+  lv_complexa: 'A loja do seu jogo é feita de um jeito mais complicado, então eu não mexo nela por aqui. Posso mudar os preços ou o nome dos itens.|Your game\'s shop is built in a more complicated way, so I leave it alone. I can change prices or item names.|La tienda de tu juego está hecha de forma más complicada, así que no la toco. Puedo cambiar precios o nombres.|Il negozio del tuo gioco è fatto in modo più complicato, quindi non lo tocco. Posso cambiare prezzi o nomi.|La boutique de ton jeu est faite de façon plus compliquée, donc je n\'y touche pas. Je peux changer les prix ou les noms.|Der Shop deines Spiels ist komplizierter gebaut, deshalb lasse ich ihn in Ruhe. Ich kann Preise oder Namen ändern.|De winkel van je game is ingewikkelder gebouwd, dus daar blijf ik van af. Ik kan prijzen of namen veranderen.|ゲームのお店は作りが複雑なので、ここでは触りません。値段や名前なら変えられます。|你游戏的商店结构比较复杂，所以我不动它。我可以改价格或名字。|게임 상점은 구조가 복잡해서 여기서는 건드리지 않아요. 가격이나 이름은 바꿀 수 있어요.',
+  lv_cheia: 'A loja já tem de tudo o que eu sei colocar nesse jogo. Quer mudar os preços ou inventar um item com um nome seu?|The shop already has everything I know how to add to this game. Want to change prices or invent an item with your own name?|La tienda ya tiene todo lo que sé poner en este juego. ¿Quieres cambiar precios o inventar un artículo con tu nombre?|Il negozio ha già tutto quello che so mettere in questo gioco. Vuoi cambiare i prezzi o inventare un oggetto con un tuo nome?|La boutique a déjà tout ce que je sais ajouter à ce jeu. Tu veux changer les prix ou inventer un objet avec ton nom ?|Der Shop hat schon alles, was ich in diesem Spiel einbauen kann. Willst du Preise ändern oder einen Artikel mit eigenem Namen erfinden?|De winkel heeft al alles wat ik in deze game kan zetten. Wil je prijzen veranderen of een item met een eigen naam verzinnen?|このゲームに入れられるものは、もうお店に全部あります。値段を変える？ それとも自分の名前のアイテムを作る？|商店里已经有我能放进这个游戏的所有东西了。想改价格，还是自己取名发明一个物品？|이 게임에 넣을 수 있는 건 이미 상점에 다 있어요. 가격을 바꿀까요, 아니면 이름을 직접 지어 새 아이템을 만들까요?',
+  lv_propria: 'Seu jogo já tem uma loja própria, que usa "{moeda}" ({lista}). Quer que eu coloque ALÉM DISSO uma loja do Koda GB, com itens que funcionam e que se pagam com moedas do Koda?|Your game already has its own shop that uses "{moeda}" ({lista}). Do you want me to ALSO add a Koda GB shop, with working items paid in Koda coins?|Tu juego ya tiene una tienda propia que usa "{moeda}" ({lista}). ¿Quieres que añada TAMBIÉN una tienda de Koda GB, con artículos que funcionan y se pagan con monedas de Koda?|Il tuo gioco ha già un negozio suo che usa "{moeda}" ({lista}). Vuoi che aggiunga ANCHE un negozio Koda GB, con oggetti funzionanti pagati con monete Koda?|Ton jeu a déjà sa propre boutique qui utilise « {moeda} » ({lista}). Tu veux que j\'ajoute AUSSI une boutique Koda GB, avec des objets qui marchent et se paient en pièces Koda ?|Dein Spiel hat schon einen eigenen Shop, der „{moeda}" nutzt ({lista}). Soll ich ZUSÄTZLICH einen Koda-GB-Shop mit funktionierenden Artikeln einbauen, die man mit Koda-Münzen bezahlt?|Je game heeft al een eigen winkel die "{moeda}" gebruikt ({lista}). Wil je dat ik OOK een Koda GB-winkel toevoeg, met werkende items die je met Koda-munten betaalt?|ゲームにはすでに「{moeda}」を使う自分のお店があります（{lista}）。それに加えて、Kodaコインで払う、ちゃんと動くアイテムのKoda GBのお店も入れる？|你的游戏已经有一个用“{moeda}”的自家商店（{lista}）。要不要我再加一个 Koda GB 商店，里面是能用 Koda 金币购买、真正有效的物品？|게임에 이미 "{moeda}"을(를) 쓰는 자체 상점이 있어요({lista}). 그 외에 Koda 코인으로 사는, 실제로 작동하는 아이템이 있는 Koda GB 상점도 추가할까요?',
+  mn_ch_loja: 'Fazer uma loja com vários itens|Make a shop with several items|Hacer una tienda con varios artículos|Crea un negozio con più oggetti|Faire une boutique avec plusieurs objets|Shop mit mehreren Artikeln bauen|Winkel met meerdere items maken|いろいろなアイテムのお店を作る|做一个有多种物品的商店|여러 아이템이 있는 상점 만들기',
+  mn_ch_aparencia: 'Mudar a aparência da moeda|Change the coin\'s look|Cambiar el aspecto de la moneda|Cambia l\'aspetto della moneta|Changer l\'apparence de la pièce|Münzaussehen ändern|Uiterlijk van de munt veranderen|コインの見た目を変える|更改金币的外观|코인 모양 바꾸기',
+  mn_ch_valor: 'Mudar o valor da moeda|Change the coin value|Cambiar el valor de la moneda|Cambia il valore della moneta|Changer la valeur de la pièce|Münzwert ändern|Muntwaarde veranderen|コインの値を変える|更改金币的值|코인 값 바꾸기'
+});
+
+/* ---------------- loja feita com uma lista em que cada linha diz a moeda: ['Chapéu', 30, 'coins'] ---------------- */
+function tabelaComMoedaPorLinha(codigo){
+  var doc = lerDocumento(codigo), melhor = null;
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var src = js.sc.corpo, itens = [], m;
+    var re = /\[\s*(['"])([^'"\n]{1,40})\1\s*,\s*(\d{1,6})\s*,\s*(['"])([A-Za-z_]{2,20})\4\s*\]/g;
+    while((m = re.exec(src))) itens.push({nome: m[2], preco: Number(m[3]), chave: m[5], fim: m.index + m[0].length});
+    var re2 = /\{\s*[\w$]+\s*:\s*(['"])([^'"\n]{1,40})\1\s*,\s*[\w$]+\s*:\s*(\d{1,6})\s*,\s*[\w$]+\s*:\s*(['"])([A-Za-z_]{2,20})\4\s*\}/g;
+    while((m = re2.exec(src))) itens.push({nome: m[2], preco: Number(m[3]), chave: m[5], fim: m.index + m[0].length});
+    itens = itens.filter(function(i){ return forcaDeMoeda(i.chave) >= 2; });
+    if(itens.length < 2) return;
+    itens.forEach(function(i){ i.moeda = /diamond|diamante|gema|gem|crystal|cristal|jewel|joia/i.test(i.chave) ? 'd' : 'c'; });
+    var depois = src.slice(itens[itens.length - 1].fim), c = /getElementById\(\s*(['"])([\w-]+)\1\s*\)\s*\.\s*appendChild/.exec(depois);
+    if(!melhor || itens.length > melhor.itens.length) melhor = {itens: itens, contId: c ? c[2] : null};
+  });
+  return melhor;
+}
+function esconderContainer(codigo, id){
+  var css = '<style data-koda-loja-antiga>#' + id + '{display:none!important}</style>';
+  if(/<\/head>/i.test(codigo)) return codigo.replace(/<\/head>/i, css + '</head>');
+  if(/<body\b[^>]*>/i.test(codigo)) return codigo.replace(/<body\b[^>]*>/i, function(m0){ return m0 + css; });
+  return codigo;
+}
+H.loja_tabela = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var tb = tabelaComMoedaPorLinha(ctx.codigo);
+  if(!tb || ctx.loja.tipo !== 'nenhuma') return diz(novaResp(), T('lj_nao_deu'));
+  var lista = tb.itens.slice(0, 8).map(function(i){ return i.nome + ' ' + i.preco + ' ' + T(i.moeda === 'd' ? 'w_diamantes' : 'w_moedas'); }).join(', ');
+  if(!it.confirmado){
+    est.pendente = {tipo: 'confirmar', acao: {int: 'loja_tabela', confirmado: true}};
+    var rq = diz(novaResp(), T('tb_achei', {n: tb.itens.length, itens: lista}));
+    chip(rq, T('ch_sim')); chip(rq, T('ch_nao'));
+    return rq;
+  }
+  var res = lojaCriar(ctx.codigo, {itens: tb.itens.slice(0, DEP.maxItens || 8).map(function(i){ return {nome: i.nome, preco: i.preco, moeda: i.moeda, semEfeito: true}; }), ensinado: est.ensinado});
+  if(res.erro) return diz(novaResp(), T('lj_nao_deu'));
+  var codigo = res.codigo, escondeu = false;
+  if(tb.contId){ var c2 = esconderContainer(codigo, tb.contId); escondeu = c2 !== codigo; codigo = c2; }
+  var ok = conferirDepois(ctx.codigo, codigo, {});
+  if(ok.erro) return diz(novaResp(), T('lj_nao_deu'));
+  var r = diz(novaResp(), T(escondeu ? 'tb_pronto' : 'tb_pronto2', {n: res.loja.itens.length, itens: lista}));
+  r.blocos.push(cartaoLoja(res.loja.itens));
+  chip(r, T('ch_mais_barato')); chip(r, T('ch_so_diamantes'));
+  return aplicar(est, r, ctx.codigo, ok.codigo, T('d_loja_criada'));
+};
+var moedaConverterAntesDaTabela = H.moeda_converter, moedaVerAntesDaTabela = H.moeda_ver;
+function temCompraPropria(ctx){ try{ return moedasDoCtx(ctx).some(function(m){ return m.compras && m.compras.length; }); }catch(e){ return false; } }
+function lojaDeTabela(ctx){ return ctx.temCodigo && ctx.codigo && ctx.loja && ctx.loja.tipo === 'nenhuma' && !temCompraPropria(ctx) && tabelaComMoedaPorLinha(ctx.codigo); }
+/* jogo que só junta (estrelas, gemas...) e não tem compras: o detector grande não acha; aqui ele aprende o nome pelo uso */
+function ensinarMoedaSimples(ctx, est){
+  if(est.moedaEnsinada || !ctx.codigo) return;
+  try{
+    if(moedasDoJogo(ctx.codigo, {}).length) return;
+    var s = moedasSimples(ctx.codigo).filter(function(c){ return c.forca >= 2; })[0];
+    if(s) est.moedaEnsinada = s.nome;
+  }catch(e){}
+}
+H.moeda_converter = function(it, ctx, est){ if(lojaDeTabela(ctx)) return H.loja_tabela({}, ctx, est); ensinarMoedaSimples(ctx, est); return moedaConverterAntesDaTabela(it, ctx, est); };
+H.moeda_ver = function(it, ctx, est){ if(lojaDeTabela(ctx)) return H.loja_tabela({}, ctx, est); return moedaVerAntesDaTabela(it, ctx, est); };
+var lojaVariadaAntesDaTabela = H.loja_variada;
+H.loja_variada = function(it, ctx, est){ if(!it.forcar && lojaDeTabela(ctx)) return H.loja_tabela({}, ctx, est); return lojaVariadaAntesDaTabela(it, ctx, est); };
+textosEm10({
+  tb_achei: 'Seu jogo tem uma loja feita com uma lista de {n} itens, pagos com moedas e diamantes do jogo: {itens}. Quer que eu passe essa loja pro Koda GB? Aí o pagamento passa a ser com moedas e diamantes do Koda GB.|Your game has a shop built from a list of {n} items, paid with in-game coins and diamonds: {itens}. Do you want me to move this shop to Koda GB? Then you pay with Koda GB coins and diamonds.|Tu juego tiene una tienda hecha con una lista de {n} artículos, pagados con monedas y diamantes del juego: {itens}. ¿Quieres que pase esta tienda a Koda GB? Entonces se paga con monedas y diamantes de Koda GB.|Il tuo gioco ha un negozio fatto con una lista di {n} oggetti, pagati con monete e diamanti del gioco: {itens}. Vuoi che passi questo negozio a Koda GB? Così si paga con monete e diamanti di Koda GB.|Ton jeu a une boutique faite avec une liste de {n} objets, payés avec des pièces et des diamants du jeu : {itens}. Tu veux que je passe cette boutique à Koda GB ? Alors on paie avec des pièces et des diamants Koda GB.|Dein Spiel hat einen Shop aus einer Liste mit {n} Artikeln, bezahlt mit Spielmünzen und Spieldiamanten: {itens}. Soll ich diesen Shop zu Koda GB umziehen? Dann zahlt man mit Koda-GB-Münzen und -Diamanten.|Je game heeft een winkel gemaakt met een lijst van {n} items, betaald met munten en diamanten uit de game: {itens}. Wil je dat ik deze winkel naar Koda GB verplaats? Dan betaal je met Koda GB-munten en -diamanten.|ゲームには、ゲーム内のコインとダイヤで払う{n}個のアイテムのリストでできたお店があります：{itens}。このお店をKoda GBに移す？ そうすると、Koda GBのコインとダイヤで払うようになります。|你的游戏有一个由 {n} 个物品清单做成的商店，用游戏里的金币和钻石支付：{itens}。要我把这个商店改成 Koda GB 的吗？这样就用 Koda GB 的金币和钻石支付。|게임에 게임 안의 코인과 다이아로 사는 {n}개 아이템 목록으로 만든 상점이 있어요: {itens}. 이 상점을 Koda GB로 옮길까요? 그러면 Koda GB 코인과 다이아로 결제해요.',
+  tb_pronto: 'Pronto! A loja agora é a do Koda GB, com {n} itens ({itens}). Escondi a loja antiga do jogo. O que o jogo junta continua só dentro do jogo.|Done! The shop is now Koda GB\'s, with {n} items ({itens}). I hid the game\'s old shop. What the game collects stays only inside the game.|¡Listo! La tienda ahora es la de Koda GB, con {n} artículos ({itens}). Escondí la tienda antigua del juego. Lo que el juego junta sigue solo dentro del juego.|Fatto! Ora il negozio è quello di Koda GB, con {n} oggetti ({itens}). Ho nascosto il vecchio negozio del gioco. Quello che il gioco raccoglie resta solo nel gioco.|C\'est fait ! La boutique est maintenant celle de Koda GB, avec {n} objets ({itens}). J\'ai caché l\'ancienne boutique du jeu. Ce que le jeu récolte reste seulement dans le jeu.|Fertig! Der Shop ist jetzt der von Koda GB, mit {n} Artikeln ({itens}). Den alten Shop des Spiels habe ich versteckt. Was das Spiel sammelt, bleibt nur im Spiel.|Klaar! De winkel is nu die van Koda GB, met {n} items ({itens}). De oude winkel van de game heb ik verborgen. Wat de game verzamelt, blijft alleen in de game.|できました！お店はKoda GBのものになり、{n}個のアイテム（{itens}）があります。ゲームの古いお店は隠しました。ゲームで集めたものはゲームの中だけです。|好了！现在商店是 Koda GB 的，有 {n} 个物品（{itens}）。我把游戏原来的商店藏起来了。游戏里收集的东西只在游戏里有用。|됐어요! 이제 상점은 Koda GB의 것이고 아이템이 {n}개 있어요({itens}). 게임의 예전 상점은 숨겼어요. 게임에서 모은 건 게임 안에서만 써요.',
+  tb_pronto2: 'Pronto! Criei a loja do Koda GB com {n} itens ({itens}). Não achei onde a loja antiga aparece na tela, então ela ainda pode estar lá.|Done! I created the Koda GB shop with {n} items ({itens}). I couldn\'t find where the old shop shows on screen, so it may still be there.|¡Listo! Creé la tienda de Koda GB con {n} artículos ({itens}). No encontré dónde aparece la tienda antigua en pantalla, así que puede seguir ahí.|Fatto! Ho creato il negozio di Koda GB con {n} oggetti ({itens}). Non ho trovato dove appare il vecchio negozio sullo schermo, quindi potrebbe essere ancora lì.|C\'est fait ! J\'ai créé la boutique Koda GB avec {n} objets ({itens}). Je n\'ai pas trouvé où l\'ancienne boutique s\'affiche, elle peut donc encore y être.|Fertig! Ich habe den Koda-GB-Shop mit {n} Artikeln ({itens}) erstellt. Ich habe nicht gefunden, wo der alte Shop auf dem Bildschirm erscheint, er kann also noch da sein.|Klaar! Ik heb de Koda GB-winkel gemaakt met {n} items ({itens}). Ik vond niet waar de oude winkel op het scherm staat, dus die kan er nog zijn.|できました！{n}個のアイテム（{itens}）のKoda GBのお店を作りました。古いお店が画面のどこにあるか見つからなかったので、まだ残っているかもしれません。|好了！我创建了有 {n} 个物品（{itens}）的 Koda GB 商店。没找到旧商店在屏幕上的位置，所以它可能还在。|{n}개 아이템({itens})이 있는 Koda GB 상점을 만들었어요. 예전 상점이 화면 어디에 나오는지 못 찾아서 아직 남아 있을 수 있어요.'
+});
+/* ====================================================================
+   APARÊNCIA DA MOEDA DO JOGO: cor e forma ("a moeda fica azul", "troca a moeda por uma estrela", "moeda quadrada")
+   Mexe só no desenho da moeda do JOGO (nunca nas moedas do Koda GB). Procura, na ordem:
+   1) o símbolo da moeda escrito em texto (🪙 💰 ★ ◆ 🍪...),
+   2) o desenho no canvas (arc, losango/polígono) dentro do trecho que fala da moeda,
+   3) o estilo CSS da classe da moeda (.coin, .moeda, .gem...).
+   O que não achar, ele diz que não achou (não inventa).
+==================================================================== */
+var COR_MOEDA = {
+  azul: {hex: '#1e88e5', re: /\b(azul|azuis|blue|blau|bleu|blu|blauw)\b/, e: {c: '🔵', q: '🟦', h: '💙'}},
+  vermelho: {hex: '#e53935', re: /\b(vermelh\w*|red|rojo|roja|rojos|rojas|rouge|rouges|rosso|rossa|rot|rood)\b/, e: {c: '🔴', q: '🟥', h: '❤️'}},
+  verde: {hex: '#43a047', re: /\b(verde|verdes|green|vert|verts|gruen|grun|groen)\b/, e: {c: '🟢', q: '🟩', h: '💚'}},
+  roxo: {hex: '#8e24aa', re: /\b(rox\w*|purple|morad\w*|violet\w*|viola|lila|paars|violeta)\b/, e: {c: '🟣', q: '🟪', h: '💜'}},
+  rosa: {hex: '#ec407a', re: /\b(rosa|rosas|rosado|rosada|pink|rose|roze)\b/, e: {c: '🩷', q: '🩷', h: '🩷'}},
+  laranja: {hex: '#fb8c00', re: /\b(laranja|laranjas|orange|naranja|naranjas|arancione|oranje)\b/, e: {c: '🟠', q: '🟧', h: '🧡'}},
+  amarelo: {hex: '#fdd835', re: /\b(amarel\w*|yellow|amarill\w*|giallo|gialla|jaune|jaunes|gelb|geel)\b/, e: {c: '🟡', q: '🟨', h: '💛'}},
+  preto: {hex: '#212121', re: /\b(pret\w*|black|negro|negra|negros|negras|nero|nera|noir|noire|schwarz|zwart)\b/, e: {c: '⚫', q: '⬛', h: '🖤'}},
+  branco: {hex: '#fafafa', re: /\b(branc\w*|white|blanc\w*|bianc\w*|weiss|weis|wit)\b/, e: {c: '⚪', q: '⬜', h: '🤍'}},
+  dourado: {hex: '#ffc107', re: /\b(dourad\w*|golden|dorad\w*|dorato|doree?s?|goldfarben|goud)\b/, e: {c: '🟡', q: '🟨', h: '💛'}},
+  prata: {hex: '#b0bec5', re: /\b(prata|prateado|prateada|silver|plateado|plateada|argento|argent\w*|silbern|silber|zilver)\b/, e: {c: '⚪', q: '⬜', h: '🤍'}},
+  ciano: {hex: '#00bcd4', re: /\b(ciano|cyan|turquesa|turchese|turquoise|turkis|turkoois)\b/, e: {c: '🔵', q: '🟦', h: '💙'}},
+  marrom: {hex: '#795548', re: /\b(marrom|brown|marron|marrone|braun|bruin|castanh\w*)\b/, e: {c: '🟤', q: '🟫', h: '🤎'}}
+};
+var FORMA_MOEDA = {
+  estrela: {re: /\b(estrel\w*|star|stars|estrella\w*|stella|stelle|etoile\w*|stern\w*|ster|sterren)\b/, g: '★', e: '⭐'},
+  coracao: {re: /\b(coracao|coracoes|heart|hearts|corazon|corazones|cuore|cuori|coeur|coeurs|herz|herzen|hart|harten)\b/, g: '♥', e: '❤️'},
+  diamante: {re: /\b(diamante|diamantes|diamond|diamonds|rombo|rombos|losango|losangos|diamant|diamanten)\b/, g: '◆', e: '💎'},
+  quadrado: {re: /\b(quadrad\w*|square|squares|cuadrad\w*|quadrato|quadrati|carre|carres|quadrat\w*|vierkant\w*|cubo|cubos)\b/, g: '■', e: '🟨'},
+  circulo: {re: /\b(circul\w*|circle|circles|redond\w*|round|cerchio|cerchi|cercle\w*|kreis\w*|cirkel\w*|bola|bolas|ball)\b/, g: '●', e: '🟡'},
+  triangulo: {re: /\b(triangul\w*|triangle\w*|triangolo|triangoli|dreieck\w*|driehoek\w*)\b/, g: '▲', e: '🔺'}
+};
+/* o desenho de cada forma (coordenadas entre -1 e 1; o canvas usa isso e o CSS também) */
+var POLI_MOEDA = (function(){
+  var P = {}, i, a, r;
+  P.estrela = [];
+  for(i = 0; i < 10; i++){ a = -Math.PI / 2 + i * Math.PI / 5; r = i % 2 ? 0.45 : 1.1; P.estrela.push([+(Math.cos(a) * r).toFixed(3), +(Math.sin(a) * r).toFixed(3)]); }
+  P.diamante = [[0, -1.15], [0.9, 0], [0, 1.15], [-0.9, 0]];
+  P.quadrado = [[-0.85, -0.85], [0.85, -0.85], [0.85, 0.85], [-0.85, 0.85]];
+  P.triangulo = [[0, -1.1], [1.05, 0.8], [-1.05, 0.8]];
+  P.coracao = [];
+  for(i = 0; i < 28; i++){
+    var t = i / 28 * Math.PI * 2;
+    P.coracao.push([+(Math.pow(Math.sin(t), 3)).toFixed(3), +(-(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 16 + 0.15).toFixed(3)]);
+  }
+  return P;
+})();
+var FAMILIA_MOEDA = {
+  moeda: {pal: 'moeda moedas coin coins moneda monedas ouro gold oro dinheiro money dinero grana cash', glifos: ['🪙', '💰', '💵']},
+  gema: {pal: 'gema gemas gem gems diamante diamantes diamond diamonds cristal cristais crystal crystals joia joias jewel jewels', glifos: ['💎', '◆', '♦', '💠', '🔷']},
+  estrela: {pal: 'estrela estrelas star stars estrella estrellas', glifos: ['⭐', '🌟', '★', '☆']},
+  ficha: {pal: 'ficha fichas token tokens', glifos: []},
+  biscoito: {pal: 'biscoito biscoitos cookie cookies galleta galletas', glifos: ['🍪']}
+};
+function palavrasDaMoeda(m){
+  var W = {}, base = palavrasDoId(m.nome || '');
+  base.forEach(function(w){ W[w] = 1; W[w.replace(/s$/, '')] = 1; W[w + 's'] = 1; });
+  var fam = null;
+  Object.keys(FAMILIA_MOEDA).forEach(function(k){
+    var ps = FAMILIA_MOEDA[k].pal.split(' ');
+    if(base.some(function(w){ return ps.indexOf(w) >= 0 || ps.indexOf(w.replace(/s$/, '')) >= 0; })){ fam = fam || k; ps.forEach(function(p){ W[p] = 1; }); }
+  });
+  /* "o que é": quando é uma moeda genérica (ouro, dinheiro...) junta também a moeda, coin */
+  return {W: W, fam: fam};
+}
+function glifoNovo(ped, velho){
+  var forma = ped.forma && FORMA_MOEDA[ped.forma.id], cor = ped.cor && COR_MOEDA[ped.cor.id];
+  var texto = /^[★☆◆♦●■▲♥]$/.test(velho);
+  if(forma){
+    var id = ped.forma.id;
+    if(cor){
+      if(id === 'circulo') return cor.e.c;
+      if(id === 'quadrado') return cor.e.q;
+      if(id === 'coracao') return cor.e.h;
+      if(id === 'diamante' && ped.cor.id === 'azul') return '🔷';
+      if(id === 'diamante' && ped.cor.id === 'laranja') return '🔶';
+      if(id === 'triangulo' && ped.cor.id === 'azul') return '🔻';
+    }
+    return texto ? forma.g : forma.e;
+  }
+  if(cor && !texto) return cor.e.c;
+  return null;
+}
+function ehCorLiteral(s){ s = String(s).trim(); return /^#[0-9a-f]{3,8}$/i.test(s) || /^(rgb|hsl)a?\(/i.test(s) || /^(gold|yellow|orange|red|blue|green|purple|pink|white|black|silver|gray|grey|brown|cyan|gold|goldenrod|khaki|tomato|crimson|violet|magenta|lime|teal|navy|coral|salmon)$/i.test(s); }
+
+/* ---- 1) trechos do canvas que falam da moeda ---- */
+function canvasContextos(codigo){
+  var nomes = {}, re = /([A-Za-z_$][\w$]*)\s*=\s*[^;=]*?\.getContext\s*\(\s*['"]2d['"]/g, m;
+  while((m = re.exec(codigo))) nomes[m[1]] = 1;
+  if(!Object.keys(nomes).length){ nomes.ctx = 1; nomes.c = 1; nomes.g = 1; }
+  return nomes;
+}
+function fimDaFrase(T, k){
+  if(!T[k]) return k - 1;
+  if(T[k].v === '{' && T[k].t === 'p'){ var f = par(T, k); return f < 0 ? T.length - 1 : f; }
+  var d = 0;
+  for(var j = k; j < T.length; j++){
+    var t = T[j]; if(t.t !== 'p') continue;
+    if(t.v === '(' || t.v === '[' || t.v === '{') d++;
+    else if(t.v === ')' || t.v === ']' || t.v === '}'){ if(d === 0) return j - 1; d--; }
+    else if(t.v === ';' && d === 0) return j;
+  }
+  return T.length - 1;
+}
+function inicioDaFrase(T, k){
+  var d = 0;
+  for(var j = k - 1; j >= 0; j--){
+    var t = T[j]; if(t.t !== 'p') continue;
+    if(t.v === ')' || t.v === ']' || t.v === '}') d++;
+    else if(t.v === '(' || t.v === '[' || t.v === '{'){ if(d === 0) return j + 1; d--; }
+    else if(t.v === ';' && d === 0) return j + 1;
+  }
+  return 0;
+}
+function trechosDaMoeda(js, W, cvs){
+  var T = js.T, rs = [], envolve = [], pilha = [], k;
+  for(k = 0; k < T.length; k++){
+    envolve[k] = pilha.length ? pilha[pilha.length - 1] : -1;
+    if(T[k].t === 'p'){
+      if(T[k].v === '(' || T[k].v === '[' || T[k].v === '{') pilha.push(k);
+      else if(T[k].v === ')' || T[k].v === ']' || T[k].v === '}') pilha.pop();
+    }
+  }
+  function ehGatilho(t){
+    var v = t.t === 'str' ? valorDoTexto(t.v) : t.t === 'id' ? t.v : null;
+    if(v == null || v.length > 24) return false;
+    return palavrasDoId(v).some(function(w){ return W[w]; });
+  }
+  function add(a, b){ if(a <= b) rs.push([a, b]); }
+  for(k = 0; k < T.length; k++){
+    if(!ehGatilho(T[k])) continue;
+    /* coins.forEach(function(m){ ... })  /  coins.map(...) */
+    if(T[k + 1] && T[k + 1].v === '.' && T[k + 2] && /^(forEach|map|filter|some|every)$/.test(T[k + 2].v) && T[k + 3] && T[k + 3].v === '('){
+      var c = par(T, k + 3); if(c > 0){ add(k + 4, c - 1); continue; }
+    }
+    /* if(x.star){ ... } / for(const c of coins){ ... } / while(...) */
+    var p = envolve[k], feito = false;
+    while(p >= 0){
+      if(T[p].v === '(' && T[p - 1] && /^(if|while|for)$/.test(T[p - 1].v)){
+        var fe = par(T, p);
+        if(fe > 0){ add(fe + 1, fimDaFrase(T, fe + 1)); feito = true; }
+        break;
+      }
+      p = envolve[p];
+    }
+    if(feito) continue;
+    /* ctx.fillStyle = i.tipo === 'gema' ? '#4dd0e1' : '#8d6e63';  (e o desenho vem logo depois) */
+    var ini = inicioDaFrase(T, k);
+    if(T[ini] && T[ini].t === 'id' && cvs[T[ini].v] && T[ini + 1] && T[ini + 1].v === '.' && T[ini + 2] && /^(fillStyle|strokeStyle)$/.test(T[ini + 2].v)){
+      var fim = fimDaFrase(T, ini), a = ini, b = fim, n = 0;
+      /* beginPath logo antes */
+      var pa = inicioDaFrase(T, ini - 1 > 0 ? ini - 1 : 0);
+      if(ini > 1 && T[pa] && T[pa + 1] && T[pa + 1].v === '.' && T[pa + 2] && T[pa + 2].v === 'beginPath') a = pa;
+      /* depois: os comandos de desenho até o fill */
+      var prox = fim + 1;
+      while(n++ < 8 && T[prox] && T[prox].t === 'id' && cvs[T[prox].v] && T[prox + 1] && T[prox + 1].v === '.'){
+        var fm = fimDaFrase(T, prox); b = fm;
+        if(T[prox + 2] && /^(fill|stroke|fillRect|fillText)$/.test(T[prox + 2].v)) break;
+        prox = fm + 1;
+      }
+      add(a, b);
+    }
+  }
+  return rs;
+}
+/* separa os argumentos de uma chamada: devolve [{a,b}] em índices de token */
+function argsDaChamada(T, ab, fe){
+  var r = [], d = 0, ini = ab + 1;
+  for(var j = ab + 1; j <= fe; j++){
+    var t = T[j];
+    if(t.t === 'p'){
+      if(t.v === '(' || t.v === '[' || t.v === '{') d++;
+      else if(t.v === ')' || t.v === ']' || t.v === '}'){ if(d === 0){ if(j - 1 >= ini) r.push({a: ini, b: j - 1}); break; } d--; }
+      else if(t.v === ',' && d === 0){ if(j - 1 >= ini) r.push({a: ini, b: j - 1}); ini = j + 1; }
+    }
+  }
+  return r;
+}
+function coordenada(txt){
+  txt = String(txt).trim();
+  var m = /^(.*?)\s*([+-])\s*(\d+(?:\.\d+)?)$/.exec(txt);
+  if(m && m[1]) return {base: m[1].trim(), off: (m[2] === '-' ? -1 : 1) * Number(m[3])};
+  return {base: txt, off: 0};
+}
+function ehIdDeCor(t){ return t && t.t === 'str' && ehCorLiteral(valorDoTexto(t.v)); }
+/* aplica cor/forma dentro de um trecho; devolve quantas mudanças fez */
+function mudarTrecho(js, a, b, ped, ed, jaFeito, cvs, cont){
+  var T = js.T, src = js.sc.corpo, j, n = 0;
+  function troca(ini, fim, txt, chave){
+    var k = js.n + ':' + ini + ':' + fim; if(jaFeito[k]) return false;
+    jaFeito[k] = 1; ed.trocar(js.base + ini, js.base + fim, txt); n++; return true;
+  }
+  var corHex = ped.cor ? COR_MOEDA[ped.cor.id].hex : null;
+  /* cor: o primeiro fillStyle do trecho */
+  if(corHex){
+    for(j = a; j <= b; j++){
+      if(T[j].t === 'id' && T[j].v === 'fillStyle' && T[j - 1] && T[j - 1].v === '.' && T[j + 1] && T[j + 1].v === '='){
+        var fe = fimDaExpr(T, j + 2, b + 1), q = -1, i2;
+        for(i2 = j + 2; i2 <= fe; i2++){ if(T[i2].t === 'p' && T[i2].v === '?'){ q = i2; break; } }
+        if(q > 0){ for(i2 = q + 1; i2 <= fe; i2++){ if(ehIdDeCor(T[i2])){ if(troca(T[i2].s, T[i2].e, "'" + corHex + "'")) cont.cores++; break; } if(T[i2].t === 'p' && T[i2].v === ':') break; } }
+        else if(fe === j + 2 && ehIdDeCor(T[j + 2])){ if(troca(T[j + 2].s, T[j + 2].e, "'" + corHex + "'")) cont.cores++; }
+        break;
+      }
+    }
+  }
+  if(ped.forma){
+    var fid = ped.forma.id;
+    var temPoli = false;
+    for(j = a; j <= b; j++){
+      var t = T[j];
+      if(t.t !== 'id') continue;
+      /* ctx.arc(x, y, r, ...)  ->  __kodaForma(ctx, x, y, r, 'estrela') */
+      if(t.v === 'arc' && T[j - 1] && T[j - 1].v === '.' && T[j - 2] && T[j - 2].t === 'id' && T[j + 1] && T[j + 1].v === '('){
+        var pc = par(T, j + 1); if(pc < 0) continue;
+        var ar = argsDaChamada(T, j + 1, pc);
+        if(ar.length >= 3 && fid !== 'circulo'){
+          var tx = ar.slice(0, 3).map(function(x){ return src.slice(T[x.a].s, T[x.b].e); });
+          if(troca(T[j - 2].s, T[pc].e, '__kodaForma(' + T[j - 2].v + ', ' + tx.join(', ') + ", '" + fid + "')")) cont.formas++;
+        } else if(ar.length >= 3 && fid === 'circulo'){ /* já é redonda */ cont.jaEra++; }
+      }
+      /* uma moeda que já virou __kodaForma: só troca a forma */
+      if(t.v === '__kodaForma' && T[j + 1] && T[j + 1].v === '(' && !(T[j - 1] && T[j - 1].v === 'function')){
+        var pc2 = par(T, j + 1); if(pc2 < 0) continue;
+        var ar2 = argsDaChamada(T, j + 1, pc2);
+        if(ar2.length >= 5 && T[ar2[4].a].t === 'str'){ if(troca(T[ar2[4].a].s, T[ar2[4].b].e, "'" + fid + "'")) cont.formas++; }
+      }
+      /* losango / polígono: moveTo(x, y-10) lineTo... */
+      if(t.v === 'moveTo' && T[j - 1] && T[j - 1].v === '.' && T[j - 2] && T[j - 2].t === 'id' && !temPoli){
+        var pm = par(T, j + 1); if(pm < 0) continue;
+        var pts = [argsDaChamada(T, j + 1, pm)], ultimo = pm, k2 = pm + 1;
+        if(T[k2] && T[k2].v === ';') k2++;
+        while(T[k2 + 2] && T[k2].t === 'id' && T[k2].v === T[j - 2].v && T[k2 + 1].v === '.' && /^(lineTo|closePath)$/.test(T[k2 + 2].v)){
+          if(T[k2 + 2].v === 'closePath') break;
+          var pl = par(T, k2 + 3); if(pl < 0) break;
+          pts.push(argsDaChamada(T, k2 + 3, pl)); ultimo = pl; k2 = pl + 1;
+          if(T[k2] && T[k2].v === ';') k2++;
+        }
+        if(pts.length >= 3 && pts.every(function(x){ return x.length >= 2; })){
+          var xs = pts.map(function(x){ return coordenada(src.slice(T[x[0].a].s, T[x[0].b].e)); });
+          var ys = pts.map(function(x){ return coordenada(src.slice(T[x[1].a].s, T[x[1].b].e)); });
+          var bx = xs[0].base, by = ys[0].base;
+          if(xs.every(function(c){ return c.base === bx; }) && ys.every(function(c){ return c.base === by; })){
+            var raio = 0; xs.concat(ys).forEach(function(c){ raio = Math.max(raio, Math.abs(c.off)); });
+            if(raio > 0){
+              temPoli = true;
+              if(troca(T[j - 2].s, T[ultimo].e, '__kodaForma(' + T[j - 2].v + ', ' + bx + ', ' + by + ', ' + raio + ", '" + fid + "')")) cont.formas++;
+            }
+          }
+        }
+      }
+      /* ctx.fillText('★', x, y)  (símbolo solto que não está na lista de símbolos de moeda) */
+      if(t.v === 'fillText' && T[j - 1] && T[j - 1].v === '.' && T[j + 1] && T[j + 1].v === '(' && T[j + 2] && T[j + 2].t === 'str'){
+        var v = valorDoTexto(T[j + 2].v).trim();
+        if(v && v.length <= 2 && !/[A-Za-z0-9À-ɏ]/.test(v) && !GLIFOS_DE_MOEDA[v]){
+          var g = glifoNovo(ped, v);
+          if(g && troca(T[j + 2].s, T[j + 2].e, "'" + g + "'")) cont.simbolos++;
+        }
+      }
+    }
+  }
+  return n;
+}
+var GLIFOS_DE_MOEDA = {};
+Object.keys(FAMILIA_MOEDA).forEach(function(k){ FAMILIA_MOEDA[k].glifos.forEach(function(g){ GLIFOS_DE_MOEDA[g] = k; }); });
+function ajudanteDeForma(){
+  return 'function __kodaForma(c,x,y,r,f){var P=' + JSON.stringify(POLI_MOEDA) + ',p=P[f],i;if(!p){c.moveTo(x+r,y);c.arc(x,y,r,0,Math.PI*2);return;}c.moveTo(x+p[0][0]*r,y+p[0][1]*r);for(i=1;i<p.length;i++)c.lineTo(x+p[i][0]*r,y+p[i][1]*r);c.closePath();}\n';
+}
+
+/* ---- 2) o estilo CSS da classe da moeda ---- */
+function polygonCss(id){
+  var p = POLI_MOEDA[id]; if(!p) return null;
+  return 'polygon(' + p.map(function(q){ return (50 + q[0] * 45).toFixed(1) + '% ' + (50 + q[1] * 45).toFixed(1) + '%'; }).join(',') + ')';
+}
+function cssDaMoeda(codigo, W, ped, cont){
+  return codigo.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, function(m, a, css, z){
+    var css2 = css.replace(/([^{}@]+)\{([^{}]*)\}/g, function(m2, sel, corpo){
+      var ids = (sel.match(/[.#][A-Za-z_][\w-]*/g) || []).map(function(s){ return s.slice(1); });
+      if(!ids.length || /:(hover|active|focus)\b/.test(sel)) return m2;
+      if(!ids.some(function(id){ return palavrasDoId(id).some(function(w){ return W[w]; }); })) return m2;
+      var nc = corpo, mudou = false, soClasse = ids.length === (sel.match(/\.[A-Za-z_][\w-]*/g) || []).length;
+      var ehCaixa = /(^|[;\s])width\s*:/i.test(nc) && /(^|[;\s])height\s*:/i.test(nc);
+      if(ped.cor){
+        var hex = COR_MOEDA[ped.cor.id].hex;
+        if(/(^|[;\s])background(?:-color)?\s*:/i.test(nc) && (soClasse || ehCaixa)){ nc = nc.replace(/((?:^|[;\s])background(?:-color)?\s*:\s*)([^;]+)/i, function(x, p, v){ return p + (/gradient\(/i.test(v) ? v.replace(/#[0-9a-f]{3,8}\b|rgba?\([^)]*\)/gi, hex) : hex); }); mudou = true; cont.cores++; }
+        else if(/(^|[;\s])color\s*:/i.test(nc) && soClasse){ nc = nc.replace(/((?:^|[;\s])color\s*:\s*)([^;]+)/i, function(x, p){ return p + hex; }); mudou = true; cont.cores++; }
+      }
+      if(ped.forma && ehCaixa){
+        nc = nc.replace(/(^|[;\s])(?:-webkit-)?clip-path\s*:[^;]*;?/gi, '$1').replace(/(^|[;\s])border-radius\s*:[^;]*;?/gi, '$1');
+        nc = nc.replace(/;\s*$/, '');
+        var poli = polygonCss(ped.forma.id);
+        nc += ';border-radius:' + (ped.forma.id === 'circulo' ? '50%' : '0') + (poli ? ';clip-path:' + poli + ';-webkit-clip-path:' + poli : '');
+        mudou = true; cont.css++;
+      }
+      return mudou ? sel + '{' + nc + '}' : m2;
+    });
+    return a + css2 + z;
+  });
+}
+
+/* ---- 3) símbolos da moeda escritos em texto ---- */
+function simbolosDaMoeda(codigo, fam, ped, cont){
+  var lista = fam && FAMILIA_MOEDA[fam] ? FAMILIA_MOEDA[fam].glifos : [];
+  lista.forEach(function(g){
+    var n = glifoNovo(ped, g);
+    if(!n || n === g) return;
+    var partes = codigo.split(g);
+    if(partes.length > 1){ cont.simbolos += partes.length - 1; codigo = partes.join(n); }
+  });
+  return codigo;
+}
+
+var FORMA_PADRAO = {estrela: 'estrela', gema: 'diamante'};
+/* símbolo (colorido) ao lado do nome da moeda na tela: "Ouro: 0" vira "★ Ouro: 0" */
+function hudDaMoeda(codigo, m, ped){
+  var tent = [];
+  if(m && m.rotulo){ if(m.rotulo.tela) tent.push(String(m.rotulo.tela)); if(m.rotulo.nome) tent.push(String(m.rotulo.nome)); }
+  if(m && m.nome) palavrasDoId(m.nome).forEach(function(w){ tent.push(w); });
+  ['R$', '$', '\u20AC', '\u00A3'].forEach(function(x){ tent.push(x); });
+  var forma = ped.forma && FORMA_MOEDA[ped.forma.id];
+  var guardas = [], base = codigo.replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, function(x){ guardas.push(x); return '\u0001' + (guardas.length - 1) + '\u0002'; });
+  var antigo = /<span data-koda-moeda[^>]*>([^<]*)<\/span> ?/.exec(base);
+  var glifo = forma ? forma.g : (antigo ? antigo[1] : '\u25CF');
+  var corAntiga = antigo ? /color:(#[0-9a-f]{3,8})/i.exec(antigo[0]) : null;
+  var cor = ped.cor ? COR_MOEDA[ped.cor.id].hex : (corAntiga ? corAntiga[1] : '#f9a825');
+  var span = '<span data-koda-moeda style="color:' + cor + '">' + glifo + '</span> ';
+  if(antigo){
+    base = base.replace(antigo[0], span);
+  } else {
+    var feito = false;
+    for(var i = 0; i < tent.length && !feito; i++){
+      var lab = tent[i];
+      if(!lab || lab.length > 20) continue;
+      var simbolo = /^[^A-Za-z0-9\s]+$|^R\$$/.test(lab);
+      var re = new RegExp('(>[^<]*?)(' + (simbolo ? escRe(lab) : '\\b' + escRe(lab) + '\\b') + ')', 'i');
+      if(re.test(base)){ base = base.replace(re, function(x, a, b){ return a + span + (simbolo ? '' : b); }); feito = true; }
+    }
+    if(!feito) return null;
+  }
+  return base.replace(/\u0001(\d+)\u0002/g, function(x, i){ return guardas[Number(i)]; });
+}
+/* qual das moedas do jogo a pessoa citou: pelo nome dela, ou pela "família" ("diamante" -> gemas) */
+function escolherMoedaFalada(cands, ntxt){
+  var n = ' ' + ntxt + ' ';
+  var direta = cands.filter(function(c){ return palavrasDoId(c.nome).some(function(w){ return n.indexOf(' ' + w + ' ') >= 0 || n.indexOf(' ' + w.replace(/s$/, '') + ' ') >= 0 || n.indexOf(' ' + w + 's ') >= 0; }); });
+  if(direta.length) return direta;
+  var fams = {};
+  Object.keys(FAMILIA_MOEDA).forEach(function(k){ FAMILIA_MOEDA[k].pal.split(' ').forEach(function(p){ if(n.indexOf(' ' + p + ' ') >= 0) fams[k] = 1; }); });
+  return cands.filter(function(c){ var f = palavrasDaMoeda(c.obj || c).fam; return f && fams[f]; });
+}
+/* a mudança inteira; devolve {codigo, cont} ou null se não achou onde mexer */
+function mudarAparencia(codigo, m, ped){
+  var info = palavrasDaMoeda(m), W = info.W, cont = {cores: 0, formas: 0, simbolos: 0, css: 0, jaEra: 0, hud: 0};
+  var doc = lerDocumento(codigo), cvs = canvasContextos(codigo), ed = new Edicao(codigo), jaFeito = {}, algumScript = -1;
+  doc.js.forEach(function(js, idx){
+    if(js.sc.koda) return;
+    var antes = cont.formas + cont.cores + cont.simbolos;
+    trechosDaMoeda(js, W, cvs).forEach(function(r){ mudarTrecho(js, r[0], r[1], ped, ed, jaFeito, cvs, cont); });
+    if(cont.formas + cont.cores + cont.simbolos > antes && algumScript < 0) algumScript = idx;
+  });
+  var novo = ed.aplicar();
+  if(novo == null) return null;
+  if(cont.formas && novo.indexOf('function __kodaForma') < 0){
+    var d2 = lerDocumento(novo), alvo = d2.js[algumScript >= 0 ? Math.min(algumScript, d2.js.length - 1) : 0];
+    if(!alvo) return null;
+    novo = novo.slice(0, alvo.base) + '\n' + ajudanteDeForma() + novo.slice(alvo.base);
+  }
+  novo = cssDaMoeda(novo, W, ped, cont);
+  novo = simbolosDaMoeda(novo, info.fam, ped, cont);
+  /* nada desenhado achado: pelo menos um símbolo colorido ao lado do contador da moeda na tela */
+  if(novo === codigo || !(cont.cores + cont.formas + cont.simbolos + cont.css)){
+    var h = hudDaMoeda(novo, m.obj || m, ped);
+    if(h){ novo = h; cont.hud++; }
+  }
+  if(novo === codigo) return null;
+  return {codigo: novo, cont: cont};
+}
+
+/* ---------------- entender o pedido ---------------- */
+var RE_APARENCIA_NOME = /\b(aparencia|aspecto|visual|desenho|formato|forma|look|appearance|shape|design|estilo|style|cor|cores|color|colour|colores|couleur|farbe|kleur)\b/;
+var RE_MUDAR_APARENCIA = /\b(muda|mude|mudar|troca|troque|trocar|vire|vira|virar|virem|faz|faca|fazer|fica|fique|ficar|seja|sejam|ser|pinta|pinte|pintar|deixa|deixe|deixar|quero|queria|gostaria|change|make|turn|paint|color|colour|cambia|cambiar|haz|hazlo|quiero|pon|poe|bota|coloca|changer|mets|fais|aendere|mach|verander|maak)\b/;
+var RE_ANCORA_MOEDA = /\b(moeda|moedas|coin|coins|moneda|monedas|moneta|monete|piece|pieces|munze|munzen|munt|munten|ouro|gold|oro|dinheiro|money|dinero|gema|gemas|gem|gems|estrela|estrelas|star|stars|cristal|cristais|crystal|crystals|ficha|fichas|token|tokens)\b/;
+function pedeAparenciaMoeda(n, P, ctx){
+  var ws = (P && P.ws && P.ws.length) ? P.ws : n.trim().split(/\s+/);
+  var nn = ' ' + ws.join(' ') + ' ';
+  if(!RE_COIN_WORD.test(nn)) return null;
+  if(/\bkoda\b/.test(nn)) return null;
+  if(/\b(custa|custar|custe|custam|preco|precos|pagar|comprar|compra|loja|shop|valor|vale|valem|price|cost|buy|nome|nomes|chama|chamar|renomeia|renomear|rename|name|nombre|llama)\b/.test(nn) && !RE_APARENCIA_NOME.test(nn)) return null;
+  /* a moeda mais perto de cada cor/forma */
+  var idxMoeda = [], proprias = {};
+  try{ moedasDoCtx(ctx).forEach(function(m){ Object.keys(palavrasDaMoeda(m).W).forEach(function(w){ proprias[w] = 1; }); }); }catch(e){}
+  ws.forEach(function(w, i){ if(RE_ANCORA_MOEDA.test(' ' + w + ' ') || proprias[w]) idxMoeda.push(i); });
+  if(!idxMoeda.length) return null;
+  function maisPerto(re, folga, ancoras){
+    var melhor = null;
+    ws.forEach(function(w, i){
+      if(!re.test(' ' + w + ' ')) return;
+      (ancoras || idxMoeda).forEach(function(j){
+        if(j === i) return;
+        var d = Math.abs(i - j);
+        if(d <= folga && (!melhor || d < melhor.d)) melhor = {i: i, d: d};
+      });
+    });
+    return melhor;
+  }
+  var cor = null, forma = null, idxForma = [];
+  var pedeForma = /\b(forma|formato|desenho|shape|aparencia|aspecto|losango|rombo)\b/.test(nn);
+  Object.keys(FORMA_MOEDA).forEach(function(id){ if(id === 'diamante' && !pedeForma) return; var f = maisPerto(FORMA_MOEDA[id].re, 6); if(f && (!forma || f.d < forma.d)){ forma = {id: id, d: f.d}; idxForma = [f.i]; } });
+  Object.keys(COR_MOEDA).forEach(function(id){ var f = maisPerto(COR_MOEDA[id].re, 3, idxMoeda.concat(idxForma)); if(f && (!cor || f.d < cor.d)) cor = {id: id, d: f.d}; });
+  /* uma cor só na frase e nada de fundo/personagem/etc.: é da moeda ("moeda em forma de coração e vermelha") */
+  if(!cor){
+    var achadas = Object.keys(COR_MOEDA).filter(function(id){ return ws.some(function(w){ return COR_MOEDA[id].re.test(' ' + w + ' '); }); });
+    if(achadas.length === 1 && !/\b(fundo|background|tela|screen|cenario|texto|text|botao|botoes|button|personagem|jogador|player|nave|chao|inimigo|inimigos|espinho|espinhos|cesta|loja|shop|menu)\b/.test(nn)) cor = {id: achadas[0], d: 9};
+  }
+  var nome = RE_APARENCIA_NOME.test(nn), verbo = RE_MUDAR_APARENCIA.test(nn);
+  /* "moeda roxa quadrada" (frase curta só descrevendo a moeda) também vale */
+  var curta = ws.length <= 5 && (cor || forma) && !/\b(tem|tenho|ganha|ganho|pega|pego|perde|perco|dar|da|dou|compra|compro|vende|vendo|aparece|aparecem)\b/.test(nn);
+  if(!nome && !(verbo && (cor || forma)) && !curta) return null;
+  if(!cor && !forma && !nome) return null;
+  /* "cor de fundo", "cor do personagem" sem moeda na mesma frase já saiu (precisa de uma palavra de moeda) */
+  if(/\b(fundo|background|tela|screen|cenario|texto|text|botao|botoes|button|personagem|jogador|player)\b/.test(nn) && !cor && !forma && nome) return null;
+  return {int: 'moeda_aparencia', cor: cor ? {id: cor.id} : null, forma: forma ? {id: forma.id} : null};
+}
+
+H.moeda_aparencia = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  var cands = [];
+  try{ moedasDoCtx(ctx).forEach(function(m){ cands.push({caminho: m.caminho, nome: m.nome, forca: m.forca, obj: m}); }); }catch(e){}
+  moedasSimples(ctx.codigo).forEach(function(m){ if(!cands.some(function(c){ return c.caminho === m.caminho; })) cands.push(m); });
+  if(!cands.length){ diz(r, T('ma_sem_moeda')); chip(r, T('mn_ch_loja')); return r; }
+  if(!it.cor && !it.forma){
+    diz(r, T('ma_pergunta'));
+    chip(r, T('ma_ch_azul')); chip(r, T('ma_ch_estrela')); chip(r, T('ma_ch_coracao')); chip(r, T('ma_ch_roxa_quadrada'));
+    return r;
+  }
+  /* qual moeda: a que a pessoa citou; senão a mais "moeda" de todas */
+  var n = ' ' + (it.P && it.P.ws ? it.P.ws.join(' ') : nTxt(it.orig || '')) + ' ';
+  var nomeAmigo = function(c){ var t = c.obj ? nomeDaMoeda(c.obj, est) : capitalizar(palavrasDoId(c.nome).join(' ')); return /^[^A-Za-z0-9\u00C0-\u024F]+$|^R\$$/.test(String(t)) ? T('w_moeda') : t; };
+  var falada = escolherMoedaFalada(cands, n.trim());
+  var alvo = falada[0] || cands[0];
+  var ped = {cor: it.cor, forma: it.forma};
+  var res = mudarAparencia(ctx.codigo, alvo, ped);
+  var com = [];
+  if(it.cor) com.push(T('cn_' + it.cor.id));
+  if(it.forma) com.push(T('fn_' + it.forma.id));
+  if(!res && it.forma && FORMA_PADRAO[palavrasDaMoeda(alvo).fam] === it.forma.id && !it.cor){
+    diz(r, T('ma_ja', {moeda: nomeAmigo(alvo), forma: T('fn_' + it.forma.id)}));
+    chip(r, T('mn_ch_valor')); chip(r, T('mn_ch_loja'));
+    return r;
+  }
+  if(!res){
+    diz(r, T('ma_nada', {como: com.join(', ')}));
+    chip(r, T('mn_ch_valor')); chip(r, T('mn_ch_loja'));
+    return r;
+  }
+  var ok = conferirDepois(ctx.codigo, res.codigo, {});
+  if(ok.erro){ diz(r, T('ma_nada', {como: com.join(', ')})); return r; }
+  var c = res.cont, total = c.cores + c.formas + c.simbolos + c.css + c.hud;
+  diz(r, T('ma_ok', {moeda: nomeAmigo(alvo), como: com.join(', '), n: total}));
+  var faltou = [];
+  if(it.forma && !(c.formas || c.simbolos || c.css || c.hud) && !c.jaEra) faltou.push(T('fn_' + it.forma.id));
+  if(it.cor && !(c.cores || c.css || c.simbolos || c.hud)) faltou.push(T('cn_' + it.cor.id));
+  if(faltou.length) diz(r, T('ma_parte', {oque: faltou.join(', ')}));
+  diz(r, T('ma_aviso'));
+  chip(r, T('mn_ch_valor')); chip(r, T('mn_ch_loja'));
+  return aplicar(est, r, ctx.codigo, ok.codigo, T('ma_desc'));
+};
+
+textosEm10({
+  ma_sem_moeda: 'Não achei nenhuma moeda nesse jogo pra mudar o desenho. Se ela tiver outro nome, me diga: "a moeda do jogo é stars".|I couldn\'t find any currency in this game to restyle. If it has another name, tell me: "the game currency is stars".|No encontré ninguna moneda en este juego para cambiar el dibujo. Si tiene otro nombre, dime: "la moneda del juego es stars".|Non ho trovato nessuna moneta in questo gioco da ridisegnare. Se ha un altro nome, dimmi: "la valuta del gioco è stars".|Je n\'ai trouvé aucune monnaie à redessiner dans ce jeu. Si elle a un autre nom, dis-moi : « la monnaie du jeu est stars ».|Ich habe in diesem Spiel keine Währung zum Umgestalten gefunden. Hat sie einen anderen Namen, sag: „die Spielwährung ist stars".|Ik vond in deze game geen munt om aan te passen. Heeft ze een andere naam, zeg dan: "de munt van de game is stars".|このゲームには見た目を変えられるお金が見つかりませんでした。別の名前なら「ゲームのお金はstars」と教えてね。|这个游戏里没找到可以改外观的货币。如果它叫别的名字，请告诉我：“游戏的货币是 stars”。|이 게임에서 모양을 바꿀 돈을 못 찾았어요. 이름이 다르면 "게임 돈은 stars"라고 알려 주세요.',
+  ma_pergunta: 'Como você quer a moeda? Pode dizer a cor, a forma, ou os dois. Por exemplo: "moeda azul", "moeda em forma de estrela", "moeda roxa e quadrada".|How do you want the coin? You can say the color, the shape, or both. For example: "blue coin", "star-shaped coin", "purple square coin".|¿Cómo quieres la moneda? Puedes decir el color, la forma, o los dos. Por ejemplo: "moneda azul", "moneda en forma de estrella", "moneda morada y cuadrada".|Come vuoi la moneta? Puoi dire il colore, la forma o entrambi. Per esempio: "moneta blu", "moneta a forma di stella", "moneta viola e quadrata".|Comment tu veux la pièce ? Tu peux dire la couleur, la forme, ou les deux. Par exemple : « pièce bleue », « pièce en forme d\'étoile », « pièce violette et carrée ».|Wie soll die Münze aussehen? Du kannst Farbe, Form oder beides sagen. Zum Beispiel: „blaue Münze", „sternförmige Münze", „lila quadratische Münze".|Hoe wil je de munt? Je kunt de kleur, de vorm of allebei zeggen. Bijvoorbeeld: "blauwe munt", "munt in de vorm van een ster", "paarse vierkante munt".|コインをどんな見た目にする？ 色、形、または両方を言ってね。たとえば「青いコイン」「星の形のコイン」「紫の四角いコイン」。|你想要什么样的金币？可以说颜色、形状，或者两个都说。例如：“蓝色金币”“星形金币”“紫色方形金币”。|코인을 어떻게 만들까요? 색, 모양, 또는 둘 다 말해 주세요. 예: "파란 코인", "별 모양 코인", "보라색 네모 코인".',
+  ma_ch_azul: 'Moeda azul|Blue coin|Moneda azul|Moneta blu|Pièce bleue|Blaue Münze|Blauwe munt|青いコイン|蓝色金币|파란 코인',
+  ma_ch_estrela: 'Moeda em forma de estrela|Star-shaped coin|Moneda en forma de estrella|Moneta a forma di stella|Pièce en forme d\'étoile|Sternförmige Münze|Munt in de vorm van een ster|星の形のコイン|星形金币|별 모양 코인',
+  ma_ch_coracao: 'Moeda em forma de coração|Heart-shaped coin|Moneda en forma de corazón|Moneta a forma di cuore|Pièce en forme de cœur|Herzförmige Münze|Munt in de vorm van een hart|ハートの形のコイン|爱心形金币|하트 모양 코인',
+  ma_ch_roxa_quadrada: 'Moeda roxa e quadrada|Purple square coin|Moneda morada y cuadrada|Moneta viola e quadrata|Pièce violette et carrée|Lila quadratische Münze|Paarse vierkante munt|紫の四角いコイン|紫色方形金币|보라색 네모 코인',
+  ma_ok: 'Pronto! Agora a aparência de {moeda} é: {como}. Mudei em {n} lugar(es).|Done! Now the look of {moeda} is: {como}. I changed {n} place(s).|¡Listo! Ahora el aspecto de {moeda} es: {como}. Lo cambié en {n} lugar(es).|Fatto! Ora l\'aspetto di {moeda} è: {como}. Cambiato in {n} punto/i.|C\'est fait ! Maintenant l\'apparence de {moeda} est : {como}. Changé à {n} endroit(s).|Fertig! Jetzt sieht {moeda} so aus: {como}. An {n} Stelle(n) geändert.|Klaar! Nu ziet {moeda} er zo uit: {como}. Op {n} plek(ken) aangepast.|できました！ {moeda} の見た目は「{como}」になりました。{n}か所を変えました。|好了！现在 {moeda} 的外观是：{como}。修改了 {n} 处。|됐어요! 이제 {moeda}의 모양은 "{como}"예요. {n}곳을 바꿨어요.',
+  ma_parte: 'Só não consegui mudar: {oque}. O desenho desse jogo é feito de um jeito que eu não alcanço por aqui.|The only thing I couldn\'t change: {oque}. This game draws it in a way I can\'t reach from here.|Lo único que no pude cambiar: {oque}. Este juego lo dibuja de una forma a la que no llego desde aquí.|Non sono riuscito a cambiare solo: {oque}. Questo gioco lo disegna in un modo che non riesco a raggiungere da qui.|Je n\'ai pas pu changer seulement : {oque}. Ce jeu le dessine d\'une façon que je ne peux pas atteindre d\'ici.|Nur das konnte ich nicht ändern: {oque}. Dieses Spiel zeichnet es so, dass ich von hier nicht herankomme.|Alleen dit kon ik niet veranderen: {oque}. Deze game tekent het op een manier waar ik hier niet bij kan.|変えられなかったのは「{oque}」だけ。このゲームの描き方は、ここからは届きません。|只有这个没能改：{oque}。这个游戏的绘制方式我在这里够不到。|바꾸지 못한 건 "{oque}"뿐이에요. 이 게임은 제가 여기서 닿을 수 없는 방식으로 그려요.',
+  ma_nada: 'Não achei onde esse jogo desenha a moeda ({como}). Ela pode estar numa imagem ou num desenho que eu não alcanço. Posso mudar o nome ou o valor dela, ou fazer uma loja.|I couldn\'t find where this game draws the coin ({como}). It may be an image or a drawing I can\'t reach. I can change its name or value, or make a shop.|No encontré dónde este juego dibuja la moneda ({como}). Puede ser una imagen o un dibujo que no alcanzo. Puedo cambiar su nombre o valor, o hacer una tienda.|Non ho trovato dove questo gioco disegna la moneta ({como}). Potrebbe essere un\'immagine o un disegno che non raggiungo. Posso cambiarne nome o valore, o fare un negozio.|Je n\'ai pas trouvé où ce jeu dessine la pièce ({como}). C\'est peut-être une image ou un dessin que je n\'atteins pas. Je peux changer son nom ou sa valeur, ou faire une boutique.|Ich habe nicht gefunden, wo dieses Spiel die Münze zeichnet ({como}). Vielleicht ist es ein Bild oder eine Zeichnung, an die ich nicht komme. Ich kann Namen oder Wert ändern oder einen Shop bauen.|Ik vond niet waar deze game de munt tekent ({como}). Misschien is het een afbeelding of tekening waar ik niet bij kan. Ik kan de naam of waarde veranderen, of een winkel maken.|このゲームがコインを描いている場所が見つかりませんでした（{como}）。画像か、私が届かない描き方かもしれません。名前や値を変えたり、お店を作ったりはできます。|没找到这个游戏绘制金币的地方（{como}）。可能是图片或我够不到的绘制方式。我可以改它的名字或值，或做一个商店。|이 게임이 코인을 그리는 곳을 못 찾았어요({como}). 이미지이거나 제가 닿을 수 없는 방식일 수 있어요. 이름이나 값을 바꾸거나 상점을 만들 수는 있어요.',
+  ma_ja: '{moeda} já está em forma de {forma}. Quer outra cor ou outra forma?|{moeda} is already {forma}-shaped. Want another color or shape?|{moeda} ya tiene forma de {forma}. ¿Quieres otro color u otra forma?|{moeda} ha già la forma di {forma}. Vuoi un altro colore o un\'altra forma?|{moeda} a déjà la forme de {forma}. Tu veux une autre couleur ou une autre forme ?|{moeda} hat schon die Form {forma}. Willst du eine andere Farbe oder Form?|{moeda} heeft al de vorm van {forma}. Wil je een andere kleur of vorm?|{moeda}はもう{forma}の形です。ほかの色や形にする？|{moeda}已经是{forma}了。想换别的颜色或形状吗？|{moeda}은(는) 이미 {forma} 모양이에요. 다른 색이나 모양으로 바꿀까요?',
+  ma_aviso: 'Isso muda só o desenho da moeda DO JOGO. As moedas do Koda GB continuam do jeito delas.|This only changes the look of the GAME\'s coin. Koda GB coins stay the way they are.|Esto cambia solo el dibujo de la moneda DEL JUEGO. Las monedas de Koda GB siguen como están.|Cambia solo il disegno della moneta DEL GIOCO. Le monete di Koda GB restano come sono.|Cela ne change que le dessin de la pièce DU JEU. Les pièces Koda GB restent comme elles sont.|Das ändert nur das Aussehen der Münze DES SPIELS. Koda-GB-Münzen bleiben, wie sie sind.|Dit verandert alleen het uiterlijk van de munt VAN DE GAME. Koda GB-munten blijven zoals ze zijn.|ゲームの中のコインの見た目だけが変わります。Koda GBのコインはそのままです。|这只改游戏自己金币的外观。Koda GB 的金币保持原样。|게임 안의 코인 모양만 바뀌어요. Koda GB 코인은 그대로예요.',
+  ma_desc: 'aparência da moeda|coin look|aspecto de la moneda|aspetto della moneta|apparence de la pièce|Münzaussehen|uiterlijk van de munt|コインの見た目|金币外观|코인 모양',
+  cn_azul: 'azul|blue|azul|blu|bleu|blau|blauw|青|蓝色|파란색',
+  cn_vermelho: 'vermelho|red|rojo|rosso|rouge|rot|rood|赤|红色|빨간색',
+  cn_verde: 'verde|green|verde|verde|vert|grün|groen|緑|绿色|초록색',
+  cn_roxo: 'roxo|purple|morado|viola|violet|lila|paars|紫|紫色|보라색',
+  cn_rosa: 'rosa|pink|rosa|rosa|rose|rosa|roze|ピンク|粉色|분홍색',
+  cn_laranja: 'laranja|orange|naranja|arancione|orange|orange|oranje|オレンジ|橙色|주황색',
+  cn_amarelo: 'amarelo|yellow|amarillo|giallo|jaune|gelb|geel|黄色|黄色|노란색',
+  cn_preto: 'preto|black|negro|nero|noir|schwarz|zwart|黒|黑色|검은색',
+  cn_branco: 'branco|white|blanco|bianco|blanc|weiß|wit|白|白色|하얀색',
+  cn_dourado: 'dourado|golden|dorado|dorato|doré|golden|goud|金色|金色|금색',
+  cn_prata: 'prata|silver|plateado|argento|argenté|silbern|zilver|銀色|银色|은색',
+  cn_ciano: 'ciano|cyan|turquesa|turchese|turquoise|türkis|turkoois|水色|青绿色|하늘색',
+  cn_marrom: 'marrom|brown|marrón|marrone|marron|braun|bruin|茶色|棕色|갈색',
+  fn_estrela: 'estrela|star|estrella|stella|étoile|Stern|ster|星|星形|별',
+  fn_coracao: 'coração|heart|corazón|cuore|cœur|Herz|hart|ハート|爱心|하트',
+  fn_diamante: 'diamante|diamond|diamante|diamante|diamant|Diamant|diamant|ダイヤ|钻石形|다이아몬드',
+  fn_quadrado: 'quadrado|square|cuadrado|quadrato|carré|Quadrat|vierkant|四角|方形|네모',
+  fn_circulo: 'círculo|circle|círculo|cerchio|cercle|Kreis|cirkel|丸|圆形|동그라미',
+  fn_triangulo: 'triângulo|triangle|triángulo|triangolo|triangle|Dreieck|driehoek|三角|三角形|세모'
+});
+/* textos do "agente trabalhando" (etapas que aparecem uma por uma; a conversa pode ser fechada enquanto ele trabalha) */
+textosEm10({
+  ui_et_1: 'Lendo o seu jogo...|Reading your game...|Leyendo tu juego...|Leggo il tuo gioco...|Je lis ton jeu...|Ich lese dein Spiel...|Ik lees je game...|ゲームを読んでいます…|正在阅读你的游戏……|게임을 읽는 중...',
+  ui_et_2: 'Achando onde mexer...|Finding where to change...|Buscando dónde cambiar...|Cerco dove modificare...|Je cherche où modifier...|Ich suche die richtige Stelle...|Ik zoek waar ik moet aanpassen...|変える場所を探しています…|正在找要修改的地方……|바꿀 곳을 찾는 중...',
+  ui_et_moeda: 'Procurando a moeda do jogo...|Looking for the game coin...|Buscando la moneda del juego...|Cerco la moneta del gioco...|Je cherche la monnaie du jeu...|Ich suche die Spielwährung...|Ik zoek de munt van de game...|ゲームのお金を探しています…|正在找游戏的货币……|게임 돈을 찾는 중...',
+  ui_et_loja: 'Montando a loja...|Building the shop...|Montando la tienda...|Preparo il negozio...|Je monte la boutique...|Ich baue den Shop...|Ik bouw de winkel...|お店を作っています…|正在搭建商店……|상점을 만드는 중...',
+  ui_et_3: 'Fazendo a mudança...|Making the change...|Haciendo el cambio...|Faccio la modifica...|Je fais le changement...|Ich nehme die Änderung vor...|Ik pas het aan...|変更しています…|正在修改……|바꾸는 중...',
+  ui_et_4: 'Conferindo se o jogo continua funcionando...|Checking the game still works...|Comprobando que el juego sigue funcionando...|Controllo che il gioco funzioni ancora...|Je vérifie que le jeu marche toujours...|Ich prüfe, ob das Spiel noch funktioniert...|Ik controleer of de game nog werkt...|ゲームがちゃんと動くか確認しています…|正在确认游戏是否仍能正常运行……|게임이 계속 잘 작동하는지 확인하는 중...',
+  ui_trab_dica: 'Pode fechar a conversa: eu continuo e aviso quando terminar.|You can close the chat: I keep going and let you know when I\'m done.|Puedes cerrar el chat: sigo y te aviso cuando termine.|Puoi chiudere la chat: continuo e ti avviso quando finisco.|Tu peux fermer la discussion : je continue et je te préviens quand j\'ai fini.|Du kannst den Chat schließen: Ich mache weiter und sage Bescheid, wenn ich fertig bin.|Je mag de chat sluiten: ik ga door en laat het weten als ik klaar ben.|チャットを閉じても大丈夫。続けて、終わったら知らせます。|你可以关闭聊天：我会继续，完成后通知你。|채팅을 닫아도 돼요. 계속 작업하고 끝나면 알려 드릴게요.',
+  ui_pronto_fora: 'O agente terminou! Abra a conversa para ver.|The agent is done! Open the chat to see.|¡El agente terminó! Abre el chat para ver.|L\'agente ha finito! Apri la chat per vedere.|L\'agent a terminé ! Ouvre la discussion pour voir.|Der Agent ist fertig! Öffne den Chat, um es zu sehen.|De agent is klaar! Open de chat om te kijken.|エージェントが終わりました！チャットを開いて見てね。|助手完成了！打开聊天查看。|에이전트가 끝났어요! 채팅을 열어 확인하세요.'
+});
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T, TL: TL,
@@ -36049,7 +36903,7 @@ return {
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
   /* (pra testes) */
   orientacao: function(c){ try{ return orientacaoComDetalhe(c); }catch(e){ return {modo: null, fixo: false, motivo: "erro"}; } },
-  _: {acharAtributos: acharAtributos, moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
+  _: {pedeValorMoeda: pedeValorMoeda, pedeAparenciaMoeda: pedeAparenciaMoeda, pedeLojaVariada: pedeLojaVariada, pedeVantagemKoda: pedeVantagemKoda, mudarAparencia: mudarAparencia, mudarValorDaMoeda: mudarValorDaMoeda, moedasSimples: moedasSimples, acharAtributos: acharAtributos, moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
       lojaCriar: lojaCriar, lojaRemover: lojaRemover, acharAtributos: acharAtributos, compila: compila, linhaDoErro: linhaDoErro,
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,
@@ -36430,6 +37284,31 @@ function kaGuardarJogo(conv){
   ks.slice(40).forEach(k=>{ delete todos[k]; });
   kaGravarJson(KA_JOGOS_CHAVE, todos);
 }
+/* o agente "trabalha": as etapas aparecem uma por uma (leva alguns segundos) e ele continua mesmo se a pessoa fechar a conversa */
+function kaEtapas(r){
+  const i = String(r.intencao || '');
+  const meio = i.indexOf('loja') === 0 ? 'ui_et_loja' : i.indexOf('moeda') === 0 ? 'ui_et_moeda' : 'ui_et_2';
+  return ['ui_et_1', meio, 'ui_et_3', 'ui_et_4'];
+}
+function kaTrabalhando(lista, rolar, r, tamanho){
+  return new Promise(pronto=>{
+    let calmo = false; try{ calmo = matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+    const card = document.createElement('div'); card.className = 'ka-trab';
+    card.innerHTML = '<ul>' + kaEtapas(r).map(k=>'<li><span class="ka-trab-i"></span><span>' + chatListEscape(KA.T(k)) + '</span></li>').join('') + '</ul><small>' + chatListEscape(KA.T('ui_trab_dica')) + '</small>';
+    lista.appendChild(card); rolar();
+    const lis = Array.from(card.querySelectorAll('li'));
+    const base = calmo ? 240 : Math.min(1500, 650 + (tamanho || 0) / 120);       // jogo grande demora um pouco mais
+    let i = 0;
+    const passo = ()=>{
+      if(i > 0){ lis[i - 1].classList.remove('agora'); lis[i - 1].classList.add('feito'); }
+      if(i >= lis.length){ setTimeout(()=>{ card.remove(); pronto(); }, calmo ? 0 : 260); return; }
+      lis[i].classList.add('agora'); rolar();
+      const espera = base * (0.8 + Math.random() * 0.5);
+      i++; setTimeout(passo, espera);
+    };
+    passo();
+  });
+}
 /* abre a conversa ligada a uma caixa de código */
 function abrirAgente(caixa, opts){
   opts = opts || {};
@@ -36472,6 +37351,8 @@ function abrirAgente(caixa, opts){
   if(conv.lista){ lista.replaceWith(conv.lista); lista = conv.lista; }
   else conv.lista = lista;
   let ocupado = false;
+  /* a conversa foi fechada e aberta de novo enquanto o agente ainda trabalhava: espera ele terminar */
+  if(conv.ocupado){ ocupado = true; enviar.disabled = true; (conv.aoLivre = conv.aoLivre || []).push(()=>{ ocupado = false; enviar.disabled = false; chipsEl.hidden = !(conv.chips && conv.chips.length); }); }
   const rolar = ()=>{ corpo.scrollTop = corpo.scrollHeight; };
   function pintarDesfazer(){ btDesfazer.disabled = !conv.estado.historico.length; }
   function pintarChips(chips){
@@ -36507,8 +37388,8 @@ function abrirAgente(caixa, opts){
   }
   async function mostrar(r){
     for(const b of r.blocos){
-      if(!tela.isConnected) return;
-      if(b.t === 'txt'){ const d = document.createElement('div'); d.className = 'ka-msg ele'; lista.appendChild(d); await kaDigitar(d, b.s, rolar); kaAcoesPara(d, b.s, false); rolar(); }
+      /* a conversa pode ter sido fechada: o texto entra direto (sem digitar) e fica esperando na lista */
+      if(b.t === 'txt'){ const d = document.createElement('div'); d.className = 'ka-msg ele'; lista.appendChild(d); if(tela.isConnected) await kaDigitar(d, b.s, rolar); else kaTextoFormatado(d, b.s); kaAcoesPara(d, b.s, false); rolar(); }
       else { lista.appendChild(kaCartao(b)); rolar(); }
     }
     pintarChips(r.chips);
@@ -36516,7 +37397,7 @@ function abrirAgente(caixa, opts){
   /* o que fazer com a resposta do motor: código novo na caixa, nome do jogo, texto, cartões e o robô */
   async function processar(r){
     if(r.erro) try{ console.warn('Agente Koda GB:', r.erro); }catch(e){}
-    if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); conv.codigoDoAgente = caixa.value; }
+    if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); conv.codigoDoAgente = caixa.value; if(!tela.isConnected) conv.visto = caixa.value; }
     /* jogo criado do zero: o nome dele já vai pro campo "Nome" (se estiver vazio) */
     if(r.capa && opts.aoCapa){ try{ opts.aoCapa(r.capa); }catch(e){} }
     if(r.nomeJogo && opts.nomeEl && !opts.nomeEl.value.trim()){ opts.nomeEl.value = r.nomeJogo; try{ opts.nomeEl.dispatchEvent(new Event('input', {bubbles: true})); }catch(e){} }
@@ -36538,23 +37419,38 @@ function abrirAgente(caixa, opts){
     }
   }
   async function executar(txt, resolver, msg, an){
-    if(ocupado) return;
+    if(ocupado || conv.ocupado) return;
     pararMic();
-    ocupado = true; enviar.disabled = true; entrada.value = ''; ajustarAltura();
+    ocupado = true; conv.ocupado = true; enviar.disabled = true; entrada.value = ''; ajustarAltura();
     chipsEl.hidden = true;
-    kaJogoDaConversa(conv, caixa.value);
-    /* a "foto" do jogo e da conversa antes dessa mensagem: é pra ela que se volta se a pessoa editar a mensagem */
-    let foto = null;
-    try{ foto = {codigo: caixa.value, est: KA.tirarFoto(conv.estado)}; }catch(e){}
-    bolhaEu(txt, {foto, msg: msg == null ? txt : msg, anexo: an || null});
-    const p = pensando();
-    await new Promise(r=>setTimeout(r, 280 + Math.random() * 380));
-    kaJogoDaConversa(conv, caixa.value);
-    const r = resolver();
-    p.remove();
-    await processar(r);
-    ocupado = false; enviar.disabled = false;
-    if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) try{ entrada.focus(); }catch(e){}
+    try{
+      kaJogoDaConversa(conv, caixa.value);
+      /* a "foto" do jogo e da conversa antes dessa mensagem: é pra ela que se volta se a pessoa editar a mensagem */
+      let foto = null;
+      try{ foto = {codigo: caixa.value, est: KA.tirarFoto(conv.estado)}; }catch(e){}
+      bolhaEu(txt, {foto, msg: msg == null ? txt : msg, anexo: an || null});
+      const p = pensando();
+      await new Promise(r=>setTimeout(r, 280 + Math.random() * 380));
+      kaJogoDaConversa(conv, caixa.value);
+      const codigoAntes = caixa.value;
+      let r = resolver();
+      p.remove();
+      /* mudou o jogo: ele "trabalha" por alguns segundos, com as etapas na tela (e continua se a conversa for fechada) */
+      if(r.codigo != null && !r.desfez){
+        await kaTrabalhando(lista, rolar, r, codigoAntes.length);
+        if(caixa.value !== codigoAntes && foto){
+          /* a pessoa mexeu no código enquanto ele trabalhava: refaz em cima do código de agora, pra não pisar no que ela escreveu */
+          try{ KA.voltarFoto(conv.estado, foto.est); kaJogoDaConversa(conv, caixa.value); r = resolver(); }catch(e){}
+        }
+      }
+      await processar(r);
+    } finally {
+      ocupado = false; conv.ocupado = false; enviar.disabled = false;
+      const livres = conv.aoLivre || []; conv.aoLivre = [];
+      livres.forEach(f=>{ try{ f(); }catch(e){} });
+    }
+    if(!tela.isConnected){ try{ toast(KA.T('ui_pronto_fora')); }catch(e){} }
+    else if(!(window.matchMedia && matchMedia('(pointer:coarse)').matches)) try{ entrada.focus(); }catch(e){}
   }
   function falar(txt, rotulo, an){
     txt = String(txt || '').trim().slice(0, 600);

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pulo das Moedas</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#87ceeb;color:#073b4c}canvas{background:#b3e5fc;border-radius:12px;max-width:100%;touch-action:none}</style></head>
+<body>
+<h1>Pulo das Moedas</h1><canvas id="c" width="480" height="260"></canvas><div class="msg">Toque na tela para pular</div>
+<script>
+var c = document.getElementById('c'), ctx = c.getContext('2d');
+var state = {coins: 0, best: 0, vivo: true};
+var jogador = {x: 60, y: 200, vy: 0}, coins = [], espinhos = [], tempo = 0;
+function pular(){ if(jogador.y >= 200){ jogador.vy = -11; } if(!state.vivo){ state.vivo = true; state.coins = 0; espinhos = []; coins = []; } }
+c.addEventListener('pointerdown', pular);
+document.addEventListener('keydown', function(e){ if(e.code === 'Space') pular(); });
+function loop(){
+  tempo++;
+  if(tempo % 70 === 0) espinhos.push({x: 480, w: 22});
+  if(tempo % 50 === 0) coins.push({x: 480, y: 120 + Math.random() * 70});
+  jogador.vy += 0.6; jogador.y = Math.min(200, jogador.y + jogador.vy);
+  ctx.clearRect(0, 0, 480, 260);
+  ctx.fillStyle = '#66bb6a'; ctx.fillRect(0, 230, 480, 30);
+  espinhos.forEach(function(e){ e.x -= 4; ctx.fillStyle = '#c62828'; ctx.fillRect(e.x, 210, e.w, 20); });
+  coins.forEach(function(m){ m.x -= 4; ctx.beginPath(); ctx.arc(m.x, m.y, 9, 0, 6.3); ctx.fillStyle = '#ffd54f'; ctx.fill(); });
+  coins = coins.filter(function(m){ if(Math.abs(m.x - jogador.x) < 18 && Math.abs(m.y - jogador.y) < 22){ state.coins += 5; return false; } return m.x > -10; });
+  espinhos.forEach(function(e){ if(state.vivo && Math.abs(e.x - jogador.x) < 20 && jogador.y > 188){ state.vivo = false; state.best = Math.max(state.best, state.coins); } });
+  ctx.fillStyle = '#1565c0'; ctx.fillRect(jogador.x - 12, jogador.y - 24, 24, 28);
+  ctx.fillStyle = '#073b4c'; ctx.font = '18px system-ui'; ctx.fillText('Moedas: ' + state.coins + '   Recorde: ' + state.best, 10, 24);
+  if(!state.vivo){ ctx.font = '26px system-ui'; ctx.fillText('Bateu! Toque para recomeçar', 80, 130); }
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body></html>

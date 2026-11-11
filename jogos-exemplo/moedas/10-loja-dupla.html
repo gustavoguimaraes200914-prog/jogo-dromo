@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Loja Dupla</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#fffde7;color:#4e342e}.coin{display:inline-block;width:22px;height:22px;border-radius:50%;background:#fbc02d;border:2px solid #f57f17;vertical-align:middle}.gem{color:#00acc1;font-weight:700}button{background:#ef6c00;color:#fff}#minerar{font-size:28px;padding:16px 26px}.hud{font-size:22px}</style></head>
+<body>
+<h1>Loja Dupla</h1>
+<div class="hud"><span class="coin"></span> <b id="coins">0</b> moedas &middot; <span class="gem">◆</span> <b id="diamonds">0</b> diamantes</div>
+<div><button id="minerar">Minerar</button></div>
+<h3>Loja</h3><div id="loja"></div>
+<div>Você tem: <span id="inv">nada</span></div><div class="msg" id="msg"></div>
+<script>
+var coins = 0, diamonds = 0, inventario = [], cliques = 0;
+function ver(){ document.getElementById('coins').textContent = coins; document.getElementById('diamonds').textContent = diamonds; document.getElementById('inv').textContent = inventario.length ? inventario.join(', ') : 'nada'; }
+document.getElementById('minerar').onclick = function(){ coins += 2; cliques++; if(cliques % 10 === 0) diamonds += 1; ver(); };
+function buyItem(nome, custo, moeda){
+  var tem = moeda === 'coins' ? coins : diamonds;
+  if(tem >= custo){ if(moeda === 'coins') coins -= custo; else diamonds -= custo; inventario.push(nome); document.getElementById('msg').textContent = nome + ' comprado!'; }
+  else document.getElementById('msg').textContent = 'Falta ' + (moeda === 'coins' ? 'moeda' : 'diamante') + '.';
+  ver();
+}
+[['Chapéu', 30, 'coins'], ['Óculos', 60, 'coins'], ['Capa', 2, 'diamonds'], ['Coroa', 5, 'diamonds']].forEach(function(x){
+  var b = document.createElement('button'); b.textContent = x[0] + ' - ' + x[1] + ' ' + (x[2] === 'coins' ? 'moedas' : 'diamantes');
+  b.onclick = function(){ buyItem(x[0], x[1], x[2]); }; document.getElementById('loja').appendChild(b);
+});
+ver();
+</script>
+</body></html>
