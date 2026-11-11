@@ -2,9 +2,9 @@ name = "koda-online"
 main = "worker.js"
 compatibility_date = "2026-09-16"
 
-# Quem pode abrir salas (o endereço do site). Se um dia você tiver domínio próprio, junte aqui, separado por vírgula.
+# Quem pode abrir salas (os endereços do site), separados por vírgula.
 [vars]
-ORIGENS = "https://koda.gamersite.workers.dev"
+ORIGENS = "https://koda.gamersite.workers.dev,https://kodagb.com,https://www.kodagb.com"
 
 [[durable_objects.bindings]]
 name = "SALA"
