@@ -46,6 +46,12 @@ function cabecalhosCors(req, url, env) {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
+    /* o login do Google (Firebase) passa pelo kodagb.com: repassa /__/auth/* e /__/firebase/* pro endereço do Firebase do projeto */
+    if ((url.pathname.startsWith('/__/auth/') || url.pathname.startsWith('/__/firebase/')) && (req.method === 'GET' || req.method === 'POST' || req.method === 'HEAD')) {
+      const base = String(env.AUTH_UPSTREAM || 'https://jogodromo.firebaseapp.com').replace(/\/$/, '');
+      const r = await fetch(new Request(base + url.pathname + url.search, { method: req.method, headers: req.headers, body: req.method === 'POST' ? req.body : undefined, redirect: 'manual' }));
+      return new Response(r.body, { status: r.status, headers: r.headers });
+    }
     if (!url.pathname.startsWith('/api/')) {
       if (!env.ASSETS) return new Response('Não achei.', { status: 404 });
       /* o endereço antigo continua com a versão de antes (pasta legado/); as novidades ficam só no kodagb.com */

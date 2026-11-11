@@ -6678,7 +6678,8 @@ const SERVER_URL = 'https://jogodromo-agente.gamersite.workers.dev';
 const ANALISE_LIGADA = true;
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyC3lZRU__V22t3_dq12p3ObxFyYtQasGBc",
-  authDomain: "jogodromo.firebaseapp.com",
+  /* no kodagb.com o login do Google passa pelo próprio kodagb.com (o servidor repassa /__/auth/* pro Firebase), então o nome que aparece é o do site */
+  authDomain: (location.hostname === "kodagb.com" ? "kodagb.com" : "jogodromo.firebaseapp.com"),
   projectId: "jogodromo",
   storageBucket: "jogodromo.firebasestorage.app",
   messagingSenderId: "572604711113",
