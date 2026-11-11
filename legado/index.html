@@ -99,8 +99,8 @@
     if(h === ANTIGO){
       if(q.get('semmig') === '1') return;            // só o dono, pra ver o endereço antigo
       var nonce = q.get('kmig');
-      /* abriu o endereço antigo direto: ele continua funcionando normal (por enquanto os dois endereços ficam no ar) */
-      if(!/^[0-9a-f]{32}$/.test(String(nonce))) return;
+      /* abriu o endereço antigo direto: manda pro kodagb.com, levando o caminho e o link (o ?semmig=1 acima é a saída) */
+      if(!/^[0-9a-f]{32}$/.test(String(nonce))){ parar(); tela(); ir('https://' + NOVO + loc.pathname + loc.search + hash); return; }
       parar(); tela();                                  // veio do endereço novo pedindo o cofre
       entregar(nonce, function(r){
         var limpo = semParametro('kmig'), busca = limpo.indexOf('?') < 0 ? '' : limpo.slice(limpo.indexOf('?'));
