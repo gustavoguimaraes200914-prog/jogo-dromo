@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Corrida de Fichas</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#212121;color:#fff}canvas{background:#37474f;border-radius:12px;max-width:100%;touch-action:none}</style></head>
+<body>
+<h1>Corrida de Fichas</h1><canvas id="c" width="300" height="460"></canvas><div class="msg">Toque na esquerda ou direita para trocar de faixa</div>
+<script>
+var c = document.getElementById('c'), ctx = c.getContext('2d');
+var tokens = 0, score = 0, faixa = 1, obj = [], t = 0, fim = false;
+c.addEventListener('pointerdown', function(e){ if(fim){ tokens = 0; score = 0; obj = []; fim = false; loop(); return; } var r = c.getBoundingClientRect(); faixa = Math.max(0, Math.min(2, faixa + ((e.clientX - r.left) < r.width / 2 ? -1 : 1))); });
+function loop(){
+  t++; score++;
+  if(t % 38 === 0) obj.push({f: Math.floor(Math.random() * 3), y: -20, ficha: Math.random() < 0.6});
+  obj.forEach(function(o){ o.y += 4.5; });
+  obj = obj.filter(function(o){
+    if(o.y > 380 && o.y < 430 && o.f === faixa){ if(o.ficha) tokens++; else fim = true; return false; }
+    return o.y < 480;
+  });
+  ctx.clearRect(0, 0, 300, 460);
+  ctx.strokeStyle = '#90a4ae'; ctx.setLineDash([12, 12]); ctx.beginPath(); ctx.moveTo(100, 0); ctx.lineTo(100, 460); ctx.moveTo(200, 0); ctx.lineTo(200, 460); ctx.stroke(); ctx.setLineDash([]);
+  obj.forEach(function(o){ var x = 50 + o.f * 100; if(o.ficha){ ctx.fillStyle = '#ffca28'; ctx.beginPath(); ctx.arc(x, o.y, 14, 0, 7); ctx.fill(); ctx.fillStyle = '#6d4c41'; ctx.font = '14px system-ui'; ctx.fillText('F', x - 4, o.y + 5); } else { ctx.fillStyle = '#e53935'; ctx.fillRect(x - 22, o.y - 14, 44, 28); } });
+  ctx.fillStyle = '#4fc3f7'; ctx.fillRect(50 + faixa * 100 - 20, 390, 40, 52);
+  ctx.fillStyle = '#fff'; ctx.font = '18px system-ui'; ctx.fillText('Fichas: ' + tokens + '  Pontos: ' + score, 10, 26);
+  if(fim){ ctx.font = '26px system-ui'; ctx.fillText('Bateu! Toque', 80, 220); return; }
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body></html>

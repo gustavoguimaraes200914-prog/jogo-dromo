@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Estrelas do Espaço</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#05051a;color:#fff}canvas{background:#0b0b2e;border-radius:12px;max-width:100%;touch-action:none}</style></head>
+<body>
+<h1>Estrelas do Espaço</h1><canvas id="c" width="360" height="480"></canvas><div class="msg">Arraste a nave. Pegue as estrelas, fuja das pedras.</div>
+<script>
+var c = document.getElementById('c'), ctx = c.getContext('2d');
+var stars = 0, lives = 3, nave = 180, objetos = [], tick = 0;
+c.addEventListener('pointermove', function(e){ var r = c.getBoundingClientRect(); nave = (e.clientX - r.left) * (c.width / r.width); });
+function desenhar(){
+  ctx.clearRect(0, 0, 360, 480);
+  objetos.forEach(function(o){
+    if(o.star){ ctx.fillStyle = '#ffd54f'; ctx.font = '26px serif'; ctx.fillText('★', o.x - 12, o.y); }
+    else { ctx.fillStyle = '#78909c'; ctx.beginPath(); ctx.arc(o.x, o.y, 12, 0, 7); ctx.fill(); }
+  });
+  ctx.fillStyle = '#80d8ff'; ctx.beginPath(); ctx.moveTo(nave, 420); ctx.lineTo(nave - 16, 456); ctx.lineTo(nave + 16, 456); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = '20px system-ui'; ctx.fillText('★ ' + stars + '   Vidas ' + lives, 10, 28);
+}
+function loop(){
+  tick++; if(tick % 35 === 0) objetos.push({x: 20 + Math.random() * 320, y: 0, star: Math.random() < 0.7});
+  objetos.forEach(function(o){ o.y += 3.2; });
+  objetos = objetos.filter(function(o){
+    if(o.y > 410 && o.y < 460 && Math.abs(o.x - nave) < 26){ if(o.star) stars++; else lives--; return false; }
+    return o.y < 500;
+  });
+  desenhar();
+  if(lives <= 0){ ctx.font = '30px system-ui'; ctx.fillText('Fim de jogo', 100, 240); return; }
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body></html>

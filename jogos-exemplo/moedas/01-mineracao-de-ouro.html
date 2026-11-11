@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mineração de Ouro</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#2b1d12;color:#ffe9b8}#ore{font-size:96px;cursor:pointer;margin:14px}button{background:#f5b301;color:#2b1d12}.hud{font-size:22px;margin:8px}</style></head>
+<body>
+<h1>Mineração de Ouro</h1>
+<div class="hud">Ouro: <b id="ouro">0</b> &middot; Poder da picareta: <b id="poder">1</b></div>
+<div id="ore">⛏</div>
+<div><button onclick="comprarPicareta()">Picareta melhor (50 ouro)</button> <button onclick="comprarAjudante()">Ajudante (120 ouro)</button></div>
+<div class="msg" id="msg"></div>
+<script>
+var gold = 0, poder = 1, ajudantes = 0;
+function mostrar(){ document.getElementById('ouro').textContent = gold; document.getElementById('poder').textContent = poder; }
+function dizer(t){ document.getElementById('msg').textContent = t; }
+document.getElementById('ore').onclick = function(){ gold += poder; mostrar(); };
+function comprarPicareta(){ if(gold >= 50){ gold -= 50; poder += 1; mostrar(); dizer('Picareta melhor!'); } else dizer('Falta ouro.'); }
+function comprarAjudante(){ if(gold >= 120){ gold -= 120; ajudantes += 1; mostrar(); dizer('Ajudante contratado!'); } else dizer('Falta ouro.'); }
+setInterval(function(){ gold += ajudantes; mostrar(); }, 1000);
+mostrar();
+</script>
+</body></html>

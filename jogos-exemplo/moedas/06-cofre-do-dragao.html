@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cofre do Dragão</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#1b0f2b;color:#f3e5f5}.hud{font-size:24px}button{background:#7e57c2;color:#fff}.inv{margin:10px;color:#ce93d8}</style></head>
+<body>
+<h1>Cofre do Dragão</h1>
+<div class="hud">$ <b id="grana">100</b> &middot; Vida do dragão: <b id="vida">20</b></div>
+<div><button onclick="atacar()">Atacar o dragão (+$10)</button></div>
+<h3>Loja do ferreiro</h3><div id="loja"></div>
+<div class="inv">Mochila: <span id="mochila">vazia</span></div><div class="msg" id="msg"></div>
+<script>
+var money = 100, vidaDragao = 20, mochila = [];
+var ITENS = [{nome: 'Espada', preco: 30}, {nome: 'Escudo', preco: 45}, {nome: 'Poção', preco: 15}, {nome: 'Capa mágica', preco: 80}];
+function atualizar(){
+  document.getElementById('grana').textContent = money; document.getElementById('vida').textContent = vidaDragao;
+  document.getElementById('mochila').textContent = mochila.length ? mochila.join(', ') : 'vazia';
+}
+function atacar(){ vidaDragao -= 1; money += 10; if(vidaDragao <= 0){ vidaDragao = 20; document.getElementById('msg').textContent = 'Dragão derrotado! Outro apareceu.'; } atualizar(); }
+function comprar(i){
+  if(money >= i.preco){ money -= i.preco; mochila.push(i.nome); document.getElementById('msg').textContent = 'Comprou ' + i.nome + '!'; }
+  else document.getElementById('msg').textContent = 'Dinheiro insuficiente.';
+  atualizar();
+}
+ITENS.forEach(function(i){
+  var b = document.createElement('button'); b.textContent = i.nome + ' ($' + i.preco + ')'; b.onclick = function(){ comprar(i); };
+  document.getElementById('loja').appendChild(b);
+});
+atualizar();
+</script>
+</body></html>

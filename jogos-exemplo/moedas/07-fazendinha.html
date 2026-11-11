@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fazendinha</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#e8f5e9;color:#1b5e20}.hud{font-size:22px}button{background:#43a047;color:#fff}.campo{font-size:44px;min-height:60px}</style></head>
+<body>
+<h1>Fazendinha</h1>
+<div class="hud">R$ <b id="cash">20</b> &middot; Sementes: <b id="sem">0</b> &middot; Colheita: <b id="col">0</b></div>
+<div class="campo" id="campo"></div>
+<div><button onclick="buySeed()">Comprar semente (R$5)</button> <button onclick="plantar()">Plantar</button> <button onclick="colher()">Vender colheita (+R$12)</button></div>
+<div class="msg" id="msg"></div>
+<script>
+const player = {cash: 20, seeds: 0, crops: 0, plantadas: 0};
+function desenhar(){
+  document.getElementById('cash').textContent = player.cash; document.getElementById('sem').textContent = player.seeds; document.getElementById('col').textContent = player.crops;
+  document.getElementById('campo').textContent = '🌱'.repeat(player.plantadas) + '🥕'.repeat(player.crops);
+}
+function dizer(t){ document.getElementById('msg').textContent = t; }
+function buySeed(){ if(player.cash >= 5){ player.cash -= 5; player.seeds++; dizer('Semente comprada.'); } else dizer('Falta dinheiro.'); desenhar(); }
+function plantar(){ if(player.seeds > 0){ player.seeds--; player.plantadas++; setTimeout(function(){ player.plantadas--; player.crops++; desenhar(); }, 3000); dizer('Plantado! Espere 3 segundos.'); } else dizer('Sem sementes.'); desenhar(); }
+function colher(){ if(player.crops > 0){ player.cash += player.crops * 12; player.crops = 0; dizer('Vendeu a colheita!'); } else dizer('Nada para vender.'); desenhar(); }
+desenhar();
+</script>
+</body></html>

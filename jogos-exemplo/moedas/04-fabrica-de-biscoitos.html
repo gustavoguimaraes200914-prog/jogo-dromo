@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fábrica de Biscoitos</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;text-align:center;user-select:none;-webkit-user-select:none}button{font-size:16px;margin:4px;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}.msg{min-height:24px;font-weight:700}body{background:#fff3e0;color:#5d4037}#bisc{font-size:110px;cursor:pointer}button{background:#8d6e63;color:#fff}.hud{font-size:22px}</style></head>
+<body>
+<h1>Fábrica de Biscoitos</h1>
+<div class="hud">Biscoitos: <b id="n">0</b> &middot; <span id="cps">0</span> por segundo</div>
+<div id="bisc">🍪</div>
+<div id="lojinha"></div><div class="msg" id="msg"></div>
+<script>
+var cookies = 0, porSegundo = 0;
+var UPG = [{id: 'vovo', nome: 'Vovó', custo: 15, cps: 1}, {id: 'forno', nome: 'Forno', custo: 100, cps: 6}, {id: 'fabrica', nome: 'Fábrica', custo: 500, cps: 30}];
+function ver(){ document.getElementById('n').textContent = Math.floor(cookies); document.getElementById('cps').textContent = porSegundo; }
+document.getElementById('bisc').onclick = function(){ cookies += 1; ver(); };
+UPG.forEach(function(u){
+  var b = document.createElement('button'); b.textContent = u.nome + ' - ' + u.custo + ' biscoitos';
+  b.onclick = function(){
+    if(cookies >= u.custo){ cookies -= u.custo; porSegundo += u.cps; ver(); document.getElementById('msg').textContent = u.nome + ' comprada!'; }
+    else document.getElementById('msg').textContent = 'Faltam biscoitos.';
+  };
+  document.getElementById('lojinha').appendChild(b);
+});
+setInterval(function(){ cookies += porSegundo; ver(); }, 1000);
+ver();
+</script>
+</body></html>
