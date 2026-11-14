@@ -36883,6 +36883,55 @@ function trechosDaMoeda(js, W, cvs){
       add(a, b);
     }
   }
+  /* desenharGema(g) / estrelaDesenho(e) / drawCoin(): a função inteira desenha a moeda, mesmo sem a palavra dentro */
+  var VERBO_DESENHO = /^(desenhar|desenha|desenho|desenhos|draw|drawing|render|renderizar|paint|pintar|mostrar|show|display|sprite)$/;
+  for(k = 0; k < T.length; k++){
+    if(T[k].t !== 'id' || !ehGatilho(T[k])) continue;
+    var ws = palavrasDoId(T[k].v);
+    if(!ws.some(function(w){ return VERBO_DESENHO.test(w); })) continue;
+    if(ws.some(function(w){ return /^(pegar|pega|coletar|coleta|collect|pick|add|soltar|criar|cria|spawn|gerar|gera|comprar|buy|som|sound|play)$/.test(w); })) continue;
+    var ab = -1;
+    if(T[k - 1] && T[k - 1].v === 'function' && T[k + 1] && T[k + 1].v === '('){ var pc = par(T, k + 1); if(pc > 0 && T[pc + 1] && T[pc + 1].v === '{') ab = pc + 1; }
+    else if(T[k + 1] && T[k + 1].v === '=' ){
+      var j = k + 2; if(T[j] && T[j].v === 'async') j++;
+      if(T[j] && T[j].v === 'function'){ while(T[j] && T[j].v !== '(') j++; var pf = T[j] ? par(T, j) : -1; if(pf > 0 && T[pf + 1] && T[pf + 1].v === '{') ab = pf + 1; }
+      else if(T[j] && T[j].v === '('){ var pa2 = par(T, j); if(pa2 > 0 && T[pa2 + 1] && T[pa2 + 1].v === '=>' && T[pa2 + 2] && T[pa2 + 2].v === '{') ab = pa2 + 2; }
+    }
+    else if(T[k + 1] && T[k + 1].v === '(' && T[k - 1] && /^[{},;]$/.test(T[k - 1].v)){ var pm = par(T, k + 1); if(pm > 0 && T[pm + 1] && T[pm + 1].v === '{') ab = pm + 1; }   /* método de classe/objeto */
+    if(ab < 0) continue;
+    var fb = par(T, ab); if(fb < 0) continue;
+    rs.push([ab + 1, fb - 1, true]);
+  }
+  /* o jogo desenha o item pelo TIPO DO BLOCO: if (ch === 'o') { joias++ } ... if (ch === 'o') { desenha a joia } */
+  function textoDe(a, b){ var o = []; for(var q = a; q <= b; q++) o.push(T[q].v); return o.join(''); }
+  var condicoes = {};
+  for(k = 0; k < T.length; k++){
+    if(T[k].t !== 'id' || !ehGatilho(T[k]) || !T[k + 1] || !/^(\+\+|\+=)$/.test(T[k + 1].v)) continue;
+    var pp = envolve[k];
+    while(pp >= 0){
+      /* o contador está dentro de um bloco  if (cond) { ... }  */
+      if(T[pp].v === '{' && T[pp - 1] && T[pp - 1].v === ')'){
+        var pa3 = parAntes(T, pp - 1);
+        if(pa3 > 0 && T[pa3 - 1] && T[pa3 - 1].v === 'if'){
+          var ct = textoDe(pa3 + 1, pp - 2);
+          if(/^[\w$.\[\]]+===?(['"][^'"]{1,3}['"]|\d+)$/.test(ct)) condicoes[ct] = 1;
+          break;
+        }
+      }
+      pp = envolve[pp];
+    }
+  }
+  if(Object.keys(condicoes).length){
+    for(k = 0; k < T.length; k++){
+      if(T[k].v !== 'if' || T[k].t !== 'id' || !T[k + 1] || T[k + 1].v !== '(') continue;
+      var fe3 = par(T, k + 1); if(fe3 < 0) continue;
+      if(!condicoes[textoDe(k + 2, fe3 - 1)]) continue;
+      var corpoFim = fimDaFraseMoeda(T, fe3 + 1);
+      /* só se tiver desenho (ctx.xxx) dentro: o bloco que conta a moeda não tem */
+      var tem = false; for(var q2 = fe3 + 1; q2 <= corpoFim; q2++) if(T[q2].t === 'id' && cvs[T[q2].v] && T[q2 + 1] && T[q2 + 1].v === '.') { tem = true; break; }
+      if(tem) rs.push([fe3 + 1, corpoFim, true]);
+    }
+  }
   return rs;
 }
 /* separa os argumentos de uma chamada: devolve [{a,b}] em índices de token */
@@ -36906,6 +36955,7 @@ function coordenada(txt){
 }
 function ehIdDeCor(t){ return t && t.t === 'str' && ehCorLiteral(valorDoTexto(t.v)); }
 /* aplica cor/forma dentro de um trecho; devolve quantas mudanças fez */
+var TRECHO_CORPO = false;
 function mudarTrecho(js, a, b, ped, ed, jaFeito, cvs, cont){
   var T = js.T, src = js.sc.corpo, j, n = 0;
   function troca(ini, fim, txt, chave){
@@ -36913,13 +36963,26 @@ function mudarTrecho(js, a, b, ped, ed, jaFeito, cvs, cont){
     jaFeito[k] = 1; ed.trocar(js.base + ini, js.base + fim, txt); n++; return true;
   }
   var corHex = ped.cor ? COR_MOEDA[ped.cor.id].hex : null;
+  /* o brilho em volta (shadowColor) acompanha a cor nova */
+  if(corHex && TRECHO_CORPO){
+    for(j = a; j <= b; j++){
+      if(T[j].t === 'id' && T[j].v === 'shadowColor' && T[j - 1] && T[j - 1].v === '.' && T[j + 1] && T[j + 1].v === '='){
+        var fs2 = fimDaExpr(T, j + 2, b + 1);
+        for(var i4 = j + 2; i4 <= fs2; i4++) if(ehIdDeCor(T[i4])) { if(troca(T[i4].s, T[i4].e, "'" + corHex + "'")) cont.cores++; }
+      }
+    }
+  }
   /* cor: o primeiro fillStyle do trecho */
   if(corHex){
     for(j = a; j <= b; j++){
       if(T[j].t === 'id' && T[j].v === 'fillStyle' && T[j - 1] && T[j - 1].v === '.' && T[j + 1] && T[j + 1].v === '='){
         var fe = fimDaExpr(T, j + 2, b + 1), q = -1, i2;
         for(i2 = j + 2; i2 <= fe; i2++){ if(T[i2].t === 'p' && T[i2].v === '?'){ q = i2; break; } }
-        if(q > 0){ for(i2 = q + 1; i2 <= fe; i2++){ if(ehIdDeCor(T[i2])){ if(troca(T[i2].s, T[i2].e, "'" + corHex + "'")) cont.cores++; break; } if(T[i2].t === 'p' && T[i2].v === ':') break; } }
+        if(q > 0){
+          for(i2 = q + 1; i2 <= fe; i2++){ if(ehIdDeCor(T[i2])){ if(troca(T[i2].s, T[i2].e, "'" + corHex + "'")) cont.cores++; break; } if(T[i2].t === 'p' && T[i2].v === ':') break; }
+          /* a função inteira é da moeda: o outro lado do "? :" (moeda comum x dourada) também muda */
+          if(TRECHO_CORPO) for(i2 = q + 1; i2 <= fe; i2++){ if(T[i2].t === 'p' && T[i2].v === ':'){ for(var i3 = i2 + 1; i3 <= fe; i3++){ if(ehIdDeCor(T[i3])){ if(troca(T[i3].s, T[i3].e, "'" + corHex + "'")) cont.cores++; break; } } break; } }
+        }
         else if(fe === j + 2 && ehIdDeCor(T[j + 2])){ if(troca(T[j + 2].s, T[j + 2].e, "'" + corHex + "'")) cont.cores++; }
         break;
       }
@@ -37076,7 +37139,7 @@ function mudarAparencia(codigo, m, ped){
   doc.js.forEach(function(js, idx){
     if(js.sc.koda) return;
     var antes = cont.formas + cont.cores + cont.simbolos;
-    trechosDaMoeda(js, W, cvs).forEach(function(r){ mudarTrecho(js, r[0], r[1], ped, ed, jaFeito, cvs, cont); });
+    trechosDaMoeda(js, W, cvs).forEach(function(r){ TRECHO_CORPO = !!r[2]; try{ mudarTrecho(js, r[0], r[1], ped, ed, jaFeito, cvs, cont); }finally{ TRECHO_CORPO = false; } });
     if(cont.formas + cont.cores + cont.simbolos > antes && algumScript < 0) algumScript = idx;
   });
   var novo = ed.aplicar();
@@ -37162,6 +37225,22 @@ H.moeda_aparencia = function(it, ctx, est){
   var alvo = falada[0] || cands[0];
   var ped = {cor: it.cor, forma: it.forma};
   var res = mudarAparencia(ctx.codigo, alvo, ped);
+  /* não achou pelo contador (o jogo não tem "moedas++", ou o contador é "pontos"): procura o que o jogo desenha com nome de moeda,
+     gema, estrela, ficha... (rodada.estrelas, listaGemas, desenharMoeda) e tenta cada uma */
+  if(!res){
+    var vistas = {}, tentativas = [];
+    try{
+      lerDocumento(ctx.codigo).js.forEach(function(js){ if(js.sc.koda) return; js.T.forEach(function(t){ if(t.t !== 'id') return; palavrasDoId(t.v).forEach(function(w){
+        var b = w.replace(/s$/, '');
+        Object.keys(FAMILIA_MOEDA).forEach(function(f){ if(FAMILIA_MOEDA[f].pal.split(' ').indexOf(w) >= 0 || FAMILIA_MOEDA[f].pal.split(' ').indexOf(b) >= 0) vistas[w] = (vistas[w] || 0) + 1; });
+      }); }); });
+    }catch(e){}
+    Object.keys(vistas).sort(function(a, b){ return vistas[b] - vistas[a]; }).forEach(function(w){ tentativas.push({caminho: w, nome: w, forca: 1}); });
+    for(var ti = 0; ti < tentativas.length && !res; ti++){
+      var rr = mudarAparencia(ctx.codigo, tentativas[ti], ped);
+      if(rr){ res = rr; alvo = tentativas[ti]; }
+    }
+  }
   var com = [];
   if(it.cor) com.push(T('cn_' + it.cor.id));
   if(it.forma) com.push(T('fn_' + it.forma.id));
@@ -38082,7 +38161,7 @@ return {
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
   /* (pra testes) */
   orientacao: function(c){ try{ return orientacaoComDetalhe(c); }catch(e){ return {modo: null, fixo: false, motivo: "erro"}; } },
-  _: {liberarBotoesDeCompra: liberarBotoesDeCompra, pedeValorMoeda: pedeValorMoeda, pedeAparenciaMoeda: pedeAparenciaMoeda, pedeLojaVariada: pedeLojaVariada, pedeVantagemKoda: pedeVantagemKoda, mudarAparencia: mudarAparencia, mudarValorDaMoeda: mudarValorDaMoeda, moedasSimples: moedasSimples, acharAtributos: acharAtributos, moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
+  _: {trechosDaMoeda: trechosDaMoeda, palavrasDaMoeda: palavrasDaMoeda, canvasContextos: canvasContextos, liberarBotoesDeCompra: liberarBotoesDeCompra, pedeValorMoeda: pedeValorMoeda, pedeAparenciaMoeda: pedeAparenciaMoeda, pedeLojaVariada: pedeLojaVariada, pedeVantagemKoda: pedeVantagemKoda, mudarAparencia: mudarAparencia, mudarValorDaMoeda: mudarValorDaMoeda, moedasSimples: moedasSimples, acharAtributos: acharAtributos, moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
       lojaCriar: lojaCriar, lojaRemover: lojaRemover, acharAtributos: acharAtributos, compila: compila, linhaDoErro: linhaDoErro,
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,
