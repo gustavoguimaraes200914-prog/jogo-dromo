@@ -27412,8 +27412,25 @@ function variavelDosPontos(doc){
   if(achada) return achada;
   /* placar dentro de um objeto do jogo: game.score / state.pontos */
   var m = /\b(game|jogo|state|estado|g|G|S)\s*\.\s*(score|pontos|points|pontuacao)\s*(\+\+|\+=)/.exec(doc.codigo);
-  return m ? m[1] + '.' + m[2] : null;
+  if(m) return m[1] + '.' + m[2];
+  return pontosPeloRecorde(doc);
 }
+/* sem variável de pontos, mas o jogo guarda um recorde: "if (robo.maisFundo > recorde) recorde = robo.maisFundo" ou "best = Math.max(best, dist)".
+   O que vai pro recorde é o resultado da partida. */
+function pontosPeloRecorde(doc){
+  var c = String(doc.codigo || '').replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, '');
+  var RN = '((?:recorde|record|best|highscore|hiscore|melhor|maxscore|topscore)[A-Za-z_$]*)';
+  var EX = '([A-Za-z_$][\\w$]*(?:\\.[A-Za-z_$][\\w$]*)?)';
+  var m = new RegExp('if\\s*\\(\\s*' + EX + '\\s*>=?\\s*' + RN + '\\s*\\)\\s*\\{?\\s*\\2\\s*=\\s*(?:Math\\.(?:floor|round|ceil)\\(\\s*)?\\1\\b', 'i').exec(c);
+  if(m && !/^(this|window|document|localStorage|Math)$/.test(m[1])) return m[1];
+  m = new RegExp('\\b' + RN + '\\s*=\\s*Math\\.max\\(\\s*\\1\\s*,\\s*' + EX + '\\s*\\)', 'i').exec(c);
+  if(m && !/^(this|window|document|localStorage|Math)$/.test(m[2])) return m[2];
+  m = new RegExp('\\b' + RN + '\\s*=\\s*Math\\.max\\(\\s*' + EX + '\\s*,\\s*\\1\\s*\\)', 'i').exec(c);
+  if(m && !/^(this|window|document|localStorage|Math)$/.test(m[2])) return m[2];
+  return null;
+}
+/* estado = 'gameover' / 'fim' / 'batida' (a palavra inteira: 'correndo' tem "end" dentro e não é fim) */
+var ESTADO_DE_FIM = /^(game ?_?over|gameover|over|fim|fim ?_?de ?_?jogo|fimdejogo|perdeu|perdido|end|ended|the ?end|morreu|morte|morto|derrota|dead|died|acabou|lost|lose|batida|bateu|crash|crashed|explodiu|fimdapartida|fim_partida)$/;
 function planoDePontuar(doc){
   var pts = variavelDosPontos(doc);
   if(!pts) return null;
@@ -27446,7 +27463,7 @@ function planoDePontuar(doc){
     cadaTok(doc, function(t, j, js){
       if(js.sc.koda || t.t !== 'id' || !/^(state|estado|gamestate|estadojogo|tela|screen|modo|mode|fase_?jogo)$/i.test(chaveDeNome(t.v))) return;
       var T = js.T;
-      if(!T[j + 1] || T[j + 1].v !== '=' || !T[j + 2] || T[j + 2].t !== 'str' || !/over|fim|perdeu|end|morreu|derrota/i.test(T[j + 2].v)) return;
+      if(!T[j + 1] || T[j + 1].v !== '=' || !T[j + 2] || T[j + 2].t !== 'str' || !ESTADO_DE_FIM.test(semAcento(String(T[j + 2].v).replace(/^['"`]|['"`]$/g, '')).toLowerCase())) return;
       var ini = T[j - 1] && T[j - 1].v === '.' && T[j - 2] ? j - 2 : j;
       if(T[j - 1] && /^(let|var|const)$/.test(T[j - 1].v)) return;
       trocas.push({ini: js.base + T[ini].s, fim: js.base + T[ini].s, txt: abreFrase(T, ini)});
@@ -39162,7 +39179,7 @@ function kodaRecordesNoJogo(C){
     if(window.kodaSalvoVigiar) return;        /* o "salvar" do jogo já guarda junto (ver abaixo) */
     try{ var S = window.KODA && window.KODA.salvar; if(!S || !S.guardar) return; var d = (S.carregar && S.carregar()) || {}; if(typeof d !== 'object' || d === null || d.length != null) d = {}; d.v = d.v || {}; d.v.__recordes = lista; S.guardar(d); }catch(e){}
   }
-  function fmt(n){ try{ return Number(n).toLocaleString(C.lang || 'pt-BR'); }catch(e){ return String(n); } }
+  function fmt(n){ n = Number(n); if(Math.abs(n) >= 10) n = Math.round(n); else n = Math.round(n * 10) / 10; try{ return n.toLocaleString(C.lang || 'pt-BR'); }catch(e){ return String(n); } }
   function atualizarSelo(){ if(!selo) return; selo.textContent = lista.length ? C.txt.recorde + ': ' + fmt(lista[0].p) : ''; selo.style.display = lista.length ? 'block' : 'none'; }
   function aviso(txt, sub){
     var b = document.createElement('div');
@@ -39232,10 +39249,29 @@ function kodaAjudaNoJogo(C){
   }
   if(document.body) montar(); else document.addEventListener('DOMContentLoaded', montar);
 }
+/* "Setas para andar. Espaço: Pular. X: Atirar." — lido das teclas que o jogo usa de verdade */
+function dicaDasTeclas(codigo, lg){
+  var t = teclasDoJogo(codigo), partes = [];
+  var s = t.setas, w = t.wasd, temSetas = s.esq || s.dir || s.cima || s.baixo, temWasd = w.esq || w.dir || w.cima || w.baixo;
+  if(temSetas || temWasd){
+    var so2 = !(s.cima || s.baixo || w.cima || w.baixo);
+    var quais = temSetas && temWasd ? TL(lg, 'cj_setas_wasd') : (temSetas ? (so2 ? '← →' : TL(lg, 'cj_setas')) : 'W A S D');
+    partes.push(TL(lg, 'cj_andar').replace('{t}', quais));
+  }
+  var vistos = {};
+  t.acoes.forEach(function(k){
+    var rot = rotuloDaTecla(codigo, k, lg); if(!rot || vistos[rot]) return; vistos[rot] = 1;
+    var nome = k === 'Space' ? TL(lg, 'cj_espaco') : (k === 'Enter' ? 'Enter' : (/^Shift/.test(k) ? 'Shift' : k.replace('Key', '')));
+    partes.push(nome + ': ' + rot);
+  });
+  if(!partes.length && t.toque) partes.push(TL(lg, 'cj_toque'));
+  else if(t.toque && !t.teclado) partes.push(TL(lg, 'cj_toque'));
+  return partes.length ? partes.join('. ') + '.' : '';
+}
 function fazerAjuda(codigo, texto){
   var doc = lerDocumento(codigo), lg = linguaDoJogo(doc);
   var cfgP = lerConfig(codigo, 'data-koda-painel');
-  var dica = texto || dicaDeControles(codigo, lg) || TL(lg, 'aj_padrao');
+  var dica = texto || dicaDasTeclas(codigo, lg) || dicaDeControles(codigo, lg) || TL(lg, 'aj_padrao');
   var cfg = {titulo: tituloDoJogo(codigo), texto: dica.replace(/\.\s+/g, '.\n'), lado: cfgP && /esq/.test(String(cfgP.pos || '')) ? 'dir' : (cfgP ? 'esq' : 'dir'), txt: {titulo: TL(lg, 'aj_titulo'), entendi: TL(lg, 'aj_entendi')}};
   var cfg0 = lerConfig(codigo, 'data-koda-ajuda');
   if(cfg0 && cfg0.texto === cfg.texto) return {erro: 'ja_tem'};
@@ -39375,7 +39411,12 @@ function entenderOpcoes(P, ctx){
     return {int: 'op_recordes', tirar: tirar};
   }
   /* botão de ajuda */
-  if(/\b(botao de ajuda|botao (de|com) (interrogacao|\?)|ajuda no jogo|botao (de|com) instruc\w*|help button|boton de ayuda|botao (de )?como jogar|ajudinha|botao de dica\w*|botao ajuda)\b/.test(n) || (/\b(ajuda|instruc\w*|como jogar|explica\w*)\b/.test(n) && /\b(botao|botaozinho|interrogacao|button|boton)\b/.test(n) && !/\b(pausa|som|reinici\w*|loja)\b/.test(n))){
+  var poeAjuda = /\b(coloca\w*|poe|por|bota\w*|botar|faz|faca|fazer|adiciona\w*|cria|crie|criar|mostra\w*|quero|queria|tem que ter|add|put|make|show|pon|poner|agrega\w*|haz)\b/.test(n) &&
+    /\b(tela (de|com|que mostra) (ajuda|instruc\w*|como (se )?joga\w*|dicas?|explicac\w*)|instruc\w*|como (se )?joga\w* (no|na|do|antes|quando)|como (se )?joga\w*$|um tutorial|tutorial (no|do|pro|para o) jogo|explicac\w* (de|do) (como|jogo)|help screen|how to play|instructions|pantalla de ayuda|como (se )?jugar|instrucciones)\b/.test(n) &&
+    !/\b(pausa|loja|reinici\w*|me (explica|ensina)|voce|vc|o que (e|eh)|tela (de )?inici\w*|tela de comeco|menu inicial|start screen|title screen|pantalla de inicio)\b/.test(n);
+  if(!poeAjuda && !tirar && /\b(como (e que |eu |que |se |a gente )?(jog\w*|controla\w*|mexe|me mexo|ando|anda|movo|move)|quais (sao )?as teclas|que teclas|qual (e )?a tecla|quais (sao )?os controles|como funciona (o |esse |este |meu |o meu )?jogo|me explica\w* (como (se )?jog\w*|o jogo)|explica\w* (como (se )?jog\w*|o jogo)|how (do (i|you)|to) play|what are the (keys|controls)|como se juega|como juego|que teclas)\b/.test(n) &&
+     !/\b(mais|menos|alto|rapido|devagar|colocar|coloco|mudar|mudo|fazer|faco|online|skin|loja|salv\w*|moedas?|ranking|personagem|amigos?|celular|tela|joystick|controles na)\b/.test(n)) return {int: 'como_joga'};
+  if(poeAjuda || /\b(botao de ajuda|botao (de|com) (interrogacao|\?)|ajuda no jogo|botao (de|com) instruc\w*|help button|boton de ayuda|botao (de )?como jogar|ajudinha|botao de dica\w*|botao ajuda)\b/.test(n) || (/\b(ajuda|instruc\w*|como jogar|explica\w*)\b/.test(n) && /\b(botao|botaozinho|interrogacao|button|boton)\b/.test(n) && !/\b(pausa|som|reinici\w*|loja)\b/.test(n))){
     return {int: 'op_ajuda', tirar: tirar};
   }
   return null;
@@ -39391,8 +39432,11 @@ entender = function(txt, ctx){
         /* com uma pergunta do agente esperando resposta, a resposta é dela; só se ela não servir é que vira pedido novo */
         if(est.pendente){
           var r0 = entenderAntesDasOpcoes(txt, ctx);
-          if(r0 && !/^(nada|confuso|pedido|outra_ia)$/.test(r0.int)) return r0;
           var P0 = analisar(txt, ctx), it0 = entenderOpcoes(P0, ctx) || entenderOpcoes({n: cru}, ctx);
+          /* a oferta de trocar a moeda (feita logo ao abrir o jogo) é só uma sugestão: um pedido novo que eu entendo ganha dela */
+          var soOferta = est.pendente.tipo === 'mod_moeda' && r0 && !/^(moeda\w*|confirmou|negou|escolheu_item|deu_nome|loja\w*|preco\w*|item\w*)$/.test(r0.int);
+          if(it0 && soOferta && it0.int !== 'ajuda'){ est.pendente = null; it0.P = P0; return it0; }
+          if(r0 && !/^(nada|confuso|pedido|outra_ia)$/.test(r0.int)) return r0;
           if(it0){ est.pendente = null; it0.P = P0; return it0; }
           return r0;
         }
@@ -39495,6 +39539,16 @@ H.op_ajuda = function(it, ctx, est){
   diz(r, T('aj_ok', {texto: res.res.cfg.texto.replace(/\n/g, ' ')}));
   chip(r, T('ch_testar'));
   return aplicar(est, r, ctx.codigo, res.codigo, T('d_ajuda'));
+};
+H.como_joga = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp(), lg = LING, dica = dicaDasTeclas(ctx.codigo, lg) || dicaDeControles(ctx.codigo, lg), tit = tituloDoJogo(ctx.codigo);
+  if(!dica) diz(r, T('cj_nao_achei'));
+  else diz(r, T(tit ? 'cj_resp_t' : 'cj_resp', {titulo: tit, dica: dica}));
+  if(!/data-koda-ajuda/.test(ctx.codigo)) chip(r, T('ch_poe_ajuda'));
+  var tq = teclasDoJogo(ctx.codigo);
+  if(tq.teclado && !/data-koda-controles/.test(ctx.codigo) && !jaTemControlesDeToque(ctx.codigo)) chip(r, T('ch_poe_controles'));
+  return r;
 };
 H.op_volume = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
@@ -39654,6 +39708,13 @@ H.op_nome = function(it, ctx, est){
   return aplicar(est, r, ctx.codigo, res.codigo, T('d_nome'));
 };
 textosEm10({
+  cj_andar: '{t} para mover|{t} to move|{t} para moverte', cj_setas: 'Setas|Arrow keys|Flechas', cj_setas_wasd: 'Setas ou W A S D|Arrow keys or W A S D|Flechas o W A S D',
+  cj_espaco: 'Espaço|Space|Espacio', cj_toque: 'Toque ou clique na tela|Tap or click the screen|Toca o haz clic en la pantalla',
+  cj_resp: 'É assim que se joga: {dica}|This is how you play: {dica}|Así se juega: {dica}',
+  cj_resp_t: 'É assim que se joga {titulo}: {dica}|This is how you play {titulo}: {dica}|Así se juega {titulo}: {dica}',
+  cj_nao_achei: 'Não achei as teclas no código desse jogo. Se você souber, me diga que eu coloco um botão de ajuda com elas.|I could not find the keys in this game code. Tell me and I will add a help button with them.|No encontré las teclas en el código de este juego. Dímelas y pongo un botón de ayuda con ellas.',
+  ch_poe_ajuda: 'Coloca um botão de ajuda no jogo|Add a help button to the game|Pon un botón de ayuda en el juego',
+  ch_poe_controles: 'Coloca controles na tela|Add on-screen controls|Pon controles en la pantalla',
   ss_ok: 'Pronto! Tirei os sons que eu tinha colocado.|Done! I removed the sounds I had added.|¡Listo! Quité los sonidos que había puesto.',
   d_sons: 'sons|sounds|sonidos',
   nj_ok: 'Pronto! O jogo agora se chama "{nome}".|Done! The game is now called "{nome}".|¡Listo! El juego ahora se llama "{nome}".',

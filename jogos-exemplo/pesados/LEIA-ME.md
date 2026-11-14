@@ -56,8 +56,24 @@ Esses jogos acharam pontos fracos do agente, que foram corrigidos:
 | `faz chover` (ou neve, folhas, estrelas, neblina) | Clima por cima do jogo, sem atrapalhar os cliques. |
 | `faz tremer a tela quando levar dano` / `confete quando passar de fase` | Efeito no momento certo do jogo. |
 | `mostra meu nome no jogo` | Nome e personagem do Koda GB no canto. |
-| `mostra meu recorde` | Recorde guardado no aparelho e mostrado no canto. |
+| `mostra meu recorde` | Os 5 melhores resultados de cada pessoa, guardados na conta dela, e "Novo recorde!" quando bate. Funciona até em jogo sem "pontos" (na Mina vale a fundura, na Corrida a distância, na Masmorra o andar). |
+| `como joga?` | O agente responde com as teclas de verdade do jogo (ex.: "Setas ou W A S D para mover. Espaço: Pular. X: Atacar."). Não muda o jogo. |
 | `coloca uma tela de ajuda` | Botão "?" que mostra as teclas do jogo. |
 | `coloca um pet gato que me segue` | Bichinho que segue o herói (gato, cachorro, dragão, robô...). |
 | `muda o nome do jogo para ...` | Título trocado na tela e na aba. |
 | `cada clique me dá 1 Koda Coin` | **Recusa** (é trapaça). |
+
+## Mais testes por jogo (todos conferidos rodando)
+
+| # | Jogo | Frases extras |
+|---|------|---------------|
+| 01 | Mina Profunda | `coloca música de mistério` · `mostra meu recorde` |
+| 02 | Arena dos Slimes | `coloca música de luta` · `coloca um pet dragão que me segue` · `como joga?` |
+| 03 | Corrida Neon | `coloca música de festa` · `coloca controles na tela` (no celular) |
+| 04 | Masmorra Sem Fim | `coloca música de terror` · `coloca uma tela de ajuda` |
+| 05 | Esquadrilha Estelar | `faz a tela tremer quando perder vida` · `coloca música épica` |
+| 06 | Kart Turbo | `mostra meu nome no jogo` · `coloca música retrô` |
+| 07 | Fazenda Feliz | `faz chover` · `coloca música fofa` |
+| 08 | Blocos Mágicos | `coloca música lofi` · `mostra meu recorde` |
+| 09 | Cavaleiro das Torres | `faz nevar` · `coloca um pet gato que me segue` · `coloca controles na tela` → `Sim, coloca mesmo assim` |
+| 10 | Cidade Ociosa | `coloca música calma` · `muda o nome do jogo para Minha Cidade` |
