@@ -17,6 +17,10 @@ Como testar: abra a sua conta, toque em **Criar jogo** e depois em **Já tenho o
 | 09 | **Cavaleiro das Torres** (4 torres, espinhos, plataformas que andam e que caem) | Mudar números do jogo | `pulo mais alto`, `mais vidas`, `deixa mais difícil` | Pulo de 430 para 559. Vidas de 3 para 5 (também quando recomeça). "Mais difícil" deixa os **inimigos** mais rápidos e tira uma vida (o cavaleiro não fica mais rápido). |
 | 10 | **Cidade Ociosa** (idle: 8 prédios, 8 melhorias, prestígio) | A trava do Koda GB + verificar + nota | `a cada clique eu ganho 1 Koda Coin`, `verifica meu código`, `dá uma nota pro meu jogo` | O agente **recusa** dar moeda do Koda GB por clique. A verificação diz que está tudo certo e a nota vem com o que está bom e dicas. Extra: `troca as moedas do jogo pelas do Koda GB` vira 16 itens na loja (8 prédios + 8 melhorias). |
 
+## Capas
+
+Na pasta `capas/` tem uma capa para cada jogo (imagem de 640 x 640, mesmo nome do jogo). Para usar: no Studio, toque na caixa da **capa** e escolha a imagem (ou mande a imagem pro agente no chat). O Studio corta para quadrado, 4:3 ou em pé, e o título e o desenho principal ficam inteiros nos três formatos.
+
 ## Teste mais pesado: tudo junto
 
 Em qualquer um deles (melhor no 02, 05 ou 09), mande em sequência:
