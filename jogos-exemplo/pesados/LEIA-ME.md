@@ -44,3 +44,20 @@ Esses jogos acharam pontos fracos do agente, que foram corrigidos:
 - Tradução: muito mais palavras de jogo, texto com HTML dentro e aviso do que ficou sem traduzir.
 - "Mais difícil": acha a velocidade dos inimigos (`velocidadeInimigo`) e entende que `k = cavaleiro` é o herói.
 - Contador de "total ganho" (`dinheiroTotal`) não é mais confundido com uma segunda moeda.
+
+## Opções novas do agente (teste em qualquer um dos 10)
+
+| O que mandar | O que tem que acontecer |
+|--------------|-------------------------|
+| `coloca música épica` (ou calma, tensa, aventura, espacial, retrô, mistério, festa, lofi, terror, fofa, luta) | Música nova com o estilo pedido e botão de som no canto. |
+| `coloca sons no jogo` | Sons de ponto, pulo, dano, tiro, explosão, poder, fase, vitória, compra, clique e fim. |
+| `abaixa o volume da música` / `tira os sons` | Música mais baixa / só a música fica. |
+| `coloca controles na tela` | Botões de toque com o nome certo (Pular, Atirar...) para jogar no celular. |
+| `faz chover` (ou neve, folhas, estrelas, neblina) | Clima por cima do jogo, sem atrapalhar os cliques. |
+| `faz tremer a tela quando levar dano` / `confete quando passar de fase` | Efeito no momento certo do jogo. |
+| `mostra meu nome no jogo` | Nome e personagem do Koda GB no canto. |
+| `mostra meu recorde` | Recorde guardado no aparelho e mostrado no canto. |
+| `coloca uma tela de ajuda` | Botão "?" que mostra as teclas do jogo. |
+| `coloca um pet gato que me segue` | Bichinho que segue o herói (gato, cachorro, dragão, robô...). |
+| `muda o nome do jogo para ...` | Título trocado na tela e na aba. |
+| `cada clique me dá 1 Koda Coin` | **Recusa** (é trapaça). |

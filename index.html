@@ -27831,7 +27831,7 @@ function fazerSons(codigo, quais){
     feitos.pulo = (feitos.pulo || 0) + 1;
   });
   if(!Object.keys(feitos).length) return {erro: 'nao_achei'};
-  ed.inserir(pontoDeEntrada(codigo, doc), '\n<script data-koda-sons="1">(' + kodaSonsNoJogo.toString() + ')();<\/script>\n');
+  ed.inserir(pontoDeEntrada(codigo, doc), '\n' + scriptDeSons() + '\n');
   var novo = ed.aplicar();
   if(!novo) return {erro: 'edicao'};
   return conferirDepois(codigo, novo, {sons: feitos});
@@ -30679,7 +30679,7 @@ function kodaPainelNoJogo(C){
   function caixa(css){ var d = document.createElement('div'); d.style.cssText = css; return d; }
   var kodaMidiaPausa = [];        /* áudios e vídeos tocando na hora da pausa: voltam a tocar quando continua */
   function congelar(){
-    pausado = true; marca = pn(); marcaD = dn();
+    pausado = true; window.__kodaPausa = true; marca = pn(); marcaD = dn();
     ctxs.forEach(function(c){ try{ c.suspend(); }catch(e){} });
     [].forEach.call(document.querySelectorAll('audio,video'), function(m){ try{ if(!m.paused && !m.__kodaArte){ m.pause(); kodaMidiaPausa.push(m); } }catch(e){} });
   }
@@ -30691,7 +30691,7 @@ function kodaPainelNoJogo(C){
   }
   function retomar(){
     if(!pausado) return;
-    pausado = false; off += pn() - marca;
+    pausado = false; window.__kodaPausa = false; off += pn() - marca;
     if(!mudo) ctxs.forEach(function(c){ try{ c.resume(); }catch(e){} });
     kodaMidiaPausa.splice(0).forEach(function(m){ try{ var pm = m.play(); if(pm && pm.catch) pm.catch(function(){}); }catch(e){} });
     if(bPausa) bPausa.innerHTML = icone('pausa');
@@ -30913,7 +30913,7 @@ function fazerMusica(codigo, estilo, tirar){
   var limpo = tirarMarca(codigo, 'data-koda-musica');
   if(tirar){ if(limpo === codigo) return {erro: 'nada'}; return conferirDepois(codigo, limpo, {tirou: true}); }
   if(cfg && cfg.estilo === estilo) return {erro: 'ja_tem', res: {estilo: estilo}};
-  var novo = colocarNoComeco(limpo, paraScript(kodaMusicaNoJogo, {estilo: estilo, vol: .6}, 'musica'));
+  var novo = colocarNoComeco(limpo, paraScriptMusica({estilo: estilo, vol: .6}));
   /* o botão de som junto: quem coloca música quer poder desligar */
   var r = conferirDepois(codigo, novo, {estilo: estilo, trocou: !!cfg});
   if(r.erro) return r;
@@ -31129,13 +31129,13 @@ var RX = {
   normal: /\b(cores normais|sem filtro|tira o filtro|tirar o filtro|volta as cores|voltar as cores|cores originais|normal colors|no filter|remove the filter|quita el filtro|colores normales)\b/,
   cores: /\b(cor|cores|color|colors|colour|colores|tom|tons|tone|tint)\b/, tudo: /\b(tudo|todo|toda|jogo|tela|visual|everything|whole|screen|game|juego|pantalla)\b/
 };
-var ESTILOS_MUSICA = [['alegre', /\b(alegre|feliz|animad\w*|divertid\w*|happy|cheerful|fun|upbeat|alegre)\b/], ['calma', /\b(calm\w*|relax\w*|tranquil\w*|suave|lenta|soft|chill|slow)\b/], ['tensa', /\b(tens\w*|suspense|terror|medo|miste\w*|assustad\w*|scary|spooky|creepy|horror|dark|suspenso|misterio)\b/],
+var ESTILOS_MUSICA = [['epica', /\b(epic\w*|orquestr\w*|orchestr\w*|cinematograf\w*|cinematic|trailer|grandios\w*|filme|film)\b/], ['terror', /\b(terror|horror|assombr\w*|macabr\w*|sinistr\w*|creepy|scary|spooky|medonh\w*|fantasm\w*)\b/], ['misterio', /\b(misteri\w*|mystery|mysterious|enigm\w*|detetive|detective|noir|investiga\w*|segredo|secret)\b/], ['lofi', /\b(lo ?-? ?fi|chill|chillout|estudar|study|relaxar|relax(ing)?)\b/], ['luta', /\b(luta|lutar|briga|brigar|rock|guitarra|guitar|metal|punk|fight\w*|heavy|pesad[ao])\b/], ['festa', /\b(festa|festinha|danca|dancar|dance|balada|disco|house|eletronic\w*|electronic|electro|techno|party|funk|baile|fiesta)\b/], ['fofa', /\b(fofa|fofo|fofinh\w*|cute|kawaii|bonitinh\w*|infantil|crianca|bebe|music box|caixinha|ninar|dormir)\b/], ['alegre', /\b(alegre|feliz|animad\w*|divertid\w*|happy|cheerful|fun|upbeat|alegre)\b/], ['calma', /\b(calm\w*|relax\w*|tranquil\w*|suave|lenta|soft|chill|slow)\b/], ['tensa', /\b(tens\w*|suspense|terror|medo|miste\w*|assustad\w*|scary|spooky|creepy|horror|dark|suspenso|misterio)\b/],
   ['aventura', /\b(aventura|epic\w*|adventure|heroic\w*|heroi\w*|batalha|battle|acao|action)\b/], ['espacial', /\b(espac\w*|space|spacey|galax\w*|cosmic\w*|planeta\w*|estrela\w*)\b/], ['retro', /\b(retro|8 ?bits?|chiptune|arcade|antiga|classic\w*|pixel\w*|8bit)\b/]];
 function estiloDaFrase(n){ var r = null; ESTILOS_MUSICA.forEach(function(e){ if(!r && e[1].test(n)) r = e[0]; }); return r; }
 function conceitoDaFrase(n){
   if(/\b(vida|vidas|life|lives|vidinhas?|chances?|tentativas|coracao|coracoes|hearts?)\b/.test(n)) return 'vidas';
   if(/\b(rapid\w*|veloc\w*|veloz\w*|lent\w*|devagar\w*|speed\w*|fast\w*|slow\w*|despacio|ligeir\w*|acelera\w*|correr|corre|velocidad)\b/.test(n)) return 'velocidade';
-  if(/\b(pulo|pulos|pular|pule|salto|saltos|saltar|jump\w*)\b/.test(n)) return 'pulo';
+  if(/\b(pulo|pulos|pular|pule|pula|pulando|pulinho|salto|saltos|saltar|salta|jump\w*)\b/.test(n)) return 'pulo';
   if(/\b(gravidade|gravity|gravedad)\b/.test(n)) return 'gravidade';
   if(/\b(tempo|time|timer|cronometro|segundos|seconds|tiempo|segundo)\b/.test(n)) return 'tempo';
   if(/\b(municao|balas|tiros|ammo|bullets|flechas|projeteis|municion)\b/.test(n)) return 'municao';
@@ -31432,7 +31432,7 @@ H.mod_musica = function(it, ctx, est){
   if(!it.estilo && est.emVarios) it.estilo = 'alegre';
   if(!it.estilo){
     est.pendente = {tipo: 'mod_musica'}; diz(r, T('md_musica_q'));
-    ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), TL('pt', 'ms_' + e)); });
+    ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro', 'epica', 'lofi', 'festa', 'misterio', 'terror', 'fofa', 'luta'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), TL('pt', 'ms_' + e)); });
     return r;
   }
   var res = fazerMusica(ctx.codigo, it.estilo, false);
@@ -31575,7 +31575,7 @@ HB.musica = function(it, ctx, est){
   var x = precisaCodigo(ctx); if(x) return x;
   est.pendente = {tipo: 'mod_musica'};
   var r = diz(novaResp(), T('bf_musica'));
-  ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), TL('pt', 'ms_' + e)); });
+  ['alegre', 'calma', 'tensa', 'aventura', 'espacial', 'retro', 'epica', 'lofi', 'festa', 'misterio', 'terror', 'fofa', 'luta'].forEach(function(e){ chip(r, capitalizar(T('ms_' + e)), TL('pt', 'ms_' + e)); });
   return r;
 };
 HB.botoes = function(it, ctx, est){
@@ -36263,7 +36263,7 @@ function escreverSonsMeus(codigo, sons, soMeus){
 function atualizarSons(codigo){
   var m = /<script[^>]*data-koda-sons[^>]*>[\s\S]*?<\/script>/.exec(codigo);
   if(!m || m[0].indexOf('__kodaSomMeu') >= 0) return codigo;
-  return codigo.replace(m[0], '<script data-koda-sons="1">(' + kodaSonsNoJogo.toString() + ')();<\/script>');
+  return codigo.replace(m[0], scriptDeSons());
 }
 function fazerSomPersonalizado(codigo, evento, dataUrl){
   var nome = evento.replace(/^som_/, '');
@@ -37763,7 +37763,12 @@ var NOMES_SOM_FUNCAO = [
   ['tiro', /^(atirar|atira|disparar|dispara|shoot|fire|firebullet|shootbullet|playershoot|atirarbala|criartiro|novotiro|lancar|throw|spawnbullet)$/],
   ['explosao', /^(explodir|explode|explosao|explosion|criarexplosao|createexplosion|spawnexplosion|boom|destruirinimigo|matarinimigo|killenemy|enemydie|enemydied|inimigomorreu)$/],
   ['poder', /^(pegarpoder|pegaritem|pegarpowerup|coletarpoder|coletaritem|collectpowerup|pickuppowerup|powerup|getpowerup|applypowerup|pegarbonus|pegarestrela|collectitem|pickupitem)$/],
-  ['fase', /^(proximafase|nextlevel|subirnivel|levelup|novafase|passarfase|proximonivel|proximaonda|nextwave|novaonda|nextstage|proximaetapa|venceufase|completarfase)$/]
+  ['fase', /^(proximafase|nextlevel|subirnivel|levelup|novafase|passarfase|proximonivel|proximaonda|nextwave|novaonda|nextstage|proximaetapa|venceufase|completarfase|proximatorre|proximotorre)$/],
+  ['vitoria', /^(vencer|venceu|vitoria|win|youwin|winner|vencerjogo|ganhou|ganharjogo|levelcomplete|completarjogo|zerarjogo|jogoganho|mostrarvitoria|telavitoria)$/],
+  ['cura', /^(curar|cura|heal|healplayer|usarpocao|beberpocao|usarpotion|drinkpotion|regenerar)$/],
+  ['tesouro', /^(abrirbau|openchest|abrirtesouro|bau|chest|opentreasure|abrircofre)$/],
+  ['golpe', /^(golpear|golpe|slash|swing|punch|soco|usarespada|swordattack|atacarespada|swingsword|espadada)$/],
+  ['vida', /^(vidaextra|extralife|ganharvida|oneup|addlife|1up|ganhavida)$/]
 ];
 var fazerSonsAntes = fazerSons;
 fazerSons = function(codigo, quais){
@@ -37784,8 +37789,14 @@ fazerSons = function(codigo, quais){
       feitos[tipo] = (feitos[tipo] || 0) + 1;
     });
   });
+  /* compra na loja e clique nos botões: o som liga sozinho, sem mexer no código; só avisa quando o jogo tem isso */
+  if(!(quais && Object.keys(quais).length)){
+    var semScripts = base.replace(/<script[\s\S]*?<\/script\s*>/gi, ' ');
+    if(/KODA\s*\.\s*loja|kodaPagar|data-koda-loja/.test(base)) feitos.compra = 1;
+    if(/<button\b|role\s*=\s*["']button/i.test(semScripts) || /createElement\(\s*['"]button/.test(base)) feitos.clique = 1;
+  } else { if(quais.compra && /KODA\s*\.\s*loja|kodaPagar|data-koda-loja/.test(base)) feitos.compra = 1; if(quais.clique) feitos.clique = 1; }
   if(!Object.keys(feitos).length) return r;
-  if(!/data-koda-sons/.test(base)) ed.inserir(pontoDeEntrada(base, doc), '\n<script data-koda-sons="1">(' + kodaSonsNoJogo.toString() + ')();<\/script>\n');
+  if(!/data-koda-sons/.test(base)) ed.inserir(pontoDeEntrada(base, doc), '\n' + scriptDeSons() + '\n');
   var novo = ed.aplicar();
   if(!novo) return r;
   var sons = Object.assign({}, r && r.res && r.res.sons || {}, feitos);
@@ -38138,6 +38149,1667 @@ ampliarDesenho = function(js, d){
   if(d && (/[A-Za-z_$]/.test(String(d.w)) || /[A-Za-z_$]/.test(String(d.h)))) return;
   return ampliarDesenhoAntes(js, d);
 };
+/* ====================================================================
+   ÁUDIO NOVO: um motor só (reverb, compressor, instrumentos de verdade) para os sons e as músicas do jogo.
+   Tudo é feito na hora, dentro do jogo (sem arquivo). Fica em window.__kodaAudio.
+   Escrito em JavaScript antigo (var/function) de propósito: o leitor do agente lê esses scripts como parte do jogo.
+==================================================================== */
+function kodaAudioBase(){
+  if(window.__kodaAudio) return window.__kodaAudio;
+  var A = {escala: 1, ganho: {ponto: 2.09, pulo: 2.34, dano: 2.29, fim: 1.05, compra: 2.32, tiro: 3.67, explosao: 1.0, poder: 1.76, fase: 2.82, vitoria: 1.8, clique: 2.79, cura: 1.62, erro: 2.66, pausa: 1.91, aviso: 2.09, tesouro: 2.34, vida: 2.48, teleporte: 2.63, passo: 4.27, pegar: 2.48, golpe: 2.6, mola: 2.66}, ac: null, mestre: null, envio: null, sfx: null, mus: null, sfxRev: null, musRev: null, ondas: {}, ruidoBuf: null, suspensoPorMim: false, volMus: 1};
+
+  /* ---------- contexto e cadeia de saída ---------- */
+  function impulso(c, seg, queda){
+    var n = Math.floor(c.sampleRate * seg), b = c.createBuffer(2, n, c.sampleRate), pre = Math.floor(c.sampleRate * 0.012);
+    for(var ch = 0; ch < 2; ch++){
+      var d = b.getChannelData(ch), s = (ch + 1) * 7919, lp = 0;
+      for(var i = 0; i < n; i++){
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        var r = (s / 0x7fffffff) * 2 - 1;
+        lp += (r - lp) * (0.55 - 0.4 * (i / n));          /* o fundo da cauda fica mais abafado, como numa sala de verdade */
+        d[i] = i < pre ? 0 : lp * Math.pow(1 - i / n, queda) * (i < pre + 900 ? (i - pre) / 900 : 1);
+      }
+    }
+    return b;
+  }
+  A.criar = function(ext){
+    if(A.ac) return A.ac;
+    var c = ext || null;
+    if(!c){
+      var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null;
+      try{ c = new AC({latencyHint: 'interactive'}); }catch(e){ try{ c = new AC(); }catch(e2){ return null; } }
+    }
+    A.ac = c;
+    var comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.knee.value = 16; comp.ratio.value = 3.2; comp.attack.value = 0.005; comp.release.value = 0.25;
+    var alto = c.createBiquadFilter(); alto.type = 'highpass'; alto.frequency.value = 26; alto.Q.value = 0.5;
+    var suave = c.createBiquadFilter(); suave.type = 'lowpass'; suave.frequency.value = 13000; suave.Q.value = 0.4;
+    var ganho = c.createGain(); ganho.gain.value = 0.9;
+    A.mestre = c.createGain(); A.mestre.gain.value = 1;
+    A.mestre.connect(alto); alto.connect(suave); suave.connect(ganho); ganho.connect(comp); comp.connect(c.destination);
+    A.sfx = c.createGain(); A.sfx.gain.value = 1; A.sfx.connect(A.mestre);
+    A.mus = c.createGain(); A.mus.gain.value = A.volMus; A.mus.connect(A.mestre);
+    /* reverb (uma sala pequena e uma cauda curta, só nas notas que pedem) */
+    var rv = c.createConvolver(); rv.buffer = impulso(c, 2.4, 2.6);
+    A.envio = c.createGain();
+    var rvLp = c.createBiquadFilter(); rvLp.type = 'lowpass'; rvLp.frequency.value = 4200;
+    var rvHp = c.createBiquadFilter(); rvHp.type = 'highpass'; rvHp.frequency.value = 240;
+    var rvOut = c.createGain(); rvOut.gain.value = 0.5;
+    A.envio.connect(rvHp); rvHp.connect(rvLp); rvLp.connect(rv); rv.connect(rvOut); rvOut.connect(A.mestre);
+    A.sfxRev = c.createGain(); A.sfxRev.gain.value = 1; A.sfxRev.connect(A.envio);
+    A.musRev = c.createGain(); A.musRev.gain.value = A.volMus; A.musRev.connect(A.envio);
+    /* eco que quica entre os lados (para os instrumentos de espaço) */
+    var el = c.createDelay(1.5), er = c.createDelay(1.5), fb = c.createGain(), fl = c.createBiquadFilter(), merge = c.createChannelMerger(2);
+    el.delayTime.value = 0.34; er.delayTime.value = 0.51; fb.gain.value = 0.38; fl.type = 'lowpass'; fl.frequency.value = 2600;
+    A.eco = c.createGain();
+    A.eco.connect(el); el.connect(fl); fl.connect(er); er.connect(fb); fb.connect(el);
+    el.connect(merge, 0, 0); er.connect(merge, 0, 1);
+    var ecoOut = c.createGain(); ecoOut.gain.value = 0.5; merge.connect(ecoOut); ecoOut.connect(A.mestre);
+    return c;
+  };
+  A.volumeMusica = function(v){ A.volMus = v; if(A.mus){ A.mus.gain.value = v; A.musRev.gain.value = v; } };
+  A.reiniciar = function(){ A.ac = null; A.ruidoBuf = null; A.ondas = {}; };
+
+  /* destrava no primeiro toque (celular exige) e cuida de aba escondida */
+  var preso = false;
+  A.destravar = function(){
+    var c = A.criar(); if(!c) return null;
+    if(c.state === 'suspended' || c.state === 'interrupted'){ try{ var p = c.resume(); if(p && p.catch) p.catch(function(){}); }catch(e){} }
+    if(!preso){
+      preso = true;
+      try{ var b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); }catch(e){}
+      document.addEventListener('visibilitychange', function(){
+        var k = A.ac; if(!k) return;
+        if(document.hidden){ if(k.state === 'running'){ A.suspensoPorMim = true; try{ k.suspend(); }catch(e){} } }
+        else if(A.suspensoPorMim && !window.__kodaPausa){ A.suspensoPorMim = false; try{ k.resume(); }catch(e){} }
+      });
+    }
+    return c;
+  };
+  A.aoToque = function(f){
+    var feito = false;
+    ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'keydown', 'click'].forEach(function(ev){
+      window.addEventListener(ev, function(){ A.destravar(); if(!feito){ feito = true; try{ f(); }catch(e){} } else if(A.ac && A.ac.state !== 'running' && !window.__kodaPausa){ try{ A.ac.resume(); }catch(e){} } }, {capture: true, passive: true});
+    });
+  };
+
+  /* ---------- peças de som ---------- */
+  A.freq = function(m){ return 440 * Math.pow(2, (m - 69) / 12); };
+  A.onda = function(duty){          /* onda quadrada fina (8-bit): duty 0.125 / 0.25 */
+    var k = 'p' + duty; if(A.ondas[k]) return A.ondas[k];
+    var n = 48, re = new Float32Array(n), im = new Float32Array(n);
+    for(var i = 1; i < n; i++) re[i] = 2 * Math.sin(i * Math.PI * duty) / (i * Math.PI);
+    A.ondas[k] = A.ac.createPeriodicWave(re, im); return A.ondas[k];
+  };
+  A.panner = function(p){ var c = A.ac; if(!p || !c.createStereoPanner) return null; var s = c.createStereoPanner(); s.pan.value = p; return s; };
+  /* a voz: um ou mais osciladores -> filtro -> envelope (ataque, queda, sustento, solta) -> mixer */
+  A.voz = function(t, f, dur, o){
+    o = o || {};
+    var c = A.ac, vol = (o.vol == null ? 0.2 : o.vol) * (o.musica ? 1 : A.escala), a = o.a == null ? 0.006 : o.a, d = o.d == null ? 0.12 : o.d, s = o.s == null ? 0.6 : o.s, r = o.r == null ? 0.08 : o.r;
+    var g = c.createGain(), fim = t + Math.max(dur, a + 0.02), alvo = o.musica ? A.mus : A.sfx, alvoRev = o.musica ? A.musRev : A.sfxRev;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + a);
+    g.gain.setTargetAtTime(vol * s, t + a, d / 3 + 0.001);
+    g.gain.setTargetAtTime(0, fim, r / 3 + 0.001);
+    var entrada = g;
+    if(o.filtro){
+      var fl = c.createBiquadFilter(); fl.type = o.filtro.tipo || 'lowpass'; fl.Q.value = o.filtro.q == null ? 0.7 : o.filtro.q;
+      fl.frequency.setValueAtTime(o.filtro.f, t);
+      if(o.filtro.f1) fl.frequency.setTargetAtTime(o.filtro.f1, t, (o.filtro.tau || 0.1) + 0.001);
+      fl.connect(g); entrada = fl;
+    }
+    var fimTotal = fim + r * 2.5 + 0.05, oscs = o.osc || [[o.tipo || 'sine', 1, 0, 1]];
+    var lfo = null, lfoG = null;
+    if(o.vib){ lfo = c.createOscillator(); lfo.frequency.value = o.vib.f || 5.5; lfoG = c.createGain(); lfoG.gain.setValueAtTime(0, t); lfoG.gain.linearRampToValueAtTime(o.vib.prof || 10, t + (o.vib.atraso || 0.15) + 0.2); lfo.connect(lfoG); lfo.start(t); lfo.stop(fimTotal); }
+    for(var i = 0; i < oscs.length; i++){
+      var h = oscs[i], os = c.createOscillator(), gh = null;
+      if(typeof h[0] === 'string' && h[0].indexOf('p') === 0 && h[0].length > 1 && !isNaN(Number(h[0].slice(1)))) os.setPeriodicWave(A.onda(Number(h[0].slice(1)))); else os.type = h[0];
+      var f0 = f * h[1];
+      if(o.de){ os.frequency.setValueAtTime(f0 * o.de, t); os.frequency.exponentialRampToValueAtTime(f0, t + (o.deT || 0.05)); }
+      else os.frequency.setValueAtTime(f0, t);
+      if(o.para) os.frequency.exponentialRampToValueAtTime(Math.max(20, f0 * o.para), t + Math.max(0.03, dur * 0.9));
+      if(h[2]) os.detune.value = h[2];
+      if(lfoG) lfoG.connect(os.detune);
+      gh = c.createGain(); gh.gain.value = h[3] == null ? 1 : h[3];
+      os.connect(gh); gh.connect(entrada);
+      os.start(t); os.stop(fimTotal);
+    }
+    var saida = g, pn = A.panner(o.pan);
+    if(pn){ g.connect(pn); saida = pn; }
+    saida.connect(o.dest || alvo);
+    if(o.rev){ var e = c.createGain(); e.gain.value = o.rev; saida.connect(e); e.connect(alvoRev); }
+    if(o.eco){ var ee = c.createGain(); ee.gain.value = o.eco; saida.connect(ee); ee.connect(A.eco); }
+    return g;
+  };
+  A.ruido = function(t, dur, o){
+    o = o || {};
+    var c = A.ac;
+    if(!A.ruidoBuf){
+      var n = c.sampleRate * 2, b = c.createBuffer(1, n, c.sampleRate), x = b.getChannelData(0), s = 22222;
+      for(var i = 0; i < n; i++){ s = (s * 1664525 + 1013904223) >>> 0; x[i] = (s / 2147483648) - 1; }
+      A.ruidoBuf = b;
+    }
+    var src = c.createBufferSource(); src.buffer = A.ruidoBuf; src.loop = true;
+    var g = c.createGain(), vol = (o.vol == null ? 0.15 : o.vol) * (o.musica ? 1 : A.escala), a = o.a == null ? 0.002 : o.a, r = o.r == null ? dur * 0.6 : o.r;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + a); g.gain.setTargetAtTime(0, t + Math.max(a, dur - r), r / 3 + 0.001);
+    var no = src;
+    if(o.filtro){
+      var fl = c.createBiquadFilter(); fl.type = o.filtro.tipo || 'bandpass'; fl.Q.value = o.filtro.q == null ? 0.8 : o.filtro.q; fl.frequency.setValueAtTime(o.filtro.f, t);
+      if(o.filtro.f1) fl.frequency.exponentialRampToValueAtTime(Math.max(40, o.filtro.f1), t + dur);
+      src.connect(fl); no = fl;
+    }
+    no.connect(g);
+    var alvo = o.musica ? A.mus : A.sfx, alvoRev = o.musica ? A.musRev : A.sfxRev, saida = g, pn = A.panner(o.pan);
+    if(pn){ g.connect(pn); saida = pn; }
+    saida.connect(alvo);
+    if(o.rev){ var e = c.createGain(); e.gain.value = o.rev; saida.connect(e); e.connect(alvoRev); }
+    src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.1);
+  };
+  /* bateria */
+  A.bumbo = function(t, v, o){
+    o = o || {}; v = v == null ? 1 : v;
+    A.voz(t, o.f || 52, 0.32, {tipo: 'sine', vol: 0.55 * v, a: 0.002, d: 0.16, s: 0.0, r: 0.12, de: 3.2, deT: 0.07, musica: o.musica});
+    A.voz(t, 150, 0.05, {tipo: 'triangle', vol: 0.12 * v, a: 0.001, d: 0.03, s: 0, r: 0.03, de: 2, deT: 0.03, musica: o.musica});
+  };
+  A.caixa = function(t, v, o){
+    o = o || {}; v = v == null ? 1 : v;
+    A.ruido(t, o.seca ? 0.1 : 0.2, {vol: 0.2 * v, filtro: {tipo: 'bandpass', f: 2100, q: 0.7}, a: 0.001, r: o.seca ? 0.08 : 0.16, musica: o.musica, rev: o.rev == null ? 0.18 : o.rev});
+    A.voz(t, 190, 0.1, {tipo: 'triangle', vol: 0.22 * v, a: 0.001, d: 0.05, s: 0, r: 0.05, de: 1.5, deT: 0.04, musica: o.musica});
+  };
+  A.palma = function(t, v, o){
+    o = o || {}; v = v == null ? 1 : v;
+    [0, 0.011, 0.024].forEach(function(dt, i){ A.ruido(t + dt, i === 2 ? 0.14 : 0.03, {vol: 0.16 * v, filtro: {tipo: 'bandpass', f: 1500, q: 1.1}, a: 0.001, musica: o.musica, rev: 0.25}); });
+  };
+  A.chimbal = function(t, v, aberto, o){
+    o = o || {}; v = v == null ? 1 : v;
+    A.ruido(t, aberto ? 0.28 : 0.05, {vol: (aberto ? 0.07 : 0.085) * v, filtro: {tipo: 'highpass', f: 7000, q: 0.5}, a: 0.001, r: aberto ? 0.22 : 0.04, musica: o.musica, pan: o.pan});
+  };
+  A.tomb = function(t, f, v, o){
+    o = o || {}; v = v == null ? 1 : v;
+    A.voz(t, f, 0.3, {tipo: 'sine', vol: 0.4 * v, a: 0.002, d: 0.14, s: 0, r: 0.12, de: 1.6, deT: 0.09, musica: o.musica, rev: 0.15});
+    A.ruido(t, 0.06, {vol: 0.05 * v, filtro: {tipo: 'lowpass', f: 1500}, musica: o.musica});
+  };
+  A.prato = function(t, v, o){
+    o = o || {};
+    A.ruido(t, 1.1, {vol: 0.09 * (v == null ? 1 : v), filtro: {tipo: 'highpass', f: 5200}, a: 0.002, r: 0.9, musica: o.musica, rev: 0.3});
+  };
+
+  /* ---------- efeitos sonoros ---------- */
+  var S = A.sons = {};
+  S.ponto = function(t){            /* "ting-ting" de moeda: dois sininhos, o segundo mais agudo */
+    var par = [[1318.5, 0], [1760, 0.075]];
+    par.forEach(function(p){ A.voz(t + p[1], p[0], 0.32, {osc: [['sine', 1, 0, 0.8], ['sine', 2.01, 0, 0.18], ['sine', 3.02, 0, 0.06]], vol: 0.17, a: 0.002, d: 0.2, s: 0, r: 0.16, rev: 0.22}); });
+  };
+  S.pulo = function(t){             /* "boing" leve que sobe */
+    A.voz(t, 330, 0.17, {osc: [['sine', 1, 0, 0.8], ['triangle', 1, 0, 0.3]], vol: 0.2, a: 0.004, d: 0.1, s: 0.2, r: 0.07, para: 2.0, filtro: {f: 3200, q: 0.5}});
+  };
+  S.dano = function(t){             /* batida seca e grave, com um estalo */
+    A.voz(t, 180, 0.28, {osc: [['triangle', 1, 0, 0.8], ['sawtooth', 1, 0, 0.2]], vol: 0.3, a: 0.002, d: 0.14, s: 0.0, r: 0.12, para: 0.4, filtro: {f: 1400, f1: 300, tau: 0.12}});
+    A.ruido(t, 0.16, {vol: 0.17, filtro: {tipo: 'lowpass', f: 2600, f1: 300}, r: 0.14});
+  };
+  S.fim = function(t){              /* o fim: quatro notas que caem, a última longa */
+    [[392, 0, 0.26], [329.6, 0.23, 0.26], [293.7, 0.46, 0.26], [196, 0.7, 1.1]].forEach(function(n, i){
+      A.voz(t + n[1], n[0], n[2], {osc: [['triangle', 1, 0, 0.7], ['sine', 1, -6, 0.5], ['sawtooth', 1, 4, 0.12]], vol: 0.2, a: 0.012, d: 0.2, s: 0.6, r: i === 3 ? 0.6 : 0.12, filtro: {f: 1800, f1: 600, tau: 0.3}, rev: 0.4, para: i === 3 ? 0.92 : 1});
+    });
+  };
+  S.compra = function(t){           /* caixa registradora: clique + sininhos subindo */
+    A.ruido(t, 0.03, {vol: 0.1, filtro: {tipo: 'bandpass', f: 3500, q: 1}});
+    [[1046.5, 0.02], [1318.5, 0.08], [1568, 0.14], [2093, 0.2]].forEach(function(n){ A.voz(t + n[1], n[0], 0.3, {osc: [['sine', 1, 0, 0.8], ['sine', 2.76, 0, 0.12]], vol: 0.14, a: 0.002, d: 0.18, s: 0, r: 0.14, rev: 0.2}); });
+  };
+  S.tiro = function(t){             /* "piu" curtinho */
+    A.voz(t, 1500, 0.1, {osc: [['sawtooth', 1, 0, 0.5], ['square', 1, 6, 0.25]], vol: 0.09, a: 0.001, d: 0.05, s: 0, r: 0.05, para: 0.18, filtro: {f: 5000, q: 0.6}});
+  };
+  S.explosao = function(t){         /* chiado que vai abafando + um grave que some */
+    A.ruido(t, 0.65, {vol: 0.32, filtro: {tipo: 'lowpass', f: 3200, f1: 140, q: 0.6}, a: 0.002, r: 0.55, rev: 0.25});
+    A.voz(t, 110, 0.5, {tipo: 'sine', vol: 0.45, a: 0.002, d: 0.25, s: 0, r: 0.25, para: 0.3});
+  };
+  S.poder = function(t){            /* arpejo brilhante subindo */
+    [[784, 0], [988, 0.05], [1175, 0.1], [1568, 0.15], [1976, 0.2]].forEach(function(n){ A.voz(t + n[1], n[0], 0.24, {osc: [['triangle', 1, 0, 0.7], ['sine', 2, 0, 0.3]], vol: 0.15, a: 0.003, d: 0.15, s: 0.1, r: 0.12, rev: 0.28}); });
+  };
+  S.fase = function(t){             /* fanfarra curta */
+    [[523.25, 0, 0.14], [659.25, 0.12, 0.14], [783.99, 0.24, 0.14], [1046.5, 0.36, 0.6]].forEach(function(n, i){
+      A.voz(t + n[1], n[0], n[2], {osc: [['sawtooth', 1, -7, 0.3], ['sawtooth', 1, 7, 0.3], ['triangle', 1, 0, 0.5]], vol: 0.12, a: 0.01, d: 0.1, s: 0.75, r: i === 3 ? 0.4 : 0.06, filtro: {f: 600, f1: 3600, tau: 0.05}, rev: 0.3});
+    });
+  };
+  S.vitoria = function(t){          /* fanfarra de vencer */
+    [[392, 0, 0.16], [392, 0.18, 0.1], [392, 0.3, 0.1], [523.25, 0.42, 0.28], [659.25, 0.72, 0.14], [523.25, 0.88, 0.1], [784, 1.0, 0.9]].forEach(function(n, i, l){
+      var ult = i === l.length - 1;
+      A.voz(t + n[1], n[0], n[2], {osc: [['sawtooth', 1, -8, 0.3], ['sawtooth', 1, 8, 0.3], ['triangle', 1, 0, 0.5]], vol: 0.13, a: 0.012, d: 0.12, s: 0.8, r: ult ? 0.7 : 0.06, filtro: {f: 800, f1: 3800, tau: 0.06}, rev: 0.32});
+    });
+    [523.25, 659.25, 784].forEach(function(f){ A.voz(t + 1.0, f, 0.9, {osc: [['triangle', 1, 0, 0.6], ['sine', 1, 5, 0.3]], vol: 0.07, a: 0.03, d: 0.3, s: 0.7, r: 0.7, rev: 0.35}); });
+  };
+  S.clique = function(t){
+    A.ruido(t, 0.03, {vol: 0.12, filtro: {tipo: 'bandpass', f: 3200, q: 1.2}});
+    A.voz(t, 900, 0.05, {tipo: 'sine', vol: 0.1, a: 0.001, d: 0.025, s: 0, r: 0.03});
+  };
+  S.cura = function(t){             /* subida suave e brilhante */
+    [[523.25, 0], [659.25, 0.07], [783.99, 0.14], [1046.5, 0.21]].forEach(function(n){ A.voz(t + n[1], n[0], 0.35, {osc: [['sine', 1, 0, 0.9], ['sine', 2, 0, 0.2]], vol: 0.12, a: 0.02, d: 0.25, s: 0.2, r: 0.2, vib: {f: 6, prof: 8, atraso: 0.05}, rev: 0.4}); });
+  };
+  S.erro = function(t){             /* "ah-ah", baixinho */
+    [0, 0.13].forEach(function(dt){ A.voz(t + dt, 170, 0.1, {osc: [['square', 1, 0, 0.5], ['triangle', 1, 0, 0.5]], vol: 0.12, a: 0.004, d: 0.06, s: 0.5, r: 0.04, filtro: {f: 900}}); });
+  };
+  S.pausa = function(t){ [[659.25, 0], [440, 0.09]].forEach(function(n){ A.voz(t + n[1], n[0], 0.12, {tipo: 'triangle', vol: 0.14, a: 0.004, d: 0.08, s: 0.2, r: 0.06, rev: 0.15}); }); };
+  S.retomar = function(t){ [[440, 0], [659.25, 0.09]].forEach(function(n){ A.voz(t + n[1], n[0], 0.12, {tipo: 'triangle', vol: 0.14, a: 0.004, d: 0.08, s: 0.2, r: 0.06, rev: 0.15}); }); };
+  S.aviso = function(t){ [[880, 0], [698.5, 0.16]].forEach(function(n){ A.voz(t + n[1], n[0], 0.3, {osc: [['sine', 1, 0, 0.9], ['sine', 2.76, 0, 0.12]], vol: 0.15, a: 0.003, d: 0.22, s: 0, r: 0.14, rev: 0.25}); }); };
+  S.tesouro = function(t){          /* baú: harpa subindo */
+    var nts = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568, 2093];
+    nts.forEach(function(f, i){ A.voz(t + i * 0.055, f, 0.4, {osc: [['sine', 1, 0, 0.8], ['sine', 2, 0, 0.18], ['sine', 3.01, 0, 0.06]], vol: 0.12, a: 0.002, d: 0.3, s: 0, r: 0.22, rev: 0.35, pan: (i % 2 ? 0.25 : -0.25)}); });
+  };
+  S.vida = function(t){             /* vida extra: cinco notas */
+    [659.25, 783.99, 1318.5, 1046.5, 1568].forEach(function(f, i){ A.voz(t + i * 0.07, f, 0.1, {osc: [['p0.25', 1, 0, 0.8], ['triangle', 1, 0, 0.4]], vol: 0.1, a: 0.002, d: 0.06, s: 0.5, r: 0.05, rev: 0.15}); });
+  };
+  S.teleporte = function(t){
+    A.ruido(t, 0.5, {vol: 0.1, filtro: {tipo: 'bandpass', f: 400, f1: 4500, q: 2.5}, a: 0.05, r: 0.2, rev: 0.3});
+    A.voz(t, 300, 0.45, {tipo: 'sine', vol: 0.12, a: 0.03, d: 0.3, s: 0.4, r: 0.15, para: 4, vib: {f: 14, prof: 40, atraso: 0}, rev: 0.3});
+  };
+  S.passo = function(t){ A.ruido(t, 0.05, {vol: 0.07, filtro: {tipo: 'lowpass', f: 900, f1: 300}, r: 0.04}); };
+  S.pegar = function(t){ [[880, 0], [1318.5, 0.06]].forEach(function(n){ A.voz(t + n[1], n[0], 0.14, {osc: [['sine', 1, 0, 0.8], ['triangle', 2, 0, 0.2]], vol: 0.14, a: 0.003, d: 0.1, s: 0, r: 0.08, rev: 0.2}); }); };
+  S.golpe = function(t){            /* espada / soco */
+    A.ruido(t, 0.14, {vol: 0.2, filtro: {tipo: 'bandpass', f: 2500, f1: 700, q: 0.9}, a: 0.003, r: 0.1});
+    A.voz(t, 140, 0.12, {tipo: 'triangle', vol: 0.18, a: 0.002, d: 0.06, s: 0, r: 0.06, para: 0.5});
+  };
+  S.mola = function(t){ A.voz(t, 260, 0.3, {osc: [['sine', 1, 0, 0.9], ['triangle', 2, 0, 0.2]], vol: 0.2, a: 0.004, d: 0.2, s: 0.2, r: 0.1, para: 3.2, vib: {f: 22, prof: 35, atraso: 0}}); };
+  S.nivel = S.fase;
+  S.moeda = S.ponto;
+  S.gema = S.ponto;
+  S.sucesso = S.pegar;
+  A.tocar = function(nome, t){ var f = S[nome]; if(!f || !A.ac) return false; A.escala = A.ganho[nome] || 1; try{ f(t == null ? A.ac.currentTime + 0.005 : t); }finally{ A.escala = 1; } return true; };
+  window.__kodaAudio = A;
+  return A;
+}
+
+/* ====================================================================
+   MÚSICA: cada estilo é uma música de 16 compassos (8 + 8) que repete. Tem acordes, baixo, bateria,
+   arpejo, "pad" e uma melodia com motivo (a frase volta, muda um pouco e fecha numa nota de repouso).
+   As camadas entram aos poucos (começa só com o fundo, depois bateria, depois melodia).
+==================================================================== */
+function kodaMusicaNoJogo(C){
+  if(window.__kodaMusica) return;
+  window.__kodaMusica = 1;
+  var A = window.__kodaAudio || (typeof kodaAudioBase === 'function' ? kodaAudioBase() : null);
+  if(!A) return;
+  var MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10], DOR = [0, 2, 3, 5, 7, 9, 10], PEN = [0, 2, 4, 7, 9], MPEN = [0, 3, 5, 7, 10], LYD = [0, 2, 4, 6, 7, 9, 11], HMIN = [0, 2, 3, 5, 7, 8, 11], PHR = [0, 1, 3, 5, 7, 8, 10];
+  var ACORDES = {M: [0, 4, 7], m: [0, 3, 7], M7: [0, 4, 7, 11], m7: [0, 3, 7, 10], '7': [0, 4, 7, 10], dim: [0, 3, 6], sus2: [0, 2, 7], sus4: [0, 5, 7], '5': [0, 7], M9: [0, 4, 7, 11, 14], m9: [0, 3, 7, 10, 14]};
+  /* ritmos (passos de 1/16): [passo, duração] */
+  var R = {
+    pulso: [[0, 2], [2, 2], [4, 2], [6, 2], [8, 2], [10, 2], [12, 2], [14, 2]],
+    motivo: [[0, 2], [2, 1], [3, 1], [4, 4], [8, 2], [10, 2], [12, 4]],
+    motivoB: [[0, 3], [3, 1], [4, 2], [6, 2], [8, 4], [12, 2], [14, 2]],
+    sincopa: [[0, 3], [3, 3], [6, 2], [8, 3], [11, 3], [14, 2]],
+    longo: [[0, 6], [6, 2], [8, 8]],
+    lento: [[0, 4], [4, 2], [6, 2], [8, 6], [14, 2]],
+    esparso: [[0, 6], [8, 4], [12, 4]],
+    fechar: [[0, 4], [4, 4], [8, 8]],
+    chip: [[0, 1], [1, 1], [2, 2], [4, 1], [5, 1], [6, 2], [8, 2], [10, 2], [12, 4]],
+    funk: [[0, 2], [3, 1], [4, 2], [7, 1], [8, 2], [10, 1], [12, 3]],
+    rock: [[0, 4], [4, 2], [6, 2], [8, 4], [12, 2], [14, 2]]
+  };
+  var D = {   /* bateria: 16 passos por linha (x = toque, X = forte, o = fraquinho) */
+    leve: {k: 'x.......x.......', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.'},
+    pop: {k: 'x.......x.x.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.'},
+    dance: {k: 'x...x...x...x...', p: '....x.......x...', h: '..x...x...x...x.', o: '..x...x...x...x.'},
+    rock: {k: 'x.......x.x.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.'},
+    marcha: {k: 'x.....x.x.......', s: '....x.......x...', t: '..............xx'},
+    coracao: {k: 'x.x.............', h: '........o.......'},
+    lofi: {k: 'x.....x...x.....', s: '....o.......x...', h: 'x.o.x.o.x.o.x.o.'},
+    chip: {k: 'x.......x.x.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.'},
+    epica: {k: 'x.......x.......', t: '....x.......x...', h: '................'},
+    tenso: {k: 'x.......x.......', h: '..o...o...o...o.'}
+  };
+  var ESTILOS = {
+    alegre: {bpm: 124, swing: 0, raiz: 60, modo: MAJ, reg: [72, 88], vol: 1, entra: {bat: 2, lead: 0, arp: 8},
+      A: [[0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [0, 'M'], [7, 'M'], [5, 'M'], [7, 'M']], B: [[5, 'M'], [0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [7, 'M'], [0, 'M'], [0, 'M']],
+      pad: 'suave', baixo: 'pluck', bx: 'r.r.r.o.r.r.r.o.', arp: 'pluck', ar: '0.1.2.1.0.1.2.1.', lead: 'brilho', ritmos: [R.motivo, R.motivoB, R.fechar], bat: D.pop, rev: 0.2},
+    calma: {bpm: 68, swing: 0, raiz: 60, modo: PEN, reg: [67, 84], vol: 1.2, entra: {bat: 99, lead: 2, arp: 0},
+      A: [[0, 'M9'], [9, 'm7'], [5, 'M7'], [7, '7'], [0, 'M9'], [4, 'm7'], [5, 'M7'], [7, 'sus4']], B: [[9, 'm7'], [5, 'M7'], [0, 'M7'], [7, '7'], [9, 'm7'], [2, 'm7'], [5, 'M7'], [7, '7']],
+      pad: 'longo', baixo: 'sub', bx: 'r...............', arp: 'piano', ar: '0.1.2.3.2.1.2.1.', lead: 'sino', ritmos: [R.lento, R.esparso, R.fechar], bat: null, rev: 0.45},
+    tensa: {bpm: 92, swing: 0, raiz: 57, modo: PHR, reg: [64, 82], vol: 1, entra: {bat: 1, lead: 4, arp: 0},
+      A: [[0, 'm'], [1, 'M'], [0, 'm'], [1, 'M'], [0, 'm'], [8, 'M'], [7, 'M'], [1, 'M']], B: [[0, 'm'], [5, 'm'], [0, 'm'], [7, 'M'], [8, 'M'], [7, 'M'], [0, 'm'], [1, 'M']],
+      pad: 'cordas', baixo: 'serra', bx: 'r.rr.rr.r.rr.rr.', arp: 'pluck', ar: '0.2.1.2.0.2.1.2.', lead: 'violino', ritmos: [R.esparso, R.lento, R.fechar], bat: D.tenso, rev: 0.4},
+    aventura: {bpm: 118, swing: 0, raiz: 62, modo: DOR, reg: [69, 86], vol: 1, entra: {bat: 2, lead: 0, arp: 4},
+      A: [[0, 'm'], [10, 'M'], [8, 'M'], [10, 'M'], [0, 'm'], [10, 'M'], [8, 'M'], [7, 'M']], B: [[3, 'M'], [10, 'M'], [0, 'm'], [7, 'm'], [3, 'M'], [8, 'M'], [10, 'M'], [7, 'M']],
+      pad: 'cordas', baixo: 'serra', bx: 'r.r.r.r.r.r.r.r.', arp: 'pluck', ar: '0.1.2.1.0.1.2.1.', lead: 'metal', ritmos: [R.rock, R.motivoB, R.fechar], bat: D.marcha, rev: 0.25},
+    espacial: {bpm: 80, swing: 0, raiz: 64, modo: LYD, reg: [71, 91], vol: 1.2, entra: {bat: 99, lead: 2, arp: 0},
+      A: [[0, 'M9'], [2, 'M'], [0, 'M9'], [9, 'm7'], [0, 'M9'], [2, 'M'], [7, 'M7'], [2, 'M']], B: [[9, 'm7'], [7, 'M7'], [0, 'M9'], [2, 'M'], [9, 'm7'], [7, 'M7'], [2, 'M'], [0, 'sus2']],
+      pad: 'longo', baixo: 'sub', bx: 'r...............', arp: 'sino', ar: '0.1.2.3.2.1.0.1.', lead: 'sino', ritmos: [R.lento, R.esparso, R.fechar], bat: null, rev: 0.6, eco: 0.45},
+    retro: {bpm: 150, swing: 0, raiz: 60, modo: MAJ, reg: [72, 91], vol: 1, entra: {bat: 0, lead: 0, arp: 0},
+      A: [[0, 'M'], [9, 'm'], [5, 'M'], [7, 'M'], [0, 'M'], [9, 'm'], [5, 'M'], [7, 'M']], B: [[5, 'M'], [7, 'M'], [4, 'm'], [9, 'm'], [5, 'M'], [7, 'M'], [0, 'M'], [7, 'M']],
+      pad: null, baixo: 'chip', bx: 'r.r.o.r.r.r.o.r.', arp: 'chip', ar: '0102010201020102', lead: 'chip', ritmos: [R.chip, R.motivoB, R.fechar], bat: D.chip, rev: 0, seco: true},
+    epica: {bpm: 88, swing: 0, raiz: 62, modo: MIN, reg: [67, 86], vol: 1.35, entra: {bat: 1, lead: 4, arp: 0},
+      A: [[0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [0, 'm'], [8, 'M'], [3, 'M'], [7, 'M']], B: [[8, 'M'], [10, 'M'], [0, 'm'], [7, 'M'], [8, 'M'], [10, 'M'], [3, 'M'], [7, 'M']],
+      pad: 'cordas', baixo: 'serra', bx: 'r.......r.......', arp: null, ar: '', lead: 'metal', ritmos: [R.lento, R.motivo, R.fechar], bat: D.epica, rev: 0.5},
+    misterio: {bpm: 76, swing: 0, raiz: 57, modo: HMIN, reg: [64, 84], vol: 1, entra: {bat: 99, lead: 2, arp: 0},
+      A: [[0, 'm'], [0, 'm'], [5, 'm'], [0, 'm'], [8, 'M'], [7, 'M'], [0, 'm'], [7, 'M']], B: [[0, 'm'], [3, 'M'], [5, 'm'], [7, 'M'], [0, 'm'], [8, 'M'], [7, 'M'], [0, 'm']],
+      pad: 'longo', baixo: 'sub', bx: 'r.......r.......', arp: 'sino', ar: '0.2.1.3.0.2.1.3.', lead: 'flauta', ritmos: [R.esparso, R.lento, R.fechar], bat: D.coracao, rev: 0.55},
+    festa: {bpm: 126, swing: 0, raiz: 53, modo: MAJ, reg: [72, 88], vol: 0.8, entra: {bat: 0, lead: 4, arp: 0},
+      A: [[0, 'M7'], [9, 'm7'], [5, 'M7'], [7, '7'], [0, 'M7'], [9, 'm7'], [5, 'M7'], [7, '7']], B: [[5, 'M7'], [7, '7'], [4, 'm7'], [9, 'm7'], [5, 'M7'], [7, '7'], [0, 'M7'], [0, 'M7']],
+      pad: 'sintetizador', baixo: 'funk', bx: 'r..r..o.r..r.ro.', arp: null, ar: '', lead: 'brilho', ritmos: [R.funk, R.sincopa, R.fechar], bat: D.dance, rev: 0.2},
+    lofi: {bpm: 76, swing: 0.2, raiz: 60, modo: PEN, reg: [67, 84], vol: 1, entra: {bat: 1, lead: 2, arp: 0},
+      A: [[2, 'm9'], [7, '7'], [0, 'M9'], [9, 'm7'], [2, 'm9'], [7, '7'], [0, 'M9'], [9, 'm7']], B: [[5, 'M9'], [4, 'm7'], [2, 'm9'], [7, '7'], [5, 'M9'], [4, 'm7'], [2, 'm9'], [7, '7']],
+      pad: 'piano', baixo: 'sub', bx: 'r.....r...r.....', arp: null, ar: '', lead: 'piano', ritmos: [R.lento, R.esparso, R.fechar], bat: D.lofi, rev: 0.35, chiado: true},
+    terror: {bpm: 58, swing: 0, raiz: 49, modo: PHR, reg: [66, 90], vol: 1.9, entra: {bat: 99, lead: 2, arp: 0},
+      A: [[0, 'm'], [1, 'M'], [0, 'dim'], [6, 'dim'], [0, 'm'], [1, 'M'], [0, 'dim'], [6, 'dim']], B: [[0, 'sus2'], [1, 'M'], [0, 'm'], [3, 'dim'], [0, 'sus2'], [1, 'M'], [0, 'm'], [6, 'dim']],
+      pad: 'cordas', baixo: 'sub', bx: 'r...............', arp: 'sino', ar: '0.....2.....1...', lead: 'violino', ritmos: [R.esparso, R.esparso, R.fechar], bat: D.coracao, rev: 0.7},
+    fofa: {bpm: 104, swing: 0, raiz: 60, modo: MAJ, reg: [72, 91], vol: 1.5, entra: {bat: 99, lead: 0, arp: 2},
+      A: [[0, 'M'], [5, 'M'], [7, 'M'], [0, 'M'], [9, 'm'], [5, 'M'], [7, 'M'], [0, 'M']], B: [[5, 'M'], [0, 'M'], [2, 'm'], [7, 'M'], [5, 'M'], [7, 'M'], [0, 'M'], [0, 'M']],
+      pad: 'suave', baixo: 'pizzicato', bx: 'r.....o.r.....o.', arp: 'caixa', ar: '0.1.2.1.0.1.2.1.', lead: 'caixa', ritmos: [R.motivo, R.motivoB, R.fechar], bat: null, rev: 0.4},
+    luta: {bpm: 144, swing: 0, raiz: 52, modo: MIN, reg: [67, 86], vol: 1, entra: {bat: 0, lead: 2, arp: 0},
+      A: [[0, '5'], [0, '5'], [8, '5'], [10, '5'], [0, '5'], [0, '5'], [8, '5'], [10, '5']], B: [[3, '5'], [5, '5'], [0, '5'], [7, '5'], [3, '5'], [5, '5'], [8, '5'], [7, '5']],
+      pad: 'guitarra', baixo: 'serra', bx: 'rr.rr.rrrr.rr.rr', arp: null, ar: '', lead: 'metal', ritmos: [R.rock, R.motivoB, R.fechar], bat: D.rock, rev: 0.15}
+  };
+  var NOMES = {pt: 1};
+  var E = ESTILOS[C.estilo] || ESTILOS.alegre;
+  var semente = 0, estiloNome = String(C.estilo || 'alegre');
+  for(var si = 0; si < estiloNome.length; si++) semente = (semente * 31 + estiloNome.charCodeAt(si)) >>> 0;
+  function rnd(){ semente = (semente + 0x6D2B79F5) >>> 0; var t = semente; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+  var PROG = E.A.concat(E.B);
+  function pcs(ch){ return (ACORDES[ch[1]] || ACORDES.M).map(function(i){ return (ch[0] + i) % 12; }); }
+
+  /* ---------- a melodia (feita uma vez, com motivo) ---------- */
+  function melodiaDe(){
+    var lo = E.reg[0], hi = E.reg[1], disp = [], m;
+    for(m = lo; m <= hi; m++) if(E.modo.indexOf((((m - E.raiz) % 12) + 12) % 12) >= 0) disp.push(m);
+    function pc(m){ return (((m - E.raiz) % 12) + 12) % 12; }
+    function tons(ch){ var p = pcs(ch); return disp.filter(function(x){ return p.indexOf(pc(x)) >= 0; }); }
+    function perto(alvo, lista){ var b = lista[0], bd = 999; for(var i = 0; i < lista.length; i++){ var d = Math.abs(lista[i] - alvo); if(d < bd){ bd = d; b = lista[i]; } } return b; }
+    var out = [], ult = disp[Math.floor(disp.length / 2)], motivoA = null;
+    for(var b = 0; b < PROG.length; b++){
+      var ch = PROG[b], ct = tons(ch), fase = b % 4, rit = (fase === 0 || fase === 2) ? E.ritmos[0] : (fase === 1 ? E.ritmos[1] : E.ritmos[2]), notas = [], idx;
+      if(b % 8 === 0 && b > 0) motivoA = null;
+      if(fase === 2 && motivoA){
+        idx = disp.indexOf(perto(ult, ct));
+        for(var i = 0; i < rit.length; i++){ var k = Math.max(0, Math.min(disp.length - 1, idx + motivoA[i])); notas.push({p: rit[i][0], d: rit[i][1], m: disp[k]}); }
+      } else {
+        idx = disp.indexOf(perto(ult, ct));
+        var base = idx, dir = rnd() < 0.5 ? 1 : -1, rel = [];
+        for(var j = 0; j < rit.length; j++){
+          if(j > 0){
+            var passo = [-2, -1, -1, 0, 1, 1, 2][Math.floor(rnd() * 7)];
+            if(rnd() < 0.35) passo = dir * (1 + Math.floor(rnd() * 2));
+            idx = Math.max(0, Math.min(disp.length - 1, idx + passo));
+            if(rit[j][0] % 4 === 0 && ct.length) idx = disp.indexOf(perto(disp[idx], ct));
+            if(rnd() < 0.18) dir = -dir;
+          }
+          rel.push(idx - base);
+          notas.push({p: rit[j][0], d: rit[j][1], m: disp[idx]});
+        }
+        if(fase === 0) motivoA = rel;
+      }
+      if(fase === 3 || b === PROG.length - 1){        /* a frase fecha numa nota de repouso (a raiz do acorde) */
+        var raizes = disp.filter(function(x){ return pc(x) === ch[0] % 12; });
+        if(raizes.length){ var fin = perto(ult, raizes); notas[notas.length - 1].m = fin; notas[notas.length - 1].d = 16 - notas[notas.length - 1].p; }
+      }
+      ult = notas[notas.length - 1].m;
+      out.push(notas);
+    }
+    return out;
+  }
+  var MEL = melodiaDe();
+
+  /* ---------- instrumentos ---------- */
+  var f = A.freq;
+  function voz(t, m, dur, v, o){ o.musica = true; o.vol = v; return A.voz(t, f(m), dur, o); }
+  var INST = {
+    pad: {
+      suave: function(t, ns, dur, v){ ns.forEach(function(m){ voz(t, m, dur, v, {osc: [['triangle', 1, -5, 0.5], ['triangle', 1, 5, 0.5], ['sine', 1, 0, 0.4]], a: 0.18, d: 0.4, s: 0.9, r: 0.5, filtro: {f: 1500, q: 0.4}, rev: 0.5}); }); },
+      longo: function(t, ns, dur, v){ ns.forEach(function(m){ voz(t, m, dur, v * 0.9, {osc: [['sine', 1, -6, 0.5], ['sine', 1, 6, 0.5], ['triangle', 1, 0, 0.25]], a: 0.5, d: 0.6, s: 0.9, r: 0.9, filtro: {f: 1300, q: 0.3}, rev: 0.7}); }); },
+      cordas: function(t, ns, dur, v){ ns.forEach(function(m){ voz(t, m, dur, v * 0.7, {osc: [['sawtooth', 1, -9, 0.3], ['sawtooth', 1, 9, 0.3], ['sawtooth', 1, 0, 0.25]], a: 0.22, d: 0.5, s: 0.9, r: 0.55, filtro: {f: 900, f1: 1700, tau: 0.6, q: 0.5}, vib: {f: 5, prof: 7, atraso: 0.3}, rev: 0.45}); }); },
+      sintetizador: function(t, ns, dur, v){ ns.forEach(function(m){ voz(t, m, dur * 0.35, v * 0.9, {osc: [['sawtooth', 1, -8, 0.4], ['sawtooth', 1, 8, 0.4]], a: 0.01, d: 0.12, s: 0.3, r: 0.1, filtro: {f: 3500, f1: 900, tau: 0.08}, rev: 0.25}); }); },
+      piano: function(t, ns, dur, v){ ns.forEach(function(m, i){ var tt = t + i * 0.012; voz(tt, m, dur * 0.95, v, {osc: [['sine', 1, 0, 0.9], ['sine', 2, 0, 0.22], ['triangle', 4, 0, 0.05]], a: 0.004, d: 0.7, s: 0.08, r: 0.35, filtro: {f: 2800, q: 0.3}, rev: 0.35}); }); },
+      guitarra: function(t, ns, dur, v){ ns.forEach(function(m){ voz(t, m, dur * 0.9, v * 0.8, {osc: [['sawtooth', 1, -6, 0.5], ['square', 1, 6, 0.3]], a: 0.004, d: 0.12, s: 0.7, r: 0.08, filtro: {f: 1800, q: 0.9}, rev: 0.12}); }); }
+    },
+    baixo: {
+      sub: function(t, m, dur, v){ voz(t, m, dur, v, {osc: [['sine', 1, 0, 0.9], ['triangle', 1, 0, 0.25]], a: 0.01, d: 0.3, s: 0.7, r: 0.12, filtro: {f: 500}}); },
+      pluck: function(t, m, dur, v){ voz(t, m, dur, v, {osc: [['sawtooth', 1, 0, 0.35], ['sine', 1, 0, 0.7]], a: 0.004, d: 0.14, s: 0.25, r: 0.08, filtro: {f: 1500, f1: 260, tau: 0.07, q: 0.9}}); },
+      serra: function(t, m, dur, v){ voz(t, m, dur * 0.9, v * 0.9, {osc: [['sawtooth', 1, -4, 0.5], ['sawtooth', 1, 4, 0.5], ['sine', 0.5, 0, 0.5]], a: 0.005, d: 0.2, s: 0.7, r: 0.06, filtro: {f: 900, f1: 380, tau: 0.1, q: 1}}); },
+      chip: function(t, m, dur, v){ voz(t, m, dur * 0.85, v * 0.9, {tipo: 'triangle', a: 0.002, d: 0.06, s: 0.85, r: 0.02}); },
+      funk: function(t, m, dur, v){ voz(t, m, dur * 0.7, v, {osc: [['sawtooth', 1, 0, 0.45], ['square', 1, 0, 0.3], ['sine', 1, 0, 0.5]], a: 0.003, d: 0.1, s: 0.3, r: 0.05, filtro: {f: 2200, f1: 350, tau: 0.06, q: 2}}); },
+      pizzicato: function(t, m, dur, v){ voz(t, m, 0.2, v, {osc: [['triangle', 1, 0, 0.8], ['sine', 2, 0, 0.1]], a: 0.003, d: 0.08, s: 0, r: 0.06, filtro: {f: 1400}}); }
+    },
+    nota: {      /* arpejo e melodia */
+      pluck: function(t, m, dur, v){ voz(t, m, dur, v, {osc: [['triangle', 1, 0, 0.7], ['square', 1, 4, 0.2]], a: 0.003, d: 0.16, s: 0.12, r: 0.1, filtro: {f: 3600, f1: 900, tau: 0.09}, rev: 0.3}); },
+      brilho: function(t, m, dur, v){ voz(t, m, dur, v, {osc: [['triangle', 1, 0, 0.6], ['sawtooth', 1, 5, 0.25], ['sine', 2, 0, 0.18]], a: 0.006, d: 0.15, s: 0.55, r: 0.12, filtro: {f: 4200, f1: 2400, tau: 0.2}, vib: {f: 5.5, prof: 8, atraso: 0.25}, rev: 0.28}); },
+      sino: function(t, m, dur, v){ voz(t, m, Math.max(dur, 0.5), v, {osc: [['sine', 1, 0, 0.8], ['sine', 2.76, 0, 0.16], ['sine', 5.4, 0, 0.05]], a: 0.002, d: 0.9, s: 0, r: 0.5, rev: 0.55, eco: 0.3}); },
+      piano: function(t, m, dur, v){ voz(t, m, Math.max(dur, 0.35), v, {osc: [['sine', 1, 0, 0.9], ['sine', 2, 0, 0.25], ['triangle', 3, 0, 0.08]], a: 0.004, d: 0.55, s: 0.05, r: 0.3, filtro: {f: 3000}, rev: 0.4}); },
+      violino: function(t, m, dur, v){ voz(t, m, dur, v * 0.8, {osc: [['sawtooth', 1, 0, 0.4], ['sine', 1, 0, 0.5]], a: 0.12, d: 0.3, s: 0.85, r: 0.25, de: 0.97, deT: 0.14, filtro: {f: 2400, q: 0.6}, vib: {f: 5.8, prof: 18, atraso: 0.2}, rev: 0.6}); },
+      metal: function(t, m, dur, v){ voz(t, m, dur * 0.95, v, {osc: [['sawtooth', 1, -7, 0.4], ['sawtooth', 1, 7, 0.4], ['square', 0.5, 0, 0.12]], a: 0.03, d: 0.18, s: 0.8, r: 0.1, filtro: {f: 700, f1: 3300, tau: 0.07, q: 0.8}, vib: {f: 5.5, prof: 9, atraso: 0.3}, rev: 0.25}); },
+      flauta: function(t, m, dur, v){ voz(t, m, dur, v, {osc: [['sine', 1, 0, 0.9], ['triangle', 1, 0, 0.12]], a: 0.07, d: 0.2, s: 0.9, r: 0.18, vib: {f: 5, prof: 12, atraso: 0.25}, rev: 0.5}); A.ruido(t, Math.min(dur, 0.25), {vol: 0.02, filtro: {tipo: 'bandpass', f: f(m) * 2, q: 3}, musica: true, rev: 0.4}); },
+      caixa: function(t, m, dur, v){ voz(t, m, Math.max(dur, 0.4), v * 0.9, {osc: [['sine', 1, 0, 0.8], ['sine', 3.01, 0, 0.18], ['sine', 6.2, 0, 0.05]], a: 0.002, d: 0.5, s: 0, r: 0.3, rev: 0.4}); },
+      chip: function(t, m, dur, v){ voz(t, m, dur * 0.9, v * 0.8, {osc: [['p0.25', 1, 0, 1]], a: 0.002, d: 0.08, s: 0.65, r: 0.03, vib: {f: 6, prof: 6, atraso: 0.2}}); }
+    }
+  };
+  /* ---------- voicing dos acordes (perto uns dos outros) ---------- */
+  var ultAcorde = null;
+  function notasDoAcorde(ch, oit){
+    var base = E.raiz + ch[0] + (oit || 0), ints = ACORDES[ch[1]] || ACORDES.M, ns = ints.map(function(i){ return base + i; });
+    /* leva cada nota para perto do acorde anterior (acordes suaves, sem pulos) */
+    if(ultAcorde){
+      var alvo = ultAcorde.reduce(function(a, b){ return a + b; }, 0) / ultAcorde.length;
+      ns = ns.map(function(m){ while(m - alvo > 6) m -= 12; while(alvo - m > 6) m += 12; return m; });
+    }
+    ultAcorde = ns.slice();
+    return ns;
+  }
+
+  /* ---------- o relógio da música ---------- */
+  var passoDur = 60 / E.bpm / 4, tocando = false, i = 0, prox = 0, ac = null, inicioT = 0, grave = E.raiz - 24;
+  function seg(i){ return Math.floor(i / 16) % PROG.length; }
+  function agendarPasso(i, t){
+    var bar = seg(i), s = i % 16, ch = PROG[bar], ent = E.entra, volta = Math.floor(i / (16 * PROG.length));
+    var tb = t + ((s % 2 === 1) ? E.swing * passoDur : 0), v = E.vol * (0.94 + rnd() * 0.12);
+    var camada = function(c){ return volta > 0 || bar >= (ent[c] == null ? 0 : ent[c]); };
+    /* pad: um acorde por compasso */
+    if(s === 0 && E.pad){
+      ultAcorde = ultAcorde;
+      var ns = notasDoAcorde(ch, E.pad === 'piano' ? 0 : 0);
+      INST.pad[E.pad](tb, ns, passoDur * 16 * 1.02, E.pad === 'guitarra' ? 0.09 : 0.075);
+    }
+    /* baixo */
+    var b = E.bx.charAt(s);
+    if(b !== '.'){
+      var rm = grave + ch[0] % 12; while(rm < E.raiz - 36) rm += 12;
+      var bm = b === 'o' ? rm + 12 : rm, dur = passoDur * 3;
+      INST.baixo[E.baixo](tb, bm, E.baixo === 'chip' ? passoDur * 2 : dur, 0.2 * (b === 'o' ? 0.85 : 1));
+    }
+    /* arpejo */
+    if(E.arp && camada('arp')){
+      var a = E.ar.charAt(s);
+      if(a !== '.' && a !== ''){
+        var n0 = (ACORDES[ch[1]] || ACORDES.M), idx = Number(a), oi = Math.floor(idx / n0.length), mm = E.raiz + 12 + ch[0] + n0[idx % n0.length] + oi * 12;
+        INST.nota[E.arp](tb, mm, passoDur * 2.2, 0.075);
+      }
+    }
+    /* melodia */
+    if(camada('lead')){
+      var nts = MEL[bar];
+      for(var q = 0; q < nts.length; q++) if(nts[q].p === s) INST.nota[E.lead](tb, nts[q].m, nts[q].d * passoDur * 0.96, 0.13 * (0.92 + rnd() * 0.16));
+    }
+    /* bateria */
+    if(E.bat && bar >= (ent.bat == null ? 0 : ent.bat) || (E.bat && volta > 0)){
+      var Bt = E.bat, fill = (bar % 4 === 3 && s >= 12), sh = function(x){ return Bt[x] ? Bt[x].charAt(s) : '.'; };
+      var mu = {musica: true};
+      if(sh('k') !== '.') A.bumbo(t, sh('k') === 'o' ? 0.6 : 1, mu);
+      if(sh('s') !== '.' || (fill && Bt.s)){ if(!(fill && s % 2 === 1 && Math.random() < 0.0)) A.caixa(t, sh('s') === 'o' || (fill && sh('s') === '.') ? 0.55 : 0.9, {musica: true, seca: E.baixo === 'chip'}); }
+      if(sh('p') !== '.') A.palma(t, 0.9, mu);
+      if(sh('h') !== '.' && !(E.baixo === 'chip' && false)) A.chimbal(tb, sh('h') === 'o' ? 0.55 : 0.85, false, mu);
+      if(sh('o') !== '.') A.chimbal(tb, 0.7, true, mu);
+      if(sh('t') !== '.') A.tomb(t, s > 12 ? 110 : 85, 0.9, mu);
+      if(s === 0 && bar % 8 === 0 && volta > 0 && E.epic !== false && (E.pad === 'cordas')) A.prato(t, 0.7, mu);
+    }
+    if(E.chiado && s % 4 === 0 && rnd() < 0.5) A.ruido(tb, 0.02, {vol: 0.012, filtro: {tipo: 'highpass', f: 3000}, musica: true});
+  }
+  function agendarAte(limite){
+    while(prox < limite){ agendarPasso(i, prox); i++; prox += passoDur; }
+  }
+  function iniciar(){
+    if(tocando) return;
+    ac = A.criar(); if(!ac) return;
+    tocando = true;
+    var VM = (C.vol == null ? 0.6 : C.vol) * 0.9 * E.vol; A.volumeMusica(VM);
+    inicioT = ac.currentTime + 0.12; prox = inicioT;
+    /* entra devagar: 1,2 s de subida */
+    A.mus.gain.cancelScheduledValues(0); A.mus.gain.setValueAtTime(0.0001, inicioT); A.mus.gain.linearRampToValueAtTime(VM, inicioT + 1.2);
+    setInterval(function(){
+      if(!ac || ac.state !== 'running') { if(ac && prox < ac.currentTime) prox = ac.currentTime + 0.08; return; }
+      if(prox < ac.currentTime) prox = ac.currentTime + 0.05;       /* ficou pra trás (aba escondida): recomeça daqui, sem rajada */
+      agendarAte(ac.currentTime + 0.4);
+    }, 40);
+  }
+  window.__kodaMusicaTeste = function(seg){ ac = A.ac; i = 0; prox = 0.05; ultAcorde = null; semente = 0; for(var q = 0; q < estiloNome.length; q++) semente = (semente * 31 + estiloNome.charCodeAt(q)) >>> 0; agendarAte(seg); };
+  window.__kodaMusicaInfo = {estilo: estiloNome, bpm: E.bpm, compassos: PROG.length, passoDur: passoDur};
+  window.__kodaMusicaVol = function(){ return E.vol; };
+  A.aoToque(iniciar);
+}
+
+/* ====================================================================
+   OS SONS DO JOGO (kodaSom('ponto') etc.) + áudio que a pessoa mandou
+==================================================================== */
+kodaSonsNoJogo = function(){
+  var A = window.__kodaAudio || (typeof kodaAudioBase === 'function' ? kodaAudioBase() : null);
+  if(!A) return;
+  var ult = {}, meusBuf = {}, decodificando = {}, meusHtml = {};
+  function bytesDoDataUrl(u){
+    var i = String(u).indexOf(','); if(i < 0) return null;
+    var bin = atob(String(u).slice(i + 1)), a = new Uint8Array(bin.length);
+    for(var k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k);
+    return a.buffer;
+  }
+  function decodificar(nome, url){
+    var c = A.ac; if(!c || meusBuf[nome] || decodificando[nome]) return;
+    decodificando[nome] = 1;
+    try{
+      var ab = bytesDoDataUrl(url); if(!ab) return;
+      var ok = function(b){ meusBuf[nome] = b; }, no = function(){ meusBuf[nome] = null; };
+      var p = c.decodeAudioData(ab, ok, no); if(p && p.then) p.then(ok, no);
+    }catch(e){}
+  }
+  function prepararMeus(){ var M = window.__kodaSomMeu || {}; for(var k in M) if(M[k]) decodificar(k, M[k]); }
+  function tocarMeu(nome, url){
+    var c = A.ac;
+    if(c && c.state === 'running' && meusBuf[nome]){ var s = c.createBufferSource(); s.buffer = meusBuf[nome]; s.connect(A.sfx); s.start(); return; }
+    if(c) decodificar(nome, url);
+    /* enquanto não decodificou: o tocador comum (um novo a cada vez, pra não cortar o anterior) */
+    try{
+      var base = meusHtml[nome] || (meusHtml[nome] = new Audio(url));
+      var a = base.paused ? base : base.cloneNode(true);
+      a.currentTime = 0; var pa = a.play(); if(pa && pa.catch) pa.catch(function(){});
+    }catch(e){}
+  }
+  A.aoToque(function(){ prepararMeus(); });
+  window.kodaSom = function(nome){
+    /* quem quer saber dos acontecimentos (tremer a tela, confete, narrador...) fica sabendo, com som ou sem */
+    try{ var L = window.__kodaOuvintes; if(L) for(var li = 0; li < L.length; li++) L[li](nome); }catch(e){}
+    var meu = window.__kodaSomMeu && window.__kodaSomMeu[nome], t0 = Date.now();
+    if(meu){ if(ult['m' + nome] && t0 - ult['m' + nome] < 60) return; ult['m' + nome] = t0; tocarMeu(nome, meu); return; }
+    if(window.__kodaSomSo) return;
+    var c = A.ac; if(!c || c.state !== 'running' || !A.sons[nome]) return;
+    var gap = nome === 'tiro' ? 90 : (nome === 'passo' ? 140 : (nome === 'clique' ? 40 : 70));
+    if(ult[nome] && t0 - ult[nome] < gap) return;
+    ult[nome] = t0;
+    try{ A.tocar(nome); }catch(e){}
+  };
+  /* sem mexer no código do jogo: compra na loja do Koda GB e clique nos botões */
+  function ligarEventos(){
+    try{ if(window.KODA && window.KODA.loja && window.KODA.loja.aoComprar) window.KODA.loja.aoComprar(function(){ window.kodaSom('compra'); }); }catch(e){}
+    document.addEventListener('click', function(e){
+      var t = e.target && e.target.closest ? e.target.closest('button,[role=button],input[type=button],.btn') : null;
+      if(t && !t.disabled && t.id !== 'kodaLojaBotao' && !t.hasAttribute('data-sem-som')) window.kodaSom('clique');
+    }, true);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ligarEventos); else ligarEventos();
+};
+/* o texto do <script> de sons / de música: o motor de áudio vai junto (cada um funciona sozinho) */
+function scriptDeSons(){ return '<script data-koda-sons="1">(' + kodaAudioBase.toString() + ')();(' + kodaSonsNoJogo.toString() + ')();<\/script>'; }
+function paraScriptMusica(cfg){
+  var j = JSON.stringify(cfg).replace(/</g, '\\u003c').replace(/\*\//g, '*\\/');
+  return '<script data-koda-musica="1">/*CFG' + j + 'CFG*/(' + kodaAudioBase.toString() + ')();(' + kodaMusicaNoJogo.toString() + ')(' + j + ');<\/script>';
+}
+
+textosEm10({
+  ms_epica: 'épica|epic|épica|epica|épique|episch|epische|壮大な|史诗般的|웅장한',
+  ms_misterio: 'de mistério|mysterious|de misterio|misteriosa|mystérieuse|geheimnisvoll|mysterieuze|ミステリアスな|神秘的|미스터리한',
+  ms_festa: 'de festa|party|de fiesta|da festa|de fête|Party-|feestelijke|パーティーの|派对|파티',
+  ms_lofi: 'lo-fi|lo-fi|lo-fi|lo-fi|lo-fi|Lo-Fi|lo-fi|ローファイ|低保真|로파이',
+  ms_terror: 'de terror|horror|de terror|horror|d\'horreur|Grusel|griezel|ホラーの|恐怖|공포',
+  ms_fofa: 'fofa|cute|tierna|carina|mignonne|niedliche|schattige|かわいい|可爱|귀여운',
+  ms_luta: 'de luta|fighting|de lucha|di lotta|de combat|Kampf|gevecht|バトルの|战斗|전투',
+  md_musica_q: 'Que tipo de música você quer? Alegre, calma, de suspense, de aventura, espacial, retrô, épica, lo-fi, de festa, de mistério, de terror, fofa ou de luta?|What kind of music do you want? Cheerful, calm, suspenseful, adventurous, spacey, retro, epic, lo-fi, party, mysterious, scary, cute or fighting?|¿Qué tipo de música quieres? Alegre, tranquila, de suspenso, de aventura, espacial, retro, épica, lo-fi, de fiesta, de misterio, de terror, tierna o de lucha?|Che musica vuoi? Allegra, calma, di suspense, d\'avventura, spaziale, retrò, epica, lo-fi, da festa, misteriosa, horror, carina o di lotta?|Quelle musique veux-tu ? Joyeuse, calme, de suspense, d\'aventure, spatiale, rétro, épique, lo-fi, de fête, mystérieuse, d\'horreur, mignonne ou de combat ?|Welche Musik möchtest du? Fröhlich, ruhig, spannend, abenteuerlich, Weltraum, Retro, episch, Lo-Fi, Party, geheimnisvoll, Grusel, niedlich oder Kampf?|Welke muziek wil je? Vrolijk, rustig, spannend, avontuurlijk, ruimte, retro, episch, lo-fi, feest, mysterieus, griezelig, schattig of gevecht?|どんな音楽がいい？ 明るい、静か、ドキドキ、冒険、宇宙、レトロ、壮大、ローファイ、パーティー、ミステリアス、ホラー、かわいい、バトル。|你想要什么音乐？欢快、平静、悬疑、冒险、太空、复古、史诗、低保真、派对、神秘、恐怖、可爱或战斗？|어떤 음악이 좋아요? 밝은, 차분한, 긴장감, 모험, 우주, 레트로, 웅장한, 로파이, 파티, 미스터리, 공포, 귀여운, 전투?',
+  so_vitoria: 'quando vence|when winning|al ganar|quando vinci|quand on gagne|beim Gewinnen|bij winnen|勝ったとき|获胜时|이겼을 때',
+  so_cura: 'quando se cura|when healing|al curarse|quando ti curi|quand on se soigne|beim Heilen|bij genezen|回復したとき|治疗时|회복할 때',
+  so_tesouro: 'quando abre um baú|when opening a chest|al abrir un cofre|quando apri un forziere|à l\'ouverture d\'un coffre|beim Öffnen einer Truhe|bij het openen van een kist|宝箱を開けたとき|打开宝箱时|상자를 열 때',
+  so_golpe: 'no golpe|on a hit|en el golpe|nel colpo|au coup|beim Schlag|bij de slag|攻撃のとき|攻击时|공격할 때',
+  so_vida: 'quando ganha vida extra|on an extra life|al ganar una vida extra|con una vita extra|à la vie en plus|bei einem Extraleben|bij een extra leven|1UPのとき|获得额外生命时|추가 목숨을 얻을 때',
+  so_compra: 'nas compras|on purchases|en las compras|negli acquisti|aux achats|bei Käufen|bij aankopen|購入のとき|购买时|구매할 때',
+  so_clique: 'nos botões|on buttons|en los botones|sui pulsanti|sur les boutons|bei Schaltflächen|op knoppen|ボタンのとき|按钮上|버튼에서'
+});
+/* ====================================================================
+   OPÇÕES NOVAS: o que a pessoa pedir que tenha a ver com o jogo e com o Koda GB (e não seja trapaça), o agente faz.
+   Tudo aqui entra como um "script do Koda" por cima do jogo: não reescreve a lógica, então não quebra o jogo.
+   1) op_controles  controles na tela (joystick ou setas + botões de ação) que apertam as teclas que o jogo já usa
+   2) op_ambiente   chuva, neve, folhas, vaga-lumes, bolhas, estrelas, confete, brilho no toque, TV antiga, vinheta
+   3) op_efeitos    nos acontecimentos do jogo: tela treme, pisca vermelho, celular vibra, confete, narrador
+   4) op_jogador    nome e personagem de quem joga no canto + "Bem-vindo, Ana!"
+   5) op_recordes   os 5 melhores de cada pessoa, guardados na conta dela, com "Novo recorde!"
+   6) op_ajuda      botão "?" com o como jogar
+   7) op_volume     música mais alta / mais baixa
+==================================================================== */
+
+/* ---------------- 1) controles na tela ---------------- */
+function kodaControlesNoJogo(C){
+  if(window.__kodaControles) return; window.__kodaControles = 1;
+  var toque = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  if(!toque && !C.sempre) return;
+  var CODIGOS = {ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40, Space: 32, Enter: 13, KeyZ: 90, KeyX: 88, KeyC: 67, KeyJ: 74, KeyK: 75, KeyW: 87, KeyA: 65, KeyS: 83, KeyD: 68, ShiftLeft: 16, KeyE: 69, KeyF: 70, KeyQ: 81};
+  var NOMES = {Space: ' ', Enter: 'Enter', ShiftLeft: 'Shift', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown'};
+  var apertadas = {};
+  function nomeDa(code){ return NOMES[code] || (code.indexOf('Key') === 0 ? code.slice(3).toLowerCase() : code); }
+  function mandar(tipo, code){
+    var ev;
+    try{ ev = new KeyboardEvent(tipo, {key: nomeDa(code), code: code, bubbles: true, cancelable: true}); }catch(e){ return; }
+    try{ Object.defineProperty(ev, 'keyCode', {get: function(){ return CODIGOS[code] || 0; }}); Object.defineProperty(ev, 'which', {get: function(){ return CODIGOS[code] || 0; }}); }catch(e){}
+    var alvo = document.activeElement && document.activeElement !== document.body && document.activeElement.tagName !== 'BUTTON' ? document.activeElement : (document.querySelector('canvas') || document.body);
+    alvo.dispatchEvent(ev);
+  }
+  function apertar(code){ if(!code || apertadas[code]) return; apertadas[code] = 1; mandar('keydown', code); }
+  function soltar(code){ if(!code || !apertadas[code]) return; delete apertadas[code]; mandar('keyup', code); }
+  function parar(e){ e.stopPropagation(); if(e.cancelable) e.preventDefault(); }
+  var lado = 'max(14px, env(safe-area-inset-left, 0px))', ladoD = 'max(14px, env(safe-area-inset-right, 0px))', baixo = 'max(16px, env(safe-area-inset-bottom, 0px))';
+  function montar(){
+    var raiz = document.createElement('div');
+    raiz.setAttribute('data-koda-ui', 'controles');
+    raiz.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147482500;';
+    document.body.appendChild(raiz);
+    var tam = Math.round(Math.min(150, Math.max(104, Math.min(window.innerWidth, window.innerHeight) * 0.26)));
+    /* esquerda: joystick (ou 4 setas) */
+    var D = C.dir;
+    if(D && C.estilo !== 'setas'){
+      var base = document.createElement('div'), bola = document.createElement('div');
+      base.style.cssText = 'position:absolute;left:' + lado + ';bottom:' + baixo + ';width:' + tam + 'px;height:' + tam + 'px;border-radius:50%;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.4);box-shadow:0 4px 18px rgba(0,0,0,.3);pointer-events:auto;touch-action:none;';
+      bola.style.cssText = 'position:absolute;left:50%;top:50%;width:' + Math.round(tam * 0.42) + 'px;height:' + Math.round(tam * 0.42) + 'px;margin:-' + Math.round(tam * 0.21) + 'px 0 0 -' + Math.round(tam * 0.21) + 'px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 2px 8px rgba(0,0,0,.35);transition:transform .06s;';
+      base.appendChild(bola); raiz.appendChild(base);
+      var dedo = null;
+      var mover = function(e){
+        var r = base.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, dx = e.clientX - cx, dy = e.clientY - cy, d = Math.sqrt(dx * dx + dy * dy), max = r.width * 0.36;
+        var k = d > max ? max / d : 1; bola.style.transform = 'translate(' + (dx * k) + 'px,' + (dy * k) + 'px)';
+        var lim = r.width * 0.14, quer = {};
+        if(d > lim){
+          var a = Math.atan2(dy, dx) * 180 / Math.PI;
+          if(a > -67.5 && a < 67.5) quer.dir = 1;
+          if(a > 112.5 || a < -112.5) quer.esq = 1;
+          if(a > 22.5 && a < 157.5) quer.baixo = 1;
+          if(a < -22.5 && a > -157.5) quer.cima = 1;
+        }
+        ['esq', 'dir', 'cima', 'baixo'].forEach(function(k2){ if(D[k2]){ if(quer[k2]) apertar(D[k2]); else soltar(D[k2]); } });
+      };
+      var largar = function(){ dedo = null; bola.style.transform = ''; ['esq', 'dir', 'cima', 'baixo'].forEach(function(k2){ if(D[k2]) soltar(D[k2]); }); };
+      base.addEventListener('pointerdown', function(e){ parar(e); dedo = e.pointerId; try{ base.setPointerCapture(e.pointerId); }catch(x){} mover(e); });
+      base.addEventListener('pointermove', function(e){ if(dedo === e.pointerId){ parar(e); mover(e); } });
+      ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function(t){ base.addEventListener(t, function(e){ if(dedo === e.pointerId || t === 'lostpointercapture') largar(); }); });
+    } else if(D){
+      var b = Math.round(tam * 0.42), caixa = document.createElement('div');
+      caixa.style.cssText = 'position:absolute;left:' + lado + ';bottom:' + baixo + ';width:' + (b * 3) + 'px;height:' + (b * 3) + 'px;pointer-events:none;';
+      raiz.appendChild(caixa);
+      [['cima', b, 0, '▲'], ['esq', 0, b, '◀'], ['dir', b * 2, b, '▶'], ['baixo', b, b * 2, '▼']].forEach(function(s){
+        if(!D[s[0]]) return;
+        caixa.appendChild(botao(s[3], D[s[0]], 'left:' + s[1] + 'px;top:' + s[2] + 'px;width:' + b + 'px;height:' + b + 'px;', Math.round(b * 0.42)));
+      });
+    }
+    /* direita: botões de ação */
+    var acoes = C.acoes || [], ba = Math.round(tam * 0.5);
+    acoes.forEach(function(a, i){
+      var x = i === 0 ? 0 : (i === 1 ? ba * 1.15 : ba * 0.55), y = i === 0 ? 0 : (i === 1 ? ba * 0.55 : ba * 1.35);
+      raiz.appendChild(botao(a.rot, a.tecla, 'right:calc(' + ladoD + ' + ' + Math.round(x) + 'px);bottom:calc(' + baixo + ' + ' + Math.round(y) + 'px);width:' + ba + 'px;height:' + ba + 'px;border-radius:50%;', Math.round(ba * (a.rot.length > 1 ? 0.26 : 0.4))));
+    });
+  }
+  function botao(rot, tecla, css, fonte){
+    var el = document.createElement('div');
+    el.textContent = rot;
+    el.style.cssText = 'position:absolute;' + css + 'display:flex;align-items:center;justify-content:center;border-radius:16px;background:rgba(255,255,255,.18);border:3px solid rgba(255,255,255,.45);color:#fff;font:800 ' + fonte + 'px system-ui,-apple-system,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.6);box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;';
+    var on = function(e){ parar(e); el.style.background = 'rgba(255,230,120,.55)'; apertar(tecla); };
+    var off = function(e){ if(e) e.stopPropagation(); el.style.background = 'rgba(255,255,255,.18)'; soltar(tecla); };
+    el.addEventListener('pointerdown', on);
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(t){ el.addEventListener(t, off); });
+    el.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+    return el;
+  }
+  window.addEventListener('blur', function(){ for(var k in apertadas) soltar(k); });
+  if(document.body) montar(); else document.addEventListener('DOMContentLoaded', montar);
+}
+
+/* as teclas que o jogo usa (pra saber o que os controles apertam) */
+function teclasDoJogo(codigo){
+  var c = String(codigo).replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, ''), t = {};
+  function tem(re){ return re.test(c); }
+  c = c.replace(/([{,]\s*)(Arrow(?:Left|Right|Up|Down)|Space|Enter|Key[A-Z]|Shift(?:Left|Right)?)\s*:/g, function(x, a, k){ return a + "'" + k + "':"; });
+  t.setas = {esq: tem(/ArrowLeft|keyCode\s*={2,3}\s*37|which\s*={2,3}\s*37|\bLeft['"]/), dir: tem(/ArrowRight|keyCode\s*={2,3}\s*39|which\s*={2,3}\s*39|\bRight['"]/), cima: tem(/ArrowUp|keyCode\s*={2,3}\s*38|which\s*={2,3}\s*38|\bUp['"]/), baixo: tem(/ArrowDown|keyCode\s*={2,3}\s*40|which\s*={2,3}\s*40|\bDown['"]/)};
+  t.wasd = {esq: tem(/KeyA\b|key\s*={2,3}\s*['"]a['"]|['"]a['"]\s*:/i), dir: tem(/KeyD\b|key\s*={2,3}\s*['"]d['"]|['"]d['"]\s*:/i), cima: tem(/KeyW\b|key\s*={2,3}\s*['"]w['"]|['"]w['"]\s*:/i), baixo: tem(/KeyS\b|key\s*={2,3}\s*['"]s['"]|['"]s['"]\s*:/i)};
+  var ac = [];
+  if(tem(/['"]Space['"]|key\s*={2,3}\s*['"] ['"]|['"] ['"]\s*:|keyCode\s*={2,3}\s*32|which\s*={2,3}\s*32|['"]Spacebar['"]/)) ac.push('Space');
+  [['KeyZ', /KeyZ\b|key\s*={2,3}\s*['"]z['"]|keyCode\s*={2,3}\s*90/i], ['KeyX', /KeyX\b|key\s*={2,3}\s*['"]x['"]|keyCode\s*={2,3}\s*88/i], ['KeyJ', /KeyJ\b|key\s*={2,3}\s*['"]j['"]/i], ['KeyK', /KeyK\b|key\s*={2,3}\s*['"]k['"]/i], ['KeyC', /KeyC\b|key\s*={2,3}\s*['"]c['"]/i], ['KeyE', /KeyE\b|key\s*={2,3}\s*['"]e['"]/i], ['KeyF', /KeyF\b|key\s*={2,3}\s*['"]f['"]/i], ['ShiftLeft', /Shift(Left)?['"]|shiftKey/], ['Enter', /['"]Enter['"]|keyCode\s*={2,3}\s*13/]].forEach(function(p){ if(tem(p[1])) ac.push(p[0]); });
+  t.acoes = ac;
+  t.teclado = tem(/addEventListener\(\s*['"]key(down|up|press)['"]|onkey(down|up|press)\s*=/i);
+  t.toque = tem(/addEventListener\(\s*['"](touchstart|touchend|pointerdown|pointerup|mousedown|click)['"]|on(touchstart|pointerdown|mousedown|click)\s*=/i);
+  return t;
+}
+/* o jogo já tem os próprios botões na tela (setas, joystick) */
+function jaTemControlesDeToque(codigo){
+  var c = String(codigo).replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, '');
+  var html = c.replace(/<script[\s\S]*?<\/script\s*>/gi, ' ');
+  var setasNaTela = (html.match(/>\s*[◀▶▲▼←→↑↓⬅➡⬆⬇]\s*</g) || []).length >= 2;
+  var nomes = /(id|class)\s*=\s*["'][^"']*\b(joystick|stick|dpad|d-pad|controles|controls|pad|setas|botoes-toque|touch-controls|teclas)\b/i.test(html);
+  var dataK = /data-(k|key|tecla|dir|d|a)\s*=\s*["']/i.test(html) && /pointerdown|touchstart/.test(c);
+  return setasNaTela || (nomes && /pointerdown|touchstart|mousedown/.test(c)) || dataK;
+}
+/* palavras perto da tecla no código ("Space" perto de "pular" -> o botão diz "Pular") */
+function rotuloDaTecla(codigo, code, lg){
+  var re = code === 'Space' ? /(['"]Space['"]|\bSpace\s*:|key\s*={2,3}\s*['"] ['"]|keyCode\s*={2,3}\s*32)/g : new RegExp("['\"]" + code + "['\"]|\\b" + code + "\\s*:|key\\s*={2,3}\\s*['\"]" + code.replace('Key', '').toLowerCase() + "['\"]", 'gi');
+  var m, forte = null, fraco = null;
+  function qual(txt){
+    if(/pul|jump|salt/.test(txt)) return 'pulo';
+    if(/atir|shoot|fire|tiro|disp/.test(txt)) return 'tiro';
+    if(/ataq|attack|espada|sword|golpe|soco|punch|slash/.test(txt)) return 'ataque';
+    if(/bomba|bomb/.test(txt)) return 'bomba';
+    if(/turbo|boost|dash/.test(txt)) return 'turbo';
+    if(/pausa|pause/.test(txt)) return 'pausa';
+    if(/girar|rotat|gira\b|rotar/.test(txt)) return 'girar';
+    if(/guardar|hold|reserva/.test(txt)) return 'guardar';
+    if(/cairdevez|caidevez|harddrop|drop|derrub|['"]cai['"]|\bcair\b/.test(txt)) return 'cair';
+    if(/esperar|espera\b|wait|passarturno/.test(txt)) return 'esperar';
+    if(/usaritem|usar\b|item|use\b/.test(txt)) return 'usar';
+    if(/freio|frear|brake/.test(txt)) return 'freio';
+    return null;
+  }
+  /* o que vem logo depois da tecla ("Space: 'pulo'", "=== 'Space') pular()") vale mais que a vizinhança */
+  while((m = re.exec(codigo))){
+    var perto = semAcento(codigo.slice(m.index + m[0].length, m.index + m[0].length + 48)).toLowerCase().split(/[,;\n}]/)[0];
+    if(/^\s*\)?\s*$/.test(perto)) perto = semAcento(codigo.slice(m.index + m[0].length, m.index + m[0].length + 48)).toLowerCase().split(/[;\n}]/)[0];
+    var jan = semAcento(codigo.slice(Math.max(0, m.index - 40), m.index + 120)).toLowerCase();
+    if(!forte) forte = qual(perto);
+    if(!fraco) fraco = qual(jan);
+  }
+  var achou = forte || fraco;
+  return achou ? TL(lg, 'ct_rot_' + achou) : null;
+}
+function fazerControles(codigo, o){
+  o = o || {};
+  if(/data-koda-controles/.test(codigo) && !o.trocar) return {erro: 'ja_tem'};
+  var t = teclasDoJogo(codigo), lg = linguaDoJogo(lerDocumento(codigo));
+  var usaSetas = t.setas.esq || t.setas.dir || t.setas.cima || t.setas.baixo, usaWasd = t.wasd.esq || t.wasd.dir || t.wasd.cima || t.wasd.baixo;
+  if(!t.teclado && !usaSetas && !usaWasd && !t.acoes.length) return {erro: t.toque ? 'ja_toque' : 'sem_teclas'};
+  if(!o.forcar && jaTemControlesDeToque(codigo)) return {erro: 'ja_controles'};
+  /* jogo de tocar (clicker, cartas) que também aceita uma tecla: o toque já resolve */
+  if(!usaSetas && !usaWasd && t.toque) return {erro: 'ja_toque'};
+  var dir = null;
+  if(usaSetas) dir = {esq: t.setas.esq ? 'ArrowLeft' : null, dir: t.setas.dir ? 'ArrowRight' : null, cima: t.setas.cima ? 'ArrowUp' : null, baixo: t.setas.baixo ? 'ArrowDown' : null};
+  else if(usaWasd) dir = {esq: t.wasd.esq ? 'KeyA' : null, dir: t.wasd.dir ? 'KeyD' : null, cima: t.wasd.cima ? 'KeyW' : null, baixo: t.wasd.baixo ? 'KeyS' : null};
+  /* jogo que pula com a seta pra cima e só anda pros lados: seta pra cima vira botão de pulo (mais fácil no celular) */
+  var acoes = [];
+  var vistos = {};
+  t.acoes.filter(function(k){ return k !== 'Enter' || t.acoes.length === 1; }).forEach(function(k){
+    if(acoes.length >= 3) return;
+    var rot = rotuloDaTecla(codigo, k, lg);
+    if(rot && vistos[rot]) return;                 /* Space e Z que pulam: um botão de pulo só */
+    if(rot) vistos[rot] = 1;
+    acoes.push({tecla: k, rot: rot || ['A', 'B', 'C'][acoes.length]});
+  });
+  if(dir && dir.cima && !dir.baixo && acoes.length < 3 && !acoes.some(function(a){ return /pul|jump|salt/i.test(semAcento(a.rot)); }) && /pul|jump|salt/i.test(semAcento(codigo))){
+    acoes.unshift({tecla: dir.cima, rot: TL(lg, 'ct_rot_pulo')});
+  }
+  var cfg = {dir: dir, acoes: acoes, estilo: o.estilo || 'joystick', sempre: !!o.sempre};
+  var limpo = tirarMarca(codigo, 'data-koda-controles');
+  var novo = colocarNoComeco(limpo, paraScript(kodaControlesNoJogo, cfg, 'controles'));
+  return conferirDepois(codigo, novo, {cfg: cfg});
+}
+
+/* ---------------- 2) clima e efeitos na tela (uma camada por cima, que não pega toque) ---------------- */
+function kodaAmbienteNoJogo(C){
+  if(window.__kodaAmbiente) return; window.__kodaAmbiente = 1;
+  var tipos = C.tipos || [], forca = C.forca || 1, cv, g, W = 0, H = 0, dpr = 1, ps = [], toques = [], t0 = 0, neb = null, relogio = 0;
+  function tem(k){ return tipos.indexOf(k) >= 0; }
+  function tamanho(){ dpr = Math.min(window.devicePixelRatio || 1, 1.5); W = window.innerWidth; H = window.innerHeight; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function rnd(a, b){ return a + Math.random() * (b - a); }
+  var CORES_CONF = ['#ff5a7a', '#ffd34d', '#4dd6ff', '#7cff8a', '#b38bff', '#ff9a3c'];
+  function nova(k, inicio){
+    var p = {k: k, x: rnd(0, W), y: inicio ? rnd(0, H) : -20, vida: 0};
+    if(k === 'chuva'){ p.vy = rnd(560, 820); p.vx = -60; p.l = rnd(10, 20); }
+    if(k === 'neve'){ p.vy = rnd(30, 70); p.r = rnd(1.5, 4); p.f = rnd(0, 6); }
+    if(k === 'folhas'){ p.vy = rnd(35, 70); p.r = rnd(5, 9); p.f = rnd(0, 6); p.c = ['#e0782b', '#d9a12c', '#b5452a', '#8fae3a'][Math.floor(rnd(0, 4))]; p.a = rnd(0, 6); }
+    if(k === 'vagalumes'){ p.y = rnd(H * 0.2, H); p.vx = rnd(-14, 14); p.vy = rnd(-10, 10); p.f = rnd(0, 6); }
+    if(k === 'bolhas'){ p.y = H + 20; if(inicio) p.y = rnd(0, H); p.vy = -rnd(25, 60); p.r = rnd(4, 14); p.f = rnd(0, 6); }
+    if(k === 'estrelas'){ p.y = rnd(0, H * 0.75); p.f = rnd(0, 6); p.r = rnd(0.8, 2.2); }
+    if(k === 'confete'){ p.vy = rnd(60, 130); p.vx = rnd(-30, 30); p.c = CORES_CONF[Math.floor(rnd(0, CORES_CONF.length))]; p.a = rnd(0, 6); p.va = rnd(-6, 6); p.w = rnd(5, 9); }
+    return p;
+  }
+  var QTD = {chuva: 0.00028, neve: 0.00014, folhas: 0.00004, vagalumes: 0.00004, bolhas: 0.00004, estrelas: 0.00012, confete: 0.00007};
+  function encher(inicio){
+    tipos.forEach(function(k){
+      if(!QTD[k]) return;
+      var alvo = Math.round(QTD[k] * W * H * forca), n = 0;
+      for(var i = 0; i < ps.length; i++) if(ps[i].k === k) n++;
+      for(; n < alvo; n++) ps.push(nova(k, inicio));
+    });
+  }
+  var cadente = null;
+  function quadro(t){
+    var dt = Math.min(0.05, (t - (t0 || t)) / 1000); t0 = t;
+    g.clearRect(0, 0, W, H);
+    for(var i = ps.length - 1; i >= 0; i--){
+      var p = ps[i]; p.vida += dt;
+      if(p.k === 'chuva'){ p.x += p.vx * dt; p.y += p.vy * dt; g.strokeStyle = 'rgba(180,210,255,.55)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + p.vx * 0.02, p.y + p.l); g.stroke(); if(p.y > H){ ps[i] = nova('chuva'); if(Math.random() < 0.3) toques.push({x: p.x, y: H - rnd(2, 30), r: 1, chuva: 1, v: 1}); } }
+      else if(p.k === 'neve'){ p.f += dt; p.y += p.vy * dt; p.x += Math.sin(p.f) * 18 * dt; g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.fill(); if(p.y > H + 5) ps[i] = nova('neve'); }
+      else if(p.k === 'folhas'){ p.f += dt; p.a += dt * 1.5; p.y += p.vy * dt; p.x += Math.sin(p.f * 1.3) * 40 * dt; g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c; g.beginPath(); g.ellipse(0, 0, p.r, p.r * 0.5, 0, 0, 6.283); g.fill(); g.restore(); if(p.y > H + 10) ps[i] = nova('folhas'); }
+      else if(p.k === 'vagalumes'){ p.f += dt * 2; p.x += (p.vx + Math.sin(p.f) * 10) * dt; p.y += (p.vy + Math.cos(p.f * 0.7) * 8) * dt; var b = 0.35 + 0.65 * Math.max(0, Math.sin(p.f * 1.7)); var gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, 10); gr.addColorStop(0, 'rgba(255,245,140,' + b + ')'); gr.addColorStop(1, 'rgba(255,245,140,0)'); g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, 10, 0, 6.283); g.fill(); if(p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) ps[i] = nova('vagalumes', true); }
+      else if(p.k === 'bolhas'){ p.f += dt; p.y += p.vy * dt; p.x += Math.sin(p.f * 2) * 12 * dt; g.strokeStyle = 'rgba(200,240,255,.6)'; g.lineWidth = 1.3; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.stroke(); g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.arc(p.x - p.r * 0.35, p.y - p.r * 0.35, p.r * 0.22, 0, 6.283); g.fill(); if(p.y < -20) ps[i] = nova('bolhas'); }
+      else if(p.k === 'estrelas'){ p.f += dt * 2.2; var a2 = 0.3 + 0.7 * Math.abs(Math.sin(p.f)); g.fillStyle = 'rgba(255,255,230,' + a2 + ')'; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.fill(); }
+      else if(p.k === 'confete'){ p.a += p.va * dt; p.y += p.vy * dt; p.x += (p.vx + Math.sin(p.vida * 3) * 20) * dt; g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c; g.fillRect(-p.w / 2, -p.w * 0.3, p.w, p.w * 0.6); g.restore(); if(p.y > H + 10) ps[i] = nova('confete'); }
+    }
+    if(tem('estrelas')){
+      if(!cadente && Math.random() < dt * 0.25) cadente = {x: rnd(W * 0.2, W), y: rnd(0, H * 0.3), v: 0};
+      if(cadente){ cadente.v += dt; var cx = cadente.x - cadente.v * 520, cy = cadente.y + cadente.v * 260; var lg = g.createLinearGradient(cx, cy, cx + 70, cy - 35); lg.addColorStop(0, 'rgba(255,255,255,.9)'); lg.addColorStop(1, 'rgba(255,255,255,0)'); g.strokeStyle = lg; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + 70, cy - 35); g.stroke(); if(cadente.v > 0.8) cadente = null; }
+    }
+    /* brilhos do toque e respingos da chuva */
+    for(var j = toques.length - 1; j >= 0; j--){
+      var q = toques[j]; q.v -= dt * (q.chuva ? 3 : 1.6); q.r += dt * (q.chuva ? 30 : 90);
+      if(q.v <= 0){ toques.splice(j, 1); continue; }
+      if(q.chuva){ g.strokeStyle = 'rgba(190,215,255,' + (q.v * 0.5) + ')'; g.lineWidth = 1; g.beginPath(); g.ellipse(q.x, q.y, q.r, q.r * 0.3, 0, 0, 6.283); g.stroke(); continue; }
+      g.strokeStyle = 'rgba(255,255,255,' + q.v + ')'; g.lineWidth = 2.5; g.beginPath(); g.arc(q.x, q.y, q.r, 0, 6.283); g.stroke();
+      for(var s = 0; s < 6; s++){ var an = s / 6 * 6.283 + q.r * 0.01, dx = Math.cos(an) * q.r * 1.25, dy = Math.sin(an) * q.r * 1.25; g.fillStyle = q.c ? 'rgba(' + q.c + ',' + q.v + ')' : 'rgba(255,230,120,' + q.v + ')'; g.beginPath(); g.arc(q.x + dx, q.y + dy, 2.6 * q.v + 0.5, 0, 6.283); g.fill(); }
+    }
+    if(tem('neblina')){
+      if(!neb){ neb = []; for(var nb = 0; nb < 7; nb++) neb.push({x: rnd(-W * 0.3, W), y: rnd(H * 0.2, H), r: rnd(Math.max(W, H) * 0.18, Math.max(W, H) * 0.35), v: rnd(8, 22), a: rnd(0.07, 0.13)}); }
+      neb.forEach(function(b){ b.x += b.v * dt; if(b.x - b.r > W) b.x = -b.r; var gn = g.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r); gn.addColorStop(0, 'rgba(235,240,245,' + b.a + ')'); gn.addColorStop(1, 'rgba(235,240,245,0)'); g.fillStyle = gn; g.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2); });
+    }
+    if(tem('dianoite')){ relogio += dt; var fase = (Math.sin(relogio / 30 * Math.PI) + 1) / 2; g.fillStyle = 'rgba(12,18,60,' + (fase * 0.42) + ')'; g.fillRect(0, 0, W, H); if(fase < 0.15){ g.fillStyle = 'rgba(255,170,80,' + ((0.15 - fase) * 0.8) + ')'; g.fillRect(0, 0, W, H); } }
+    if(tem('tv')){ g.fillStyle = 'rgba(0,0,0,.16)'; for(var y = 0; y < H; y += 3) g.fillRect(0, y, W, 1); }
+    if(tem('tv') || tem('vinheta')){ var vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,' + (tem('tv') ? 0.55 : 0.45) + ')'); g.fillStyle = vg; g.fillRect(0, 0, W, H); }
+    requestAnimationFrame(quadro);
+  }
+  function montar(){
+    cv = document.createElement('canvas');
+    cv.setAttribute('data-koda-ui', 'ambiente');
+    cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2147480000;';
+    document.body.appendChild(cv); g = cv.getContext('2d');
+    tamanho(); encher(true);
+    window.addEventListener('resize', function(){ tamanho(); encher(true); });
+    if(tem('toque')){
+      var ult = 0;
+      window.addEventListener('pointerdown', function(e){ toques.push({x: e.clientX, y: e.clientY, r: 4, v: 1}); }, true);
+      window.addEventListener('pointermove', function(e){ var t = Date.now(); if(e.buttons && t - ult > 45){ ult = t; toques.push({x: e.clientX, y: e.clientY, r: 2, v: 0.7, c: '180,220,255'}); } }, true);
+    }
+    requestAnimationFrame(quadro);
+  }
+  if(document.body) montar(); else document.addEventListener('DOMContentLoaded', montar);
+}
+function fazerAmbiente(codigo, tipos, o){
+  o = o || {};
+  var cfg = lerConfig(codigo, 'data-koda-ambiente') || {tipos: [], forca: 1};
+  var antes = JSON.stringify(cfg);
+  if(o.tirar){ cfg.tipos = tipos && tipos.length ? cfg.tipos.filter(function(k){ return tipos.indexOf(k) < 0; }) : []; }
+  else tipos.forEach(function(k){ if(cfg.tipos.indexOf(k) < 0) cfg.tipos.push(k); });
+  if(o.forca) cfg.forca = o.forca;
+  if(JSON.stringify(cfg) === antes) return {erro: o.tirar ? 'nada' : 'ja_tem'};
+  var limpo = tirarMarca(codigo, 'data-koda-ambiente');
+  if(!cfg.tipos.length) return conferirDepois(codigo, limpo, {cfg: cfg, tirou: true});
+  return conferirDepois(codigo, colocarNoComeco(limpo, paraScript(kodaAmbienteNoJogo, cfg, 'ambiente')), {cfg: cfg});
+}
+
+/* ---------------- 3) efeitos nos acontecimentos do jogo ---------------- */
+function kodaEfeitosNoJogo(C){
+  if(window.__kodaEfeitos) return; window.__kodaEfeitos = 1;
+  var E = C.efeitos || {}, alvoTremor = null, camada = null, g = null, conf = [], rodando = false;
+  function tem(k){ return !!E[k]; }
+  function tremer(f){
+    var el = alvoTremor || (alvoTremor = document.querySelector('canvas') || document.body), t0 = performance.now(), dur = 320, amp = 9 * (f || 1);
+    (function passo(t){ var k = (t - t0) / dur; if(k >= 1){ el.style.transform = ''; return; } var a = amp * (1 - k); el.style.transform = 'translate(' + ((Math.random() - 0.5) * 2 * a) + 'px,' + ((Math.random() - 0.5) * 2 * a) + 'px)'; requestAnimationFrame(passo); })(t0);
+  }
+  function piscar(cor){
+    var v = document.createElement('div');
+    v.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147481000;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, ' + cor + ' 100%);opacity:1;transition:opacity .45s ease-out;';
+    document.body.appendChild(v); requestAnimationFrame(function(){ requestAnimationFrame(function(){ v.style.opacity = '0'; }); }); setTimeout(function(){ v.remove(); }, 600);
+  }
+  function vibrar(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+  function confete(){
+    if(!camada){ camada = document.createElement('canvas'); camada.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2147481500;'; document.body.appendChild(camada); g = camada.getContext('2d'); }
+    var W = window.innerWidth, H = window.innerHeight; camada.width = W; camada.height = H;
+    var cores = ['#ff5a7a', '#ffd34d', '#4dd6ff', '#7cff8a', '#b38bff', '#ff9a3c'];
+    for(var i = 0; i < 140; i++){ var lado = i % 2 ? 1 : -1, a = -Math.PI / 2 + lado * (0.35 + Math.random() * 0.5); conf.push({x: lado > 0 ? W * 0.08 : W * 0.92, y: H * 0.95, vx: Math.cos(a) * (500 + Math.random() * 500) * -lado * -1, vy: Math.sin(a) * (700 + Math.random() * 500), c: cores[i % cores.length], r: Math.random() * 6, vr: (Math.random() - 0.5) * 12, w: 6 + Math.random() * 5, vida: 2.4}); }
+    if(!rodando){ rodando = true; var t0 = 0; requestAnimationFrame(function q(t){ var dt = Math.min(0.05, (t - (t0 || t)) / 1000); t0 = t; g.clearRect(0, 0, W, H); for(var j = conf.length - 1; j >= 0; j--){ var p = conf[j]; p.vy += 900 * dt; p.vx *= 0.99; p.x += p.vx * dt; p.y += p.vy * dt; p.r += p.vr * dt; p.vida -= dt; if(p.vida <= 0 || p.y > H + 20){ conf.splice(j, 1); continue; } g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.globalAlpha = Math.min(1, p.vida); g.fillStyle = p.c; g.fillRect(-p.w / 2, -p.w * 0.3, p.w, p.w * 0.6); g.restore(); } if(conf.length) requestAnimationFrame(q); else { rodando = false; g.clearRect(0, 0, W, H); } }); }
+  }
+  var bril = [], brilCv = null, brilG = null, brilRoda = false;
+  function brilhos(){
+    if(!brilCv){ brilCv = document.createElement('canvas'); brilCv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2147481400;'; document.body.appendChild(brilCv); brilG = brilCv.getContext('2d'); }
+    var W = window.innerWidth, H = window.innerHeight; if(brilCv.width !== W) brilCv.width = W; if(brilCv.height !== H) brilCv.height = H;
+    var cx = window.__kodaUltToque && Date.now() - window.__kodaUltToque.t < 1500 ? window.__kodaUltToque.x : W * (0.3 + Math.random() * 0.4), cy = window.__kodaUltToque && Date.now() - window.__kodaUltToque.t < 1500 ? window.__kodaUltToque.y : H * 0.18;
+    for(var i = 0; i < 16; i++){ var a = Math.random() * 6.283, v = 60 + Math.random() * 160; bril.push({x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, vida: 0.7, r: 1.5 + Math.random() * 2.5}); }
+    if(bril.length > 160) bril.splice(0, bril.length - 160);
+    if(!brilRoda){ brilRoda = true; var t0 = 0; requestAnimationFrame(function q(t){ var dt = Math.min(0.05, (t - (t0 || t)) / 1000); t0 = t; brilG.clearRect(0, 0, brilCv.width, brilCv.height); for(var j = bril.length - 1; j >= 0; j--){ var p = bril[j]; p.vy += 260 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vida -= dt; if(p.vida <= 0){ bril.splice(j, 1); continue; } brilG.globalAlpha = Math.min(1, p.vida * 2); brilG.fillStyle = j % 3 ? '#ffd34d' : '#fff6c2'; brilG.beginPath(); brilG.arc(p.x, p.y, p.r, 0, 6.283); brilG.fill(); } brilG.globalAlpha = 1; if(bril.length) requestAnimationFrame(q); else { brilRoda = false; brilG.clearRect(0, 0, brilCv.width, brilCv.height); } }); }
+  }
+  window.addEventListener('pointerdown', function(e){ window.__kodaUltToque = {x: e.clientX, y: e.clientY, t: Date.now()}; }, true);
+  var ultFala = 0;
+  function falar(txt){
+    try{
+      if(!window.speechSynthesis || !txt) return; var t = Date.now(); if(t - ultFala < 1200) return; ultFala = t;
+      var u = new SpeechSynthesisUtterance(txt); u.lang = C.lang || 'pt-BR'; u.rate = 1.05; u.pitch = 1.1; u.volume = 0.9;
+      window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function aoEvento(n){
+    if(n === 'dano' || n === 'explosao'){ if(tem('tremor')) tremer(n === 'explosao' ? 1.4 : 1); if(tem('flash') && n === 'dano') piscar('rgba(255,30,30,.55)'); if(tem('vibrar')) vibrar(n === 'explosao' ? [60, 40, 90] : 80); }
+    if(n === 'fim'){ if(tem('vibrar')) vibrar([120, 60, 220]); if(tem('narrador')) falar(C.falas.fim); if(tem('flash')) piscar('rgba(40,0,0,.7)'); }
+    if(n === 'fase' || n === 'vitoria' || n === 'recorde'){ if(tem('confete')) confete(); if(tem('vibrar')) vibrar([40, 50, 40]); if(tem('narrador')) falar(C.falas[n]); if(tem('flash')) piscar('rgba(255,230,120,.45)'); }
+    if(n === 'vida' || n === 'cura'){ if(tem('flash')) piscar('rgba(120,255,150,.4)'); if(tem('narrador') && n === 'vida') falar(C.falas.vida); }
+    if(n === 'poder' && tem('narrador')) falar(C.falas.poder);
+    if((n === 'ponto' || n === 'pegar' || n === 'poder' || n === 'tesouro') && tem('brilho')) brilhos();
+  }
+  (window.__kodaOuvintes = window.__kodaOuvintes || []).push(aoEvento);
+  window.kodaEfeito = aoEvento;
+}
+function fazerEfeitos(codigo, quais, o){
+  o = o || {};
+  var cfg = lerConfig(codigo, 'data-koda-efeitos') || {efeitos: {}};
+  var antes = JSON.stringify(cfg.efeitos);
+  Object.keys(quais).forEach(function(k){ if(o.tirar) delete cfg.efeitos[k]; else cfg.efeitos[k] = 1; });
+  if(o.tirar && !Object.keys(quais).length) cfg.efeitos = {};
+  if(JSON.stringify(cfg.efeitos) === antes) return {erro: o.tirar ? 'nada' : 'ja_tem'};
+  var lg = linguaDoJogo(lerDocumento(codigo));
+  cfg.lang = {pt: 'pt-BR', en: 'en-US', es: 'es-ES'}[lg] || 'pt-BR';
+  cfg.falas = {fim: TL(lg, 'ef_fala_fim'), fase: TL(lg, 'ef_fala_fase'), vitoria: TL(lg, 'ef_fala_vitoria'), recorde: TL(lg, 'ef_fala_recorde'), vida: TL(lg, 'ef_fala_vida'), poder: TL(lg, 'ef_fala_poder')};
+  var base = tirarMarca(codigo, 'data-koda-efeitos');
+  if(!Object.keys(cfg.efeitos).length) return conferirDepois(codigo, base, {tirou: true});
+  /* os acontecimentos vêm dos pontos que o agente marca no jogo (os mesmos dos sons). Sem sons pedidos: marca em silêncio */
+  var eventos = {};
+  if(!/data-koda-sons/.test(base)){
+    var s = fazerSons(base);
+    if(s.erro || !s.codigo) return {erro: 'sem_eventos'};
+    base = s.codigo; eventos = s.res && s.res.sons || {};
+    if(!/data-koda-meusom/.test(base)) base = colocarNoComeco(base, '<script data-koda-meusom="1">window.__kodaSomMeu={};window.__kodaSomSo=1;<\/script>');
+  } else {
+    if(!/__kodaOuvintes/.test(base)) base = base.replace(/<script[^>]*data-koda-sons[^>]*>[\s\S]*?<\/script>/, function(){ return scriptDeSons(); });
+    (base.match(/kodaSom\('(\w+)'\)/g) || []).forEach(function(x){ eventos[x.slice(9, -2)] = 1; });
+  }
+  var novo = colocarNoComeco(base, paraScript(kodaEfeitosNoJogo, cfg, 'efeitos'));
+  return conferirDepois(codigo, novo, {cfg: cfg, eventos: eventos});
+}
+
+/* ---------------- 4) nome e personagem de quem joga ---------------- */
+function kodaJogadorNoJogo(C){
+  if(window.__kodaJogadorUi) return; window.__kodaJogadorUi = 1;
+  function montar(){
+    var K = window.KODA && window.KODA.jogador; if(!K) return;
+    var nome = (typeof K.nome === 'function' ? K.nome() : K.nome) || '';
+    var caixa = document.createElement('div');
+    caixa.setAttribute('data-koda-ui', 'jogador');
+    var canto = C.canto === 'baixo' ? 'bottom:max(10px, env(safe-area-inset-bottom, 0px));' : 'top:max(' + (C.desce ? 56 : 10) + 'px, env(safe-area-inset-top, 0px));';
+    caixa.style.cssText = 'position:fixed;left:max(10px, env(safe-area-inset-left, 0px));' + canto + 'z-index:2147482000;display:flex;align-items:center;gap:7px;padding:4px 12px 4px 4px;border-radius:999px;background:rgba(10,14,30,.62);color:#fff;font:800 14px system-ui,-apple-system,sans-serif;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.3);max-width:46vw;';
+    var av = document.createElement('canvas'); av.width = 64; av.height = 64; av.style.cssText = 'width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);';
+    var nm = document.createElement('span'); nm.style.cssText = 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'; nm.textContent = nome || C.txt.jogador;
+    if(C.avatar !== false) caixa.appendChild(av);
+    caixa.appendChild(nm);
+    document.body.appendChild(caixa);
+    function desenhar(){ try{ var g = av.getContext('2d'); g.clearRect(0, 0, 64, 64); K.desenhar(g, 64 / 2 - 110 * 22 / 29 / 2, 4, 110); }catch(e){} var n2 = (typeof K.nome === 'function' ? K.nome() : K.nome) || ''; if(n2) nm.textContent = n2; }
+    if(K.aoPronto) K.aoPronto(function(){ desenhar(); if(C.boasVindas) bemVindo(); }); else desenhar();
+    function bemVindo(){
+      var n3 = (typeof K.nome === 'function' ? K.nome() : K.nome) || '';
+      var b = document.createElement('div');
+      b.textContent = n3 ? C.txt.bemvindo.replace('{nome}', n3) : C.txt.bemvindo_sem;
+      b.style.cssText = 'position:fixed;left:50%;top:22%;transform:translate(-50%,-10px) scale(.92);z-index:2147482100;padding:12px 22px;border-radius:18px;background:rgba(10,14,30,.78);color:#fff;font:900 22px system-ui,-apple-system,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.4);pointer-events:none;opacity:0;transition:opacity .35s, transform .35s;text-align:center;max-width:86vw;';
+      document.body.appendChild(b);
+      requestAnimationFrame(function(){ b.style.opacity = '1'; b.style.transform = 'translate(-50%,0) scale(1)'; });
+      setTimeout(function(){ b.style.opacity = '0'; }, 2600); setTimeout(function(){ b.remove(); }, 3100);
+    }
+  }
+  if(document.body) montar(); else document.addEventListener('DOMContentLoaded', montar);
+}
+/* quais cantos o jogo já usa (placar, botões fixos, controles na tela) */
+function cantosOcupados(codigo){
+  var oc = {}, blocos = [], m, re = /\{([^{}]*position\s*:\s*(?:fixed|absolute)[^{}]*)\}/gi;
+  var semKoda = String(codigo).replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, '');
+  while((m = re.exec(semKoda))) blocos.push(m[1]);
+  var re2 = /style\s*=\s*["']([^"']*position\s*:\s*(?:fixed|absolute)[^"']*)["']/gi;
+  while((m = re2.exec(semKoda))) blocos.push(m[1]);
+  blocos.forEach(function(b){
+    if(/inset\s*:\s*0/.test(b) || /width\s*:\s*100%/.test(b) && /height\s*:\s*100%/.test(b)) return;
+    var top = /(^|[;\s])top\s*:/.test(b), bot = /(^|[;\s])bottom\s*:/.test(b), esq = /(^|[;\s])left\s*:/.test(b) && !/left\s*:\s*50%/.test(b), dir = /(^|[;\s])right\s*:/.test(b);
+    if(top && esq) oc.cimaEsq = 1; if(bot && esq) oc.baixoEsq = 1; if(top && dir) oc.cimaDir = 1; if(bot && dir) oc.baixoDir = 1;
+    if(top && esq && dir) { oc.cimaEsq = 1; oc.cimaDir = 1; }
+    if(bot && esq && dir) { oc.baixoEsq = 1; oc.baixoDir = 1; }
+  });
+  if(/data-koda-controles/.test(codigo)) oc.baixoEsq = 1;
+  return oc;
+}
+function fazerJogador(codigo, o){
+  o = o || {};
+  var cfg0 = lerConfig(codigo, 'data-koda-jogadorui');
+  var lg = linguaDoJogo(lerDocumento(codigo));
+  var cfg = {canto: o.canto || (cfg0 && cfg0.canto) || 'cima', avatar: o.avatar == null ? (cfg0 ? cfg0.avatar : true) : o.avatar, boasVindas: o.boasVindas == null ? (cfg0 ? cfg0.boasVindas : true) : o.boasVindas,
+    txt: {jogador: TL(lg, 'jg_jogador'), bemvindo: TL(lg, 'jg_bemvindo'), bemvindo_sem: TL(lg, 'jg_bemvindo_sem')}};
+  /* o canto de cima à esquerda costuma ter o placar do jogo: se tiver algo fixo lá, vai pra baixo */
+  if(!o.canto && !cfg0){ var oc = cantosOcupados(codigo); cfg.canto = !oc.cimaEsq ? 'cima' : (!oc.baixoEsq ? 'baixo' : 'cima'); if(oc.cimaEsq && oc.baixoEsq) cfg.desce = 1; }
+  if(cfg0 && JSON.stringify(cfg0) === JSON.stringify(cfg)) return {erro: 'ja_tem'};
+  var limpo = tirarMarca(codigo, 'data-koda-jogadorui');
+  return conferirDepois(codigo, colocarNoComeco(limpo, paraScript(kodaJogadorNoJogo, cfg, 'jogadorui')), {cfg: cfg});
+}
+
+/* ---------------- 5) meus recordes (na conta de quem joga) ---------------- */
+function kodaRecordesNoJogo(C){
+  if(window.__kodaRecordes) return; window.__kodaRecordes = 1;
+  var lista = [], ultV = null, ultT = 0, selo = null;
+  function ler(){
+    try{ if(window.kodaSalvo){ var v = window.kodaSalvo('__recordes', []); if(v && v.length != null) return v.slice(0, 5); } }catch(e){}
+    try{ var S = window.KODA && window.KODA.salvar, d = S && S.carregar ? S.carregar() : null; if(d && d.v && d.v.__recordes && d.v.__recordes.length != null) return d.v.__recordes.slice(0, 5); }catch(e){}
+    return [];
+  }
+  function gravar(){
+    if(window.kodaSalvoVigiar) return;        /* o "salvar" do jogo já guarda junto (ver abaixo) */
+    try{ var S = window.KODA && window.KODA.salvar; if(!S || !S.guardar) return; var d = (S.carregar && S.carregar()) || {}; if(typeof d !== 'object' || d === null || d.length != null) d = {}; d.v = d.v || {}; d.v.__recordes = lista; S.guardar(d); }catch(e){}
+  }
+  function fmt(n){ try{ return Number(n).toLocaleString(C.lang || 'pt-BR'); }catch(e){ return String(n); } }
+  function atualizarSelo(){ if(!selo) return; selo.textContent = lista.length ? C.txt.recorde + ': ' + fmt(lista[0].p) : ''; selo.style.display = lista.length ? 'block' : 'none'; }
+  function aviso(txt, sub){
+    var b = document.createElement('div');
+    b.innerHTML = '<div style="font:900 26px system-ui,-apple-system,sans-serif;letter-spacing:.5px">' + txt + '</div>' + (sub ? '<div style="font:700 14px system-ui,-apple-system,sans-serif;opacity:.9;margin-top:6px;line-height:1.5">' + sub + '</div>' : '');
+    b.style.cssText = 'position:fixed;left:50%;top:18%;transform:translate(-50%,-12px) scale(.9);z-index:2147482200;padding:14px 26px;border-radius:20px;background:linear-gradient(135deg,#ffcf3f,#ff8a3d);color:#3a1d00;box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .35s, transform .35s;text-align:center;max-width:88vw;';
+    document.body.appendChild(b);
+    requestAnimationFrame(function(){ b.style.opacity = '1'; b.style.transform = 'translate(-50%,0) scale(1)'; });
+    setTimeout(function(){ b.style.opacity = '0'; }, 3600); setTimeout(function(){ b.remove(); }, 4100);
+  }
+  window.kodaRecorde = function(p){
+    p = Math.floor(Number(p)); if(!isFinite(p) || p <= 0) return;
+    var t = Date.now(); if(p === ultV && t - ultT < 4000) return; ultV = p; ultT = t;
+    var melhor = lista.length ? lista[0].p : 0, novoRec = p > melhor;
+    lista.push({p: p, d: t}); lista.sort(function(a, b){ return b.p - a.p; }); lista = lista.slice(0, 5);
+    gravar(); atualizarSelo();
+    var pos = -1; for(var i = 0; i < lista.length; i++) if(lista[i].d === t){ pos = i; break; }
+    var tops = lista.map(function(x, i){ return (i + 1) + '. ' + fmt(x.p) + (x.d === t ? ' ★' : ''); }).join('<br>');
+    if(novoRec && melhor > 0){ aviso(C.txt.novo, tops); try{ if(window.__kodaOuvintes) window.__kodaOuvintes.forEach(function(f){ f('recorde'); }); if(window.kodaSom) window.kodaSom('vitoria'); }catch(e){} }
+    else if(pos >= 0 && C.mostrarLista !== false) aviso(C.txt.melhores, tops);
+  };
+  function montar(){
+    lista = ler();
+    if(window.kodaSalvoVigiar) window.kodaSalvoVigiar(function(){ return {'__recordes': lista}; });
+    if(C.selo !== false){
+      selo = document.createElement('div'); selo.setAttribute('data-koda-ui', 'recorde');
+      selo.style.cssText = 'position:fixed;right:max(10px, env(safe-area-inset-right, 0px));bottom:max(10px, env(safe-area-inset-bottom, 0px));z-index:2147481800;padding:5px 12px;border-radius:999px;background:rgba(10,14,30,.6);color:#ffd34d;font:800 13px system-ui,-apple-system,sans-serif;pointer-events:none;';
+      document.body.appendChild(selo); atualizarSelo();
+    }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montar); else setTimeout(montar, 0);
+}
+function fazerRecordes(codigo){
+  if(/data-koda-recordes/.test(codigo)) return {erro: 'ja_tem'};
+  var doc = lerDocumento(codigo), p = planoDePontuar(doc);
+  if(!p) return {erro: 'sem_pontos'};
+  var ed = new Edicao(codigo);
+  p.trocas.forEach(function(t){ ed.trocar(t.ini, t.fim, String(t.txt).replace('if(window.KODA) KODA.pontuar(', 'if(window.kodaRecorde) kodaRecorde(').replace('window.KODA && KODA.pontuar(', 'window.kodaRecorde && kodaRecorde(')); });
+  var novo = ed.aplicar(); if(!novo) return {erro: 'edicao'};
+  var lg = linguaDoJogo(doc);
+  var cfg = {lang: {pt: 'pt-BR', en: 'en-US', es: 'es-ES'}[lg] || 'pt-BR', txt: {recorde: TL(lg, 'rc_recorde'), novo: TL(lg, 'rc_novo'), melhores: TL(lg, 'rc_melhores')}};
+  novo = colocarNoComeco(novo, paraScript(kodaRecordesNoJogo, cfg, 'recordes'));
+  return conferirDepois(codigo, novo, {pontos: p.pontos});
+}
+
+/* ---------------- 6) botão de ajuda (como jogar) ---------------- */
+function kodaAjudaNoJogo(C){
+  if(window.__kodaAjuda) return; window.__kodaAjuda = 1;
+  function montar(){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = '?'; b.setAttribute('aria-label', C.txt.titulo); b.setAttribute('data-sem-som', '1');
+    b.style.cssText = 'position:fixed;' + (C.lado === 'esq' ? 'left' : 'right') + ':max(10px, env(safe-area-inset-' + (C.lado === 'esq' ? 'left' : 'right') + ', 0px));top:max(' + (C.lado === 'esq' ? 10 : 58) + 'px, env(safe-area-inset-top, 0px));z-index:2147482300;width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(10,14,30,.62);color:#fff;font:900 20px system-ui,-apple-system,sans-serif;cursor:pointer;';
+    var veu = document.createElement('div');
+    veu.style.cssText = 'position:fixed;inset:0;z-index:2147482400;background:rgba(5,8,20,.72);display:none;align-items:center;justify-content:center;padding:20px;';
+    var cx = document.createElement('div');
+    cx.style.cssText = 'max-width:420px;width:100%;background:#fff;color:#1d2433;border-radius:20px;padding:20px 22px;font:500 15px/1.5 system-ui,-apple-system,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.4);';
+    var h = document.createElement('div'); h.style.cssText = 'font:900 20px system-ui,-apple-system,sans-serif;margin-bottom:8px;'; h.textContent = C.titulo ? C.titulo + ' · ' + C.txt.titulo : C.txt.titulo;
+    var p = document.createElement('div'); p.style.whiteSpace = 'pre-line'; p.textContent = C.texto || '';
+    var ok = document.createElement('button'); ok.type = 'button'; ok.textContent = C.txt.entendi; ok.setAttribute('data-sem-som', '1');
+    ok.style.cssText = 'margin-top:14px;width:100%;padding:11px;border:0;border-radius:12px;background:#5b5bf0;color:#fff;font:800 16px system-ui,-apple-system,sans-serif;cursor:pointer;';
+    cx.appendChild(h); cx.appendChild(p); cx.appendChild(ok); veu.appendChild(cx);
+    document.body.appendChild(b); document.body.appendChild(veu);
+    function parar(e){ e.stopPropagation(); }
+    ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'keydown'].forEach(function(t){ b.addEventListener(t, parar); veu.addEventListener(t, parar); });
+    b.addEventListener('click', function(e){ e.stopPropagation(); veu.style.display = 'flex'; });
+    function fechar(e){ if(e) e.stopPropagation(); veu.style.display = 'none'; }
+    ok.addEventListener('click', fechar); veu.addEventListener('click', function(e){ if(e.target === veu) fechar(e); });
+  }
+  if(document.body) montar(); else document.addEventListener('DOMContentLoaded', montar);
+}
+function fazerAjuda(codigo, texto){
+  var doc = lerDocumento(codigo), lg = linguaDoJogo(doc);
+  var cfgP = lerConfig(codigo, 'data-koda-painel');
+  var dica = texto || dicaDeControles(codigo, lg) || TL(lg, 'aj_padrao');
+  var cfg = {titulo: tituloDoJogo(codigo), texto: dica.replace(/\.\s+/g, '.\n'), lado: cfgP && /esq/.test(String(cfgP.pos || '')) ? 'dir' : (cfgP ? 'esq' : 'dir'), txt: {titulo: TL(lg, 'aj_titulo'), entendi: TL(lg, 'aj_entendi')}};
+  var cfg0 = lerConfig(codigo, 'data-koda-ajuda');
+  if(cfg0 && cfg0.texto === cfg.texto) return {erro: 'ja_tem'};
+  var limpo = tirarMarca(codigo, 'data-koda-ajuda');
+  return conferirDepois(codigo, colocarNoComeco(limpo, paraScript(kodaAjudaNoJogo, cfg, 'ajuda')), {cfg: cfg});
+}
+
+/* ---------------- 7) volume da música ---------------- */
+function fazerVolumeMusica(codigo, modo, valor){
+  var cfg = lerConfig(codigo, 'data-koda-musica');
+  if(!cfg) return {erro: 'sem_musica'};
+  var v = cfg.vol == null ? 0.6 : cfg.vol, nv = v;
+  if(valor != null) nv = Math.max(0.05, Math.min(1, valor));
+  else if(modo === 'menos') nv = Math.max(0.08, Math.round(v * 0.6 * 100) / 100);
+  else nv = Math.min(1, Math.round(v * 1.45 * 100) / 100);
+  if(nv === v) return {erro: modo === 'menos' ? 'ja_min' : 'ja_max'};
+  cfg.vol = nv;
+  var limpo = tirarMarca(codigo, 'data-koda-musica');
+  return conferirDepois(codigo, colocarNoComeco(limpo, paraScriptMusica(cfg)), {de: v, para: nv});
+}
+
+/* ====================================================================
+   ENTENDER OS PEDIDOS
+==================================================================== */
+var RX_OP = {
+  verbo: /\b(coloca\w*|poe|por|bota\w*|adiciona\w*|add|faz|faca|fazer|quero|queria|gostaria|deixa\w*|cria\w*|inclui\w*|tem como|da pra|pode|podia|liga\w*|ativa\w*|mostra\w*|aparec\w*|put|make|add|want|show|turn on|pon|haz|quiero|agrega\w*|muestra)\b/,
+  tirar: /\b(tira\w*|remove\w*|apaga\w*|sem|desliga\w*|para de|parar de|nao quero|quita\w*|saca\w*|turn off|remove|without|stop)\b/,
+  musica: /\b(musica\w*|music|cancion|trilha)\b/
+};
+var AMB = [
+  ['chuva', /\b(chuva|chuvas|chuvinha|chover|chovendo|chuvoso|rain|raining|rainy|lluvia|llover|llueva|lloviendo|llueve|tempestade|storm|tormenta)\b/],
+  ['neve', /\b(neve|nevar|nevando|nevasca|snow\w*|nieve|nevada|flocos)\b/],
+  ['folhas', /\b(folhas?|outono|autumn|leaves|hojas|otono)\b/],
+  ['vagalumes', /\b(vaga ?lumes?|vagalumes?|fireflies|firefly|luciernagas?)\b/],
+  ['bolhas', /\b(bolhas?|bolhinhas?|bubbles?|burbujas?)\b/],
+  ['estrelas', /\b(estrelas? cadentes?|estrelas? brilhando|estrelinhas? (no|brilhando)|ceu estrelado|ceu com estrelas|starry|shooting stars?|estrellas fugaces|cielo estrellado)\b/],
+  ['tv', /\b(tv antiga|televisao antiga|tv velha|televisao velha|crt|scanlines?|linhas de tv|efeito (de )?tv|tela de fliperama|old tv|tele antigua)\b/],
+  ['vinheta', /\b(vinheta|vignette|bordas? escuras?|cantos? escuros?)\b/],
+  ['neblina', /\b(neblina|nevoa|nevoeiro|fumaca no ar|cerracao|fog|foggy|mist|misty|niebla)\b/],
+  ['dianoite', /\b(dia e noite|dia\/noite|ciclo (do|de) dia|anoitecer|amanhecer|day and night|day ?night|dia y noche)\b/]
+];
+var EFS = [
+  ['tremor', /\b(trem\w*|chacoalh\w*|sacud\w*|balanc\w*|shake\w*|shaking|tiemble|temblar|sacudir)\b/],
+  ['flash', /\b(pisca\w*|piscar|flash\w*|fica\w* vermelh\w*|tela vermelha|vermelh\w* quando|parpade\w*)\b/],
+  ['vibrar', /\b(vibr\w*)\b/],
+  ['narrador', /\b(narrador\w*|narra\w*|locutor\w*|announcer|voz falando|uma voz|voice|falar quando|fala quando|falando quando|diga quando|dizer quando|narrator)\b/],
+  ['confete', /\b(confete\w*|confetti|fogos? de artificio\w*|fireworks?)\b/],
+  ['brilho', /\b(particula\w*|brilho\w*|brilhinho\w*|estrelinha\w*|faisca\w*|efeito\w*|sparkle\w*|particle\w*)\b(?=.{0,40}\b(pega\w*|pego|coleta\w*|ganha\w*|ganho|cata\w*|collect\w*|pick\w*)\b.{0,15}\b(moeda\w*|pontos?|joias?|gemas?|estrelas?|itens|item|coin\w*|frutas?|ouro|diamantes?)\b)/]
+];
+var EVENTO_RE = /\b(quando|ao|na hora|toda vez|sempre que|se|when|cuando|perde\w*|morre\w*|bate\w*|machuc\w*|dano|explod\w*|passa\w* de fase|vence\w*|ganha\w*|levar? dano|hit|lose|die|win|level)\b/;
+var SONS_PALAVRAS = [['tiro', /\b(tiros?|atirar|atira|disparo\w*|shoot\w*|disparar)\b/], ['explosao', /\b(explos\w*|explod\w*|boom|bomba)\b/], ['pulo', /\b(pulo|pular|pula|pulando|jump\w*|salto|saltar)\b/],
+  ['ponto', /\b(moedas?|pontos?|pegar|pega|coletar|coin\w*|ouro|joias?|gemas?)\b/], ['dano', /\b(dano|bater|bate|machuc\w*|perde\w* (uma )?vida|tomar dano|levar dano|hit|damage)\b/], ['fim', /\b(game ?over|fim de jogo|fim do jogo|perder o jogo|morrer|morre|acabar|acaba)\b/],
+  ['fase', /\b(fase|nivel|level)\b/], ['poder', /\b(poder|power ?up|poderzinho)\b/], ['vitoria', /\b(vitoria|vencer|venceu|ganhar o jogo|zerar)\b/], ['compra', /\b(compra\w*|loja|shop)\b/],
+  ['clique', /\b(clic\w*|clique\w*|botao|botoes|button\w*)\b/], ['cura', /\b(cura\w*|curar|heal\w*)\b/], ['golpe', /\b(golpe\w*|espada\w*|soco\w*|ataque|atacar|sword)\b/], ['vida', /\b(vida extra|1 ?up|mais uma vida)\b/], ['tesouro', /\b(bau|baus|tesouro\w*|chest)\b/]];
+function entenderOpcoes(P, ctx){
+  var n = ' ' + (P.n || '') + ' ', orig = String(P.orig || P.n || '');
+  if(!ctx.temCodigo) return null;
+  var tirar = RX_OP.tirar.test(n) && !/\b(sem parar|sem perder)\b/.test(n);
+  var cod = String(ctx.codigo || '');
+  if(/\b(cria|crie|criar|faz|faca|fazer|monta|make|create|crea|haz)\b.{0,12}\b(um|uma|outro|novo|a|an|new|otro)?\s?(jogo|game|juego)\b/.test(n) && !/\b(no|do|nesse|neste|meu) jogo\b/.test(n)) return null;
+  /* "o que mais dá pra colocar?" */
+  if(/\b(o que (mais )?(da|voce (pode|consegue)|vc (pode|consegue)|eu posso|posso|tem) (pra |para )?(colocar|fazer|por|adicionar|botar|mudar)|quais (sao as )?opcoes|que opcoes|o que mais (tem|da)|what else can|que mas puedo)\b/.test(n)) return {int: 'ajuda'};
+  /* "quero ser eu no jogo" */
+  if(/\b(ser eu (mesmo )?no jogo|eu (mesmo )?no jogo|quero ser o (personagem|heroi|boneco)|meu boneco no jogo|virar o personagem|be me in the game|ser yo en el juego)\b/.test(n)) return {int: 'skin', P: P};
+  /* "muda o nome do jogo para Super Corrida" */
+  var mn = /\b(?:muda\w*|mude|troca\w*|troque|coloca\w*|poe|põe|bota\w*|renomei\w*|rename|cambia\w*)\s+(?:o\s+|the\s+|el\s+)?(?:nome|titulo|título|name|title|nombre)\s+(?:do|of the|del)\s+(?:jogo|game|juego)\s*(?:para|pra|to|a|por|de|:)\s+["“']?(.{2,40}?)["”']?\s*[.!]*$/i.exec(orig);
+  if(mn) return {int: 'op_nome', nome: mn[1].trim()};
+  /* "troca game over por perdeu" (sem aspas): só quando o texto existe no jogo */
+  if(!(P.aspas && P.aspas.length)){
+    var mt = /^\s*(?:troca\w*|troque|muda\w*|mude|substitui\w*|substitua|replace|cambia\w*)\s+(?:o texto\s+|a palavra\s+|a frase\s+|o\s+|a\s+)?(.{2,40}?)\s+(?:por|pra|para|to|with)\s+(.{1,40}?)\s*$/i.exec(orig);
+    if(mt){
+      var de = mt[1].replace(/^["'“‘]|["'”’]$/g, ''), semK = cod.replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, '');
+      var achado = new RegExp(escRe(de), 'i').exec(semK);
+      var conceito = /\b(cor|cores|fundo|moedas?|musica|música|som|sons|jogador|personagem|loja|nome|koda|diamantes?|ouro|gemas?|coins?|skin|pontos|vidas?)\b/i;
+      if(!achado && !conceito.test(orig) && /^\s*(troca|troque|trocar|substitui\w*|substitua|replace)\b/i.test(orig) && !/\b(preco|preço|price|custa|tema|theme|nome|name|cor|color|item)\b/i.test(orig) && de.split(/\s+/).length <= 4) return {int: 'mod_texto', de: de, para: mt[2].replace(/^["'“‘]|["'”’]$/g, '')};
+      if(achado && !/^(a |o )?(cor|fundo|moeda|musica|música|som|jogador|personagem|loja|nome|tema|preco|preço)\b/i.test(de) && !/\b(preco|preço|price|custa|tema|theme)\b/i.test(orig)){
+        var para = mt[2].replace(/^["'“‘]|["'”’!]$/g, '');
+        if(/^[A-ZÀ-Ý]/.test(achado[0]) && /^[a-zà-ý]/.test(para)) para = para.charAt(0).toUpperCase() + para.slice(1);
+        if(achado[0] === achado[0].toUpperCase() && /[A-Z]/.test(achado[0]) && achado[0].length > 2) para = para.toUpperCase();
+        return {int: 'mod_texto', de: achado[0], para: para};
+      }
+    }
+  }
+  /* tirar os controles / tirar os sons do Koda GB */
+  if(tirar && /\b(controles?|joystick|setas|botoes da tela|botoes na tela)\b/.test(n) && !/\b(pausa|som|musica|loja|reinici\w*)\b/.test(n)) return {int: 'op_controles', tirar: true};
+  if(tirar && /\b(som|sons|efeitos? sonoros?|barulho\w*|sound\w*|sonido\w*)\b/.test(n) && !RX_OP.musica.test(n) && /data-koda-sons/.test(cod) && !/__kodaSomSo=1/.test(cod)) return {int: 'op_sem_sons'};
+  /* sons de coisas específicas: "som de explosão", "som quando clicar nos botões" */
+  if(!tirar && /\b(som|sons|barulho\w*|efeito sonoro|efeitos sonoros|sound\w*|sonido\w*)\b/.test(n) && !RX_OP.musica.test(n) && !/\b(botao de som|botao do som|botao pra (ligar|desligar)|sound button|button for (the )?sound|boton de sonido|liga e desliga|ligar e desligar|mudo|mute)\b/.test(n)){
+    var quais = {};
+    SONS_PALAVRAS.forEach(function(sp){ if(sp[1].test(n)) quais[sp[0]] = 1; });
+    if(quais.clique && !/\b(clic\w*|clique\w*|aperta\w*|apertar|tocar|toca|toco|quando|click\w*|press\w*|pulsa\w*)\b/.test(n)) delete quais.clique;
+    if(quais.clique && quais.ponto && /\b(botao|botoes)\b/.test(n)) delete quais.ponto;
+    if(Object.keys(quais).length) return {int: 'sons', arg: quais, P: P};
+  }
+  /* volume da música */
+  if(RX_OP.musica.test(n) && /\b(volume|baix\w*|abaix\w*|diminu\w*|alt[ao]|aument\w*|mais forte|mais fraca|muito alta|muito baixa|quiet\w*|louder|lower|softer|mas baja|mas alta)\b/.test(n) && !/\b(alegre|calma|aventura|terror|festa|lofi|retro|epica|tensa|espacial|fofa|luta|misterio)\b/.test(n)){
+    var menos = /\b(baix\w*|abaix\w*|diminu\w*|muito alta|mais fraca|quiet\w*|lower|softer|mas baja|alta demais|alto demais|ta alta|esta alta)\b/.test(n) && !/\b(muito baixa|mais alta|aument\w*|louder|mas alta)\b/.test(n);
+    var pct = /\b(\d{1,3}) ?%/.exec(n);
+    return {int: 'op_volume', modo: menos ? 'menos' : 'mais', valor: pct ? Number(pct[1]) / 100 : null};
+  }
+  /* controles na tela */
+  var falaControle = /\b(joystick|analogico|direcional|d ?pad|manete|gamepad virtual)\b/.test(n) ||
+    (/\b(controles?|botoes|botao|botones|setas?|teclas?|flechas|controls?|buttons?)\b/.test(n) && /\b(tela|celular|toque|touch|tablet|ipad|mobile|dedo|telefone|smartphone|na tela|pantalla|movil|screen|phone)\b/.test(n) && !/\b(pausa\w*|pause|som|musica|reinici\w*|restart|loja|shop|comprar|ajuda|inicio|tela inicial)\b/.test(n)) ||
+    /\b(jogar|joga|funcion\w*|da pra jogar|consiga jogar|conseguir jogar|playable|jugar)\b.{0,30}\b(no celular|no ipad|no tablet|pelo celular|no telefone|com o dedo|on (the )?(phone|mobile|tablet)|en el (celular|movil))\b/.test(n) ||
+    /\b(botoes? (pra|para) (andar|pular|mover|atirar|correr)|botoes de (andar|pular|movimento)|setas na tela|controle na tela|controles na tela|touch controls?|on ?screen controls?|controles tactiles)\b/.test(n);
+  if(falaControle && !/\b(controle remoto|xbox|playstation|ps4|ps5)\b/.test(n)){
+    return {int: 'op_controles', tirar: tirar, forcar: /\b(mesmo assim|de qualquer jeito|anyway|igual|igualmente)\b/.test(n), estilo: /\b(setas|botoes de seta|4 botoes|quatro botoes|cruz|arrows?|flechas)\b/.test(n) && !/joystick|analogico/.test(n) ? 'setas' : 'joystick', sempre: /\b(sempre|computador|pc|notebook|desktop|always)\b/.test(n)};
+  }
+  /* efeitos nos acontecimentos (tremer, piscar, vibrar, confete, narrador) */
+  var efs = {};
+  EFS.forEach(function(e){ if(e[1].test(n)) efs[e[0]] = 1; });
+  if(efs.tremor && !/\b(tela|jogo|camera|screen|pantalla|tudo)\b/.test(n) && !EVENTO_RE.test(n)) delete efs.tremor;
+  if(efs.flash && !EVENTO_RE.test(n) && !/\b(vermelh\w*|red|rojo)\b/.test(n)) delete efs.flash;
+  if(efs.confete && !/\b(fase|nivel|level|venc\w*|vitoria|zera\w*|recorde|record|passa\w* de|ganhar o jogo|win the game|beat the game|ganar el juego|pasar de nivel)\b/.test(n)){ delete efs.confete; }
+  if(efs.narrador && /\b(minha voz|gravar|gravei|grava|audio que|o audio|mandei)\b/.test(n)) delete efs.narrador;
+  if(efs.vibrar && !/\b(celular|telefone|ipad|tablet|jogo|quando|ao|phone|movil)\b/.test(n)) delete efs.vibrar;
+  if(efs.brilho){ delete efs.confete; }
+  if(Object.keys(efs).length) return {int: 'op_efeitos', efeitos: efs, tirar: tirar};
+  /* clima / camada por cima */
+  var tipos = [];
+  AMB.forEach(function(a){ if(a[1].test(n)) tipos.push(a[0]); });
+  if(/\b(confete\w*|confetti)\b/.test(n) && /\b(caindo|o tempo todo|sempre|na tela|chovendo|cair)\b/.test(n)) tipos.push('confete');
+  if(/\b(brilho\w*|brilhinho\w*|faisca\w*|estrelinha\w*|rastro|efeito\w*|sparkle\w*|particula\w*|circulo\w*|ondinha\w*)\b.{0,30}\b(toque|tocar|toco|toca|clique|clicar|clico|dedo|mouse|cursor|aperta\w*|tap)\b/.test(n) || /\b(onde (eu )?(toco|tocar|clicar|clico))\b/.test(n)) tipos.push('toque');
+  if(tipos.length && /\b(tema|temas|theme|tematica|cenario de|mundo de)\b/.test(n)) tipos = [];
+  if(tipos.length){
+    if(tipos.indexOf('folhas') >= 0 && !/\b(caind\w*|outono|voando|na tela|autumn|falling|cayendo|clima)\b/.test(n) && tipos.length === 1) return null;
+    var forca = /\b(muit[ao]|bastante|forte|tempestade|nevasca|demais|heavy|mucha)\b/.test(n) ? 1.8 : (/\b(pouc[ao]|leve|fraquinh\w*|fraca|light|poca|poquit\w*)\b/.test(n) ? 0.5 : null);
+    return {int: 'op_ambiente', tipos: tipos, tirar: tirar, forca: forca};
+  }
+  /* nome e personagem de quem joga */
+  if(/\b(meu nome|nome do jogador|nome de quem (ta |esta )?jog\w*|nome da pessoa|nome (de|do) quem joga|o nome no (jogo|canto)|mostra\w* (o )?nome|aparec\w* (o )?nome|player'?s? name|my name|nombre del jugador|mi nombre)\b/.test(n) || /\b(bem ?vind\w*|boas ?vindas|welcome|bienvenid\w*)\b/.test(n) ||
+     (/\b(meu personagem|minha skin|meu avatar|avatar|meu boneco|my character|my avatar|mi personaje)\b/.test(n) && /\b(canto|em cima|no topo|placar|cantinho|corner|esquina|aparec\w*|mostra\w*)\b/.test(n) && !/\b(joga|jogar|heroi|no lugar|vir(a|ar)|ser o|seja o|play as)\b/.test(n))){
+    return {int: 'op_jogador', tirar: tirar, boasVindas: /\b(bem ?vind\w*|boas ?vindas|welcome|bienvenid\w*)\b/.test(n) ? true : null, avatar: /\b(so o nome|apenas o nome|sem (o )?personagem|sem avatar|only the name)\b/.test(n) ? false : null, canto: /\b(embaixo|em baixo|de baixo|bottom|abajo)\b/.test(n) ? 'baixo' : (/\b(em cima|no topo|top|arriba)\b/.test(n) ? 'cima' : null)};
+  }
+  /* meus recordes */
+  if(/\b(meus? recordes?|lista de recordes?|tabela de recordes?|recordes? (pessoa\w*|do jogador|de cada um|na conta)|top ?(3|5|10|cinco|dez|tres)|melhores pontua\w*|meus melhores|minhas melhores|high ?scores?|best scores?|my records?|my best|my high ?scores?|novo recorde|placar pessoal|mis records|mis récords|mis mejores|mejores puntuaciones)\b/.test(n) && !/\b(ranking do koda|ranking geral|todo mundo)\b/.test(n)){
+    return {int: 'op_recordes', tirar: tirar};
+  }
+  /* botão de ajuda */
+  if(/\b(botao de ajuda|botao (de|com) (interrogacao|\?)|ajuda no jogo|botao (de|com) instruc\w*|help button|boton de ayuda|botao (de )?como jogar|ajudinha|botao de dica\w*|botao ajuda)\b/.test(n) || (/\b(ajuda|instruc\w*|como jogar|explica\w*)\b/.test(n) && /\b(botao|botaozinho|interrogacao|button|boton)\b/.test(n) && !/\b(pausa|som|reinici\w*|loja)\b/.test(n))){
+    return {int: 'op_ajuda', tirar: tirar};
+  }
+  return null;
+}
+var entenderAntesDasOpcoes = entender;
+entender = function(txt, ctx){
+  try{
+    try{ if(DEP.improprio(txt)) return entenderAntesDasOpcoes(txt, ctx); }catch(e){}
+    var est = ctx.estado || {};
+    if(ctx.temCodigo){
+      var cru = nTxt(txt);
+      if(!pedeVantagemKoda(cru, txt)){
+        /* com uma pergunta do agente esperando resposta, a resposta é dela; só se ela não servir é que vira pedido novo */
+        if(est.pendente){
+          var r0 = entenderAntesDasOpcoes(txt, ctx);
+          if(r0 && !/^(nada|confuso|pedido|outra_ia)$/.test(r0.int)) return r0;
+          var P0 = analisar(txt, ctx), it0 = entenderOpcoes(P0, ctx) || entenderOpcoes({n: cru}, ctx);
+          if(it0){ est.pendente = null; it0.P = P0; return it0; }
+          return r0;
+        }
+        var P = analisar(txt, ctx), it = entenderOpcoes(P, ctx) || entenderOpcoes({n: cru}, ctx);
+        if(it){ it.P = P; return it; }
+      }
+    }
+  }catch(e){}
+  return entenderAntesDasOpcoes(txt, ctx);
+};
+
+/* ====================================================================
+   O QUE ELE RESPONDE
+==================================================================== */
+function nomesDe(lista, pref){ return listaE(lista.map(function(k){ return T(pref + k); })); }
+H.op_controles = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  if(it.tirar){ var l = tirarMarca(ctx.codigo, 'data-koda-controles'); if(l === ctx.codigo) return diz(r, T('ct_nada')); var c = conferirDepois(ctx.codigo, l, {}); diz(r, T('ct_tirou')); return aplicar(est, r, ctx.codigo, c.codigo, T('d_controles')); }
+  var trocar = /data-koda-controles/.test(ctx.codigo);
+  var res = fazerControles(ctx.codigo, {estilo: it.estilo, sempre: it.sempre, trocar: trocar, forcar: it.forcar});
+  if(res.erro === 'ja_toque') return diz(r, T('ct_ja_toque'));
+  if(res.erro === 'ja_controles'){ est.pendente = {tipo: 'confirmar', acao: {int: 'op_controles', forcar: true, estilo: it.estilo, sempre: it.sempre}}; diz(r, T('ct_ja_controles')); chip(r, T('ch_ct_mesmo')); return r; }
+  if(res.erro === 'sem_teclas') return diz(r, T('ct_sem_teclas'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  var cfg = res.res.cfg, partes = [];
+  if(cfg.dir) partes.push(T(cfg.estilo === 'setas' ? 'ct_p_setas' : 'ct_p_joystick'));
+  if(cfg.acoes.length) partes.push(T(cfg.acoes.length > 1 ? 'ct_p_botoes' : 'ct_p_botao', {lista: listaE(cfg.acoes.map(function(a){ return '"' + a.rot + '"'; }))}));
+  diz(r, T(trocar ? 'ct_ok_troca' : 'ct_ok', {partes: listaE(partes)}) + ' ' + T(cfg.sempre ? 'ct_sempre' : 'ct_so_toque'));
+  chip(r, T('ch_testar'));
+  if(!cfg.sempre) chip(r, T('ch_ct_sempre'));
+  if(cfg.dir) chip(r, T(cfg.estilo === 'setas' ? 'ch_ct_joystick' : 'ch_ct_setas'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_controles'));
+};
+H.op_ambiente = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp(), res = fazerAmbiente(ctx.codigo, it.tipos, {tirar: it.tirar, forca: it.forca});
+  if(res.erro === 'ja_tem') return diz(r, T('am_ja', {lista: nomesDe(it.tipos, 'am_')}));
+  if(res.erro === 'nada') return diz(r, T('am_nada'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  if(it.tirar) diz(r, T('am_tirou', {lista: nomesDe(it.tipos, 'am_')}));
+  else diz(r, T('am_ok', {lista: nomesDe(it.tipos, 'am_')}));
+  chip(r, T('ch_testar'));
+  if(!it.tirar){ chip(r, T('ch_am_mais')); chip(r, T('ch_am_tirar')); }
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_ambiente'));
+};
+H.op_efeitos = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp(), ks = Object.keys(it.efeitos || {}), res = fazerEfeitos(ctx.codigo, it.efeitos || {}, {tirar: it.tirar});
+  if(res.erro === 'ja_tem') return diz(r, T('ef_ja'));
+  if(res.erro === 'nada') return diz(r, T('ef_nada'));
+  if(res.erro === 'sem_eventos') return diz(r, T('ef_sem_eventos'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  if(it.tirar){ diz(r, T('ef_tirou', {lista: nomesDe(ks, 'ef_n_')})); return aplicar(est, r, ctx.codigo, res.codigo, T('d_efeitos')); }
+  var quando = Object.keys(res.res.eventos || {}).filter(function(k){ return /^(dano|explosao|fim|fase|vitoria|vida|cura|poder)$/.test(k); });
+  diz(r, T('ef_ok', {lista: nomesDe(ks, 'ef_n_')}) + (quando.length ? ' ' + T('ef_quando', {lista: listaE(quando.map(function(k){ return T('so_' + k); }))}) : ''));
+  if(it.efeitos.vibrar) diz(r, T('ef_vibra_dica'));
+  if(it.efeitos.confete && !quando.some(function(k){ return /fase|vitoria/.test(k); })) diz(r, T('ef_confete_dica'));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_efeitos'));
+};
+H.op_jogador = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  if(it.tirar){ var l = tirarMarca(ctx.codigo, 'data-koda-jogadorui'); if(l === ctx.codigo) return diz(r, T('jg_nada')); diz(r, T('jg_tirou')); return aplicar(est, r, ctx.codigo, conferirDepois(ctx.codigo, l, {}).codigo, T('d_jogador')); }
+  var res = fazerJogador(ctx.codigo, {boasVindas: it.boasVindas, avatar: it.avatar, canto: it.canto});
+  if(res.erro === 'ja_tem') return diz(r, T('jg_ja'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  var cfg = res.res.cfg;
+  diz(r, T(cfg.avatar ? 'jg_ok' : 'jg_ok_sem', {canto: T(cfg.canto === 'baixo' ? 'jg_baixo' : 'jg_cima')}) + (cfg.boasVindas ? ' ' + T('jg_bv') : ''));
+  chip(r, T('ch_testar'));
+  if(!/KODA\s*\.\s*jogador\s*\.\s*(desenhar|andar)/.test(ctx.codigo)) chip(r, T('ch_skin'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_jogador'));
+};
+H.op_recordes = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  if(it.tirar){
+    if(!/data-koda-recordes/.test(ctx.codigo)) return diz(r, T('rc_nada'));
+    var l = tirarMarca(ctx.codigo, 'data-koda-recordes').replace(/\(window\.kodaRecorde && kodaRecorde\(([^()]*)\)\)/g, '(0)').replace(/if\(window\.kodaRecorde\) kodaRecorde\([^()]*\);/g, '');
+    var c = conferirDepois(ctx.codigo, l, {}); if(c.erro) return diz(r, T('lj_nao_deu'));
+    diz(r, T('rc_tirou')); return aplicar(est, r, ctx.codigo, c.codigo, T('d_recordes'));
+  }
+  var res = fazerRecordes(ctx.codigo);
+  if(res.erro === 'ja_tem') return diz(r, T('rc_ja'));
+  if(res.erro === 'sem_pontos'){ diz(r, T('rc_sem_pontos')); return r; }
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  diz(r, T('rc_ok', {v: res.res.pontos}));
+  if(!/data-koda-salvar/.test(ctx.codigo)) chip(r, T('ch_salvar'));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_recordes'));
+};
+H.op_ajuda = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  if(it.tirar){ var l = tirarMarca(ctx.codigo, 'data-koda-ajuda'); if(l === ctx.codigo) return diz(r, T('aj_nada')); diz(r, T('aj_tirou')); return aplicar(est, r, ctx.codigo, conferirDepois(ctx.codigo, l, {}).codigo, T('d_ajuda')); }
+  var res = fazerAjuda(ctx.codigo);
+  if(res.erro === 'ja_tem') return diz(r, T('aj_ja'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  diz(r, T('aj_ok', {texto: res.res.cfg.texto.replace(/\n/g, ' ')}));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_ajuda'));
+};
+H.op_volume = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp(), res = fazerVolumeMusica(ctx.codigo, it.modo, it.valor);
+  if(res.erro === 'sem_musica'){ diz(r, T('vo_sem_musica')); chip(r, T('ch_bn_musica')); return r; }
+  if(res.erro === 'ja_min') return diz(r, T('vo_min'));
+  if(res.erro === 'ja_max') return diz(r, T('vo_max'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  diz(r, T(res.res.para < res.res.de ? 'vo_menos' : 'vo_mais', {pct: Math.round(res.res.para * 100)}));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_volume'));
+};
+
+/* ====================================================================
+   TEXTOS (pt | en | es; as outras línguas do site usam o inglês)
+==================================================================== */
+textosEm10({
+  ct_rot_girar: 'Girar|Rotate|Girar', ct_rot_guardar: 'Guardar|Hold|Guardar', ct_rot_cair: 'Cair|Drop|Soltar', ct_rot_esperar: 'Esperar|Wait|Esperar', ct_rot_usar: 'Usar|Use|Usar', ct_rot_freio: 'Freio|Brake|Freno',
+  ct_rot_pulo: 'Pular|Jump|Saltar', ct_rot_tiro: 'Atirar|Shoot|Disparar', ct_rot_ataque: 'Atacar|Attack|Atacar', ct_rot_bomba: 'Bomba|Bomb|Bomba', ct_rot_turbo: 'Turbo|Boost|Turbo', ct_rot_pausa: 'Pausa|Pause|Pausa',
+  ct_ok: 'Pronto! Coloquei controles na tela: {partes}. Eles apertam as mesmas teclas que o jogo já usa, então o jogo funciona igual.|Done! I added on-screen controls: {partes}. They press the same keys the game already uses, so the game works the same.|¡Listo! Puse controles en la pantalla: {partes}. Aprietan las mismas teclas que el juego ya usa, así que funciona igual.',
+  ct_ok_troca: 'Pronto! Troquei os controles da tela: {partes}.|Done! I changed the on-screen controls: {partes}.|¡Listo! Cambié los controles de la pantalla: {partes}.',
+  ct_p_joystick: 'um joystick no canto esquerdo|a joystick in the left corner|un joystick en la esquina izquierda',
+  ct_p_setas: 'setas no canto esquerdo|arrow buttons in the left corner|flechas en la esquina izquierda',
+  ct_p_botao: 'o botão {lista} no canto direito|the {lista} button in the right corner|el botón {lista} en la esquina derecha',
+  ct_p_botoes: 'os botões {lista} no canto direito|the {lista} buttons in the right corner|los botones {lista} en la esquina derecha',
+  ct_so_toque: 'Eles aparecem só no celular e no tablet (no computador continua o teclado).|They only show on phones and tablets (on a computer it is still the keyboard).|Solo aparecen en el celular y la tableta (en la computadora sigue el teclado).',
+  ct_sempre: 'Eles aparecem em qualquer aparelho, até no computador.|They show on every device, even on a computer.|Aparecen en cualquier aparato, hasta en la computadora.',
+  ct_ja_toque: 'Esse jogo já funciona com toque (ele usa o dedo/clique), então não precisa de controles na tela.|This game already works with touch (it uses tap/click), so it does not need on-screen controls.|Este juego ya funciona con el dedo (usa toque/clic), así que no necesita controles en pantalla.',
+  ct_sem_teclas: 'Não achei as teclas que esse jogo usa, então não sei o que os botões deveriam apertar.|I could not find the keys this game uses, so I do not know what the buttons should press.|No encontré las teclas que usa este juego, así que no sé qué deberían apretar los botones.',
+  ct_ja_controles: 'Esse jogo já tem os próprios botões na tela (setas ou joystick). Quer que eu coloque os do Koda GB mesmo assim?|This game already has its own on-screen buttons (arrows or joystick). Want me to add the Koda GB ones anyway?|Este juego ya tiene sus propios botones en la pantalla (flechas o joystick). ¿Pongo los de Koda GB igual?',
+  ch_ct_mesmo: 'Sim, coloca mesmo assim|Yes, add them anyway|Sí, ponlos igual',
+  ct_tirou: 'Pronto! Tirei os controles da tela.|Done! I removed the on-screen controls.|¡Listo! Quité los controles de la pantalla.',
+  ct_nada: 'Esse jogo não tem controles na tela pra tirar.|This game has no on-screen controls to remove.|Este juego no tiene controles en pantalla para quitar.',
+  ch_ct_sempre: 'Mostrar sempre, até no computador|Always show, even on a computer|Mostrar siempre, hasta en la computadora',
+  ch_ct_setas: 'Trocar por setas na tela|Use arrow buttons instead|Cambiar por flechas en la pantalla',
+  ch_ct_joystick: 'Trocar por joystick na tela|Use a joystick instead|Cambiar por joystick en la pantalla',
+  d_controles: 'controles na tela|on-screen controls|controles en pantalla',
+
+  am_chuva: 'chuva|rain|lluvia', am_neve: 'neve|snow|nieve', am_folhas: 'folhas caindo|falling leaves|hojas cayendo', am_vagalumes: 'vaga-lumes|fireflies|luciérnagas', am_bolhas: 'bolhas|bubbles|burbujas',
+  am_estrelas: 'estrelas brilhando|twinkling stars|estrellas brillando', am_tv: 'efeito de TV antiga|old TV effect|efecto de tele antigua', am_vinheta: 'bordas escurinhas|dark edges|bordes oscuros', am_confete: 'confete caindo|falling confetti|confeti cayendo', am_toque: 'brilho onde toca|sparkles where you tap|brillo donde tocas',
+  am_ok: 'Pronto! Coloquei {lista} por cima do jogo. É só um efeito na tela: não muda nada do jogo e não atrapalha o toque.|Done! I added {lista} over the game. It is just a screen effect: it changes nothing in the game and does not get in the way of taps.|¡Listo! Puse {lista} sobre el juego. Es solo un efecto en la pantalla: no cambia nada del juego ni estorba al tocar.',
+  am_ja: 'O jogo já tem {lista}.|The game already has {lista}.|El juego ya tiene {lista}.',
+  am_tirou: 'Pronto! Tirei {lista}.|Done! I removed {lista}.|¡Listo! Quité {lista}.',
+  am_nada: 'Não tem esse efeito no jogo pra tirar.|That effect is not in the game.|Ese efecto no está en el juego.',
+  ch_am_mais: 'Coloca vaga-lumes também|Add fireflies too|Pon luciérnagas también', ch_am_tirar: 'Tira o efeito|Remove the effect|Quita el efecto',
+  d_ambiente: 'efeito na tela|screen effect|efecto en pantalla',
+
+  ef_n_tremor: 'a tela tremer|the screen shake|que la pantalla tiemble', ef_n_flash: 'a tela piscar|the screen flash|que la pantalla parpadee', ef_n_vibrar: 'o celular vibrar|the phone vibrate|que el celular vibre', ef_n_narrador: 'um narrador falar|a narrator speak|un narrador hablar', ef_n_confete: 'chuva de confete|a confetti burst|lluvia de confeti',
+  ef_ok: 'Pronto! Coloquei {lista} nas horas certas do jogo.|Done! I added {lista} at the right moments of the game.|¡Listo! Puse {lista} en los momentos justos del juego.',
+  ef_quando: 'Achei estes momentos no código: {lista}.|I found these moments in the code: {lista}.|Encontré estos momentos en el código: {lista}.',
+  ef_vibra_dica: 'A vibração funciona em celulares Android (o iPhone não deixa site vibrar).|Vibration works on Android phones (iPhone does not let websites vibrate).|La vibración funciona en celulares Android (el iPhone no deja que las páginas vibren).',
+  ef_confete_dica: 'Não achei no código a hora de passar de fase ou de vencer: o confete aparece quando bater um recorde (se você pedir "mostra meus recordes").|I could not find the level-up or win moment in the code: the confetti shows up on a new record (if you ask "show my records").|No encontré en el código el momento de pasar de nivel o ganar: el confeti aparece al batir un récord (si pides "muestra mis récords").',
+  ef_ja: 'O jogo já tem esse efeito.|The game already has that effect.|El juego ya tiene ese efecto.',
+  ef_nada: 'Esse efeito não está no jogo.|That effect is not in the game.|Ese efecto no está en el juego.',
+  ef_tirou: 'Pronto! Tirei {lista}.|Done! I removed {lista}.|¡Listo! Quité {lista}.',
+  ef_sem_eventos: 'Não achei no código as horas de perder vida, passar de fase ou acabar o jogo, então não sei quando ligar o efeito. Se me disser o nome da função (por exemplo "gameOver"), eu tento de novo.|I could not find in the code when a life is lost, a level is passed or the game ends, so I do not know when to trigger the effect. Tell me the function name (like "gameOver") and I will try again.|No encontré en el código cuándo se pierde una vida, se pasa de nivel o termina el juego, así que no sé cuándo activar el efecto. Dime el nombre de la función (como "gameOver") y lo intento de nuevo.',
+  ef_fala_fim: 'Fim de jogo!|Game over!|¡Fin del juego!', ef_fala_fase: 'Próxima fase!|Next level!|¡Siguiente nivel!', ef_fala_vitoria: 'Você venceu!|You win!|¡Ganaste!', ef_fala_recorde: 'Novo recorde!|New record!|¡Nuevo récord!', ef_fala_vida: 'Vida extra!|Extra life!|¡Vida extra!', ef_fala_poder: 'Poder!|Power up!|¡Poder!',
+  d_efeitos: 'efeitos nos acontecimentos|event effects|efectos en los momentos del juego',
+
+  jg_jogador: 'Jogador|Player|Jugador', jg_bemvindo: 'Bem-vindo, {nome}!|Welcome, {nome}!|¡Bienvenido, {nome}!', jg_bemvindo_sem: 'Bem-vindo!|Welcome!|¡Bienvenido!',
+  jg_ok: 'Pronto! Agora aparece no canto {canto} o personagem e o nome de quem está jogando no Koda GB.|Done! The Koda GB player\'s character and name now show in the {canto} corner.|¡Listo! Ahora aparecen en la esquina {canto} el personaje y el nombre de quien juega en Koda GB.',
+  jg_ok_sem: 'Pronto! Agora aparece no canto {canto} o nome de quem está jogando no Koda GB.|Done! The Koda GB player\'s name now shows in the {canto} corner.|¡Listo! Ahora aparece en la esquina {canto} el nombre de quien juega en Koda GB.',
+  jg_cima: 'de cima|top|de arriba', jg_baixo: 'de baixo|bottom|de abajo',
+  jg_bv: 'E quando o jogo abre aparece "Bem-vindo" com o nome da pessoa.|And when the game opens it says "Welcome" with the person\'s name.|Y al abrir el juego aparece "Bienvenido" con el nombre de la persona.',
+  jg_ja: 'O jogo já mostra o nome de quem joga.|The game already shows the player\'s name.|El juego ya muestra el nombre de quien juega.',
+  jg_tirou: 'Pronto! Tirei o nome de quem joga da tela.|Done! I removed the player\'s name from the screen.|¡Listo! Quité el nombre de quien juega de la pantalla.',
+  jg_nada: 'O jogo não mostra o nome de quem joga.|The game does not show the player\'s name.|El juego no muestra el nombre de quien juega.',
+  d_jogador: 'nome de quem joga|player name|nombre de quien juega',
+
+  rc_recorde: 'Recorde|Best|Récord', rc_novo: 'Novo recorde!|New record!|¡Nuevo récord!', rc_melhores: 'Seus melhores|Your best|Tus mejores',
+  rc_ok: 'Pronto! Agora cada pessoa tem os seus 5 melhores resultados (com os pontos de "{v}"), guardados na conta dela do Koda GB. Quando bate o recorde aparece "Novo recorde!", e o recorde fica no canto da tela.|Done! Each person now has their own top 5 (using "{v}"), saved in their Koda GB account. A new best shows "New record!", and the record stays in the corner of the screen.|¡Listo! Ahora cada persona tiene sus 5 mejores resultados (con los puntos de "{v}"), guardados en su cuenta de Koda GB. Al batir el récord aparece "¡Nuevo récord!", y el récord queda en la esquina.',
+  rc_sem_pontos: 'Não achei a variável dos pontos ou a hora em que o jogo acaba. Diga o nome dela (por exemplo "os pontos ficam em score") que eu tento de novo.|I could not find the score variable or when the game ends. Tell me its name (like "the points are in score") and I will try again.|No encontré la variable de los puntos o cuándo termina el juego. Dime su nombre (como "los puntos están en score") y lo intento otra vez.',
+  rc_ja: 'O jogo já guarda os recordes de cada pessoa.|The game already saves each person\'s records.|El juego ya guarda los récords de cada persona.',
+  rc_tirou: 'Pronto! Tirei a lista de recordes.|Done! I removed the records list.|¡Listo! Quité la lista de récords.',
+  rc_nada: 'O jogo não tem lista de recordes.|The game has no records list.|El juego no tiene lista de récords.',
+  d_recordes: 'recordes de cada pessoa|personal records|récords de cada persona',
+
+  aj_titulo: 'Como jogar|How to play|Cómo jugar', aj_entendi: 'Entendi!|Got it!|¡Entendido!', aj_padrao: 'Toque na tela ou use o teclado para jogar.|Tap the screen or use the keyboard to play.|Toca la pantalla o usa el teclado para jugar.',
+  aj_ok: 'Pronto! Coloquei um botão "?" que abre o "Como jogar": {texto} Se quiser outro texto, é só me dizer.|Done! I added a "?" button that opens "How to play": {texto} If you want another text, just tell me.|¡Listo! Puse un botón "?" que abre "Cómo jugar": {texto} Si quieres otro texto, dímelo.',
+  aj_ja: 'O jogo já tem o botão de ajuda.|The game already has the help button.|El juego ya tiene el botón de ayuda.',
+  aj_tirou: 'Pronto! Tirei o botão de ajuda.|Done! I removed the help button.|¡Listo! Quité el botón de ayuda.',
+  aj_nada: 'O jogo não tem botão de ajuda.|The game has no help button.|El juego no tiene botón de ayuda.',
+  d_ajuda: 'botão de ajuda|help button|botón de ayuda',
+
+  vo_menos: 'Pronto! Abaixei a música (agora está em {pct}%).|Done! I lowered the music (now at {pct}%).|¡Listo! Bajé la música (ahora está en {pct}%).',
+  vo_mais: 'Pronto! Aumentei a música (agora está em {pct}%).|Done! I turned the music up (now at {pct}%).|¡Listo! Subí la música (ahora está en {pct}%).',
+  vo_min: 'A música já está bem baixinha. Quer tirar? É só pedir "tira a música".|The music is already very low. Want to remove it? Just say "remove the music".|La música ya está muy bajita. ¿La quitas? Di "quita la música".',
+  vo_max: 'A música já está no volume máximo.|The music is already at full volume.|La música ya está al máximo.',
+  vo_sem_musica: 'O jogo ainda não tem música do Koda GB. Quer que eu coloque uma?|The game has no Koda GB music yet. Want me to add one?|El juego todavía no tiene música de Koda GB. ¿Pongo una?',
+  d_volume: 'volume da música|music volume|volumen de la música'
+});
+
+/* ---------------- a ajuda mostra as opções novas ---------------- */
+textosEm10({
+  ajuda_r: 'Eu mexo no seu jogo. É só pedir do seu jeito, por exemplo:\n- Loja: "põe uma loja", "a espada custa 20 moedas", "deixa tudo em diamantes"\n- Moeda do jogo: "troca o ouro por moedas do Koda GB", "moeda azul em forma de estrela"\n- Koda GB: "joga com minha skin", "mostra meu nome no canto", "salva o progresso", "mostra meus recordes", "deixa online"\n- Celular: "coloca controles na tela", "joystick", "setas na tela"\n- Som: "coloca sons", "música de aventura" (também épica, lo-fi, de festa, de terror, fofa, de luta...), "abaixa a música"\n- Clima e efeitos: "faz chover", "neve", "vaga-lumes", "efeito de TV antiga", "brilho onde eu tocar"\n- Na hora certa: "tela tremer quando perder vida", "confete quando passar de fase", "vibrar o celular", "um narrador falando"\n- Visual e botões: "fundo azul", "modo noite", "botão de pausa", "tela inicial", "botão de ajuda"\n- Números: "mais vidas", "pulo mais alto", "mais difícil"\n- Textos: "traduz pra inglês", troque "Game Over" por "Acabou!"\n- Imagem, vídeo e áudio: mande pelo clipe e diga "usa de fundo" ou "toca quando pular"\n- Ajuda: "verifica o código", "avalia meu jogo", "me dá ideias"|I change your game. Just ask your way, for example:\n- Shop: "add a shop", "the sword costs 20 coins", "make everything diamonds"\n- Game coin: "swap the gold for Koda GB coins", "blue star-shaped coin"\n- Koda GB: "play as my skin", "show my name in the corner", "save the progress", "show my records", "make it online"\n- Phone: "add on-screen controls", "joystick", "arrow buttons"\n- Sound: "add sounds", "adventure music" (also epic, lo-fi, party, scary, cute, fighting...), "lower the music"\n- Weather and effects: "make it rain", "snow", "fireflies", "old TV effect", "sparkles where I tap"\n- At the right moment: "shake the screen when I lose a life", "confetti on level up", "vibrate the phone", "a narrator"\n- Look and buttons: "blue background", "night mode", "pause button", "start screen", "help button"\n- Numbers: "more lives", "jump higher", "harder"\n- Texts: "translate to Spanish", replace "Game Over" with "The End!"\n- Image, video and audio: send with the clip and say "use as background" or "play when jumping"\n- Help: "check the code", "rate my game", "give me ideas"|Cambio tu juego. Pídelo a tu manera, por ejemplo:\n- Tienda: "pon una tienda", "la espada cuesta 20 monedas", "todo en diamantes"\n- Moneda del juego: "cambia el oro por monedas de Koda GB", "moneda azul con forma de estrella"\n- Koda GB: "juega con mi skin", "muestra mi nombre en la esquina", "guarda el progreso", "muestra mis récords", "ponlo online"\n- Celular: "pon controles en la pantalla", "joystick", "flechas en la pantalla"\n- Sonido: "pon sonidos", "música de aventura" (también épica, lo-fi, de fiesta, de terror, tierna, de lucha...), "baja la música"\n- Clima y efectos: "haz que llueva", "nieve", "luciérnagas", "efecto de tele antigua", "brillo donde toco"\n- En el momento justo: "que la pantalla tiemble al perder una vida", "confeti al pasar de nivel", "que vibre el celular", "un narrador"\n- Look y botones: "fondo azul", "modo noche", "botón de pausa", "pantalla de inicio", "botón de ayuda"\n- Números: "más vidas", "salto más alto", "más difícil"\n- Textos: "traduce al inglés", cambia "Game Over" por "¡Se acabó!"\n- Imagen, video y audio: mándalo con el clip y di "úsalo de fondo" o "suena al saltar"\n- Ayuda: "revisa el código", "evalúa mi juego", "dame ideas"',
+  of_controles: 'Controles na tela|On-screen controls|Controles en pantalla', of_controles_sub: 'Joystick e botões pra jogar no celular|Joystick and buttons to play on phones|Joystick y botones para jugar en el celular',
+  of_recordes: 'Meus recordes|My records|Mis récords', of_recordes_sub: 'Os 5 melhores de cada pessoa, na conta|Each person\'s top 5, in their account|Los 5 mejores de cada persona, en su cuenta'
+});
+var opcoesDeOfertaAntes = opcoesDeOferta;
+opcoesDeOferta = function(bruto){
+  var out = opcoesDeOfertaAntes(bruto);
+  try{
+    var codigo = DEP.preparar(String(bruto || '')) || '';
+    if(!codigo) return out;
+    var extra = [];
+    var t = teclasDoJogo(codigo), dirs = t.setas.esq || t.setas.dir || t.setas.cima || t.setas.baixo || t.wasd.esq || t.wasd.dir;
+    if(!/data-koda-controles/.test(codigo) && dirs && !jaTemControlesDeToque(codigo)) extra.push({id: 'controles', adicionar: true, icone: 'device', titulo: T('of_controles'), sub: T('of_controles_sub')});
+    if(!/data-koda-recordes/.test(codigo)){ var d = lerDocumento(codigo); if(planoDePontuar(d)) extra.push({id: 'recordes', adicionar: true, icone: 'trophy', titulo: T('of_recordes'), sub: T('of_recordes_sub')}); }
+    if(extra.length){
+      var k = out.findIndex(function(o){ return o.id === 'verificar'; }); if(k < 0) k = out.length;
+      out.splice.apply(out, [k, 0].concat(extra));
+    }
+  }catch(e){}
+  return out;
+};
+HB.controles = function(it, ctx, est){ return H.op_controles({}, ctx, est); };
+HB.recordes = function(it, ctx, est){ return H.op_recordes({}, ctx, est); };
+GRUPO_CONFUSO.push([/^op_/, 'cf_visual']);
+
+/* ---------------- tirar os sons do Koda GB / nome do jogo ---------------- */
+H.op_sem_sons = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp(), cod = ctx.codigo, novo;
+  /* com efeitos (tremer, confete) os pontos do jogo continuam, só ficam mudos */
+  if(/data-koda-efeitos/.test(cod)){
+    novo = /data-koda-meusom/.test(cod) ? cod.replace(/window\.__kodaSomSo=0/, 'window.__kodaSomSo=1') : colocarNoComeco(cod, '<script data-koda-meusom="1">window.__kodaSomMeu={};window.__kodaSomSo=1;<\/script>');
+  } else novo = tirarMarca(tirarMarca(cod, 'data-koda-sons'), 'data-koda-meusom');
+  var c = conferirDepois(cod, novo, {}); if(c.erro || c.codigo === cod) return diz(r, T('lj_nao_deu'));
+  diz(r, T('ss_ok'));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, cod, c.codigo, T('d_sons'));
+};
+function fazerNomeJogo(codigo, nome){
+  nome = String(nome || '').replace(/[<>]/g, '').trim().slice(0, 40);
+  if(!nome) return {erro: 'nada'};
+  var velho = tituloDoJogo(codigo), novo = codigo;
+  if(velho && velho === nome) return {erro: 'ja_tem'};
+  if(/<title[^>]*>[^<]*<\/title>/i.test(novo)) novo = novo.replace(/(<title[^>]*>)[^<]*(<\/title>)/i, function(x, a, b){ return a + nome + b; });
+  else if(/<head[^>]*>/i.test(novo)) novo = novo.replace(/<head[^>]*>/i, function(x){ return x + '<title>' + nome + '</title>'; });
+  var n = 0;
+  if(velho && velho.length >= 3){
+    var t = fazerTrocaTexto(novo, velho, nome);
+    if(t.codigo){ novo = t.codigo; n = t.res.n; }
+    var j = JSON.stringify(velho).slice(1, -1);
+    novo = novo.split('"titulo":"' + j + '"').join('"titulo":' + JSON.stringify(nome));
+  }
+  if(novo === codigo) return {erro: 'nada'};
+  return conferirDepois(codigo, novo, {velho: velho, n: n});
+}
+H.op_nome = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp(), res = fazerNomeJogo(ctx.codigo, it.nome);
+  if(res.erro === 'ja_tem') return diz(r, T('nj_ja', {nome: it.nome}));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  diz(r, T(res.res.n ? 'nj_ok_tela' : 'nj_ok', {nome: it.nome}));
+  chip(r, T('ch_testar'));
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_nome'));
+};
+textosEm10({
+  ss_ok: 'Pronto! Tirei os sons que eu tinha colocado.|Done! I removed the sounds I had added.|¡Listo! Quité los sonidos que había puesto.',
+  d_sons: 'sons|sounds|sonidos',
+  nj_ok: 'Pronto! O jogo agora se chama "{nome}".|Done! The game is now called "{nome}".|¡Listo! El juego ahora se llama "{nome}".',
+  nj_ok_tela: 'Pronto! O jogo agora se chama "{nome}" (troquei também onde o nome aparecia na tela).|Done! The game is now called "{nome}" (I also changed it where the name showed on screen).|¡Listo! El juego ahora se llama "{nome}" (también lo cambié donde aparecía en la pantalla).',
+  nj_ja: 'O jogo já se chama "{nome}".|The game is already called "{nome}".|El juego ya se llama "{nome}".',
+  d_nome: 'nome do jogo|game name|nombre del juego',
+  ef_n_brilho: 'brilhinhos dourados|golden sparkles|brillitos dorados',
+  am_neblina: 'neblina|fog|niebla', am_dianoite: 'dia e noite|day and night|día y noche'
+});
+
+/* som de algo que o jogo não tem ("som de explosão" num jogo sem explosão): oferece os outros */
+var H_sons_antes = H.sons;
+H.sons = function(it, ctx, est){
+  var r = H_sons_antes(it, ctx, est);
+  try{
+    var quais = it && it.arg && typeof it.arg === 'object' ? Object.keys(it.arg) : [];
+    if(quais.length && ctx.temCodigo && !(r.codigo && r.codigo !== ctx.codigo) && !/data-koda-sons/.test(ctx.codigo)){
+      var r2 = novaResp();
+      diz(r2, T('so_nao_tem', {lista: listaE(quais.map(function(k){ return T('so_' + k); }))}));
+      est.pendente = {tipo: 'confirmar', acao: {int: 'sons'}};
+      chip(r2, T('ch_so_todos'));
+      return r2;
+    }
+  }catch(e){}
+  return r;
+};
+textosEm10({
+  so_nao_tem: 'Não achei no código a hora certa pra esse som ({lista}). Quer que eu coloque os sons que esse jogo tem (pontos, vida, pulo, fim de jogo...)?|I could not find the right moment in the code for that sound ({lista}). Want me to add the sounds this game does have (points, lives, jump, game over...)?|No encontré en el código el momento justo para ese sonido ({lista}). ¿Pongo los sonidos que este juego sí tiene (puntos, vidas, salto, fin del juego...)?',
+  ch_so_todos: 'Sim, coloca os sons que der|Yes, add the sounds you can|Sí, pon los sonidos que se pueda'
+});
+
+/* ---------------- 8) um bichinho que segue o herói ---------------- */
+function kodaPetNoJogo(C){
+  if(window.kodaPet) return;
+  var pet = {x: null, y: null, t: 0, lado: 1, ux: null}, ult = 0, tipo = C.tipo || 'gosma', cor = C.cor || null;
+  var CORES = {gosma: '#7be37b', gato: '#f2a65a', cachorro: '#c98a4b', dragao: '#7c6cf0', passaro: '#5ab4ff', robo: '#b8c3d6', fantasma: '#f4f6ff', coelho: '#f7f2ee', panda: '#ffffff'};
+  window.kodaPet = function(g, x, y, w, h){
+    try{
+      x = +x; y = +y; w = +w; h = +h; if(!g || !isFinite(x + y + w + h) || h <= 0) return;
+      var agora = (window.performance ? performance.now() : Date.now()), dt = Math.min(0.05, (agora - (ult || agora)) / 1000); ult = agora; pet.t += dt;
+      var tam = Math.max(10, Math.min(h * 0.6, 90));
+      if(pet.ux != null && Math.abs(x - pet.ux) > 0.5) pet.lado = x > pet.ux ? 1 : -1;
+      pet.ux = x;
+      var voa = tipo === 'passaro' || tipo === 'dragao' || tipo === 'fantasma';
+      var ax = pet.lado > 0 ? x - tam * 1.05 : x + w + tam * 0.05, ay = voa ? y + h * 0.05 : y + h - tam;
+      if(pet.x == null || Math.abs(ax - pet.x) > 600 || Math.abs(ay - pet.y) > 600){ pet.x = ax; pet.y = ay; }
+      var k = 1 - Math.exp(-dt * 7); pet.x += (ax - pet.x) * k; pet.y += (ay - pet.y) * k;
+      var mexe = Math.abs(ax - pet.x) > 2, pulo = voa ? Math.sin(pet.t * 5) * tam * 0.08 : (mexe ? Math.abs(Math.sin(pet.t * 12)) * tam * 0.18 : Math.abs(Math.sin(pet.t * 3)) * tam * 0.04);
+      var cx = pet.x + tam / 2, cy = pet.y + tam / 2 - pulo, r = tam / 2, c = cor || CORES[tipo] || '#7be37b';
+      g.save();
+      g.translate(cx, cy); if(pet.lado < 0) g.scale(-1, 1);
+      g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(0, r + pulo * 0.9, r * 0.75, r * 0.18, 0, 0, 6.283); g.fill();
+      g.fillStyle = c; g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = Math.max(1, r * 0.08);
+      if(tipo === 'gato' || tipo === 'cachorro' || tipo === 'coelho' || tipo === 'panda'){
+        g.beginPath(); g.ellipse(-r * 0.15, r * 0.25, r * 0.7, r * 0.55, 0, 0, 6.283); g.fill(); g.stroke();
+        g.beginPath(); g.arc(r * 0.35, -r * 0.25, r * 0.5, 0, 6.283); g.fill(); g.stroke();
+        if(tipo === 'gato'){ g.beginPath(); g.moveTo(r * 0.05, -r * 0.55); g.lineTo(r * 0.15, -r * 0.95); g.lineTo(r * 0.35, -r * 0.65); g.moveTo(r * 0.45, -r * 0.68); g.lineTo(r * 0.7, -r * 0.95); g.lineTo(r * 0.75, -r * 0.5); g.fill(); g.lineWidth = r * 0.12; g.beginPath(); g.moveTo(-r * 0.8, r * 0.2); g.quadraticCurveTo(-r * 1.2, -r * 0.2 + Math.sin(pet.t * 6) * r * 0.2, -r * 1.0, -r * 0.5); g.strokeStyle = c; g.stroke(); }
+        if(tipo === 'cachorro'){ g.fillStyle = '#7a4b25'; g.beginPath(); g.ellipse(r * 0.05, -r * 0.35, r * 0.15, r * 0.35, -0.4, 0, 6.283); g.fill(); g.beginPath(); g.ellipse(r * 0.7, -r * 0.4, r * 0.15, r * 0.32, 0.4, 0, 6.283); g.fill(); g.fillStyle = '#222'; g.beginPath(); g.arc(r * 0.82, -r * 0.18, r * 0.09, 0, 6.283); g.fill(); g.lineWidth = r * 0.12; g.strokeStyle = c; g.beginPath(); g.moveTo(-r * 0.8, r * 0.1); g.lineTo(-r * 1.1, -r * 0.2 + Math.sin(pet.t * 14) * r * 0.15); g.stroke(); }
+        if(tipo === 'coelho'){ g.beginPath(); g.ellipse(r * 0.2, -r * 0.95, r * 0.12, r * 0.4, -0.2, 0, 6.283); g.fill(); g.stroke(); g.beginPath(); g.ellipse(r * 0.5, -r * 0.95, r * 0.12, r * 0.4, 0.2, 0, 6.283); g.fill(); g.stroke(); }
+        if(tipo === 'panda'){ g.fillStyle = '#222'; g.beginPath(); g.arc(r * 0.05, -r * 0.65, r * 0.15, 0, 6.283); g.arc(r * 0.65, -r * 0.65, r * 0.15, 0, 6.283); g.fill(); g.beginPath(); g.ellipse(r * 0.22, -r * 0.3, r * 0.1, r * 0.13, 0, 0, 6.283); g.ellipse(r * 0.5, -r * 0.3, r * 0.1, r * 0.13, 0, 0, 6.283); g.fill(); }
+        g.fillStyle = tipo === 'panda' ? '#fff' : '#222'; g.beginPath(); g.arc(r * 0.25, -r * 0.3, r * 0.065, 0, 6.283); g.arc(r * 0.52, -r * 0.3, r * 0.065, 0, 6.283); g.fill();
+      } else if(tipo === 'passaro'){
+        g.beginPath(); g.ellipse(0, 0, r * 0.62, r * 0.5, 0, 0, 6.283); g.fill(); g.stroke();
+        g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(-r * 0.15, Math.sin(pet.t * 18) * r * 0.2 - r * 0.1, r * 0.35, r * 0.15, -0.5, 0, 6.283); g.fill();
+        g.fillStyle = '#ffb02e'; g.beginPath(); g.moveTo(r * 0.55, -r * 0.05); g.lineTo(r * 0.9, r * 0.05); g.lineTo(r * 0.55, r * 0.15); g.fill();
+        g.fillStyle = '#222'; g.beginPath(); g.arc(r * 0.3, -r * 0.15, r * 0.08, 0, 6.283); g.fill();
+      } else if(tipo === 'dragao'){
+        g.beginPath(); g.ellipse(0, 0, r * 0.6, r * 0.45, 0, 0, 6.283); g.fill(); g.stroke();
+        g.beginPath(); g.arc(r * 0.5, -r * 0.3, r * 0.35, 0, 6.283); g.fill(); g.stroke();
+        g.fillStyle = 'rgba(200,190,255,.85)'; var asa = Math.sin(pet.t * 10) * r * 0.25; g.beginPath(); g.moveTo(-r * 0.1, -r * 0.2); g.lineTo(-r * 0.5, -r * 0.9 - asa); g.lineTo(-r * 0.05, -r * 0.55); g.fill();
+        g.fillStyle = '#ffd34d'; g.beginPath(); g.moveTo(r * 0.4, -r * 0.62); g.lineTo(r * 0.45, -r * 0.85); g.lineTo(r * 0.55, -r * 0.62); g.fill();
+        g.fillStyle = '#222'; g.beginPath(); g.arc(r * 0.62, -r * 0.35, r * 0.07, 0, 6.283); g.fill();
+      } else if(tipo === 'robo'){
+        g.fillRect(-r * 0.55, -r * 0.2, r * 1.1, r * 0.85); g.strokeRect(-r * 0.55, -r * 0.2, r * 1.1, r * 0.85);
+        g.fillRect(-r * 0.35, -r * 0.75, r * 0.8, r * 0.5); g.strokeRect(-r * 0.35, -r * 0.75, r * 0.8, r * 0.5);
+        g.fillStyle = '#4dd6ff'; g.fillRect(-r * 0.2, -r * 0.6, r * 0.18, r * 0.16); g.fillRect(r * 0.12, -r * 0.6, r * 0.18, r * 0.16);
+        g.strokeStyle = '#555'; g.beginPath(); g.moveTo(r * 0.05, -r * 0.75); g.lineTo(r * 0.05, -r * 1.0); g.stroke(); g.fillStyle = '#ff5a5a'; g.beginPath(); g.arc(r * 0.05, -r * 1.05, r * 0.08, 0, 6.283); g.fill();
+      } else if(tipo === 'fantasma'){
+        g.globalAlpha = 0.9; g.beginPath(); g.arc(0, -r * 0.1, r * 0.55, Math.PI, 0); g.lineTo(r * 0.55, r * 0.55);
+        for(var o = 0; o < 4; o++){ var xx = r * 0.55 - (o + 1) * r * 0.275; g.lineTo(xx + r * 0.137, r * (o % 2 ? 0.55 : 0.35)); g.lineTo(xx, r * 0.55); }
+        g.closePath(); g.fill(); g.stroke(); g.fillStyle = '#222'; g.beginPath(); g.ellipse(-r * 0.15, -r * 0.15, r * 0.08, r * 0.12, 0, 0, 6.283); g.ellipse(r * 0.18, -r * 0.15, r * 0.08, r * 0.12, 0, 0, 6.283); g.fill();
+      } else {
+        var esp = mexe ? Math.abs(Math.sin(pet.t * 12)) * 0.12 : 0;
+        g.beginPath(); g.ellipse(0, r * 0.15, r * (0.62 + esp), r * (0.55 - esp), 0, Math.PI, 0); g.lineTo(r * (0.62 + esp), r * 0.55); g.lineTo(-r * (0.62 + esp), r * 0.55); g.closePath(); g.fill(); g.stroke();
+        g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(-r * 0.25, -r * 0.15, r * 0.12, r * 0.07, -0.5, 0, 6.283); g.fill();
+        g.fillStyle = '#222'; g.beginPath(); g.arc(r * 0.05, r * 0.05, r * 0.08, 0, 6.283); g.arc(r * 0.35, r * 0.05, r * 0.08, 0, 6.283); g.fill();
+      }
+      g.restore();
+    }catch(e){}
+  };
+}
+function fazerPet(codigo, tipo){
+  var doc = lerDocumento(codigo), d = acharDesenhoDoJogador(doc);
+  if(!d) return {erro: 'sem_heroi'};
+  if(/data-koda-pet/.test(codigo)){
+    var cfg0 = lerConfig(codigo, 'data-koda-pet') || {};
+    if(cfg0.tipo === tipo) return {erro: 'ja_tem'};
+    var troca = tirarMarca(codigo, 'data-koda-pet');
+    return conferirDepois(codigo, colocarNoComeco(troca, paraScript(kodaPetNoJogo, {tipo: tipo}, 'pet')), {tipo: tipo, trocou: true});
+  }
+  var js = d.js, T = js.T;
+  /* entra logo antes do desenho do herói (fica atrás dele), quando as variáveis do desenho já existem */
+  var k = d.j - 2;
+  while(k > 0 && !/^[;{}]$/.test(T[k - 1].v)) k--;
+  var linha = 'if(window.kodaPet) kodaPet(' + d.ctx + ', ' + d.x + ', ' + d.y + ', ' + d.w + ', ' + d.h + ');\n' + recuoDaLinha(js.sc.corpo, T[k].s);
+  var ed = new Edicao(codigo);
+  ed.inserir(js.base + T[k].s, linha);
+  var novo = ed.aplicar(); if(!novo) return {erro: 'edicao'};
+  novo = colocarNoComeco(novo, paraScript(kodaPetNoJogo, {tipo: tipo}, 'pet'));
+  return conferirDepois(codigo, novo, {tipo: tipo});
+}
+var PETS = [['gato', /\b(gat[oa]s?|gatinh\w*|cat|kitten|michi)\b/], ['cachorro', /\b(cachorr\w*|cao|dog|puppy|perr\w*|doguinho)\b/], ['dragao', /\b(dragao|dragaozinho|dragon|dragoncito)\b/], ['passaro', /\b(passar\w*|passarinho|bird|pajar\w*|pombo|papagaio)\b/],
+  ['robo', /\b(robo|robozinho|robot)\b/], ['fantasma', /\b(fantasm\w*|ghost)\b/], ['coelho', /\b(coelh\w*|bunny|rabbit|conej\w*)\b/], ['panda', /\b(panda)\b/], ['gosma', /\b(gosma|slime|geleca)\b/]];
+var entenderAntesDoPet = entender;
+entender = function(txt, ctx){
+  try{
+    if(ctx.temCodigo && !((ctx.estado || {}).pendente && /^(ideias|ideia|briefing|qual_item|nome_item)/.test(((ctx.estado || {}).pendente || {}).tipo || ''))){
+      var n = ' ' + nTxt(txt) + ' ';
+      var animal = PETS.some(function(p){ return p[1].test(n); });
+      var ehPet = /\b(pet|pets|mascote|mascota|mascotita|bichinho|bichinhos|companheiro|companion|ajudante animal|animal de estimacao|amiguinho)\b/.test(n) || (animal && /\b(segue|seguindo|seguir|me acompanha|acompanhar|atras de mim|junto comigo|do lado|follow\w*|me sigue)\b/.test(n)) ||
+        (animal && /data-koda-pet/.test(ctx.codigo || '') && /\b(troca\w*|muda\w*|vira|agora|quero|prefiro|change|cambia\w*)\b/.test(n));
+      if(ehPet && !/\b(loja|vender|comprar|skin)\b/.test(n)){
+        var tipo = 'gosma'; PETS.forEach(function(p){ if(tipo === 'gosma' && p[1].test(n)) tipo = p[0]; });
+        return {int: 'op_pet', tipo: tipo, tirar: RX_OP.tirar.test(n)};
+      }
+    }
+  }catch(e){}
+  return entenderAntesDoPet(txt, ctx);
+};
+H.op_pet = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  if(it.tirar){
+    if(!/data-koda-pet/.test(ctx.codigo)) return diz(r, T('pe_nada'));
+    var l = tirarMarca(ctx.codigo, 'data-koda-pet').replace(/if\(window\.kodaPet\) kodaPet\([^;]*\);\n?[ \t]*/g, '');
+    var c = conferirDepois(ctx.codigo, l, {}); if(c.erro) return diz(r, T('lj_nao_deu'));
+    diz(r, T('pe_tirou')); return aplicar(est, r, ctx.codigo, c.codigo, T('d_pet'));
+  }
+  var res = fazerPet(ctx.codigo, it.tipo);
+  if(res.erro === 'sem_heroi') return diz(r, T('pe_sem_heroi'));
+  if(res.erro === 'ja_tem') return diz(r, T('pe_ja'));
+  if(res.erro) return diz(r, T('lj_nao_deu'));
+  diz(r, T(res.res.trocou ? 'pe_troca' : 'pe_ok', {pet: T('pe_' + it.tipo)}));
+  chip(r, T('ch_testar'));
+  ['gato', 'cachorro', 'dragao', 'robo'].filter(function(k){ return k !== it.tipo; }).slice(0, 2).forEach(function(k){ chip(r, T('ch_pe_troca', {pet: T('pe_' + k)})); });
+  return aplicar(est, r, ctx.codigo, res.codigo, T('d_pet'));
+};
+textosEm10({
+  pe_gosma: 'uma gosminha|a little slime|una babosita', pe_gato: 'um gatinho|a kitten|un gatito', pe_cachorro: 'um cachorrinho|a puppy|un perrito', pe_dragao: 'um dragãozinho|a baby dragon|un dragoncito', pe_passaro: 'um passarinho|a little bird|un pajarito', pe_robo: 'um robozinho|a little robot|un robotito', pe_fantasma: 'um fantasminha|a little ghost|un fantasmita', pe_coelho: 'um coelhinho|a bunny|un conejito', pe_panda: 'um pandinha|a little panda|un pandita',
+  pe_ok: 'Pronto! Agora {pet} segue o herói pelo jogo todo (ele fica atrás e pula junto). É só enfeite: não muda nada do jogo.|Done! Now {pet} follows the hero around the whole game (it stays behind and hops along). It is just for looks: it changes nothing in the game.|¡Listo! Ahora {pet} sigue al héroe por todo el juego (va detrás y salta con él). Es solo decoración: no cambia nada del juego.',
+  pe_troca: 'Pronto! Troquei o bichinho: agora é {pet}.|Done! I changed the pet: now it is {pet}.|¡Listo! Cambié la mascota: ahora es {pet}.',
+  pe_ja: 'O herói já tem esse bichinho.|The hero already has that pet.|El héroe ya tiene esa mascota.',
+  pe_sem_heroi: 'Não achei onde o jogo desenha o herói, então não sei quem o bichinho deveria seguir.|I could not find where the game draws the hero, so I do not know who the pet should follow.|No encontré dónde el juego dibuja al héroe, así que no sé a quién debería seguir la mascota.',
+  pe_tirou: 'Pronto! Tirei o bichinho.|Done! I removed the pet.|¡Listo! Quité la mascota.', pe_nada: 'O jogo não tem bichinho pra tirar.|The game has no pet to remove.|El juego no tiene mascota para quitar.',
+  ch_pe_troca: 'Troca o bichinho por {pet}|Change the pet to {pet}|Cambia la mascota por {pet}', d_pet: 'bichinho que segue o herói|pet that follows the hero|mascota que sigue al héroe'
+});
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T, TL: TL,
