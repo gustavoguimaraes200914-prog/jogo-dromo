@@ -4017,6 +4017,27 @@
   .ka-msg .ka-midia.audio{width:min(260px,70vw);height:36px;}
   .ka-form textarea::placeholder{font-size:14px;}
   @media (max-width:430px){ .ka-form{gap:6px;} .ka-clipe,.ka-mic,.ka-enviar{width:42px;height:42px;} .ka-clipe svg,.ka-mic svg{width:21px;height:21px;} }
+  /* capa criada pela IA: a folha com a prévia, "Usar esta capa", "Outra" e "galeria ou arquivos" */
+  .ka-capa-bg{z-index:3400;}
+  .ka-capa-palco{position:relative;width:min(272px,72vw);aspect-ratio:1/1;margin:8px auto 6px;border-radius:24px;overflow:hidden;background:#0d1020;box-shadow:0 8px 22px rgba(8,50,43,.28),0 0 0 3px #fff;}
+  .ka-capa-tv{position:absolute;inset:0;overflow:hidden;opacity:.55;filter:saturate(.8);}
+  .ka-capa-jogo{position:absolute;left:0;top:0;width:640px;height:640px;border:0;transform-origin:0 0;pointer-events:none;background:#000;}
+  .ka-capa-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .ka-capa-img.ka-capa-entra{animation:kaCapaEntra .42s cubic-bezier(.34,1.4,.64,1);}
+  @keyframes kaCapaEntra{from{transform:scale(.86) rotate(-3deg);opacity:0;}to{transform:none;opacity:1;}}
+  .ka-capa-msg{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.94);color:#08322B;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:.92rem;line-height:1.15;}
+  .ka-capa-palco[data-estado="pronta"] .ka-capa-tv,.ka-capa-palco[data-estado="pronta"] .ka-capa-msg{display:none;}
+  .ka-capa-nota{margin:0 8px 4px;text-align:center;font-family:'Nunito',sans-serif;font-size:.84rem;color:#08322B;opacity:.75;}
+  .ka-capa-acoes{display:flex;gap:8px;margin-top:8px;}
+  .ka-capa-acoes button{flex:1;padding:13px 10px;border-radius:14px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.02rem;cursor:pointer;border:none;}
+  .ka-capa-usar{background:#7C4DFF;color:#fff;flex:1.4 !important;}
+  .ka-capa-outra{background:#fff;color:#5b2fd6;box-shadow:inset 0 0 0 2px rgba(124,77,255,.45) !important;}
+  .ka-capa-acoes button:disabled{opacity:.45;cursor:default;}
+  .ka-capa-acoes button:not(:disabled):active{transform:scale(.97);}
+  .ka-capa-acoes button:focus-visible{outline:3px solid #00e5ff;outline-offset:2px;}
+  .ka-capa-galeria{display:flex !important;align-items:center;justify-content:center;gap:8px;margin-top:8px !important;background:rgba(8,50,43,.08) !important;}
+  .ka-capa-galeria svg{width:20px;height:20px;flex:none;}
+  @media (prefers-reduced-motion: reduce){ .ka-capa-img.ka-capa-entra{animation:none;} }
   /* ==== AGENTE KODA: CSS FIM ==== */
   .direct-test-btn{
     width:100%;padding:12px;border-radius:12px;border:1.5px solid #00e5ff;background:none;
@@ -6844,7 +6865,7 @@ const I18N = {
     draft_delete_confirm:'Apagar esse rascunho?', draft_delete_btn:'Apagar', draft_saved_toast:'Rascunho salvo!', draft_save_confirm:'Salvei nossa conversa como "{name}"! Pode continuar de onde parou quando quiser.', draft_continued_actions:'Prontinho, retomamos de onde paramos! Quer testar, pedir mais algum ajuste, ou publicar quando estiver satisfeito?',
     draft_name_label:'Nome do rascunho', draft_name_ph:'Ex: Guerra de Aviões (rascunho)', draft_save_btn:'Salvar rascunho',
     code_form_title:'PUBLICAR JOGO', code_form_intro:'Preencha os dados e publique seu jogo no catálogo.',
-    code_form_no_photo_hint:'Sem imagem? A gente gera uma capa colorida com a inicial do nome.',
+    code_form_no_photo_hint:'Sem imagem? A IA do Koda GB joga o seu jogo e cria uma capa pra ele (você pode pedir outra).',
     code_form_code_label:'Código do jogo (HTML)', code_form_code_ph:'Cole aqui o código HTML completo do seu jogo (um arquivo só, sem depender de outros arquivos).',
     code_form_code_hint:'Pode colar a resposta inteira da IA (ChatGPT, Gemini, Claude, Copilot…), até em vários arquivos: o Koda GB separa o código sozinho e junta o HTML, o CSS e o JavaScript.',
     code_form_name_needed:'Escreva um nome pro jogo', code_form_code_incomplete:'O código do jogo parece incompleto.',
@@ -7520,7 +7541,7 @@ const I18N = {
     draft_delete_confirm:'Delete this draft?', draft_delete_btn:'Delete', draft_saved_toast:'Draft saved!', draft_save_confirm:'Saved our conversation as "{name}"! You can pick up right where we left off whenever you like.', draft_continued_actions:"There we go, back where we left off! Want to test it, ask for another tweak, or publish once you're happy with it?",
     draft_name_label:'Draft name', draft_name_ph:'E.g. Plane War (draft)', draft_save_btn:'Save draft',
     code_form_title:'PUBLISH GAME', code_form_intro:'Fill in the details and publish your game to the catalog.',
-    code_form_no_photo_hint:"No image? We'll generate a colorful cover using the name's initial.",
+    code_form_no_photo_hint:"No image? The Koda GB AI plays your game and makes a cover for it (you can ask for another).",
     code_form_code_label:'Game code (HTML)', code_form_code_ph:"Paste the full HTML code of your game here (a single file, with no dependency on other files).",
     code_form_code_hint:'You can paste the whole AI answer (ChatGPT, Gemini, Claude, Copilot…), even split into several files: Koda GB picks out the code and joins the HTML, CSS and JavaScript.',
     code_form_name_needed:'Write a name for the game', code_form_code_incomplete:'The game code looks incomplete.',
@@ -8157,7 +8178,7 @@ const I18N = {
     draft_save_confirm:'Ho salvato la nostra chat come "{name}"! Puoi riprendere da dove hai lasciato quando vuoi.',
     draft_continued_actions:'Ecco, siamo tornati dove avevamo lasciato! Vuoi provarlo, chiedere un\'altra modifica, o pubblicarlo quando sei soddisfatto?',
     draft_name_label:'Nome della bozza', draft_name_ph:'Es: Guerra di Aerei (bozza)', draft_save_btn:'Salva bozza', code_form_title:'PUBBLICA GIOCO',
-    code_form_intro:'Compila i dati e pubblica il tuo gioco nel catalogo.', code_form_no_photo_hint:'Non hai un\'immagine? Ti creiamo una copertina colorata con l\'iniziale del nome.',
+    code_form_intro:'Compila i dati e pubblica il tuo gioco nel catalogo.', code_form_no_photo_hint:'Non hai un\'immagine? L\'IA di Koda GB gioca al tuo gioco e crea una copertina (puoi chiederne un\'altra).',
     code_form_code_label:'Codice del gioco (HTML)', code_form_code_ph:'Incolla qui tutto il codice HTML del tuo gioco (un solo file, che non dipenda da altri file).',
     code_form_code_hint:'Puoi incollare l’intera risposta dell’IA (ChatGPT, Gemini, Claude, Copilot…), anche divisa in più file: Koda GB trova il codice e unisce HTML, CSS e JavaScript.', code_form_name_needed:'Scrivi un nome per il gioco',
     code_form_code_incomplete:'Il codice del gioco sembra incompleto.', code_form_too_big:'Non è stato possibile salvarlo — il gioco potrebbe essere troppo grande.', chess_menu:'Menu',
@@ -8787,7 +8808,7 @@ const I18N = {
     draft_save_confirm:'Ik heb ons gesprek opgeslagen als "{name}"! Je kunt wanneer je wil verder waar we gebleven waren.',
     draft_continued_actions:'Zo, we zijn terug waar we gebleven waren! Wil je het testen, nog iets aanpassen, of publiceren als je tevreden bent?', draft_name_label:'Naam van het concept',
     draft_name_ph:'Bijv. Vliegtuigoorlog (concept)', draft_save_btn:'Concept opslaan', code_form_title:'GAME PUBLICEREN',
-    code_form_intro:'Vul de gegevens in en publiceer je game in de catalogus.', code_form_no_photo_hint:'Geen afbeelding? Wij maken een kleurige omslag met de eerste letter van de naam.',
+    code_form_intro:'Vul de gegevens in en publiceer je game in de catalogus.', code_form_no_photo_hint:'Geen afbeelding? De AI van Koda GB speelt je spel en maakt er een cover voor (je kunt om een andere vragen).',
     code_form_code_label:'Code van de game (HTML)', code_form_code_ph:'Plak hier de volledige HTML-code van je game (één bestand, zonder dat er andere bestanden nodig zijn).',
     code_form_code_hint:'Je kunt het hele antwoord van de AI plakken (ChatGPT, Gemini, Claude, Copilot…), ook als het in meerdere bestanden staat: Koda GB haalt de code eruit en voegt HTML, CSS en JavaScript samen.', code_form_name_needed:'Schrijf een naam voor de game',
     code_form_code_incomplete:'De code van de game lijkt niet compleet.', code_form_too_big:'Opslaan lukte niet — de game is misschien te groot.', chess_menu:'Menu', chess_hint:'Tip',
@@ -9422,7 +9443,7 @@ const I18N = {
     draft_continued_actions:'So, wir sind wieder da, wo wir aufgehört haben! Willst du testen, noch was ändern, oder veröffentlichen, wenn du zufrieden bist?',
     draft_name_label:'Name des Entwurfs', draft_name_ph:'Z. B. Flugzeugkrieg (Entwurf)', draft_save_btn:'Entwurf speichern', code_form_title:'SPIEL VERÖFFENTLICHEN',
     code_form_intro:'Füll die Daten aus und veröffentliche dein Spiel im Katalog.',
-    code_form_no_photo_hint:'Kein Bild? Dann machen wir ein buntes Titelbild mit dem Anfangsbuchstaben des Namens.', code_form_code_label:'Code des Spiels (HTML)',
+    code_form_no_photo_hint:'Kein Bild? Die KI von Koda GB spielt dein Spiel und macht ein Cover dafür (du kannst ein anderes verlangen).', code_form_code_label:'Code des Spiels (HTML)',
     code_form_code_ph:'Füg hier den kompletten HTML-Code deines Spiels ein (eine einzige Datei, ohne andere Dateien zu brauchen).',
     code_form_code_hint:'Du kannst die ganze Antwort der KI einfügen (ChatGPT, Gemini, Claude, Copilot…), auch auf mehrere Dateien verteilt: Koda GB findet den Code und fügt HTML, CSS und JavaScript zusammen.',
     code_form_name_needed:'Schreib einen Namen für das Spiel', code_form_code_incomplete:'Der Code des Spiels sieht unvollständig aus.',
@@ -10062,7 +10083,7 @@ const I18N = {
     draft_save_confirm:'J\'ai enregistré notre conversation sous « {name} » ! Tu peux reprendre là où on s\'est arrêtés quand tu veux.',
     draft_continued_actions:'Et voilà, on reprend là où on s\'était arrêtés ! Tu veux tester, demander un autre ajustement, ou publier quand ça te plaît ?',
     draft_name_label:'Nom du brouillon', draft_name_ph:'Ex : Guerre d\'Avions (brouillon)', draft_save_btn:'Enregistrer le brouillon', code_form_title:'PUBLIER LE JEU',
-    code_form_intro:'Remplis les infos et publie ton jeu dans le catalogue.', code_form_no_photo_hint:'Pas d\'image ? On génère une couverture colorée avec l\'initiale du nom.',
+    code_form_intro:'Remplis les infos et publie ton jeu dans le catalogue.', code_form_no_photo_hint:'Pas d\'image ? L\'IA de Koda GB joue à ton jeu et lui crée une couverture (tu peux en demander une autre).',
     code_form_code_label:'Code du jeu (HTML)', code_form_code_ph:'Colle ici le code HTML complet de ton jeu (un seul fichier, sans dépendre d\'autres fichiers).',
     code_form_code_hint:'Tu peux coller la réponse entière de l’IA (ChatGPT, Gemini, Claude, Copilot…), même en plusieurs fichiers : Koda GB trouve le code et assemble le HTML, le CSS et le JavaScript.', code_form_name_needed:'Écris un nom pour le jeu',
     code_form_code_incomplete:'Le code du jeu a l\'air incomplet.', code_form_too_big:'Je n\'ai pas réussi à enregistrer — le jeu est peut-être trop gros.', chess_menu:'Menu',
@@ -10664,7 +10685,7 @@ const I18N = {
     profile_empty_saved:'まだゲームを保存してないよ。', profile_empty_saved_cta:'ゲームを見る', profile_empty_liked:'まだゲームにいいねしてないよ。', profile_empty_liked_cta:'ゲームを見る', drafts_or_new:'それか、新しいアイデアを下で教えて。',
     draft_continue:'続ける', draft_resumed:'「{name}」を再開したよ！試したり、調整をお願いしたり、また保存したり、準備できたら公開もできるよ。', draft_delete_confirm:'この下書きを削除する？', draft_delete_btn:'削除', draft_saved_toast:'下書きを保存したよ！',
     draft_save_confirm:'会話を「{name}」として保存したよ！いつでも続きから始められるよ。', draft_continued_actions:'よし、続きから再開したよ！試してみる？もう少し調整する？それとも満足したら公開する？', draft_name_label:'下書きの名前', draft_name_ph:'例: 飛行機バトル（下書き）',
-    draft_save_btn:'下書きを保存', code_form_title:'ゲームを公開', code_form_intro:'必要なことを入力して、ゲームをカタログに公開しよう。', code_form_no_photo_hint:'画像がない？名前の最初の文字でカラフルな表紙を作るよ。',
+    draft_save_btn:'下書きを保存', code_form_title:'ゲームを公開', code_form_intro:'必要なことを入力して、ゲームをカタログに公開しよう。', code_form_no_photo_hint:'画像がない？Koda GB の AI がゲームをプレイしてカバーを作るよ（ほかのも頼めるよ）。',
     code_form_code_label:'ゲームのコード（HTML）', code_form_code_ph:'ゲームの完全なHTMLコードをここに貼って（1ファイルだけで、他のファイルに頼らないもの）。',
     code_form_code_hint:'AI（ChatGPT、Gemini、Claude、Copilot…）の答えをそのまま全部貼ってOK。ファイルが分かれていても、Koda GBがコードを見つけてHTML・CSS・JavaScriptをまとめるよ。', code_form_name_needed:'ゲームの名前を書いて', code_form_code_incomplete:'ゲームのコードが途中で終わってるみたい。',
     code_form_too_big:'保存できなかったよ — ゲームが大きすぎるのかも。', chess_menu:'メニュー', chess_hint:'ヒント', chess_undo:'1手戻す', chess_pieces_q:'あなたの駒', chess_white:'白', chess_black:'黒',
@@ -11225,7 +11246,7 @@ const I18N = {
     profile_empty_liked:'你还没给游戏点过赞。', profile_empty_liked_cta:'去逛游戏', drafts_or_new:'或者在下面跟我说个新想法。', draft_continue:'继续', draft_resumed:'接着做“{name}”！你可以试玩、让我改点东西、再存一次，或者觉得好了就发布。',
     draft_delete_confirm:'删除这个草稿？', draft_delete_btn:'删除', draft_saved_toast:'草稿已保存！', draft_save_confirm:'我把我们的对话存成“{name}”啦！随时都能从上次的地方接着来。',
     draft_continued_actions:'好啦，我们接上次继续！想试玩、再改点什么，还是满意了就发布？', draft_name_label:'草稿名字', draft_name_ph:'例如：飞机大战（草稿）', draft_save_btn:'存草稿', code_form_title:'发布游戏',
-    code_form_intro:'填好信息，把你的游戏发布到目录里。', code_form_no_photo_hint:'没有图？我们会用名字的第一个字生成一张彩色封面。', code_form_code_label:'游戏代码（HTML）', code_form_code_ph:'把你游戏完整的 HTML 代码贴在这里（就一个文件，不依赖其他文件）。',
+    code_form_intro:'填好信息，把你的游戏发布到目录里。', code_form_no_photo_hint:'没有图？Koda GB 的 AI 会玩你的游戏并给它做一个封面（可以换一个）。', code_form_code_label:'游戏代码（HTML）', code_form_code_ph:'把你游戏完整的 HTML 代码贴在这里（就一个文件，不依赖其他文件）。',
     code_form_code_hint:'可以把 AI（ChatGPT、Gemini、Claude、Copilot…）的整段回答直接贴进来，分成好几个文件也没关系：Koda GB 会自己找出代码，把 HTML、CSS 和 JavaScript 合在一起。', code_form_name_needed:'给游戏起个名字', code_form_code_incomplete:'游戏代码看起来不完整。',
     code_form_too_big:'没保存成功 — 游戏可能太大了。', chess_menu:'菜单', chess_hint:'提示', chess_undo:'撤销', chess_pieces_q:'你执哪边', chess_white:'白棋', chess_black:'黑棋',
     chess_extreme_hint:'极限难度下 AI 下得很凶 — 思考可能要等一会儿。', chess_duo_hint:'1 号玩家执白，2 号玩家执黑。', chess_turn_white:'白棋走', chess_turn_black:'黑棋走', chess_check:' — 将军！',
@@ -11785,7 +11806,7 @@ const I18N = {
     profile_empty_liked_cta:'게임 보기', drafts_or_new:'아니면 아래에 새 아이디어를 말해 줘.', draft_continue:'계속하기', draft_resumed:'"{name}" 이어서 갈게! 해 보기, 수정 요청, 다시 저장, 준비되면 올리기 다 할 수 있어.',
     draft_delete_confirm:'이 초안을 지울까요?', draft_delete_btn:'삭제', draft_saved_toast:'초안을 저장했어요!', draft_save_confirm:'우리 대화를 "{name}"(으)로 저장했어! 언제든 여기서부터 이어 갈 수 있어.',
     draft_continued_actions:'자, 아까 하던 데서 다시 시작! 해 볼래, 더 다듬을래, 아니면 마음에 들면 올릴래?', draft_name_label:'초안 이름', draft_name_ph:'예: 비행기 전쟁 (초안)', draft_save_btn:'임시저장', code_form_title:'게임 올리기',
-    code_form_intro:'내용을 채우고 게임을 목록에 올려요.', code_form_no_photo_hint:'이미지가 없어도 괜찮아요. 이름 첫 글자로 알록달록한 커버를 만들어 줄게요.', code_form_code_label:'게임 코드 (HTML)',
+    code_form_intro:'내용을 채우고 게임을 목록에 올려요.', code_form_no_photo_hint:'이미지가 없어도 괜찮아요. Koda GB AI가 게임을 해 보고 표지를 만들어 줄게요(다른 것도 요청할 수 있어요).', code_form_code_label:'게임 코드 (HTML)',
     code_form_code_ph:'게임의 전체 HTML 코드를 여기에 붙여요 (다른 파일 없이 한 파일로).', code_form_code_hint:'AI(ChatGPT, Gemini, Claude, Copilot…)의 답을 통째로 붙여 넣어도 돼요. 여러 파일로 나뉘어 있어도 Koda GB가 코드를 찾아 HTML, CSS, JavaScript를 합쳐요.',
     code_form_name_needed:'게임 이름을 써 줘요', code_form_code_incomplete:'게임 코드가 덜 끝난 것 같아요.', code_form_too_big:'저장을 못 했어요 — 게임이 너무 클 수도 있어요.', chess_menu:'메뉴', chess_hint:'힌트',
     chess_undo:'되돌리기', chess_pieces_q:'내 기물', chess_white:'백', chess_black:'흑', chess_extreme_hint:'극악에서는 AI가 꽤 세게 둬요 — 생각하는 데 잠깐 걸릴 수 있어요.', chess_duo_hint:'1번 플레이어는 백, 2번 플레이어는 흑이에요.',
@@ -12418,7 +12439,7 @@ const I18N = {
     draft_delete_confirm:'¿Borrar este borrador?', draft_delete_btn:'Borrar', draft_saved_toast:'¡Borrador guardado!', draft_save_confirm:'¡Guardé nuestra conversación como "{name}"! Puedes continuar donde lo dejaste cuando quieras.', draft_continued_actions:'¡Listo, seguimos donde lo dejamos! ¿Quieres probarlo, pedir otro ajuste, o publicarlo cuando estés conforme?',
     draft_name_label:'Nombre del borrador', draft_name_ph:'Ej: Guerra de Aviones (borrador)', draft_save_btn:'Guardar borrador',
     code_form_title:'PUBLICAR JUEGO', code_form_intro:'Completa los datos y publica tu juego en el catálogo.',
-    code_form_no_photo_hint:'¿Sin imagen? Generamos una portada de color con la inicial del nombre.',
+    code_form_no_photo_hint:'¿Sin imagen? La IA de Koda GB juega tu juego y le crea una portada (puedes pedir otra).',
     code_form_code_label:'Código del juego (HTML)', code_form_code_ph:'Pega aquí el código HTML completo de tu juego (un solo archivo, sin depender de otros archivos).',
     code_form_code_hint:'Puedes pegar la respuesta entera de la IA (ChatGPT, Gemini, Claude, Copilot…), incluso en varios archivos: Koda GB encuentra el código y junta el HTML, el CSS y el JavaScript.',
     code_form_name_needed:'Escribe un nombre para el juego', code_form_code_incomplete:'El código del juego parece incompleto.',
@@ -24398,23 +24419,33 @@ function ligarCapa(root, o){
     if(est.img){ est.cover = capaRecortada(est.img, est.shape); o.mostrarFoto(est.cover); }
     mostrar();
   }));
-  root.querySelector(o.inputSel).addEventListener('change', e=>{
+  /* depois = o que fazer quando a capa ficar pronta (a folha da capa usa pra seguir publicando) */
+  let depois = null;
+  const pronta = ()=>{ const f = depois; depois = null; if(f) setTimeout(f, 30); };
+  const input = root.querySelector(o.inputSel);
+  input.addEventListener('change', e=>{
     const file = e.target.files[0];
-    if(!file) return;
+    if(!file){ depois = null; return; }
     const reader = new FileReader();
     reader.onload = ev=>{
       const img = new Image();
-      img.onload = ()=>{ est.img = img; est.cover = capaRecortada(img, est.shape); o.mostrarFoto(est.cover); };
+      img.onload = ()=>{ est.img = img; est.cover = capaRecortada(img, est.shape); est.daIA = false; o.mostrarFoto(est.cover); pronta(); };
+      img.onerror = ()=>{ depois = null; };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
+    try{ e.target.value = ''; }catch(x){}
   });
-  /* o Agente Koda GB também escolhe a capa (uma imagem que a pessoa mandou no chat dele) */
-  est.definir = function(dataUrl){
+  /* o Agente Koda GB também escolhe a capa (uma imagem que a pessoa mandou no chat dele, ou a capa que ele criou) */
+  est.definir = function(dataUrl, aoFicarPronta){
+    depois = aoFicarPronta || null;
     const img = new Image();
-    img.onload = ()=>{ est.img = img; est.cover = capaRecortada(img, est.shape); o.mostrarFoto(est.cover); };
+    img.onload = ()=>{ est.img = img; est.cover = capaRecortada(img, est.shape); o.mostrarFoto(est.cover); pronta(); };
+    img.onerror = ()=>{ depois = null; };
     img.src = dataUrl;
   };
+  /* abre a galeria/arquivos do aparelho (precisa vir de um toque) */
+  est.escolherArquivo = function(aoFicarPronta){ depois = aoFicarPronta || null; try{ input.click(); }catch(e){} };
   mostrar();
   return est;
 }
@@ -24809,6 +24840,7 @@ function renderCodeForm(root, prefillName, prefillCode, onBack, editingId){
     publishGame(name, code, capa.cover, editingId, undefined, undefined, undefined, capa.shape, codigoTemLoja(code) || undefined, campoNotas ? campoNotas.value : '');
   });
   ligarAssistente(root, '#fCode', editingId, capa);
+  kaCapaLigar(root, capa, {codeSel: '#fCode', nameSel: '#fName', publicarSel: '#publishBtn', abrirSel: '#pickCoverBtn, #coverPreview', temCapa: ()=>!!((recEditado && recEditado.cover) || (editingId && ((typeof GAMES !== 'undefined' && GAMES.find(x=>x.id===editingId)) || {}).cover))});
   /* "Criar em dupla" leva esse jogo (nome, código e capa) pro projeto da dupla */
   if(!duplaDoJogo(editingId)) duplaPorNoStudio(root, ()=>({nome: root.querySelector('#fName').value.trim(), codigo: root.querySelector('#fCode').value, capa: capa.cover || (recEditado && recEditado.cover) || null, formato: capa.shape}));
 }
@@ -27917,7 +27949,7 @@ var FAQ = [
   {id: 'apagar', k: 'apagar jogo,remover jogo,excluir jogo,deletar jogo,tirar meu jogo,delete my game,remove my game,borrar juego,eliminar juego',
     r: 'Pra tirar um jogo seu: segure o jogo e toque em "Remover".|To remove one of your games: hold the game and tap "Remove".|Para quitar uno de tus juegos: mantén presionado el juego y toca "Quitar".'},
   {id: 'capa', k: 'capa,capa do jogo,foto do jogo,imagem do jogo,thumbnail,cover,miniatura,portada',
-    r: 'Na hora de publicar você escolhe a capa: uma foto sua ou uma imagem, no formato deitada, quadrada ou em pé.|When publishing you pick the cover: a photo or picture, in wide, square or tall format.|Al publicar eliges la portada: una foto o imagen, en formato horizontal, cuadrado o vertical.'},
+    r: 'Na hora de publicar você escolhe a capa: uma imagem da sua galeria ou dos seus arquivos, ou uma que eu crio jogando o seu jogo e tirando uma foto dele (dá pra pedir outra). Ela pode ser deitada, quadrada ou em pé. Quer que eu faça uma agora? É só dizer "faz uma capa pro meu jogo".|When publishing you pick the cover: a picture from your gallery or files, or one I make by playing your game and taking a photo of it (you can ask for another). It can be wide, square or tall. Want me to make one now? Just say "make a cover for my game".|Al publicar eliges la portada: una imagen de tu galería o de tus archivos, o una que yo creo jugando tu juego y sacándole una foto (puedes pedir otra). Puede ser horizontal, cuadrada o vertical. ¿Quieres que haga una ahora? Solo di "haz una portada para mi juego".'},
   {id: 'celular', k: 'celular,ipad,tablet,toque,tela de toque,controles na tela,botoes na tela,mobile,phone,touch,touchscreen,on screen buttons,movil,tactil',
     r: 'No celular e no iPad, quando o jogo usa o teclado, o Koda GB coloca botões na tela sozinho. Mas o jogo fica bem melhor se aceitar toque direto (tocar pra pular, arrastar pra mover). Dica pra pedir pra IA: "funcione com toque no celular e no iPad".|On phones and iPads, when the game uses the keyboard, Koda GB adds on-screen buttons by itself. But the game is much better if it accepts touch directly (tap to jump, drag to move). Tip for asking an AI: "make it work with touch on phones and iPads".|En el celular y el iPad, cuando el juego usa el teclado, Koda GB pone botones en la pantalla solo. Pero el juego queda mucho mejor si acepta toques directo (tocar para saltar, arrastrar para mover). Consejo para pedirle a una IA: "que funcione con toque en celular y iPad".'},
   {id: 'bibliotecas', k: 'phaser,three,threejs,p5,p5js,kaboom,biblioteca,bibliotecas,library,libraries,cdn,matter,pixi,libreria',
@@ -39871,6 +39903,44 @@ textosEm10({
   pe_tirou: 'Pronto! Tirei o bichinho.|Done! I removed the pet.|¡Listo! Quité la mascota.', pe_nada: 'O jogo não tem bichinho pra tirar.|The game has no pet to remove.|El juego no tiene mascota para quitar.',
   ch_pe_troca: 'Troca o bichinho por {pet}|Change the pet to {pet}|Cambia la mascota por {pet}', d_pet: 'bichinho que segue o herói|pet that follows the hero|mascota que sigue al héroe'
 });
+/* ---------------- capa criada pela IA ----------------
+   O desenho da capa é feito pela tela (ui_capa.js): o agente só entende o pedido ("faz uma capa pro meu jogo")
+   e avisa a tela pra abrir a folha com a capa que ele criou. "capa" também é a capa do herói (roupa):
+   aí não é com ele. */
+textosEm10({
+  ui_capa_tit: 'Seu jogo ainda não tem capa!|Your game has no cover yet!|¡Tu juego todavía no tiene portada!|Il tuo gioco non ha ancora una copertina!|Ton jeu n’a pas encore de couverture !|Dein Spiel hat noch kein Cover!|Je spel heeft nog geen cover!|まだゲームのカバーがないよ！|你的游戏还没有封面！|게임에 아직 표지가 없어요!',
+  ui_capa_tit2: 'Vamos escolher a capa do seu jogo?|Shall we pick your game cover?|¿Elegimos la portada de tu juego?|Scegliamo la copertina del tuo gioco?|On choisit la couverture de ton jeu ?|Wollen wir das Cover für dein Spiel aussuchen?|Zullen we de cover van je spel kiezen?|ゲームのカバーを選ぼう！|来选你的游戏封面吧？|게임 표지를 골라 볼까요?',
+  ui_capa_sub: 'Quer uma capa da sua galeria ou dos seus arquivos, ou uma criada por mim? Olha a que eu fiz:|Want a cover from your gallery or files, or one made by me? Here is the one I made:|¿Quieres una portada de tu galería o de tus archivos, o una hecha por mí? Mira la que hice:|Vuoi una copertina dalla tua galleria o dai tuoi file, o una fatta da me? Ecco quella che ho fatto:|Tu veux une couverture de ta galerie ou de tes fichiers, ou une faite par moi ? Voici celle que j’ai faite :|Willst du ein Cover aus deiner Galerie oder deinen Dateien, oder eins von mir? Das hier habe ich gemacht:|Wil je een cover uit je galerij of bestanden, of een die ik maak? Kijk, deze heb ik gemaakt:|ギャラリーやファイルの画像にする？それともぼくが作ったカバーにする？作ったのはこれ：|要用相册或文件里的图片，还是用我做的封面？这是我做的：|갤러리나 파일에서 고를래요, 아니면 제가 만든 표지를 쓸래요? 제가 만든 건 이거예요:',
+  ui_capa_jogando: 'Estou jogando seu jogo pra tirar a foto da capa...|I am playing your game to take the cover photo...|Estoy jugando tu juego para sacar la foto de la portada...|Sto giocando al tuo gioco per fare la foto della copertina...|Je joue à ton jeu pour prendre la photo de la couverture...|Ich spiele dein Spiel, um das Foto fürs Cover zu machen...|Ik speel je spel om de foto voor de cover te maken...|カバーの写真をとるためにゲームをプレイ中...|我正在玩你的游戏，给封面拍照...|표지 사진을 찍으려고 게임을 하는 중이에요...',
+  ui_capa_desenhando: 'Desenhando a capa...|Drawing the cover...|Dibujando la portada...|Disegno la copertina...|Je dessine la couverture...|Ich zeichne das Cover...|Ik teken de cover...|カバーをかいているよ...|正在画封面...|표지를 그리는 중이에요...',
+  ui_capa_usar: 'Usar esta capa|Use this cover|Usar esta portada|Usa questa copertina|Utiliser cette couverture|Dieses Cover nehmen|Deze cover gebruiken|このカバーにする|用这个封面|이 표지 쓰기',
+  ui_capa_outra: 'Outra|Another|Otra|Un’altra|Une autre|Ein anderes|Een andere|ほかのにする|换一个|다른 거',
+  ui_capa_galeria: 'Escolher da galeria ou dos arquivos|Pick from gallery or files|Elegir de la galería o de los archivos|Scegli dalla galleria o dai file|Choisir dans la galerie ou les fichiers|Aus Galerie oder Dateien wählen|Kiezen uit galerij of bestanden|ギャラリーやファイルから選ぶ|从相册或文件中选择|갤러리나 파일에서 고르기',
+  ui_capa_sem_foto: 'Não deu pra tirar uma foto desse jogo, então eu desenhei a capa pelo tema dele.|I could not take a photo of this game, so I drew the cover from its theme.|No pude sacar una foto de este juego, así que dibujé la portada según su tema.|Non sono riuscito a fotografare questo gioco, quindi ho disegnato la copertina in base al tema.|Je n’ai pas pu prendre de photo de ce jeu, alors j’ai dessiné la couverture d’après son thème.|Ich konnte kein Foto von diesem Spiel machen, also habe ich das Cover passend zum Thema gezeichnet.|Ik kon geen foto van dit spel maken, dus heb ik de cover getekend bij het thema.|このゲームは写真がとれなかったので、テーマに合わせてカバーをかいたよ。|这个游戏拍不了照片，所以我按它的主题画了封面。|이 게임은 사진을 찍을 수 없어서 주제에 맞게 표지를 그렸어요.',
+  ui_capa_meu_jogo: 'Meu jogo|My game|Mi juego|Il mio gioco|Mon jeu|Mein Spiel|Mijn spel|ぼくのゲーム|我的游戏|내 게임',
+  cp_ok: 'Fiz uma capa pro seu jogo! Olha e escolha se quer essa, outra, ou uma imagem da sua galeria ou dos seus arquivos.|I made a cover for your game! Take a look and choose this one, another one, or a picture from your gallery or files.|¡Hice una portada para tu juego! Mírala y elige si quieres esta, otra, o una imagen de tu galería o de tus archivos.|Ho fatto una copertina per il tuo gioco! Guarda e scegli se vuoi questa, un’altra o un’immagine dalla galleria o dai file.|J’ai fait une couverture pour ton jeu ! Regarde et choisis celle-ci, une autre, ou une image de ta galerie ou de tes fichiers.|Ich habe ein Cover für dein Spiel gemacht! Schau es dir an und nimm dieses, ein anderes oder ein Bild aus deiner Galerie oder deinen Dateien.|Ik heb een cover voor je spel gemaakt! Kijk en kies deze, een andere, of een plaatje uit je galerij of bestanden.|ゲームのカバーを作ったよ！これにするか、ほかのにするか、ギャラリーやファイルの画像にするか選んでね。|我给你的游戏做了一个封面！看看要用这个、换一个，还是用相册或文件里的图片。|게임 표지를 만들었어요! 이걸 쓸지, 다른 걸 쓸지, 갤러리나 파일의 그림을 쓸지 골라 보세요.'
+});
+var CAPA_PEDIDO = /\b(capa|capinha|cover|thumbnail|miniatura|portada|copertina|couverture|titelbild|thumbnail|imagem do jogo|foto do jogo|imagem de capa|foto de capa)\b/;
+var CAPA_ROUPA = /\b(personagem|heroi|boneco|jogador|player|skin|costas|super ?heroi|vestir|veste|roupa|capuz|cachecol|manto|cape|capa de chuva|capa vermelha|capa preta|capa azul|capa verde|voar|voando)\b/;
+var CAPA_FAZER = /\b(faz|faca|fazer|cria|crie|criar|gera|gere|gerar|desenha|desenhe|monta|monte|quero|queria|preciso|me da|me de|bota|poe|coloca|coloque|outra|nova|novo|muda|mude|troca|troque|escolhe|escolha|make|create|generate|draw|design|want|need|new|change|haz|crea|genera|dibuja|quiero|cambia|nueva)\b/;
+var entenderAntesDaCapa = entender;
+entender = function(txt, ctx){
+  try{
+    var n = ' ' + nTxt(txt) + ' ';
+    if(ctx && ctx.temCodigo && CAPA_PEDIDO.test(n) && CAPA_FAZER.test(n) && !CAPA_ROUPA.test(n) && !/\b(como|onde|how|where|donde|o que e|what is)\b/.test(n) && !(DEP.improprio && DEP.improprio(txt)))
+      return {int: 'capa_ia'};
+    /* "como coloco a capa?" / "onde escolho a capa?": a resposta de como funciona */
+    if(CAPA_PEDIDO.test(n) && /\b(como|onde|how|where|donde|cadê|cade)\b/.test(n) && !CAPA_ROUPA.test(n)) return {int: 'faq', id: 'capa'};
+  }catch(e){}
+  return entenderAntesDaCapa(txt, ctx);
+};
+H.capa_ia = function(it, ctx, est){
+  var x = precisaCodigo(ctx); if(x) return x;
+  var r = novaResp();
+  diz(r, T('cp_ok'));
+  r.capaIA = true;
+  return r;
+};
 /* ---------------- o que o site usa ---------------- */
 return {
   ligar: ligar, lingua: lingua, semear: semear, T: T, TL: TL,
@@ -40393,6 +40463,7 @@ function abrirAgente(caixa, opts){
     if(r.codigo != null){ aplicarCodigo(r.codigo, !!r.desfez); pintarDesfazer(); conv.codigoDoAgente = caixa.value; if(!tela.isConnected) conv.visto = caixa.value; }
     /* jogo criado do zero: o nome dele já vai pro campo "Nome" (se estiver vazio) */
     if(r.capa && opts.aoCapa){ try{ opts.aoCapa(r.capa); }catch(e){} }
+    if(r.capaIA){ try{ const cp = KA_CAPAS.get(caixa); if(cp && cp.abrirIA) setTimeout(()=>cp.abrirIA(), 700); }catch(e){} }
     if(r.nomeJogo && opts.nomeEl && !opts.nomeEl.value.trim()){ opts.nomeEl.value = r.nomeJogo; try{ opts.nomeEl.dispatchEvent(new Event('input', {bubbles: true})); }catch(e){} }
     await mostrar(r);
     kaSalvarAprendido(conv.estado);
@@ -40736,6 +40807,571 @@ function ligarAssistente(root, codeSel, editingId, capa){
     mostrarStatus(KA.T('ui_desfeito'));
   });
 }
+/* ====================================================================
+   CAPA CRIADA PELA IA (feita só de código, roda no aparelho, não gasta nada)
+   1) joga o jogo escondido por uns segundos e tira fotos da tela;
+   2) escolhe a foto mais bonita (colorida, com contraste, sem tela vazia);
+   3) monta uma capa 640x640: a foto, o nome do jogo grande com contorno, borda e brilhos.
+   Sem foto (jogo feito só de HTML), desenha uma cena pelo tema do jogo.
+   O nome fica sempre no meio (de 80 a 560), que é o pedaço que sobra nos três formatos da capa.
+   ==================================================================== */
+
+/* roda DENTRO do jogo (ES5): sem som, sem alertas, aperta "Jogar", joga um pouquinho e tira as fotos */
+function kaCapaNoJogo(){
+  var fotos = [];
+  try{ HTMLMediaElement.prototype.play = function(){ return Promise.resolve(); }; }catch(e){}
+  try{
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(AC){ var M = function(){ var c = new AC(); try{ c.suspend(); }catch(e){} c.resume = function(){ return Promise.resolve(); }; return c; }; M.prototype = AC.prototype; window.AudioContext = window.webkitAudioContext = M; }
+  }catch(e){}
+  window.alert = function(){}; window.confirm = function(){ return true; }; window.prompt = function(){ return ''; };
+  /* WebGL: guarda o desenho pra dar pra fotografar */
+  try{
+    var gc = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(tipo, o){ if(/webgl/i.test(String(tipo))){ o = o || {}; o.preserveDrawingBuffer = true; } return gc.call(this, tipo, o); };
+  }catch(e){}
+  function corDe(el){ try{ var c = getComputedStyle(el).backgroundColor; return c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent' ? c : null; }catch(e){ return null; } }
+  function foto(){
+    try{
+      var cs = [].slice.call(document.querySelectorAll('canvas')).filter(function(c){ return c.width > 40 && c.height > 40; })
+        .sort(function(a, b){ return b.width * b.height - a.width * a.height; });
+      var c = cs[0]; if(!c) return;
+      var e = Math.min(1, 720 / Math.max(c.width, c.height));
+      var k = document.createElement('canvas'); k.width = Math.round(c.width * e); k.height = Math.round(c.height * e);
+      var x = k.getContext('2d');
+      x.fillStyle = corDe(c) || corDe(c.parentNode) || corDe(document.body) || '#000';
+      x.fillRect(0, 0, k.width, k.height); x.drawImage(c, 0, 0, k.width, k.height);
+      fotos.push(k.toDataURL('image/jpeg', 0.86));
+    }catch(e){}
+  }
+  var CODIGOS = {' ': ['Space', 32], 'Enter': ['Enter', 13], 'ArrowRight': ['ArrowRight', 39], 'ArrowLeft': ['ArrowLeft', 37], 'ArrowUp': ['ArrowUp', 38], 'z': ['KeyZ', 90], 'x': ['KeyX', 88]};
+  function tecla(k, tipo){
+    var d = CODIGOS[k] || [k, 0];
+    try{
+      var ev = new KeyboardEvent(tipo, {key: k, code: d[0], bubbles: true, cancelable: true});
+      try{ Object.defineProperty(ev, 'keyCode', {get: function(){ return d[1]; }}); Object.defineProperty(ev, 'which', {get: function(){ return d[1]; }}); }catch(e){}
+      (document.activeElement || document.body || document).dispatchEvent(ev);
+      if(document.activeElement !== document.body && document.body) document.body.dispatchEvent(ev);
+      window.dispatchEvent(ev);
+    }catch(e){}
+  }
+  function toque(k){ tecla(k, 'keydown'); setTimeout(function(){ tecla(k, 'keyup'); }, 120); }
+  function clicar(el, x, y){
+    ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(function(tp){
+      try{ el.dispatchEvent(new MouseEvent(tp, {bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0})); }catch(e){}
+    });
+  }
+  /* o botão "Jogar"/"Começar" do jogo; senão, toca no meio da tela */
+  function comecar(){
+    var bts = [].slice.call(document.querySelectorAll('button, [role=button], a, .btn, .button, [onclick]'));
+    var b = bts.filter(function(el){
+      var t = (el.innerText || el.value || '').toLowerCase();
+      var r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && /jogar|play|come[cç]ar|start|iniciar|novo jogo|new game|jugar|empezar|entrar|enter\b|continuar|vamos|bora|go\b|ok\b|pronto|ready|partida|correr|voar|lutar|explorar/.test(t) && !/loja|shop|tienda|som|sound|ajuda|help|sair|exit/.test(t);
+    })[0];
+    if(b){ var r = b.getBoundingClientRect(); clicar(b, r.left + r.width / 2, r.top + r.height / 2); }
+    else { var x = innerWidth / 2, y = innerHeight / 2; clicar(document.elementFromPoint(x, y) || document.body, x, y); }
+    toque('Enter'); toque(' ');
+  }
+  setTimeout(foto, 650);
+  setTimeout(comecar, 800);
+  setTimeout(function(){ tecla('ArrowRight', 'keydown'); }, 1200);
+  setTimeout(function(){ toque(' '); toque('ArrowUp'); }, 1500);
+  setTimeout(foto, 1750);
+  setTimeout(function(){ tecla('ArrowRight', 'keyup'); toque('z'); toque(' '); }, 2100);
+  setTimeout(foto, 2600);
+  setTimeout(function(){ tecla('ArrowLeft', 'keydown'); toque(' '); }, 2800);
+  setTimeout(function(){ tecla('ArrowLeft', 'keyup'); toque('x'); }, 3200);
+  setTimeout(foto, 3450);
+  setTimeout(function(){ toque(' '); }, 3700);
+  setTimeout(foto, 4300);
+  setTimeout(comecar, 4400);
+  setTimeout(function(){ tecla('ArrowRight', 'keydown'); toque(' '); }, 4700);
+  setTimeout(function(){ tecla('ArrowRight', 'keyup'); toque('ArrowUp'); }, 5200);
+  setTimeout(foto, 5450);
+  setTimeout(function(){ toque(' '); toque('x'); }, 5900);
+  setTimeout(foto, 6500);
+  setTimeout(function(){
+    var cores = [];
+    try{ [document.body, document.querySelector('h1'), document.querySelector('button'), document.querySelector('header')].forEach(function(el){ if(!el) return; var s = getComputedStyle(el); [s.backgroundColor, s.color].forEach(function(c){ if(c && c !== 'rgba(0, 0, 0, 0)') cores.push(c); }); }); }catch(e){}
+    var fundo = null; try{ fundo = getComputedStyle(document.body).backgroundImage; }catch(e){}
+    try{ parent.postMessage({kodaCapa: true, fotos: fotos.slice(0, 8), cores: cores.slice(0, 8), fundo: fundo && fundo !== 'none' ? String(fundo).slice(0, 300) : null, temCanvas: !!document.querySelector('canvas')}, '*'); }catch(e){}
+  }, 6650);
+}
+
+/* joga o jogo dentro de "palco" (aparece pequenininho, como se a IA estivesse jogando) e devolve as fotos */
+function kaCapaJogar(codigo, palco){
+  return new Promise(resolve=>{
+    let feito = false;
+    const fr = document.createElement('iframe');
+    fr.className = 'ka-capa-jogo';
+    fr.setAttribute('sandbox', 'allow-scripts');
+    fr.setAttribute('referrerpolicy', 'no-referrer');
+    fr.setAttribute('aria-hidden', 'true');
+    fr.setAttribute('tabindex', '-1');
+    const fim = dados=>{
+      if(feito) return; feito = true;
+      window.removeEventListener('message', ouvir);
+      setTimeout(()=>{ try{ fr.remove(); }catch(e){} }, 60);
+      const fotos = (dados && Array.isArray(dados.fotos) ? dados.fotos : []).filter(f=>typeof f === 'string' && /^data:image\/jpeg;base64,/.test(f) && f.length < 900000);
+      const cores = (dados && Array.isArray(dados.cores) ? dados.cores : []).filter(c=>typeof c === 'string' && /^rgba?\([\d\s.,]+\)$/.test(c));
+      resolve({fotos, cores, temCanvas: !!(dados && dados.temCanvas)});
+    };
+    const ouvir = ev=>{ if(ev.source === fr.contentWindow && ev.data && ev.data.kodaCapa) fim(ev.data); };
+    window.addEventListener('message', ouvir);
+    try{
+      let pronto = codigo;
+      try{ pronto = prepararCodigoDoJogo(codigo) || codigo; }catch(e){}
+      fr.srcdoc = '<script>(' + kaCapaNoJogo.toString() + ')();<\/script>' + GAME_STORAGE_SHIM + jogoCodigoSeguro(pronto);
+      (palco || document.body).appendChild(fr);
+      const w = (palco && palco.clientWidth) || 272;
+      fr.style.transform = 'scale(' + (w / 640) + ')';
+    }catch(e){ fim(null); return; }
+    setTimeout(()=>fim(null), 9000);
+  });
+}
+
+/* ---- olhar as fotos: qual é a mais bonita ---- */
+function kaCapaImagem(src){ return new Promise(res=>{ const i = new Image(); i.onload = ()=>res(i); i.onerror = ()=>res(null); i.src = src; }); }
+function kaCapaMedir(img){
+  const N = 48, c = document.createElement('canvas'); c.width = N; c.height = N;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, N, N);
+  const d = x.getImageData(0, 0, N, N).data;
+  let sL = 0, sL2 = 0, sRG = 0, sRG2 = 0, sYB = 0, sYB2 = 0, n = 0;
+  const caixas = {}, pix = [];
+  for(let i = 0; i < d.length; i += 4){
+    const r = d[i], g = d[i + 1], b = d[i + 2], L = 0.299 * r + 0.587 * g + 0.114 * b, rg = r - g, yb = (r + g) / 2 - b;
+    sL += L; sL2 += L * L; sRG += rg; sRG2 += rg * rg; sYB += yb; sYB2 += yb * yb; n++;
+    const k = (r >> 5) + ',' + (g >> 5) + ',' + (b >> 5); caixas[k] = (caixas[k] || 0) + 1;
+    pix.push([r, g, b]);
+  }
+  const mL = sL / n, dL = Math.sqrt(Math.max(0, sL2 / n - mL * mL));
+  const mRG = sRG / n, mYB = sYB / n, dRG = Math.sqrt(Math.max(0, sRG2 / n - mRG * mRG)), dYB = Math.sqrt(Math.max(0, sYB2 / n - mYB * mYB));
+  const colorido = Math.sqrt(dRG * dRG + dYB * dYB) + 0.3 * Math.sqrt(mRG * mRG + mYB * mYB);
+  const maior = Math.max.apply(null, Object.values(caixas)) / n;
+  return {mL, dL, colorido, maior, pix};
+}
+function kaCapaDiferenca(a, b){ let s = 0; for(let i = 0; i < a.pix.length; i += 3){ const p = a.pix[i], q = b.pix[i]; s += Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]) + Math.abs(p[2] - q[2]); } return s / (a.pix.length / 3) / 3; }
+async function kaCapaMelhoresFotos(fotos){
+  const boas = [];
+  for(let i = 0; i < fotos.length; i++){
+    const img = await kaCapaImagem(fotos[i]); if(!img) continue;
+    const m = kaCapaMedir(img);
+    if(m.dL < 1.5 || (m.maior > 0.995 && m.colorido < 4)) continue;      /* tela de uma cor só: nada pra mostrar */
+    const esparsa = m.maior > 0.8;                                         /* o jogo começou mas quase não tem nada na tela */
+    let nota = m.colorido + 0.6 * m.dL + i * 2.5 - (esparsa ? 30 : 0);   /* foto com o jogo rodando (e mais tarde) vale um pouco mais */
+    if(m.mL < 28) nota -= 20; if(m.mL > 232) nota -= 25;
+    /* fraca = foto que não fica bonita de capa (quase toda branca, ou lisa e sem contraste) */
+    const fraca = esparsa || (m.mL > 200 && m.maior > 0.6) || (m.dL < 10 && m.colorido < 25);
+    boas.push({img, m, nota, esparsa, fraca});
+  }
+  boas.sort((a, b)=>b.nota - a.nota);
+  const fora = [];
+  boas.forEach(f=>{ if(!fora.some(g=>kaCapaDiferenca(f.m, g.m) < (f.esparsa ? 2.5 : 9))) fora.push(f); });   /* tira as repetidas */
+  return fora;
+}
+
+/* ---- cores ---- */
+function kaHsl(r, g, b){ r /= 255; g /= 255; b /= 255; const M = Math.max(r, g, b), m = Math.min(r, g, b); let h = 0, s = 0; const l = (M + m) / 2; if(M !== m){ const d = M - m; s = l > .5 ? d / (2 - M - m) : d / (M + m); h = M === r ? (g - b) / d + (g < b ? 6 : 0) : M === g ? (b - r) / d + 2 : (r - g) / d + 4; h /= 6; } return [h * 360, s, l]; }
+function kaCor(h, s, l){ return `hsl(${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%)`; }
+/* da foto: a cor viva pro nome e a cor escura pro contorno */
+function kaCapaPaleta(m, sorteio){
+  const grupos = {};
+  m.pix.forEach(p=>{ const [h, s, l] = kaHsl(p[0], p[1], p[2]); if(s < .25 || l < .12 || l > .92) return; const k = Math.round(h / 30) % 12; (grupos[k] = grupos[k] || []).push([h, s, l]); });
+  const lista = Object.values(grupos).sort((a, b)=>b.length - a.length);
+  let base = lista.length ? lista[0][0][0] : [48, 200, 280, 330, 140][sorteio % 5];
+  if(lista.length > 1 && sorteio % 2) base = lista[1][0][0];
+  /* o nome: uma cor bem viva e clara, "do lado oposto" da cor que mais aparece (pra não sumir na foto) */
+  const quentes = [48, 40, 52, 196, 330, 90];
+  let hNome = quentes[sorteio % quentes.length];
+  if(Math.abs(((hNome - base + 540) % 360) - 180) > 150) hNome = (hNome + 160) % 360;
+  return {nome: kaCor(hNome, .95, .6), nome2: kaCor(hNome, 1, .76), tinta: kaCor(base, .55, .12), base: kaCor(base, .7, .45), luz: kaCor(base, .8, .72)};
+}
+
+/* ---- desenho ---- */
+function kaRet(x, X, Y, W, H, R){ x.beginPath(); x.moveTo(X + R, Y); x.arcTo(X + W, Y, X + W, Y + H, R); x.arcTo(X + W, Y + H, X, Y + H, R); x.arcTo(X, Y + H, X, Y, R); x.arcTo(X, Y, X + W, Y, R); x.closePath(); }
+function kaEstrela4(x, X, Y, r, cor){ x.fillStyle = cor; x.beginPath(); x.moveTo(X, Y - r); x.lineTo(X + r * .28, Y - r * .28); x.lineTo(X + r, Y); x.lineTo(X + r * .28, Y + r * .28); x.lineTo(X, Y + r); x.lineTo(X - r * .28, Y + r * .28); x.lineTo(X - r, Y); x.lineTo(X - r * .28, Y - r * .28); x.closePath(); x.fill(); }
+function kaCobrir(x, img, cx, cy, zoom){
+  const e = Math.max(640 / img.width, 640 / img.height) * (zoom || 1), w = img.width * e, h = img.height * e;
+  let dx = 320 - (cx != null ? cx * w : w / 2), dy = 320 - (cy != null ? cy * h : h / 2);
+  dx = Math.min(0, Math.max(640 - w, dx)); dy = Math.min(0, Math.max(640 - h, dy));
+  x.drawImage(img, dx, dy, w, h);
+}
+/* onde a foto tem mais coisa acontecendo (pra dar zoom ali) */
+function kaCapaFoco(img, perto){
+  const N = 24, c = document.createElement('canvas'); c.width = N; c.height = N;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, N, N);
+  const d = x.getImageData(0, 0, N, N).data; let sx = 0, sy = 0, sp = 0;
+  for(let y = 1; y < N - 1; y++) for(let X = 1; X < N - 1; X++){
+    const i = (y * N + X) * 4, j = (y * N + X + 1) * 4, k = ((y + 1) * N + X) * 4;
+    const g = Math.abs(d[i] - d[j]) + Math.abs(d[i + 1] - d[j + 1]) + Math.abs(d[i] - d[k]) + Math.abs(d[i + 2] - d[k + 2]);
+    sx += X * g; sy += y * g; sp += g;
+  }
+  const lim = perto ? [.12, .88] : [.3, .7];
+  return sp ? [Math.min(lim[1], Math.max(lim[0], sx / sp / N)), Math.min(lim[1], Math.max(lim[0], sy / sp / N))] : [.5, .5];
+}
+/* o nome do jogo: o maior que couber (1 a 3 linhas), com contorno grosso que lê bem até pequenininho */
+function kaCapaTitulo(x, texto, zona, P){
+  const fonte = s=>`800 ${s}px "Baloo 2", "Arial Black", "Segoe UI", sans-serif`;
+  const pal = String(texto || '').trim().toUpperCase().split(/\s+/).filter(Boolean).slice(0, 8);
+  if(!pal.length) return;
+  x.font = fonte(100);
+  const larg = t=>x.measureText(t).width;
+  let melhor = null;
+  for(let n = 1; n <= Math.min(3, pal.length); n++){
+    /* divide as palavras em n linhas o mais parecidas possível */
+    const total = pal.join(' ').length, alvo = total / n, linhas = [];
+    let atual = [];
+    pal.forEach((p, i)=>{
+      atual.push(p);
+      const resta = pal.length - i - 1, faltam = n - linhas.length - 1;
+      if(faltam > 0 && (atual.join(' ').length >= alvo || resta === faltam)){ linhas.push(atual.join(' ')); atual = []; }
+    });
+    if(atual.length) linhas.push(atual.join(' '));
+    const maxW = Math.max.apply(null, linhas.map(larg));
+    let s = Math.min(110, 100 * zona.w / maxW, zona.h / (linhas.length * 0.98 + 0.12));
+    if(!melhor || s > melhor.s * 1.12) melhor = {s, linhas};
+  }
+  const s = Math.max(30, Math.floor(melhor.s)), alt = s * 0.98;
+  const y0 = zona.y + zona.h / 2 - (melhor.linhas.length * alt) / 2 + alt * 0.8;
+  x.save();
+  x.font = fonte(s); x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.lineJoin = 'round'; x.miterLimit = 2;
+  melhor.linhas.forEach((l, i)=>{
+    const y = y0 + i * alt;
+    x.shadowColor = 'rgba(0,0,0,.38)'; x.shadowBlur = s * .14; x.shadowOffsetY = s * .07;
+    x.lineWidth = s * .24; x.strokeStyle = P.tinta; x.strokeText(l, 320, y);
+    x.shadowColor = 'transparent';
+    const g = x.createLinearGradient(0, y - s * .75, 0, y);
+    g.addColorStop(0, P.nome2); g.addColorStop(1, P.nome);
+    x.fillStyle = g; x.fillText(l, 320, y);
+  });
+  x.restore();
+  return {y: y0 - alt * .8, h: melhor.linhas.length * alt, s};
+}
+function kaCapaBorda(x, P){ x.save(); x.lineWidth = 12; x.strokeStyle = P.tinta; kaRet(x, 6, 6, 628, 628, 34); x.stroke(); x.restore(); }
+function kaCapaBrilhos(x, t, P){
+  if(!t) return;
+  kaEstrela4(x, 96, t.y + 4, 15, '#fff'); kaEstrela4(x, 548, t.y + t.h - 6, 12, P.nome2); kaEstrela4(x, 530, t.y - 14, 8, '#fff');
+}
+function kaCapaDegrade(x, cima, cor){
+  const g = cima ? x.createLinearGradient(0, 0, 0, 340) : x.createLinearGradient(0, 640, 0, 300);
+  g.addColorStop(0, cor); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 640, 640);
+}
+function kaCanvas640(){ const c = document.createElement('canvas'); c.width = 640; c.height = 640; return c; }
+const KA_ZONA_CIMA = {x: 92, y: 82, w: 456, h: 176}, KA_ZONA_BAIXO = {x: 92, y: 392, w: 456, h: 168}, KA_ZONA_MEIO = {x: 92, y: 96, w: 456, h: 200};
+
+/* 1) a foto do jogo com o nome em cima */
+function kaCapaFoto(f, nome, sorteio){
+  const c = kaCanvas640(), x = c.getContext('2d'), P = kaCapaPaleta(f.m, sorteio);
+  try{ x.filter = 'saturate(1.22) contrast(1.06)'; }catch(e){}
+  kaCobrir(x, f.img); try{ x.filter = 'none'; }catch(e){}
+  kaCapaDegrade(x, true, 'rgba(0,0,0,.55)');
+  const t = kaCapaTitulo(x, nome, KA_ZONA_CIMA, P); kaCapaBrilhos(x, t, P); kaCapaBorda(x, P);
+  return c;
+}
+/* 2) zoom onde o jogo acontece, nome embaixo */
+function kaCapaZoom(f, nome, sorteio){
+  const c = kaCanvas640(), x = c.getContext('2d'), P = kaCapaPaleta(f.m, sorteio + 1), foco = kaCapaFoco(f.img, f.esparsa);
+  try{ x.filter = 'saturate(1.25) contrast(1.05)'; }catch(e){}
+  if(f.esparsa) x.imageSmoothingEnabled = false;
+  kaCobrir(x, f.img, foco[0], foco[1], f.esparsa ? 2.4 : 1.45); try{ x.filter = 'none'; }catch(e){}
+  x.imageSmoothingEnabled = true;
+  kaCapaDegrade(x, false, 'rgba(0,0,0,.6)');
+  const t = kaCapaTitulo(x, nome, KA_ZONA_BAIXO, P); kaCapaBrilhos(x, t, P); kaCapaBorda(x, P);
+  return c;
+}
+/* 3) a foto como um cartão inclinado em cima da própria foto desfocada */
+function kaCapaCartao(f, nome, sorteio){
+  const c = kaCanvas640(), x = c.getContext('2d'), P = kaCapaPaleta(f.m, sorteio + 2);
+  const p = document.createElement('canvas'); p.width = 40; p.height = 40; p.getContext('2d').drawImage(f.img, 0, 0, 40, 40);
+  x.imageSmoothingEnabled = true; x.drawImage(p, -20, -20, 680, 680);
+  x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(0, 0, 640, 640);
+  const w = 420, h = Math.min(330, w * f.img.height / f.img.width);
+  x.save(); x.translate(320, 418); x.rotate(-0.06);
+  x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 26; x.shadowOffsetY = 12;
+  x.fillStyle = '#fff'; kaRet(x, -w / 2 - 12, -h / 2 - 12, w + 24, h + 24, 18); x.fill();
+  x.shadowColor = 'transparent';
+  x.save(); kaRet(x, -w / 2, -h / 2, w, h, 10); x.clip();
+  const e = Math.max(w / f.img.width, h / f.img.height); x.drawImage(f.img, -f.img.width * e / 2, -f.img.height * e / 2, f.img.width * e, f.img.height * e);
+  x.restore(); x.restore();
+  const t = kaCapaTitulo(x, nome, {x: 92, y: 74, w: 456, h: 150}, P); kaCapaBrilhos(x, t, P); kaCapaBorda(x, P);
+  return c;
+}
+
+/* 4) tela quase vazia: recorta o herói (a maior "coisa" na tela), aumenta bem e põe num fundo com brilho */
+function kaCapaAcharHeroi(img){
+  const W = 200, H = Math.max(20, Math.round(200 * img.height / img.width));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(img, 0, 0, W, H);
+  const d = x.getImageData(0, 0, W, H).data, conta = {};
+  for(let i = 0; i < d.length; i += 4){ const k = (d[i] >> 4) + ',' + (d[i + 1] >> 4) + ',' + (d[i + 2] >> 4); conta[k] = (conta[k] || 0) + 1; }
+  const top = Object.keys(conta).sort((a, b)=>conta[b] - conta[a])[0].split(',').map(v=>v * 16 + 8);
+  const longe = i=>Math.abs(d[i] - top[0]) + Math.abs(d[i + 1] - top[1]) + Math.abs(d[i + 2] - top[2]) > 70;
+  const visto = new Uint8Array(W * H); let melhor = null;
+  for(let p = 0; p < W * H; p++){
+    if(visto[p] || !longe(p * 4)) continue;
+    const pilha = [p]; visto[p] = 1; let n = 0, x0 = W, y0 = H, x1 = 0, y1 = 0;
+    while(pilha.length){
+      const q = pilha.pop(), qx = q % W, qy = (q / W) | 0; n++;
+      if(qx < x0) x0 = qx; if(qx > x1) x1 = qx; if(qy < y0) y0 = qy; if(qy > y1) y1 = qy;
+      [q - 1, q + 1, q - W, q + W].forEach(r=>{ if(r >= 0 && r < W * H && !visto[r] && Math.abs((r % W) - qx) <= 1 && longe(r * 4)){ visto[r] = 1; pilha.push(r); } });
+    }
+    if(!melhor || n > melhor.n) melhor = {n, x0, y0, x1, y1};
+  }
+  if(!melhor || melhor.n < 6 || (melhor.x1 - melhor.x0) > W * .6 || (melhor.y1 - melhor.y0) > H * .6) return null;
+  const e = img.width / W;
+  return {x: melhor.x0 * e, y: melhor.y0 * e, w: (melhor.x1 - melhor.x0 + 1) * e, h: (melhor.y1 - melhor.y0 + 1) * e, fundo: top};
+}
+function kaCapaHeroi(f, nome, sorteio){
+  if(f.heroi === undefined) f.heroi = kaCapaAcharHeroi(f.img);
+  const h = f.heroi; if(!h) return kaCapaZoom(f, nome, sorteio);
+  const c = kaCanvas640(), x = c.getContext('2d'), P = kaCapaPaleta(f.m, sorteio);
+  /* fundo: brilho no meio e raios, na cor do próprio jogo */
+  const g = x.createRadialGradient(320, 440, 20, 320, 440, 520); g.addColorStop(0, P.luz); g.addColorStop(.45, P.base); g.addColorStop(1, P.tinta);
+  x.fillStyle = g; x.fillRect(0, 0, 640, 640);
+  x.save(); x.translate(320, 440);
+  for(let i = 0; i < 18; i++){ x.rotate(Math.PI / 9); x.fillStyle = i % 2 ? 'rgba(255,255,255,.10)' : 'rgba(255,255,255,.03)'; x.beginPath(); x.moveTo(0, 0); x.lineTo(-70, -720); x.lineTo(70, -720); x.fill(); }
+  x.restore();
+  const R = kaRand(sorteio + 11);
+  for(let i = 0; i < 14; i++) kaEstrela4(x, 40 + R() * 560, 280 + R() * 330, 4 + R() * 7, 'rgba(255,255,255,.75)');
+  /* recorte: o fundo do jogo vira transparente */
+  const pad = Math.max(h.w, h.h) * .18, rx = Math.max(0, h.x - pad), ry = Math.max(0, h.y - pad);
+  const rw = Math.min(f.img.width - rx, h.w + pad * 2), rh = Math.min(f.img.height - ry, h.h + pad * 2);
+  const cut = document.createElement('canvas'); cut.width = Math.max(1, Math.round(rw)); cut.height = Math.max(1, Math.round(rh));
+  const cx = cut.getContext('2d'); cx.drawImage(f.img, rx, ry, rw, rh, 0, 0, cut.width, cut.height);
+  const id = cx.getImageData(0, 0, cut.width, cut.height), dd = id.data;
+  for(let i = 0; i < dd.length; i += 4) if(Math.abs(dd[i] - h.fundo[0]) + Math.abs(dd[i + 1] - h.fundo[1]) + Math.abs(dd[i + 2] - h.fundo[2]) < 60) dd[i + 3] = 0;
+  cx.putImageData(id, 0, 0);
+  const esc = Math.min(330 / cut.width, 300 / cut.height, 14), w = cut.width * esc, hh = cut.height * esc;
+  x.fillStyle = 'rgba(0,0,0,.28)'; x.beginPath(); x.ellipse(320, 448 + hh / 2, w * .42, 18, 0, 0, 7); x.fill();
+  x.save(); x.imageSmoothingEnabled = esc < 2.2;
+  x.shadowColor = 'rgba(255,255,255,.65)'; x.shadowBlur = 24;
+  x.drawImage(cut, 320 - w / 2, 440 - hh / 2, w, hh);
+  x.restore();
+  const t = kaCapaTitulo(x, nome, KA_ZONA_CIMA, P); kaCapaBrilhos(x, t, P); kaCapaBorda(x, P);
+  return c;
+}
+
+/* ---- sem foto: uma cena desenhada pelo tema do jogo ---- */
+const KA_TEMAS = [
+  ['espaco', /\b(nave|naves|espaco|space|estrela\w*|planeta\w*|alien\w*|galax\w*|asteroi\w*|foguete\w*|rocket|ship|cosmo\w*|lua|orbita)\b/],
+  ['mar', /\b(mar|peixe\w*|ocean\w*|fish\w*|sea|tubarao|shark|barco\w*|pirata\w*|submarin\w*|onda\w*|mergulh\w*|aquario)\b/],
+  ['corrida', /\b(corrida\w*|kart\w*|carro\w*|pista\w*|race|racing|car|cars|road|estrada|moto\w*|volta\w*|turbo|velocidade)\b/],
+  ['mina', /\b(mina|minerar|cavar|cava|caverna\w*|minerio\w*|dig\w*|mine|miner\w*|cave|ore|picareta|subterr\w*)\b/],
+  ['fazenda', /\b(fazenda\w*|plant\w*|horta|vaca\w*|galinha\w*|farm\w*|crop\w*|colheita|trator|semente\w*|celeiro)\b/],
+  ['blocos', /\b(bloco\w*|tetris|peca\w*|block\w*|tetromin\w*|linhas? completa\w*|encaix\w*)\b/],
+  ['castelo', /\b(cavaleiro\w*|castelo\w*|torre\w*|masmorra\w*|dragao|dragoes|knight\w*|castle\w*|tower\w*|dungeon\w*|espada\w*|sword\w*|reino|princes\w*|rei)\b/],
+  ['cidade', /\b(cidade\w*|predio\w*|city|building\w*|empresa\w*|idle|clicker|fabrica\w*|prefeit\w*|negocio\w*)\b/],
+  ['monstro', /\b(slime\w*|monstr\w*|arena|zumbi\w*|zombie\w*|monster\w*|batalha\w*|battle\w*|inimigo\w*|horda\w*|ondas)\b/],
+  ['floresta', /\b(floresta\w*|arvore\w*|selva\w*|forest\w*|jungle|tree\w*|bosque|cogumelo\w*|sapo\w*|bicho\w*|animal\w*|animais|zoologico|zoo|safari)\b/],
+  ['doce', /\b(doce\w*|bala\w*|candy|bolo\w*|cake|sorvete\w*|fruta\w*|chocolate|confeit\w*|pizza\w*|comida\w*|biscoit\w*|cookie\w*|bolacha\w*|cupcake\w*|donut\w*|rosquinha\w*)\b/]
+];
+function kaCapaTema(codigo, nome){
+  const s = semAcentoKa(String(codigo || '').replace(/<script\b[^>]*data-koda-[\s\S]*?<\/script\s*>/gi, '').slice(0, 60000)).toLowerCase();
+  const t = semAcentoKa(String(nome || '')).toLowerCase();
+  const pontos = KA_TEMAS.map(([id, re])=>[id, (s.match(new RegExp(re.source, 'g')) || []).length + 25 * (t.match(new RegExp(re.source, 'g')) || []).length]).sort((a, b)=>b[1] - a[1]);
+  kaCapaTema.segundo = pontos[1] && pontos[1][1] >= 3 ? pontos[1][0] : null;
+  return pontos[0][1] >= 2 ? pontos[0][0] : 'festa';
+}
+function semAcentoKa(s){ return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function kaRand(seed){ let s = (seed * 9301 + 49297) % 233280 || 1; return ()=>{ s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
+const KA_PALETAS_TEMA = {
+  espaco: ['#0b1036', '#2b1a6e', '#ff5ad1', '#7ef9ff'], mar: ['#0a5a8f', '#2ec4e6', '#ffd23a', '#ff7a59'], corrida: ['#2b2350', '#ff3d7f', '#ffd23a', '#38e8ff'],
+  mina: ['#8ad4ff', '#5c3a1e', '#ffd23a', '#5ce1ff'], fazenda: ['#8fe0ff', '#5cc84a', '#ffd23a', '#e2304a'], blocos: ['#1a1440', '#6c3dff', '#ffd23a', '#2de0a5'],
+  castelo: ['#1d2550', '#6b5bd6', '#ffd23a', '#ff6b4a'], cidade: ['#ffb36b', '#6a4fd8', '#ffd23a', '#2ec4e6'], monstro: ['#2a2248', '#7be35a', '#ffd23a', '#ff5a8a'],
+  floresta: ['#bff0a0', '#2f8f4e', '#ffd23a', '#ff7a3a'], doce: ['#ffd1ec', '#ff5aa5', '#ffd23a', '#7a4fff'], festa: ['#3a1d7a', '#ff4fa3', '#ffd23a', '#38e8ff']
+};
+function kaGirarCor(hex, graus){
+  const n = parseInt(hex.slice(1), 16), [h, s, l] = kaHsl(n >> 16 & 255, n >> 8 & 255, n & 255);
+  return kaCor((h + graus + 360) % 360, s, l);
+}
+function kaCapaDesenhada(tema, nome, sorteio, giro){
+  const c = kaCanvas640(), x = c.getContext('2d'), R = kaRand(sorteio * 7 + 3);
+  let [c1, c2, c3, c4] = KA_PALETAS_TEMA[tema] || KA_PALETAS_TEMA.festa;
+  if(giro){ c1 = kaGirarCor(c1, giro); c2 = kaGirarCor(c2, giro); c4 = kaGirarCor(c4, giro * .6); }
+  const P = {nome: c3, nome2: '#fff5c2', tinta: '#1b1033', base: c2, luz: c4};
+  const ceu = x.createLinearGradient(0, 0, 0, 640); ceu.addColorStop(0, c1); ceu.addColorStop(1, c2);
+  x.fillStyle = ceu; x.fillRect(0, 0, 640, 640);
+  const W = (fn)=>{ x.save(); fn(); x.restore(); };
+  if(tema === 'espaco'){
+    for(let i = 0; i < 120; i++){ x.fillStyle = `rgba(255,255,255,${.3 + R() * .7})`; const r = R() * 2.4 + .4; x.beginPath(); x.arc(R() * 640, R() * 640, r, 0, 7); x.fill(); }
+    W(()=>{ const g = x.createRadialGradient(470, 470, 10, 470, 470, 170); g.addColorStop(0, c3); g.addColorStop(1, c2); x.fillStyle = g; x.beginPath(); x.arc(470, 470, 150, 0, 7); x.fill(); x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 10; x.beginPath(); x.ellipse(470, 470, 230, 46, -.35, 0, 7); x.stroke(); });
+    W(()=>{ x.translate(220, 430); x.rotate(-.6); x.fillStyle = '#eef3ff'; x.beginPath(); x.moveTo(0, -110); x.quadraticCurveTo(48, -40, 40, 60); x.lineTo(-40, 60); x.quadraticCurveTo(-48, -40, 0, -110); x.fill(); x.fillStyle = c4; x.beginPath(); x.arc(0, -20, 20, 0, 7); x.fill(); x.fillStyle = c3; x.beginPath(); x.moveTo(-40, 30); x.lineTo(-74, 84); x.lineTo(-36, 64); x.fill(); x.beginPath(); x.moveTo(40, 30); x.lineTo(74, 84); x.lineTo(36, 64); x.fill(); x.fillStyle = '#ffb02e'; x.beginPath(); x.moveTo(-26, 62); x.quadraticCurveTo(0, 150 + R() * 30, 26, 62); x.fill(); });
+  } else if(tema === 'mar'){
+    for(let i = 0; i < 5; i++){ x.fillStyle = `rgba(255,255,255,${.08 + i * .03})`; x.beginPath(); x.moveTo(0, 330 + i * 70); for(let X = 0; X <= 640; X += 40) x.quadraticCurveTo(X + 20, 312 + i * 70 + (X / 40 % 2 ? -18 : 18), X + 40, 330 + i * 70); x.lineTo(640, 640); x.lineTo(0, 640); x.fill(); }
+    for(let i = 0; i < 14; i++){ x.strokeStyle = 'rgba(255,255,255,.6)'; x.lineWidth = 3; x.beginPath(); x.arc(60 + R() * 520, 300 + R() * 300, 4 + R() * 10, 0, 7); x.stroke(); }
+    W(()=>{ x.translate(330, 450); x.fillStyle = c3; x.beginPath(); x.ellipse(0, 0, 120, 74, 0, 0, 7); x.fill(); x.beginPath(); x.moveTo(100, 0); x.lineTo(190, -64); x.lineTo(190, 64); x.fill(); x.fillStyle = c4; x.beginPath(); x.moveTo(-10, -70); x.lineTo(40, -120); x.lineTo(50, -60); x.fill(); x.fillStyle = '#fff'; x.beginPath(); x.arc(-62, -14, 20, 0, 7); x.fill(); x.fillStyle = '#1b1033'; x.beginPath(); x.arc(-66, -12, 10, 0, 7); x.fill(); });
+  } else if(tema === 'corrida'){
+    W(()=>{ x.fillStyle = '#1b1033'; x.beginPath(); x.moveTo(250, 300); x.lineTo(390, 300); x.lineTo(640, 640); x.lineTo(0, 640); x.fill(); x.fillStyle = c4; for(let i = 0; i < 6; i++){ const y = 320 + i * i * 10 + i * 20, w = 4 + i * 4, h = 10 + i * 9; x.fillRect(320 - w / 2, y, w, h); } x.strokeStyle = c2; x.lineWidth = 8; x.beginPath(); x.moveTo(250, 300); x.lineTo(0, 640); x.moveTo(390, 300); x.lineTo(640, 640); x.stroke(); });
+    W(()=>{ x.translate(320, 520); x.fillStyle = c2; kaRet(x, -110, -60, 220, 90, 26); x.fill(); x.fillStyle = c3; kaRet(x, -70, -100, 140, 56, 20); x.fill(); x.fillStyle = '#9ff3ff'; kaRet(x, -54, -90, 108, 34, 10); x.fill(); x.fillStyle = '#1b1033'; [-80, 80].forEach(X=>{ x.beginPath(); x.arc(X, 34, 30, 0, 7); x.fill(); }); x.fillStyle = '#fff6b0'; [-80, 80].forEach(X=>{ x.beginPath(); x.arc(X, -24, 12, 0, 7); x.fill(); }); });
+  } else if(tema === 'mina'){
+    const cores = ['#7a5230', '#5f5f66', '#6b4a2e', '#4a4a52', '#593b22'];
+    x.fillStyle = '#4caf50'; x.fillRect(0, 286, 640, 14);
+    for(let Y = 0; Y < 6; Y++) for(let X = 0; X < 11; X++){ x.fillStyle = cores[Math.floor(R() * 5)]; x.fillRect(X * 60 - 10, 300 + Y * 60, 60, 60); x.fillStyle = 'rgba(0,0,0,.18)'; x.fillRect(X * 60 - 10, 354 + Y * 60, 60, 6); }
+    for(let i = 0; i < 8; i++){ const X = 40 + R() * 560, Y = 340 + R() * 260, r = 16 + R() * 8, cor = [c3, c4, '#e2304a', '#26c46b'][i % 4]; x.fillStyle = cor; x.beginPath(); x.moveTo(X, Y - r); x.lineTo(X + r * .75, Y); x.lineTo(X, Y + r); x.lineTo(X - r * .75, Y); x.fill(); kaEstrela4(x, X + r * .7, Y - r * .8, 7, '#fff'); }
+    W(()=>{ x.translate(330, 440); x.rotate(.5); x.fillStyle = '#8a5a2b'; x.fillRect(-10, -20, 20, 170); x.fillStyle = '#c9d2dc'; x.beginPath(); x.moveTo(-110, -10); x.quadraticCurveTo(0, -80, 110, -10); x.quadraticCurveTo(0, -46, -110, -10); x.fill(); });
+  } else if(tema === 'fazenda'){
+    x.fillStyle = '#fff'; [[120, 120], [470, 90]].forEach(([X, Y])=>{ [0, 34, 66].forEach((d, i)=>{ x.beginPath(); x.arc(X + d, Y + (i === 1 ? -14 : 0), 30, 0, 7); x.fill(); }); });
+    x.fillStyle = c2; x.beginPath(); x.ellipse(160, 640, 420, 300, 0, 0, 7); x.fill(); x.fillStyle = '#4aa83c'; x.beginPath(); x.ellipse(560, 660, 380, 280, 0, 0, 7); x.fill();
+    W(()=>{ x.translate(400, 470); x.fillStyle = c4; x.fillRect(-90, -70, 180, 130); x.fillStyle = '#8f1b2c'; x.beginPath(); x.moveTo(-110, -70); x.lineTo(0, -150); x.lineTo(110, -70); x.fill(); x.fillStyle = '#fff'; x.fillRect(-36, -10, 72, 70); x.strokeStyle = c4; x.lineWidth = 8; x.beginPath(); x.moveTo(-36, -10); x.lineTo(36, 60); x.moveTo(36, -10); x.lineTo(-36, 60); x.stroke(); });
+    x.fillStyle = '#fff3c4'; for(let i = 0; i < 9; i++){ x.fillRect(20 + i * 30, 520, 10, 90); } x.fillRect(10, 540, 280, 10); x.fillRect(10, 580, 280, 10);
+  } else if(tema === 'blocos'){
+    const formas = [[[0, 0], [1, 0], [2, 0], [1, 1]], [[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [0, 1], [0, 2], [1, 2]], [[0, 0], [1, 0], [2, 0], [3, 0]], [[1, 0], [2, 0], [0, 1], [1, 1]]];
+    const cs = [c3, c4, '#ff5a8a', '#7be35a', '#ff9f3a'];
+    for(let i = 0; i < 9; i++){ const f = formas[Math.floor(R() * formas.length)], X = Math.floor(R() * 9) * 64 + 8, Y = 300 + Math.floor(R() * 5) * 64, cor = cs[i % cs.length]; f.forEach(([a, b])=>{ x.fillStyle = cor; kaRet(x, X + a * 64 - (X + a * 64 > 590 ? 200 : 0), Y + b * 64 - (Y + b * 64 > 590 ? 120 : 0), 58, 58, 10); x.fill(); x.fillStyle = 'rgba(255,255,255,.3)'; x.fillRect(X + a * 64 + 8 - (X + a * 64 > 590 ? 200 : 0), Y + b * 64 + 8 - (Y + b * 64 > 590 ? 120 : 0), 42, 8); }); }
+  } else if(tema === 'castelo'){
+    x.fillStyle = '#fff6c9'; x.beginPath(); x.arc(500, 150, 60, 0, 7); x.fill(); x.fillStyle = c1; x.beginPath(); x.arc(526, 136, 54, 0, 7); x.fill();
+    x.fillStyle = '#140f30'; [[60, 330, 110, 310], [200, 260, 120, 380], [350, 300, 110, 340], [490, 240, 110, 400]].forEach(([X, Y, w, h])=>{ x.fillRect(X, Y, w, h); for(let k = 0; k < 4; k++) x.fillRect(X + k * w / 3.5, Y - 22, w / 7, 24); x.fillStyle = c3; x.fillRect(X + w / 2 - 10, Y + 50, 20, 30); x.fillStyle = '#140f30'; });
+    W(()=>{ x.translate(320, 470); x.fillStyle = c4; x.beginPath(); x.moveTo(-80, -90); x.lineTo(80, -90); x.lineTo(80, 10); x.quadraticCurveTo(80, 80, 0, 110); x.quadraticCurveTo(-80, 80, -80, 10); x.fill(); x.fillStyle = c3; x.fillRect(-12, -70, 24, 150); x.fillRect(-56, -26, 112, 24); });
+  } else if(tema === 'cidade'){
+    for(let i = 0; i < 9; i++){ const w = 60 + R() * 40, h = 160 + R() * 260, X = i * 72 - 10; x.fillStyle = ['#3d2f8a', '#4b3aa8', '#2f2470'][i % 3]; x.fillRect(X, 640 - h, w, h); x.fillStyle = c3; for(let a = 0; a < h - 30; a += 34) for(let b = 10; b < w - 14; b += 24) if(R() > .35) x.fillRect(X + b, 640 - h + 20 + a, 12, 16); }
+    W(()=>{ x.translate(320, 470); x.fillStyle = c3; x.beginPath(); x.arc(0, 0, 80, 0, 7); x.fill(); x.strokeStyle = '#b8860b'; x.lineWidth = 10; x.beginPath(); x.arc(0, 0, 62, 0, 7); x.stroke(); x.fillStyle = '#b8860b'; x.font = '800 90px "Baloo 2", sans-serif'; x.textAlign = 'center'; x.fillText('$', 0, 32); });
+  } else if(tema === 'monstro'){
+    for(let Y = 0; Y < 8; Y++) for(let X = 0; X < 8; X++){ x.fillStyle = (X + Y) % 2 ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.08)'; x.fillRect(X * 80, Y * 80, 80, 80); }
+    const slime = (X, Y, r, cor)=>{ x.fillStyle = 'rgba(0,0,0,.3)'; x.beginPath(); x.ellipse(X, Y + r * .85, r, r * .25, 0, 0, 7); x.fill(); x.fillStyle = cor; x.beginPath(); x.moveTo(X - r, Y + r * .7); x.quadraticCurveTo(X - r, Y - r * 1.1, X, Y - r * 1.1); x.quadraticCurveTo(X + r, Y - r * 1.1, X + r, Y + r * .7); x.fill(); x.fillStyle = '#fff'; [-.35, .35].forEach(o=>{ x.beginPath(); x.arc(X + o * r, Y - r * .2, r * .2, 0, 7); x.fill(); }); x.fillStyle = '#1b1033'; [-.35, .35].forEach(o=>{ x.beginPath(); x.arc(X + o * r + r * .05, Y - r * .17, r * .1, 0, 7); x.fill(); }); };
+    slime(150, 520, 60, c4); slime(490, 520, 70, giro ? kaGirarCor('#ff9f3a', giro) : '#ff9f3a'); slime(320, 470, 100, giro ? kaGirarCor('#7be35a', giro) : '#7be35a');
+  } else if(tema === 'floresta'){
+    for(let i = 0; i < 7; i++){ const X = i * 100 - 20 + R() * 30, h = 220 + R() * 120; x.fillStyle = '#6b3f1f'; x.fillRect(X - 12, 640 - h * .45, 24, h * .45); x.fillStyle = ['#2f8f4e', '#3fae5c', '#257a42'][i % 3]; x.beginPath(); x.arc(X, 640 - h * .55, 70 + R() * 30, 0, 7); x.fill(); }
+    W(()=>{ x.translate(320, 500); x.fillStyle = '#f2e6d0'; x.fillRect(-14, 0, 28, 80); x.fillStyle = '#e2304a'; x.beginPath(); x.arc(0, 0, 90, Math.PI, 0); x.fill(); x.fillStyle = '#fff'; [[-46, -36], [10, -60], [48, -24]].forEach(([a, b])=>{ x.beginPath(); x.arc(a, b, 14, 0, 7); x.fill(); }); });
+  } else if(tema === 'doce'){
+    for(let i = 0; i < 26; i++){ x.fillStyle = [c2, c3, c4, '#7be35a'][i % 4]; x.save(); x.translate(R() * 640, 300 + R() * 340); x.rotate(R() * 3); kaRet(x, -14, -5, 28, 10, 5); x.fill(); x.restore(); }
+    W(()=>{ x.translate(320, 470); x.fillStyle = c2; x.beginPath(); x.arc(0, 0, 90, 0, 7); x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 14; x.beginPath(); for(let a = 0; a < 18; a += .3){ const r = a * 4.6; x.lineTo(Math.cos(a) * r, Math.sin(a) * r); } x.stroke(); x.fillStyle = c4; x.beginPath(); x.moveTo(-96, 0); x.lineTo(-150, -40); x.lineTo(-150, 40); x.fill(); x.beginPath(); x.moveTo(96, 0); x.lineTo(150, -40); x.lineTo(150, 40); x.fill(); });
+  } else {
+    W(()=>{ x.translate(320, 470); for(let i = 0; i < 16; i++){ x.rotate(Math.PI / 8); x.fillStyle = i % 2 ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.02)'; x.beginPath(); x.moveTo(0, 0); x.lineTo(-90, -700); x.lineTo(90, -700); x.fill(); } });
+    for(let i = 0; i < 40; i++){ x.fillStyle = [c2, c3, c4, '#7be35a', '#fff'][i % 5]; x.save(); x.translate(R() * 640, R() * 640); x.rotate(R() * 3); x.fillRect(-7, -3, 14, 6); x.restore(); }
+    W(()=>{ x.translate(320, 470); x.fillStyle = '#f4f4ff'; kaRet(x, -150, -70, 300, 140, 70); x.fill(); x.fillStyle = '#1b1033'; x.fillRect(-100, -12, 64, 24); x.fillRect(-80, -32, 24, 64); x.fillStyle = c2; x.beginPath(); x.arc(70, -18, 16, 0, 7); x.fill(); x.fillStyle = c4; x.beginPath(); x.arc(102, 14, 16, 0, 7); x.fill(); });
+  }
+  const t = kaCapaTitulo(x, nome, KA_ZONA_MEIO, P); kaCapaBrilhos(x, t, P); kaCapaBorda(x, P);
+  return c;
+}
+
+/* gera as capas uma de cada vez: "Outra" pede a próxima */
+async function kaCapaCriador(codigo, nome, palco){
+  try{ await Promise.race([document.fonts.load('800 80px "Baloo 2"'), new Promise(r=>setTimeout(r, 1500))]); }catch(e){}
+  const jogo = await kaCapaJogar(codigo, palco);
+  const fotos = await kaCapaMelhoresFotos(jogo.fotos);
+  const tema = kaCapaTema(codigo, nome);
+  const receitas = [];
+  const tema2 = kaCapaTema.segundo, desenho = [s=>kaCapaDesenhada(tema, nome, s), s=>kaCapaDesenhada(tema, nome, s + 1, 140), s=>kaCapaDesenhada(tema2 || 'festa', nome, s + 2, tema2 ? 0 : 60), s=>kaCapaDesenhada(tema, nome, s + 3, 240)];
+  const boas = fotos.filter(f=>!f.fraca), fracas = fotos.filter(f=>f.fraca);
+  if(boas.length){
+    const f0 = boas[0], f1 = boas[1] || f0, f2 = boas[2] || f1;
+    receitas.push(s=>kaCapaFoto(f0, nome, s), s=>kaCapaCartao(f0, nome, s), desenho[0], s=>kaCapaZoom(f1, nome, s), s=>kaCapaFoto(f1, nome, s + 1), desenho[1], s=>kaCapaCartao(f2, nome, s + 1), s=>kaCapaZoom(f0, nome, s + 2));
+  } else if(fracas.length){
+    /* a foto existe mas não fica bonita sozinha: o desenho vem primeiro; a foto entra com zoom ou como cartão */
+    const f0 = fracas[0], f1 = fracas[1] || f0;
+    if(f0.esparsa) receitas.push(s=>kaCapaHeroi(f0, nome, s), desenho[0], s=>kaCapaHeroi(f1, nome, s + 3), desenho[1], desenho[2], s=>kaCapaZoom(f0, nome, s));
+    else receitas.push(desenho[0], s=>kaCapaCartao(f0, nome, s), desenho[1], s=>kaCapaFoto(f0, nome, s), desenho[2], s=>kaCapaZoom(f1, nome, s));
+  } else receitas.push(...desenho);
+  let i = 0, volta = 0;
+  return {
+    comFoto: fotos.length > 0, tema, fotos: fotos.length, boas: boas.length,
+    proxima(){
+      const c = receitas[i % receitas.length](volta * 3 + i);
+      i++; if(i % receitas.length === 0) volta++;
+      return c.toDataURL('image/jpeg', 0.9);
+    }
+  };
+}
+
+/* a caixa do código -> a capa daquela tela (o agente abre a folha quando a pessoa pede "faz uma capa") */
+const KA_CAPAS = new WeakMap();
+/* ---- a folha: "quer uma capa da sua galeria ou dos seus arquivos, ou uma criada por mim?" ----
+   o = {codigo, nome, publicando, aoUsar(dataUrl), aoGaleria(), aoFechar()} */
+function kaCapaFolha(o){
+  kaLigarMotor();
+  const esc = chatListEscape;
+  document.querySelectorAll('.ka-capa-bg').forEach(e=>e.remove());
+  const bg = document.createElement('div');
+  bg.className = 'game-menu-bg ka-oferta-bg ka-capa-bg';
+  bg.setAttribute('role', 'dialog'); bg.setAttribute('aria-modal', 'true');
+  bg.innerHTML = `<div class="game-menu-sheet ka-oferta ka-capa">
+      <div class="ka-of-topo">${iconeAgenteKoda(true)}<div><b>${esc(agenteNomeIA())}</b><p>${esc(KA.T(o.publicando ? 'ui_capa_tit' : 'ui_capa_tit2'))}</p></div></div>
+      <p class="ka-of-sub">${esc(KA.T('ui_capa_sub'))}</p>
+      <div class="ka-capa-palco" data-estado="jogando">
+        <div class="ka-capa-tv"></div>
+        <img class="ka-capa-img" alt="" hidden>
+        <div class="ka-capa-msg"><span class="ka-pontos" aria-hidden="true"><i></i><i></i><i></i></span><span data-msg>${esc(KA.T('ui_capa_jogando'))}</span></div>
+      </div>
+      <p class="ka-capa-nota" data-nota hidden></p>
+      <div class="ka-capa-acoes">
+        <button type="button" class="ka-capa-usar" data-usar disabled>${esc(KA.T('ui_capa_usar'))}</button>
+        <button type="button" class="ka-capa-outra" data-outra disabled>${esc(KA.T('ui_capa_outra'))}</button>
+      </div>
+      <button type="button" class="ka-of-sair ka-capa-galeria" data-galeria>${ICONS.image || ''}<span>${esc(KA.T('ui_capa_galeria'))}</span></button>
+    </div>`;
+  document.body.appendChild(bg);
+  requestAnimationFrame(()=>bg.classList.add('show'));
+  const q = s=>bg.querySelector(s);
+  const palco = q('.ka-capa-palco'), img = q('.ka-capa-img'), btUsar = q('[data-usar]'), btOutra = q('[data-outra]');
+  let fechada = false, criador = null, atual = null;
+  const fechar = motivo=>{ if(fechada) return; fechada = true; bg.classList.remove('show'); bg.style.pointerEvents = 'none'; setTimeout(()=>bg.remove(), 220); if(motivo !== 'escolheu' && o.aoFechar) o.aoFechar(); };
+  bg.addEventListener('click', e=>{ if(e.target === bg){ playSound('click'); fechar(); } });
+  const teclas = e=>{ if(e.key === 'Escape' && bg.isConnected){ e.stopPropagation(); document.removeEventListener('keydown', teclas); fechar(); } };
+  document.addEventListener('keydown', teclas);
+  const mostrar = ()=>{
+    atual = criador.proxima();
+    img.src = atual; img.hidden = false; palco.dataset.estado = 'pronta';
+    btUsar.disabled = false; btOutra.disabled = false;
+  };
+  btOutra.addEventListener('click', ()=>{ if(!criador) return; playSound('click'); img.classList.remove('ka-capa-entra'); void img.offsetWidth; mostrar(); img.classList.add('ka-capa-entra'); });
+  btUsar.addEventListener('click', ()=>{ if(!atual) return; playSound('buy'); fechar('escolheu'); if(o.aoUsar) o.aoUsar(atual); });
+  q('[data-galeria]').addEventListener('click', ()=>{ playSound('click'); fechar('escolheu'); if(o.aoGaleria) o.aoGaleria(); });
+  (async ()=>{
+    try{
+      criador = await kaCapaCriador(o.codigo, o.nome, q('.ka-capa-tv'));
+      if(fechada) return;
+      q('[data-msg]').textContent = KA.T('ui_capa_desenhando');
+      if(!criador.comFoto){ const n = q('[data-nota]'); n.textContent = KA.T('ui_capa_sem_foto'); n.hidden = false; }
+      mostrar(); img.classList.add('ka-capa-entra');
+    }catch(e){
+      try{ console.warn('capa da IA:', e); }catch(x){}
+      if(fechada) return;
+      criador = {comFoto: false, proxima: (()=>{ let s = 0; return ()=>kaCapaDesenhada('festa', o.nome, s++).toDataURL('image/jpeg', .9); })()};
+      mostrar();
+    }
+  })();
+  return {fechar};
+}
+/* o nome que vai na capa: o campo Nome; vazio, o <title> do jogo */
+function kaCapaNomeDoJogo(nomeEl, codigo){
+  const n = nomeEl && nomeEl.value ? nomeEl.value.trim() : '';
+  if(n) return n.slice(0, 60);
+  const m = /<title[^>]*>([^<]{1,60})<\/title>/i.exec(String(codigo || '')) || /<h1[^>]*>([^<]{1,60})<\/h1>/i.exec(String(codigo || ''));
+  return m ? m[1].trim() : KA.T('ui_capa_meu_jogo');
+}
+/* liga a capa da IA numa tela do Studio:
+   - tocar na caixa da capa abre a folha (galeria/arquivos ou a criada pela IA);
+   - tocar em Publicar sem capa: depois da oferta do agente, pergunta da capa e mostra a que a IA fez. */
+function kaCapaLigar(root, capa, o){
+  const caixa = root.querySelector(o.codeSel), nomeEl = root.querySelector(o.nameSel);
+  if(!caixa || !capa) return;
+  const abrirFolha = (publicando, depois)=>kaCapaFolha({
+    codigo: caixa.value, nome: kaCapaNomeDoJogo(nomeEl, caixa.value), publicando,
+    aoUsar: uri=>{ capa.definir(uri, depois); capa.daIA = true; },
+    aoGaleria: ()=>{ capa.escolherArquivo(depois); }
+  });
+  (o.abrirSel ? root.querySelectorAll(o.abrirSel) : []).forEach(el=>{
+    el.addEventListener('click', e=>{
+      if(caixa.value.trim().length < 60) return;          /* sem jogo ainda: vai direto pra galeria */
+      e.preventDefault(); e.stopImmediatePropagation();
+      playSound('click'); abrirFolha(false, null);
+    }, true);
+  });
+  if(root._kaCapaPublicar) root.removeEventListener('click', root._kaCapaPublicar, true);
+  root._kaCapaPublicar = e=>{
+    const b = e.target && e.target.closest ? e.target.closest(o.publicarSel) : null;
+    if(!b || !root.contains(b) || !caixa.isConnected) return;
+    if(capa.cover || (o.temCapa && o.temCapa())) return;
+    if(!nomeEl || !nomeEl.value.trim() || caixa.value.trim().length < 60) return;    /* o Publicar mostra o que falta */
+    e.preventDefault(); e.stopImmediatePropagation();
+    abrirFolha(true, ()=>{ try{ b.click(); }catch(x){} });
+  };
+  root.addEventListener('click', root._kaCapaPublicar, true);
+  capa.abrirIA = ()=>abrirFolha(false, null);
+  KA_CAPAS.set(caixa, capa);
+}
 /* ==== AGENTE KODA: FIM ==== */
 /* ---- o jogo que a pessoa está fazendo no Studio fica guardado neste aparelho: saiu e voltou, está lá ---- */
 const STUDIO_RASC_CHAVE = 'koda_studio_rascunho';
@@ -40879,6 +41515,8 @@ function renderDirectPublish(root, onBack){
   });
   studioRascLigar(root);
   ligarAssistente(root, '#directCode', undefined, capa);
+  /* capa criada pela IA: tocar na caixa da capa, ou Publicar sem capa (depois da oferta do agente) */
+  kaCapaLigar(root, capa, {codeSel: '#directCode', nameSel: '#directName', publicarSel: '#directGo', abrirSel: '#directCoverBox'});
   duplaPorNoStudio(root, ()=>({nome: root.querySelector('#directName').value.trim(), codigo: root.querySelector('#directCode').value, capa: capa.cover, formato: capa.shape}));
 }
 
