@@ -17,6 +17,10 @@ Como testar: abra a sua conta, toque em **Criar jogo** e depois em **Já tenho o
 | 09 | **Cavaleiro das Torres** (4 torres, espinhos, plataformas que andam e que caem) | Mudar números do jogo | `pulo mais alto`, `mais vidas`, `deixa mais difícil` | Pulo de 430 para 559. Vidas de 3 para 5 (também quando recomeça). "Mais difícil" deixa os **inimigos** mais rápidos e tira uma vida (o cavaleiro não fica mais rápido). |
 | 10 | **Cidade Ociosa** (idle: 8 prédios, 8 melhorias, prestígio) | A trava do Koda GB + verificar + nota | `a cada clique eu ganho 1 Koda Coin`, `verifica meu código`, `dá uma nota pro meu jogo` | O agente **recusa** dar moeda do Koda GB por clique. A verificação diz que está tudo certo e a nota vem com o que está bom e dicas. Extra: `troca as moedas do jogo pelas do Koda GB` vira 16 itens na loja (8 prédios + 8 melhorias). |
 
+## Capas
+
+Na pasta `capas/` tem uma capa para cada jogo (imagem de 640 x 640, mesmo nome do jogo). Para usar: no Studio, toque na caixa da **capa** e escolha a imagem (ou mande a imagem pro agente no chat). O Studio corta para quadrado, 4:3 ou em pé, e o título e o desenho principal ficam inteiros nos três formatos.
+
 ## Teste mais pesado: tudo junto
 
 Em qualquer um deles (melhor no 02, 05 ou 09), mande em sequência:
@@ -40,3 +44,20 @@ Esses jogos acharam pontos fracos do agente, que foram corrigidos:
 - Tradução: muito mais palavras de jogo, texto com HTML dentro e aviso do que ficou sem traduzir.
 - "Mais difícil": acha a velocidade dos inimigos (`velocidadeInimigo`) e entende que `k = cavaleiro` é o herói.
 - Contador de "total ganho" (`dinheiroTotal`) não é mais confundido com uma segunda moeda.
+
+## Opções novas do agente (teste em qualquer um dos 10)
+
+| O que mandar | O que tem que acontecer |
+|--------------|-------------------------|
+| `coloca música épica` (ou calma, tensa, aventura, espacial, retrô, mistério, festa, lofi, terror, fofa, luta) | Música nova com o estilo pedido e botão de som no canto. |
+| `coloca sons no jogo` | Sons de ponto, pulo, dano, tiro, explosão, poder, fase, vitória, compra, clique e fim. |
+| `abaixa o volume da música` / `tira os sons` | Música mais baixa / só a música fica. |
+| `coloca controles na tela` | Botões de toque com o nome certo (Pular, Atirar...) para jogar no celular. |
+| `faz chover` (ou neve, folhas, estrelas, neblina) | Clima por cima do jogo, sem atrapalhar os cliques. |
+| `faz tremer a tela quando levar dano` / `confete quando passar de fase` | Efeito no momento certo do jogo. |
+| `mostra meu nome no jogo` | Nome e personagem do Koda GB no canto. |
+| `mostra meu recorde` | Recorde guardado no aparelho e mostrado no canto. |
+| `coloca uma tela de ajuda` | Botão "?" que mostra as teclas do jogo. |
+| `coloca um pet gato que me segue` | Bichinho que segue o herói (gato, cachorro, dragão, robô...). |
+| `muda o nome do jogo para ...` | Título trocado na tela e na aba. |
+| `cada clique me dá 1 Koda Coin` | **Recusa** (é trapaça). |
