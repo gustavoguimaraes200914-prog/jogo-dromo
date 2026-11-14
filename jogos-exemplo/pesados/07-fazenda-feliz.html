@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Fazenda Feliz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: #8fd16b; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #3b2a12; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #topo { position: fixed; top: 8px; left: 8px; right: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; pointer-events: none; }
+  .chip { background: #fff8e1; border: 3px solid #c9a46a; border-radius: 14px; padding: 4px 12px; font-weight: 900; font-size: 15px; box-shadow: 0 3px 0 #a0804a; }
+  #barraDia { width: 110px; height: 10px; border-radius: 6px; background: #c9a46a; overflow: hidden; display: inline-block; vertical-align: middle; }
+  #barraDia i { display: block; height: 100%; background: #ffb300; }
+  #ferramentas { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: #fff8e1; border: 3px solid #c9a46a; border-radius: 18px; padding: 6px; box-shadow: 0 4px 0 #a0804a; max-width: 96vw; overflow-x: auto; }
+  .ferr { min-width: 58px; padding: 6px 4px; border-radius: 12px; text-align: center; font-size: 11px; font-weight: 800; cursor: pointer; border: 2px solid transparent; }
+  .ferr b { display: block; font-size: 22px; }
+  .ferr.sel { background: #ffe082; border-color: #c9a46a; }
+  #janela { position: fixed; inset: 0; background: rgba(40,30,10,.55); display: flex; align-items: center; justify-content: center; }
+  #janela.fechada { display: none; }
+  .cx { background: #fff8e1; border: 4px solid #c9a46a; border-radius: 20px; padding: 16px; width: min(92vw, 420px); max-height: 85vh; overflow: auto; text-align: center; }
+  .cx h1 { font-size: 24px; margin-bottom: 6px; color: #5d4017; }
+  .cx p { font-size: 14px; line-height: 1.45; margin-bottom: 10px; }
+  .linha { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #ffecb3; border-radius: 12px; padding: 8px 10px; margin-bottom: 6px; text-align: left; }
+  .linha small { display: block; font-size: 11px; opacity: .75; }
+  button { font: inherit; font-weight: 900; border: 0; border-radius: 12px; padding: 9px 14px; background: #66bb6a; color: #fff; cursor: pointer; box-shadow: 0 3px 0 #388e3c; }
+  button:disabled { background: #bdbdbd; box-shadow: none; }
+  .largo { width: 100%; font-size: 17px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<canvas id="campo"></canvas>
+<div id="topo">
+  <div class="chip" id="moedasTxt">● 30</div>
+  <div class="chip" id="diaTxt">Dia 1 <span id="barraDia"><i></i></span></div>
+  <div class="chip" id="celeiroTxt">Celeiro 0/20</div>
+  <div class="chip" id="nivelTxt">Nv 1</div>
+</div>
+<div id="ferramentas"></div>
+<div id="janela" class="fechada"></div>
+
+<script>
+/* =====================================================================
+   FAZENDA FELIZ - plante, regue, colha, venda e cuide dos bichos
+   As moedas aparecem no chão quando você vende ou quando os bichos produzem:
+   toque nelas para pegar!
+   ===================================================================== */
+const campo = document.getElementById('campo');
+const ctx = campo.getContext('2d');
+let W = 0, H = 0;
+const COLS = 8, LINS = 6;
+let TAM = 64, OX = 0, OY = 0;
+
+let moedas = 30;
+let dia = 1;
+let horaDoDia = 0;          // 0..1
+const DURACAO_DIA = 60;     // segundos
+let nivel = 1, xp = 0;
+let ferramenta = 'enxada';
+let celeiro = {};           // colheita guardada
+let celeiroMax = 20;
+
+const SEMENTES = {
+  cenoura:  { nome: 'Cenoura',  cor: '#ff8f00', tempo: 12, preco: 5,  venda: 12, xp: 2, nivel: 1 },
+  milho:    { nome: 'Milho',    cor: '#fdd835', tempo: 20, preco: 10, venda: 26, xp: 4, nivel: 1 },
+  tomate:   { nome: 'Tomate',   cor: '#e53935', tempo: 28, preco: 16, venda: 42, xp: 6, nivel: 2 },
+  abobora:  { nome: 'Abóbora',  cor: '#ef6c00', tempo: 45, preco: 30, venda: 85, xp: 10, nivel: 3 },
+  morango:  { nome: 'Morango',  cor: '#d81b60', tempo: 35, preco: 24, venda: 70, xp: 9, nivel: 4 },
+  girassol: { nome: 'Girassol', cor: '#ffca28', tempo: 60, preco: 50, venda: 150, xp: 16, nivel: 5 }
+};
+const BICHOS = {
+  galinha: { nome: 'Galinha', produto: 'Ovo', cor: '#fff', tempo: 25, preco: 80, venda: 20 },
+  vaca:    { nome: 'Vaca', produto: 'Leite', cor: '#f5f5f5', tempo: 45, preco: 200, venda: 55 },
+  ovelha:  { nome: 'Ovelha', produto: 'Lã', cor: '#eeeeee', tempo: 60, preco: 320, venda: 90 }
+};
+
+let terra = [];      // canteiros
+let bichos = [];     // animais no cercado
+let moedasNoChao = [];
+let flutuantes = [];
+let nuvens = [];
+let sementeEscolhida = 'cenoura';
+
+function iniciarTerra() {
+  terra = [];
+  for (let y = 0; y < LINS; y++) for (let x = 0; x < COLS; x++) terra.push({ x, y, arado: false, planta: null, cresce: 0, regado: false, praga: false });
+  for (let i = 0; i < 4; i++) nuvens.push({ x: Math.random() * 1200, y: 20 + Math.random() * 80, v: 8 + Math.random() * 12, t: 40 + Math.random() * 40 });
+}
+
+function redimensionar() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight; campo.width = W * d; campo.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+  TAM = Math.floor(Math.min((W - 20) / (COLS + 3.4), (H - 170) / LINS));
+  OX = Math.floor((W - TAM * (COLS + 3.2)) / 2); OY = Math.floor(70 + (H - 170 - TAM * LINS) / 2);
+}
+addEventListener('resize', redimensionar);
+
+/* ---------------- ferramentas ---------------- */
+const FERRAMENTAS = [
+  { id: 'enxada', ico: '⛏', nome: 'Arar' },
+  { id: 'semente', ico: '🌱', nome: 'Plantar' },
+  { id: 'regador', ico: '💧', nome: 'Regar' },
+  { id: 'cesta', ico: '🧺', nome: 'Colher' },
+  { id: 'remedio', ico: '🧪', nome: 'Remédio' },
+  { id: 'loja', ico: '🏪', nome: 'Loja' },
+  { id: 'vender', ico: '💰', nome: 'Vender' }
+];
+function montarFerramentas() {
+  const el = document.getElementById('ferramentas');
+  el.innerHTML = FERRAMENTAS.map(f => '<div class="ferr' + (f.id === ferramenta ? ' sel' : '') + '" data-f="' + f.id + '"><b>' + f.ico + '</b>' + (f.id === 'semente' ? SEMENTES[sementeEscolhida].nome : f.nome) + '</div>').join('');
+  el.querySelectorAll('.ferr').forEach(d => d.addEventListener('click', () => escolherFerramenta(d.dataset.f)));
+}
+function escolherFerramenta(f) {
+  if (f === 'loja') { abrirLoja(); return; }
+  if (f === 'vender') { abrirVenda(); return; }
+  if (f === 'semente' && ferramenta === 'semente') { abrirSementes(); return; }
+  ferramenta = f; montarFerramentas();
+}
+
+/* ---------------- tocar no campo ---------------- */
+function tocar(px, py) {
+  /* primeiro: pegar moedas no chão */
+  for (let i = moedasNoChao.length - 1; i >= 0; i--) {
+    const m = moedasNoChao[i];
+    if (Math.hypot(m.x - px, m.y - py) < 26) { pegarMoeda(i); return; }
+  }
+  /* bichos */
+  for (const b of bichos) {
+    if (Math.hypot(b.x - px, b.y - py) < TAM * 0.45) { cuidarBicho(b); return; }
+  }
+  const cx = Math.floor((px - OX) / TAM), cy = Math.floor((py - OY) / TAM);
+  if (cx < 0 || cy < 0 || cx >= COLS || cy >= LINS) return;
+  const c = terra[cy * COLS + cx];
+  if (ferramenta === 'enxada' && !c.arado) { c.arado = true; poeira(cx, cy, '#8d6e63'); }
+  else if (ferramenta === 'semente' && c.arado && !c.planta) {
+    const s = SEMENTES[sementeEscolhida];
+    if (moedas < s.preco) { avisar('Faltam moedas para a semente'); return; }
+    moedas -= s.preco; c.planta = sementeEscolhida; c.cresce = 0; c.regado = false; poeira(cx, cy, '#66bb6a');
+  }
+  else if (ferramenta === 'regador' && c.planta) { c.regado = true; poeira(cx, cy, '#4fc3f7'); }
+  else if (ferramenta === 'remedio' && c.praga) { if (moedas >= 3) { moedas -= 3; c.praga = false; poeira(cx, cy, '#ab47bc'); } }
+  else if ((ferramenta === 'cesta' || ferramenta === 'enxada') && c.planta && c.cresce >= 1) colher(c);
+  atualizarTopo();
+}
+
+function colher(c) {
+  const total = Object.values(celeiro).reduce((a, b) => a + b, 0);
+  if (total >= celeiroMax) { avisar('O celeiro está cheio! Venda alguma coisa'); return; }
+  const s = SEMENTES[c.planta];
+  celeiro[c.planta] = (celeiro[c.planta] || 0) + (c.praga ? 1 : 2);
+  ganharXp(s.xp);
+  flutuar(OX + c.x * TAM + TAM / 2, OY + c.y * TAM, '+' + (c.praga ? 1 : 2) + ' ' + s.nome, s.cor);
+  c.planta = null; c.cresce = 0; c.regado = false; c.praga = false;
+  if (Math.random() < 0.25) c.arado = false;
+}
+
+function cuidarBicho(b) {
+  if (b.pronto) {
+    const t = BICHOS[b.tipo];
+    celeiro[t.produto] = (celeiro[t.produto] || 0) + 1;
+    b.pronto = false; b.tempo = 0;
+    flutuar(b.x, b.y - 30, '+1 ' + t.produto, '#795548');
+    ganharXp(5);
+  } else if (!b.alimentado) {
+    if (moedas >= 2) { moedas -= 2; b.alimentado = true; flutuar(b.x, b.y - 30, 'Nham!', '#43a047'); }
+  }
+  atualizarTopo();
+}
+
+/* ---------------- moedas no chão ---------------- */
+function soltarMoedas(x, y, quantas) {
+  for (let i = 0; i < quantas; i++) {
+    moedasNoChao.push({ x: x + (Math.random() - 0.5) * 60, y: y + (Math.random() - 0.5) * 30, vy: -120 - Math.random() * 80, chao: y + 10 + Math.random() * 20, vida: 12, brilho: Math.random() * 6 });
+  }
+}
+function pegarMoeda(i) {
+  const m = moedasNoChao[i];
+  moedasNoChao.splice(i, 1);
+  moedas += 1;
+  flutuar(m.x, m.y - 14, '+1', '#f9a825');
+  atualizarTopo();
+}
+
+/* ---------------- loja e venda ---------------- */
+function abrirLoja() {
+  let html = '<h1>🏪 Loja da Vila</h1><p>Você tem <b>' + moedas + '</b> moedas</p>';
+  for (const k in BICHOS) {
+    const b = BICHOS[k];
+    html += '<div class="linha"><div><b>' + b.nome + '</b><small>dá ' + b.produto + ' a cada ' + b.tempo + 's</small></div><button ' + (moedas < b.preco || bichos.length >= 6 ? 'disabled' : '') + ' onclick="comprarBicho(\'' + k + '\')">' + b.preco + ' ●</button></div>';
+  }
+  html += '<div class="linha"><div><b>Celeiro maior</b><small>+10 de espaço</small></div><button ' + (moedas < celeiroMax * 6 ? 'disabled' : '') + ' onclick="aumentarCeleiro()">' + (celeiroMax * 6) + ' ●</button></div>';
+  html += '<button class="largo" onclick="fecharJanela()">Voltar</button>';
+  abrirJanela(html);
+}
+function comprarBicho(k) {
+  const b = BICHOS[k];
+  if (moedas < b.preco || bichos.length >= 6) return;
+  moedas -= b.preco;
+  bichos.push({ tipo: k, x: 0, y: 0, alvoX: 0, alvoY: 0, tempo: 0, pronto: false, alimentado: false, passo: Math.random() * 6 });
+  posicionarBichos();
+  atualizarTopo(); abrirLoja();
+}
+function aumentarCeleiro() {
+  const preco = celeiroMax * 6;
+  if (moedas < preco) return;
+  moedas -= preco; celeiroMax += 10;
+  atualizarTopo(); abrirLoja();
+}
+function abrirVenda() {
+  let html = '<h1>💰 Vender</h1><p>Venda a colheita no mercado. As moedas caem no chão: toque nelas!</p>';
+  const itens = Object.keys(celeiro).filter(k => celeiro[k] > 0);
+  if (!itens.length) html += '<p>O celeiro está vazio.</p>';
+  itens.forEach(k => {
+    const preco = SEMENTES[k] ? SEMENTES[k].venda : Object.values(BICHOS).find(b => b.produto === k).venda;
+    const nome = SEMENTES[k] ? SEMENTES[k].nome : k;
+    html += '<div class="linha"><div><b>' + nome + ' ×' + celeiro[k] + '</b><small>' + preco + ' cada</small></div><button onclick="vender(\'' + k + '\',' + preco + ')">Vender</button></div>';
+  });
+  html += '<button class="largo" onclick="fecharJanela()">Voltar</button>';
+  abrirJanela(html);
+}
+function vender(k, preco) {
+  const qtd = celeiro[k] || 0;
+  if (!qtd) return;
+  celeiro[k] = 0;
+  const total = qtd * preco;
+  /* metade vai direto, metade cai no chão como moedas para pegar */
+  moedas += Math.ceil(total / 2);
+  soltarMoedas(W / 2, OY + LINS * TAM * 0.5, Math.min(25, Math.floor(total / 2)));
+  atualizarTopo(); abrirVenda();
+}
+function abrirSementes() {
+  let html = '<h1>🌱 Sementes</h1>';
+  for (const k in SEMENTES) {
+    const s = SEMENTES[k], bloqueada = nivel < s.nivel;
+    html += '<div class="linha"><div><b>' + s.nome + '</b><small>' + (bloqueada ? 'libera no nível ' + s.nivel : s.tempo + 's · vende por ' + s.venda) + '</small></div><button ' + (bloqueada ? 'disabled' : '') + ' onclick="sementeEscolhida=\'' + k + '\';ferramenta=\'semente\';montarFerramentas();fecharJanela()">' + s.preco + ' ●</button></div>';
+  }
+  abrirJanela(html + '<button class="largo" onclick="fecharJanela()">Voltar</button>');
+}
+function abrirJanela(h) { const j = document.getElementById('janela'); j.innerHTML = '<div class="cx">' + h + '</div>'; j.classList.remove('fechada'); }
+function fecharJanela() { document.getElementById('janela').classList.add('fechada'); }
+
+/* ---------------- tempo passa ---------------- */
+function ganharXp(q) {
+  xp += q;
+  const precisa = nivel * 30;
+  if (xp >= precisa) { xp -= precisa; nivel++; avisar('Nível ' + nivel + '! Sementes novas na loja'); }
+}
+function atualizar(dt) {
+  horaDoDia += dt / DURACAO_DIA;
+  if (horaDoDia >= 1) {
+    horaDoDia = 0; dia++;
+    terra.forEach(c => { c.regado = false; if (c.planta && Math.random() < 0.08) c.praga = true; });
+    bichos.forEach(b => b.alimentado = false);
+    avisar('Bom dia! Dia ' + dia);
+  }
+  terra.forEach(c => {
+    if (!c.planta || c.cresce >= 1) return;
+    const s = SEMENTES[c.planta];
+    c.cresce = Math.min(1, c.cresce + dt / s.tempo * (c.regado ? 1.6 : 0.6) * (c.praga ? 0.3 : 1));
+  });
+  bichos.forEach(b => {
+    const t = BICHOS[b.tipo];
+    if (!b.pronto && b.alimentado) { b.tempo += dt; if (b.tempo >= t.tempo) { b.pronto = true; soltarMoedas(b.x, b.y, 2); } }
+    b.passo += dt;
+    if (Math.hypot(b.alvoX - b.x, b.alvoY - b.y) < 4) { b.alvoX = cercado().x + 20 + Math.random() * (cercado().w - 40); b.alvoY = cercado().y + 20 + Math.random() * (cercado().h - 40); }
+    b.x += (b.alvoX - b.x) * Math.min(1, dt * 0.8); b.y += (b.alvoY - b.y) * Math.min(1, dt * 0.8);
+  });
+  for (let i = moedasNoChao.length - 1; i >= 0; i--) {
+    const m = moedasNoChao[i];
+    if (m.y < m.chao) { m.vy += 500 * dt; m.y += m.vy * dt; } else m.y = m.chao;
+    m.vida -= dt; m.brilho += dt * 5;
+    if (m.vida <= 0) moedasNoChao.splice(i, 1);
+  }
+  for (let i = flutuantes.length - 1; i >= 0; i--) { const f = flutuantes[i]; f.y -= 30 * dt; f.vida -= dt; if (f.vida <= 0) flutuantes.splice(i, 1); }
+  nuvens.forEach(n => { n.x += n.v * dt; if (n.x > W + 100) n.x = -120; });
+  document.querySelector('#barraDia i').style.width = (horaDoDia * 100) + '%';
+}
+
+function cercado() { return { x: OX + COLS * TAM + 10, y: OY, w: TAM * 3, h: LINS * TAM }; }
+function posicionarBichos() { const c = cercado(); bichos.forEach((b, i) => { if (!b.x) { b.x = c.x + 30 + (i % 2) * TAM * 1.2; b.y = c.y + 40 + Math.floor(i / 2) * TAM * 1.4; b.alvoX = b.x; b.alvoY = b.y; } }); }
+
+/* ---------------- efeitos e textos ---------------- */
+function poeira(cx, cy, cor) { for (let i = 0; i < 6; i++) flutuantes.push({ x: OX + cx * TAM + Math.random() * TAM, y: OY + cy * TAM + TAM * 0.6, txt: '•', cor, vida: 0.5 }); }
+function flutuar(x, y, txt, cor) { flutuantes.push({ x, y, txt, cor, vida: 1.4 }); }
+let avisoTxt = '', avisoTempo = 0;
+function avisar(t) { avisoTxt = t; avisoTempo = 2.5; }
+function atualizarTopo() {
+  document.getElementById('moedasTxt').textContent = '● ' + moedas;
+  document.getElementById('diaTxt').firstChild.textContent = 'Dia ' + dia + ' ';
+  const total = Object.values(celeiro).reduce((a, b) => a + b, 0);
+  document.getElementById('celeiroTxt').textContent = 'Celeiro ' + total + '/' + celeiroMax;
+  document.getElementById('nivelTxt').textContent = 'Nv ' + nivel;
+}
+
+/* ---------------- desenho ---------------- */
+function desenhar(dt) {
+  const noite = Math.max(0, Math.sin((horaDoDia - 0.75) * Math.PI * 2)) * 0.45;
+  ctx.fillStyle = '#8fd16b'; ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 70; i++) { ctx.fillStyle = 'rgba(60,120,40,.25)'; ctx.fillRect((i * 97) % W, (i * 53) % H, 3, 7); }
+  nuvens.forEach(n => { ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.ellipse(n.x, n.y + 120, n.t, n.t * 0.4, 0, 0, Math.PI * 2); ctx.fill(); });
+  /* canteiros */
+  terra.forEach(c => {
+    const x = OX + c.x * TAM, y = OY + c.y * TAM;
+    ctx.fillStyle = c.arado ? (c.regado ? '#5d4037' : '#8d6e63') : '#7cb85a';
+    ctx.fillRect(x + 2, y + 2, TAM - 4, TAM - 4);
+    if (c.arado) { ctx.fillStyle = 'rgba(0,0,0,.12)'; for (let k = 1; k < 4; k++) ctx.fillRect(x + 6, y + k * TAM / 4, TAM - 12, 3); }
+    if (c.planta) desenharPlanta(c, x, y);
+  });
+  /* cercado */
+  const cc = cercado();
+  ctx.fillStyle = '#9ccc65'; ctx.fillRect(cc.x, cc.y, cc.w, cc.h);
+  ctx.strokeStyle = '#795548'; ctx.lineWidth = 5; ctx.strokeRect(cc.x, cc.y, cc.w, cc.h);
+  bichos.forEach(desenharBicho);
+  /* moedas no chão */
+  moedasNoChao.forEach(m => {
+    const pisca = m.vida < 3 && Math.floor(m.vida * 6) % 2;
+    if (pisca) return;
+    const larg = Math.abs(Math.cos(m.brilho)) * 11 + 3;
+    ctx.fillStyle = '#f9a825';
+    ctx.beginPath(); ctx.ellipse(m.x, m.y, larg, 13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff59d';
+    ctx.beginPath(); ctx.ellipse(m.x - larg * 0.3, m.y - 4, larg * 0.3, 4, 0, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.font = 'bold 15px system-ui'; ctx.textAlign = 'center';
+  flutuantes.forEach(f => { ctx.globalAlpha = Math.min(1, f.vida * 2); ctx.fillStyle = f.cor; ctx.fillText(f.txt, f.x, f.y); });
+  ctx.globalAlpha = 1;
+  if (noite > 0) { ctx.fillStyle = 'rgba(20,20,70,' + noite + ')'; ctx.fillRect(0, 0, W, H); }
+  if (avisoTempo > 0) {
+    avisoTempo -= dt;
+    ctx.fillStyle = 'rgba(0,0,0,.6)'; const tw = ctx.measureText(avisoTxt).width + 30;
+    ctx.fillRect(W / 2 - tw / 2, H - 140, tw, 34);
+    ctx.fillStyle = '#fff'; ctx.fillText(avisoTxt, W / 2, H - 118);
+  }
+}
+function desenharPlanta(c, x, y) {
+  const s = SEMENTES[c.planta], g = c.cresce, cx = x + TAM / 2, base = y + TAM * 0.8;
+  ctx.strokeStyle = '#2e7d32'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(cx, base); ctx.lineTo(cx, base - TAM * 0.5 * g); ctx.stroke();
+  ctx.fillStyle = '#43a047';
+  ctx.beginPath(); ctx.ellipse(cx - 8 * g, base - TAM * 0.3 * g, 9 * g + 2, 4, -0.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx + 8 * g, base - TAM * 0.38 * g, 9 * g + 2, 4, 0.5, 0, Math.PI * 2); ctx.fill();
+  if (g >= 1) { ctx.fillStyle = s.cor; ctx.beginPath(); ctx.arc(cx, base - TAM * 0.55, TAM * 0.16, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = 'bold 12px system-ui'; ctx.fillText('!', cx, y + 14); }
+  if (c.praga) { ctx.fillStyle = '#6a1b9a'; for (let k = 0; k < 3; k++) ctx.fillRect(cx - 12 + k * 10, base - 10 - (k % 2) * 8, 4, 4); }
+  if (!c.regado) { ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '12px system-ui'; ctx.fillText('💧?', x + TAM - 14, y + 14); }
+}
+function desenharBicho(b) {
+  const t = BICHOS[b.tipo], pula = Math.abs(Math.sin(b.passo * 3)) * 3;
+  ctx.fillStyle = b.tipo === 'vaca' ? '#fafafa' : t.cor;
+  ctx.beginPath(); ctx.ellipse(b.x, b.y - pula, TAM * 0.32, TAM * 0.22, 0, 0, Math.PI * 2); ctx.fill();
+  if (b.tipo === 'vaca') { ctx.fillStyle = '#212121'; ctx.beginPath(); ctx.arc(b.x - 6, b.y - pula - 4, 6, 0, Math.PI * 2); ctx.fill(); }
+  if (b.tipo === 'galinha') { ctx.fillStyle = '#e53935'; ctx.fillRect(b.x + TAM * 0.2, b.y - pula - 14, 6, 6); }
+  ctx.fillStyle = '#212121'; ctx.fillRect(b.x + TAM * 0.18, b.y - pula - 6, 3, 3);
+  if (b.pronto) { ctx.fillStyle = '#fff'; ctx.font = 'bold 14px system-ui'; ctx.fillText(t.produto + '!', b.x, b.y - TAM * 0.4); }
+  else if (!b.alimentado) { ctx.fillStyle = '#5d4037'; ctx.font = '12px system-ui'; ctx.fillText('fome', b.x, b.y - TAM * 0.38); }
+}
+
+/* ---------------- começar ---------------- */
+campo.addEventListener('pointerdown', e => tocar(e.clientX, e.clientY));
+let antes = performance.now();
+function quadro(agora) {
+  const dt = Math.min(0.05, (agora - antes) / 1000); antes = agora;
+  atualizar(dt); desenhar(dt);
+  requestAnimationFrame(quadro);
+}
+redimensionar();
+iniciarTerra();
+montarFerramentas();
+atualizarTopo();
+abrirJanela('<h1>🌻 Fazenda Feliz</h1><p>Are a terra (⛏), plante (🌱), regue (💧) e colha (🧺).<br>Venda no mercado (💰): as moedas caem no chão, toque nelas para pegar!<br>Compre bichos na loja (🏪) e dê comida para eles produzirem.</p><button class="largo" onclick="fecharJanela()">Começar</button>');
+requestAnimationFrame(quadro);
+</script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Corrida Neon</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #05010f; color: #fff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #placar { position: fixed; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; text-shadow: 0 0 8px #f0f, 0 2px 0 #000; pointer-events: none; }
+  #menu { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(circle at 50% 40%, #2a0a4a, #05010f 70%); text-align: center; padding: 20px; }
+  #menu.fora { display: none; }
+  #menu h1 { font-size: 46px; letter-spacing: 3px; color: #fff; text-shadow: 0 0 12px #0ff, 0 0 28px #f0f; }
+  #menu p { max-width: 420px; opacity: .85; line-height: 1.5; }
+  #menu button { font: inherit; font-size: 20px; font-weight: 900; padding: 14px 34px; border-radius: 40px; border: 3px solid #0ff; background: transparent; color: #0ff; cursor: pointer; text-shadow: 0 0 8px #0ff; box-shadow: 0 0 16px #0ff8 inset, 0 0 16px #0ff8; }
+  #menu .dica { font-size: 13px; opacity: .6; }
+  #power { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: none; }
+  #power span { background: rgba(0,0,0,.5); border: 2px solid #0ff6; border-radius: 10px; padding: 4px 10px; font-weight: 800; font-size: 13px; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="placar"><span id="dist">0 m</span><span id="cristais">◆ 0</span></div>
+<div id="power"></div>
+<div id="menu">
+  <h1>CORRIDA NEON</h1>
+  <p>Corra pela cidade neon! Troque de pista, pule as barreiras e deslize por baixo dos lasers.<br>Pegue cristais e poderes: ímã, escudo e turbo.</p>
+  <button id="jogar">CORRER</button>
+  <div class="dica">← → trocam de pista · ↑ pula · ↓ desliza<br>No celular: arraste o dedo para os lados, para cima ou para baixo</div>
+  <div id="melhor" class="dica"></div>
+</div>
+<script>
+/* =========================================================
+   CORRIDA NEON - corredor infinito em 3 pistas, com perspectiva
+   ========================================================= */
+var c = document.getElementById('c');
+var g = c.getContext('2d');
+var L = 0, A = 0;
+var PISTAS = 3;
+var HORIZONTE = 0.36;      // altura do horizonte (fração da tela)
+var PROFUNDO = 60;         // distância visível
+
+var estado = 'menu';
+var distancia = 0;
+var cristais = 0;
+var melhorDistancia = 0;
+var velocidade = 18;       // metros por segundo
+var velocidadeMax = 46;
+var aceleracao = 0.35;
+var gravidade = 38;
+var forcaPulo = 14;
+var tempoTotal = 0;
+
+var corredor = {
+  pista: 1, xVisual: 1, y: 0, vy: 0, noChao: true,
+  deslizando: 0, piscar: 0, passo: 0,
+  escudo: 0, ima: 0, turbo: 0
+};
+
+var objetos = [];          // obstáculos, cristais e poderes
+var faiscas = [];
+var predios = [];
+var proximoObjeto = 20;
+var tremer = 0;
+
+function tamanho() {
+  var d = Math.min(window.devicePixelRatio || 1, 2);
+  L = window.innerWidth; A = window.innerHeight;
+  c.width = L * d; c.height = A * d;
+  g.setTransform(d, 0, 0, d, 0, 0);
+}
+window.addEventListener('resize', tamanho);
+
+/* ---------- projeção: (pista, altura, distância) -> tela ---------- */
+function projetar(pista, altura, z) {
+  var esc = 1 / (1 + z * 0.08);
+  var hy = A * HORIZONTE;
+  var chao = hy + (A - hy) * esc;
+  var larguraPista = L * 0.26 * esc;
+  var x = L / 2 + (pista - 1) * larguraPista;
+  return { x: x, y: chao - altura * 46 * esc, s: esc, w: larguraPista };
+}
+
+/* ---------- sons ---------- */
+var sons = null;
+function tocar(freq, dur, onda, vol, fim) {
+  try {
+    sons = sons || new (window.AudioContext || window.webkitAudioContext)();
+    var o = sons.createOscillator(), v = sons.createGain(), t = sons.currentTime;
+    o.type = onda || 'sine'; o.frequency.setValueAtTime(freq, t);
+    if (fim) o.frequency.exponentialRampToValueAtTime(fim, t + dur);
+    v.gain.setValueAtTime(vol || 0.05, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(v); v.connect(sons.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+
+/* ---------- mundo ---------- */
+function gerarPredios() {
+  predios = [];
+  for (var i = 0; i < 40; i++) {
+    predios.push({ lado: i % 2 ? -1 : 1, z: i * 3, alt: 3 + Math.random() * 9, cor: ['#ff2bd6', '#2bf0ff', '#8a2bff', '#ffe02b'][i % 4], janelas: Math.floor(Math.random() * 1000) });
+  }
+}
+
+function criarObjeto(z) {
+  var r = Math.random();
+  var pista = Math.floor(Math.random() * PISTAS);
+  if (r < 0.32) objetos.push({ tipo: 'barreira', pista: pista, z: z });
+  else if (r < 0.52) objetos.push({ tipo: 'laser', pista: pista, z: z });
+  else if (r < 0.62) {
+    /* parede em duas pistas: só uma fica livre */
+    var livre = Math.floor(Math.random() * PISTAS);
+    for (var p = 0; p < PISTAS; p++) if (p !== livre) objetos.push({ tipo: 'muro', pista: p, z: z });
+  }
+  else if (r < 0.93) {
+    for (var k = 0; k < 6; k++) objetos.push({ tipo: 'cristal', pista: pista, z: z + k * 1.6, alt: 0.6 });
+  }
+  else {
+    var poderes = ['ima', 'escudo', 'turbo'];
+    objetos.push({ tipo: poderes[Math.floor(Math.random() * 3)], pista: pista, z: z, alt: 0.8 });
+  }
+}
+
+function comecar() {
+  estado = 'correndo';
+  distancia = 0; cristais = 0; velocidade = 18; tempoTotal = 0;
+  corredor.pista = 1; corredor.xVisual = 1; corredor.y = 0; corredor.vy = 0; corredor.noChao = true;
+  corredor.deslizando = 0; corredor.escudo = 0; corredor.ima = 0; corredor.turbo = 0; corredor.piscar = 0;
+  objetos = []; faiscas = [];
+  proximoObjeto = 25;
+  gerarPredios();
+  document.getElementById('menu').classList.add('fora');
+  tocar(330, 0.2, 'triangle', 0.06, 660);
+}
+
+function bater() {
+  if (corredor.escudo > 0) {
+    corredor.escudo = 0; corredor.piscar = 1;
+    estourar(projetar(corredor.xVisual, corredor.y, 2), '#0ff', 30);
+    tocar(200, 0.3, 'square', 0.06, 80);
+    return;
+  }
+  if (corredor.piscar > 0) return;
+  estado = 'batida';
+  tremer = 0.5;
+  tocar(90, 0.7, 'sawtooth', 0.09, 40);
+  estourar(projetar(corredor.xVisual, corredor.y, 2), '#f0f', 60);
+  if (distancia > melhorDistancia) melhorDistancia = Math.floor(distancia);
+  setTimeout(function () {
+    estado = 'menu';
+    var m = document.getElementById('menu');
+    m.querySelector('h1').textContent = 'BATEU!';
+    m.querySelector('p').innerHTML = 'Você correu <b>' + Math.floor(distancia) + ' m</b> e pegou <b>' + cristais + '</b> cristais.';
+    document.getElementById('jogar').textContent = 'DE NOVO';
+    document.getElementById('melhor').textContent = 'Recorde: ' + melhorDistancia + ' m';
+    m.classList.remove('fora');
+  }, 900);
+}
+
+function estourar(p, cor, n) {
+  for (var i = 0; i < n; i++) {
+    var a = Math.random() * Math.PI * 2, v = 80 + Math.random() * 280;
+    faiscas.push({ x: p.x, y: p.y - 30 * p.s, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vida: 0.6 + Math.random() * 0.4, cor: cor });
+  }
+}
+
+/* ---------- atualizar ---------- */
+function atualizar(dt) {
+  tempoTotal += dt;
+  for (var i = faiscas.length - 1; i >= 0; i--) { var f = faiscas[i]; f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 400 * dt; f.vida -= dt; if (f.vida <= 0) faiscas.splice(i, 1); }
+  if (tremer > 0) tremer -= dt;
+  if (estado !== 'correndo') return;
+
+  var vel = velocidade * (corredor.turbo > 0 ? 1.8 : 1);
+  if (velocidade < velocidadeMax) velocidade += aceleracao * dt;
+  distancia += vel * dt;
+
+  corredor.xVisual += (corredor.pista - corredor.xVisual) * Math.min(1, dt * 14);
+  corredor.passo += dt * vel * 0.6;
+  if (!corredor.noChao) {
+    corredor.vy -= gravidade * dt;
+    corredor.y += corredor.vy * dt;
+    if (corredor.y <= 0) { corredor.y = 0; corredor.vy = 0; corredor.noChao = true; tocar(160, 0.06, 'square', 0.03); }
+  }
+  if (corredor.deslizando > 0) corredor.deslizando -= dt;
+  if (corredor.escudo > 0) corredor.escudo -= dt;
+  if (corredor.ima > 0) corredor.ima -= dt;
+  if (corredor.turbo > 0) { corredor.turbo -= dt; corredor.piscar = Math.max(corredor.piscar, 0.2); }
+  if (corredor.piscar > 0) corredor.piscar -= dt;
+
+  /* mundo anda */
+  for (var j = objetos.length - 1; j >= 0; j--) {
+    var o = objetos[j];
+    o.z -= vel * dt;
+    if (o.tipo === 'cristal' && corredor.ima > 0 && o.z < 14) {
+      o.pista += (corredor.xVisual - o.pista) * Math.min(1, dt * 8);
+    }
+    if (o.z < -2) { objetos.splice(j, 1); continue; }
+    if (o.z < 0.8 && o.z > -0.8 && Math.abs(o.pista - corredor.xVisual) < 0.45) {
+      if (o.tipo === 'cristal') { cristais++; objetos.splice(j, 1); tocar(1200 + (cristais % 5) * 120, 0.08, 'sine', 0.04); continue; }
+      if (o.tipo === 'ima') { corredor.ima = 8; objetos.splice(j, 1); tocar(500, 0.3, 'triangle', 0.06, 1000); continue; }
+      if (o.tipo === 'escudo') { corredor.escudo = 10; objetos.splice(j, 1); tocar(700, 0.3, 'triangle', 0.06, 1400); continue; }
+      if (o.tipo === 'turbo') { corredor.turbo = 4; objetos.splice(j, 1); tocar(300, 0.5, 'sawtooth', 0.05, 1200); continue; }
+      if (o.tipo === 'barreira' && corredor.y < 0.9) bater();
+      if (o.tipo === 'laser' && corredor.deslizando <= 0) bater();
+      if (o.tipo === 'muro') bater();
+      if (estado !== 'correndo') return;
+    }
+  }
+  for (var p = 0; p < predios.length; p++) { predios[p].z -= vel * dt * 0.9; if (predios[p].z < -3) predios[p].z += 120; }
+
+  proximoObjeto -= vel * dt;
+  if (proximoObjeto <= 0) { criarObjeto(PROFUNDO); proximoObjeto = Math.max(9, 22 - velocidade * 0.25) + Math.random() * 8; }
+
+  document.getElementById('dist').textContent = Math.floor(distancia) + ' m';
+  document.getElementById('cristais').textContent = '◆ ' + cristais;
+  var pw = [];
+  if (corredor.escudo > 0) pw.push('🛡 ' + Math.ceil(corredor.escudo));
+  if (corredor.ima > 0) pw.push('🧲 ' + Math.ceil(corredor.ima));
+  if (corredor.turbo > 0) pw.push('⚡ ' + Math.ceil(corredor.turbo));
+  document.getElementById('power').innerHTML = pw.map(function (x) { return '<span>' + x + '</span>'; }).join('');
+}
+
+/* ---------- desenhar ---------- */
+function desenhar() {
+  g.save();
+  if (tremer > 0) g.translate((Math.random() - 0.5) * 14, (Math.random() - 0.5) * 14);
+  var hy = A * HORIZONTE;
+  var ceu = g.createLinearGradient(0, 0, 0, hy);
+  ceu.addColorStop(0, '#05010f'); ceu.addColorStop(1, '#3a0a5a');
+  g.fillStyle = ceu; g.fillRect(-20, -20, L + 40, hy + 20);
+  /* sol neon com listras */
+  var sx = L / 2, sy = hy - 10, sr = Math.min(L, A) * 0.16;
+  var sol = g.createLinearGradient(0, sy - sr, 0, sy + sr);
+  sol.addColorStop(0, '#ffe02b'); sol.addColorStop(1, '#ff2bd6');
+  g.fillStyle = sol; g.beginPath(); g.arc(sx, sy, sr, Math.PI, 0); g.fill();
+  g.fillStyle = '#3a0a5a';
+  for (var k = 0; k < 5; k++) g.fillRect(sx - sr, sy - k * sr * 0.18 - 4, sr * 2, 3 + k * 0.6);
+
+  /* chão */
+  g.fillStyle = '#0b0220'; g.fillRect(-20, hy, L + 40, A - hy + 20);
+  /* linhas do chão que andam */
+  g.strokeStyle = '#ff2bd6'; g.lineWidth = 2; g.globalAlpha = 0.7;
+  var desloc = (distancia % 4);
+  for (var z = PROFUNDO; z >= 0; z -= 4) {
+    var pz = projetar(1, 0, z - desloc);
+    g.beginPath(); g.moveTo(-20, pz.y); g.lineTo(L + 20, pz.y); g.stroke();
+  }
+  g.strokeStyle = '#2bf0ff';
+  for (var b = -0.5; b <= PISTAS - 0.5; b += 1) {
+    var p1 = projetar(b, 0, 0), p2 = projetar(b, 0, PROFUNDO);
+    g.beginPath(); g.moveTo(p1.x, p1.y); g.lineTo(p2.x, p2.y); g.stroke();
+  }
+  g.globalAlpha = 1;
+
+  /* prédios dos lados, do fundo para a frente */
+  var visiveis = predios.filter(function (pr) { return pr.z > 0 && pr.z < PROFUNDO; }).sort(function (a, b) { return b.z - a.z; });
+  visiveis.forEach(function (pr) {
+    var base = projetar(pr.lado > 0 ? 3.6 : -1.6, 0, pr.z), topo = projetar(pr.lado > 0 ? 3.6 : -1.6, pr.alt, pr.z);
+    var w = base.w * 1.4;
+    g.fillStyle = '#12052a'; g.fillRect(base.x - w / 2, topo.y, w, base.y - topo.y);
+    g.strokeStyle = pr.cor; g.lineWidth = 2 * base.s + 0.5; g.strokeRect(base.x - w / 2, topo.y, w, base.y - topo.y);
+    g.fillStyle = pr.cor; g.globalAlpha = 0.5;
+    for (var jy = 0; jy < 6; jy++) for (var jx = 0; jx < 3; jx++) if ((pr.janelas >> (jy * 3 + jx)) & 1) g.fillRect(base.x - w / 2 + w * (0.15 + jx * 0.28), topo.y + (base.y - topo.y) * (0.08 + jy * 0.14), w * 0.14, (base.y - topo.y) * 0.06);
+    g.globalAlpha = 1;
+  });
+
+  /* objetos, do fundo para a frente */
+  var lista = objetos.slice().sort(function (a, b) { return b.z - a.z; });
+  var corredorDesenhado = false;
+  for (var i = 0; i < lista.length; i++) {
+    var o = lista[i];
+    if (!corredorDesenhado && o.z < 0.5) { desenharCorredor(); corredorDesenhado = true; }
+    if (o.z > PROFUNDO) continue;
+    desenharObjeto(o);
+  }
+  if (!corredorDesenhado) desenharCorredor();
+
+  for (var f = 0; f < faiscas.length; f++) { var fa = faiscas[f]; g.globalAlpha = Math.max(0, fa.vida); g.fillStyle = fa.cor; g.fillRect(fa.x - 2, fa.y - 2, 4, 4); }
+  g.globalAlpha = 1;
+  g.restore();
+}
+
+function desenharObjeto(o) {
+  var p = projetar(o.pista, o.alt || 0, o.z);
+  var w = p.w * 0.8;
+  if (o.tipo === 'barreira') {
+    g.fillStyle = '#ff2b5a'; g.shadowColor = '#ff2b5a'; g.shadowBlur = 12 * p.s;
+    g.fillRect(p.x - w / 2, p.y - 36 * p.s, w, 12 * p.s);
+    g.fillRect(p.x - w / 2, p.y - 36 * p.s, 6 * p.s, 36 * p.s); g.fillRect(p.x + w / 2 - 6 * p.s, p.y - 36 * p.s, 6 * p.s, 36 * p.s);
+    g.shadowBlur = 0;
+  } else if (o.tipo === 'laser') {
+    var alto = projetar(o.pista, 1.25, o.z);
+    g.strokeStyle = '#ffe02b'; g.lineWidth = 5 * p.s; g.shadowColor = '#ffe02b'; g.shadowBlur = 14 * p.s;
+    g.beginPath(); g.moveTo(p.x - w / 2, alto.y); g.lineTo(p.x + w / 2, alto.y); g.stroke();
+    g.shadowBlur = 0;
+    g.fillStyle = '#444'; g.fillRect(p.x - w / 2 - 4 * p.s, alto.y - 6 * p.s, 8 * p.s, p.y - alto.y + 6 * p.s); g.fillRect(p.x + w / 2 - 4 * p.s, alto.y - 6 * p.s, 8 * p.s, p.y - alto.y + 6 * p.s);
+  } else if (o.tipo === 'muro') {
+    var topo = projetar(o.pista, 2.6, o.z);
+    g.fillStyle = '#2b1060'; g.fillRect(p.x - w / 2, topo.y, w, p.y - topo.y);
+    g.strokeStyle = '#8a2bff'; g.lineWidth = 3 * p.s; g.strokeRect(p.x - w / 2, topo.y, w, p.y - topo.y);
+  } else if (o.tipo === 'cristal') {
+    var r = 12 * p.s, gira = Math.sin(tempoTotal * 6 + o.z);
+    g.fillStyle = '#2bf0ff'; g.shadowColor = '#2bf0ff'; g.shadowBlur = 10 * p.s;
+    g.beginPath(); g.moveTo(p.x, p.y - r * 1.4); g.lineTo(p.x + r * Math.abs(gira), p.y); g.lineTo(p.x, p.y + r * 1.4); g.lineTo(p.x - r * Math.abs(gira), p.y); g.closePath(); g.fill();
+    g.shadowBlur = 0;
+  } else {
+    var cor = o.tipo === 'ima' ? '#ff2bd6' : o.tipo === 'escudo' ? '#2bf0ff' : '#ffe02b';
+    var simbolo = o.tipo === 'ima' ? 'U' : o.tipo === 'escudo' ? 'O' : '>';
+    g.fillStyle = cor; g.shadowColor = cor; g.shadowBlur = 16 * p.s;
+    g.beginPath(); g.arc(p.x, p.y, 16 * p.s, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
+    g.fillStyle = '#05010f'; g.font = 'bold ' + Math.round(18 * p.s) + 'px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(simbolo, p.x, p.y + 1);
+  }
+}
+
+function desenharCorredor() {
+  if (estado === 'batida') return;
+  if (corredor.piscar > 0 && corredor.turbo <= 0 && Math.floor(tempoTotal * 18) % 2) return;
+  var p = projetar(corredor.xVisual, corredor.y, 0.3);
+  var alto = corredor.deslizando > 0 ? 34 : 70;
+  var largo = 34;
+  /* sombra */
+  var sombra = projetar(corredor.xVisual, 0, 0.3);
+  g.fillStyle = 'rgba(0,0,0,.45)'; g.beginPath(); g.ellipse(sombra.x, sombra.y, 26 * sombra.s, 7 * sombra.s, 0, 0, Math.PI * 2); g.fill();
+  /* rastro do turbo */
+  if (corredor.turbo > 0) { g.fillStyle = 'rgba(255,224,43,.35)'; g.fillRect(p.x - largo / 2, p.y - alto, largo, alto + 40); }
+  /* o corredor */
+  g.fillStyle = '#e8f6ff';
+  g.fillRect(p.x - largo / 2, p.y - alto, largo, alto);
+  g.fillStyle = '#ff2bd6'; g.fillRect(p.x - largo / 2, p.y - alto + 8, largo, 8);
+  g.fillStyle = '#05010f'; g.fillRect(p.x - 10, p.y - alto + 20, 20, 6);
+  var perna = Math.sin(corredor.passo) * 8;
+  if (corredor.noChao && corredor.deslizando <= 0) { g.fillStyle = '#2bf0ff'; g.fillRect(p.x - 12, p.y - 6 + perna * 0.3, 9, 6); g.fillRect(p.x + 3, p.y - 6 - perna * 0.3, 9, 6); }
+  if (corredor.escudo > 0) { g.strokeStyle = 'rgba(43,240,255,' + (0.5 + 0.3 * Math.sin(tempoTotal * 8)) + ')'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y - alto / 2, alto * 0.75, 0, Math.PI * 2); g.stroke(); }
+}
+
+/* ---------- controles ---------- */
+function esquerda() { if (corredor.pista > 0) { corredor.pista--; tocar(520, 0.05, 'square', 0.03); } }
+function direita() { if (corredor.pista < PISTAS - 1) { corredor.pista++; tocar(520, 0.05, 'square', 0.03); } }
+function pular() { if (corredor.noChao) { corredor.vy = forcaPulo; corredor.noChao = false; corredor.deslizando = 0; tocar(400, 0.15, 'triangle', 0.05, 900); } }
+function deslizar() { if (!corredor.noChao) corredor.vy = -forcaPulo * 1.2; corredor.deslizando = 0.8; tocar(240, 0.15, 'triangle', 0.04, 120); }
+
+document.addEventListener('keydown', function (e) {
+  if (estado !== 'correndo') { if (e.code === 'Space' || e.code === 'Enter') comecar(); return; }
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') esquerda();
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') direita();
+  if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') pular();
+  if (e.code === 'ArrowDown' || e.code === 'KeyS') deslizar();
+});
+var toqueIni = null;
+c.addEventListener('pointerdown', function (e) { toqueIni = { x: e.clientX, y: e.clientY }; });
+c.addEventListener('pointerup', function (e) {
+  if (!toqueIni || estado !== 'correndo') return;
+  var dx = e.clientX - toqueIni.x, dy = e.clientY - toqueIni.y;
+  if (Math.abs(dx) < 20 && Math.abs(dy) < 20) { if (e.clientX < L / 3) esquerda(); else if (e.clientX > L * 2 / 3) direita(); else pular(); }
+  else if (Math.abs(dx) > Math.abs(dy)) { if (dx < 0) esquerda(); else direita(); }
+  else { if (dy < 0) pular(); else deslizar(); }
+  toqueIni = null;
+});
+document.getElementById('jogar').addEventListener('click', comecar);
+
+var ultimoQuadro = performance.now();
+function loop(agora) {
+  var dt = Math.min(0.05, (agora - ultimoQuadro) / 1000);
+  ultimoQuadro = agora;
+  atualizar(dt);
+  desenhar();
+  requestAnimationFrame(loop);
+}
+tamanho();
+gerarPredios();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

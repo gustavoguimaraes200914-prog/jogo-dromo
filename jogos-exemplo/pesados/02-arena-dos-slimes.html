@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Arena dos Slimes</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #1b1530; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #fff; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #topo { position: fixed; top: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; gap: 8px; }
+  .bloco { background: rgba(10,8,25,.6); border-radius: 12px; padding: 6px 10px; font-weight: 800; font-size: 14px; border: 2px solid rgba(255,255,255,.12); }
+  #coracoes { letter-spacing: 2px; font-size: 18px; }
+  #xpBarra { width: 140px; height: 8px; background: #2c2550; border-radius: 6px; margin-top: 4px; overflow: hidden; }
+  #xpBarra i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#6cf,#b8f); }
+  #tela { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(12,8,30,.82); z-index: 5; }
+  #tela.some { display: none; }
+  .janela { width: min(94vw, 460px); background: #2a2150; border: 3px solid #5a4aa0; border-radius: 20px; padding: 18px; text-align: center; box-shadow: 0 10px 0 #0007; }
+  .janela h1 { font-size: 28px; color: #9ff7a6; margin-bottom: 6px; }
+  .janela p { opacity: .9; line-height: 1.45; margin-bottom: 12px; font-size: 14px; }
+  .cartas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  .carta { background: #3b2f70; border: 2px solid #7b68d8; border-radius: 14px; padding: 10px 6px; cursor: pointer; }
+  .carta:hover { background: #4a3c88; }
+  .carta b { display: block; font-size: 14px; margin: 4px 0; } .carta small { font-size: 11px; opacity: .8; }
+  .carta .ico { font-size: 26px; }
+  button { font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 12px 16px; background: #9ff7a6; color: #1b1530; cursor: pointer; box-shadow: 0 4px 0 #4caf6a; width: 100%; font-size: 17px; }
+  #pausa { position: fixed; right: 10px; bottom: 10px; width: auto; padding: 8px 12px; font-size: 14px; background: rgba(255,255,255,.18); color: #fff; box-shadow: none; z-index: 4; }
+  #stick { position: fixed; left: 24px; bottom: 24px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.18); z-index: 3; }
+  #stick i { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.35); }
+  #onda { position: fixed; top: 40%; left: 0; right: 0; text-align: center; font-size: 40px; font-weight: 900; color: #ffe66b; text-shadow: 0 4px 0 #0008; pointer-events: none; opacity: 0; transition: opacity .3s; }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="topo">
+  <div class="bloco"><div id="coracoes">❤❤❤</div><div id="xpBarra"><i></i></div></div>
+  <div class="bloco" id="info">Onda 1 · 0 pts</div>
+  <div class="bloco" id="gemasTxt">💎 0</div>
+</div>
+<div id="onda"></div>
+<div id="stick"><i></i></div>
+<button id="pausa">Pausa</button>
+<div id="tela"></div>
+
+<script>
+/* =========================================================
+   ARENA DOS SLIMES
+   Sobreviva às ondas de slimes. O herói atira sozinho no mais perto.
+   Cada nível de XP deixa você escolher uma melhoria.
+   ========================================================= */
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0;
+const ARENA = { w: 1600, h: 1100 };
+
+let pontos = 0;
+let recorde = 0;
+let gemas = 0;
+let onda = 0;
+let estado = 'menu';   // menu | jogando | escolha | pausa | fim
+let tempoOnda = 0;
+let paraNascer = 0;
+let relogio = 0;
+
+const jogador = {
+  x: 800, y: 550, raio: 18,
+  vida: 3, vidaMax: 3,
+  velocidade: 230,
+  dano: 1,
+  cadencia: 0.45,       // segundos entre tiros
+  alcance: 420,
+  tirosPorVez: 1,
+  perfura: 0,
+  ima: 90,
+  xp: 0, nivel: 1, xpProximo: 6,
+  invencivel: 0, recarga: 0, olha: 0
+};
+
+let inimigos = [];
+let tiros = [];
+let joias = [];
+let particulas = [];
+let numeros = [];
+let tremor = 0;
+
+const TIPOS = {
+  verde:  { cor: '#6be36b', raio: 16, vida: 2,  vel: 70,  dano: 1, xp: 1, pontos: 10 },
+  azul:   { cor: '#5ab4ff', raio: 13, vida: 1,  vel: 130, dano: 1, xp: 1, pontos: 12 },
+  roxo:   { cor: '#b46bff', raio: 22, vida: 6,  vel: 55,  dano: 1, xp: 3, pontos: 30 },
+  laranja:{ cor: '#ff9f43', raio: 15, vida: 3,  vel: 90,  dano: 1, xp: 2, pontos: 20, atira: true },
+  rei:    { cor: '#ff4d6d', raio: 46, vida: 60, vel: 45,  dano: 2, xp: 25, pontos: 500, chefe: true }
+};
+
+const MELHORIAS = [
+  { id: 'dano',    ico: '⚔', nome: 'Mais dano',      desc: '+1 de dano',              aplicar: () => { jogador.dano += 1; } },
+  { id: 'rapido',  ico: '⚡', nome: 'Tiro rápido',    desc: 'atira 20% mais rápido',   aplicar: () => { jogador.cadencia *= 0.8; } },
+  { id: 'duplo',   ico: '✦', nome: 'Tiro extra',     desc: '+1 tiro por vez',         aplicar: () => { jogador.tirosPorVez += 1; } },
+  { id: 'botas',   ico: '👟', nome: 'Botas',          desc: 'anda 12% mais rápido',    aplicar: () => { jogador.velocidade *= 1.12; } },
+  { id: 'coracao', ico: '❤', nome: 'Coração',        desc: '+1 vida máxima e cura',   aplicar: () => { jogador.vidaMax += 1; jogador.vida = jogador.vidaMax; } },
+  { id: 'ima',     ico: '🧲', nome: 'Ímã',            desc: 'puxa joias de mais longe', aplicar: () => { jogador.ima += 60; } },
+  { id: 'fura',    ico: '➹', nome: 'Flecha furadora', desc: 'o tiro atravessa 1 slime', aplicar: () => { jogador.perfura += 1; } },
+  { id: 'mira',    ico: '◎', nome: 'Luneta',          desc: 'mais alcance',            aplicar: () => { jogador.alcance += 120; } }
+];
+
+const camera = { x: 0, y: 0 };
+const entrada = { x: 0, y: 0, teclas: {}, toque: null };
+
+function redimensionar() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = W * d; cv.height = H * d;
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', redimensionar);
+
+/* ---------------- sons ---------------- */
+let ac = null;
+function som(f, d, tipo = 'square', v = 0.04, desliza = 0) {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+    o.type = tipo; o.frequency.setValueAtTime(f, t);
+    if (desliza) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + desliza), t + d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d);
+  } catch (e) {}
+}
+
+/* ---------------- telas ---------------- */
+function mostrar(html) { const t = document.getElementById('tela'); t.innerHTML = '<div class="janela">' + html + '</div>'; t.classList.remove('some'); }
+function esconder() { document.getElementById('tela').classList.add('some'); }
+
+function menu() {
+  estado = 'menu';
+  mostrar('<h1>🟢 Arena dos Slimes</h1><p>Ande com o joystick (ou WASD / setas).<br>O herói atira sozinho no slime mais perto.<br>Pegue as joias para subir de nível e escolher melhorias.<br>A cada 5 ondas vem o <b>Rei Slime</b>!</p><button onclick="comecar()">Jogar</button>' + (recorde ? '<p style="margin-top:10px">Recorde: ' + recorde + '</p>' : ''));
+}
+
+function comecar() {
+  Object.assign(jogador, { x: ARENA.w / 2, y: ARENA.h / 2, vida: 3, vidaMax: 3, velocidade: 230, dano: 1, cadencia: 0.45, alcance: 420, tirosPorVez: 1, perfura: 0, ima: 90, xp: 0, nivel: 1, xpProximo: 6, invencivel: 0, recarga: 0 });
+  inimigos = []; tiros = []; joias = []; particulas = []; numeros = [];
+  pontos = 0; gemas = 0; onda = 0;
+  esconder();
+  estado = 'jogando';
+  proximaOnda();
+}
+
+function proximaOnda() {
+  onda++;
+  tempoOnda = 0;
+  paraNascer = 6 + onda * 4;
+  const el = document.getElementById('onda');
+  el.textContent = onda % 5 === 0 ? 'ONDA ' + onda + ' — REI SLIME!' : 'ONDA ' + onda;
+  el.style.opacity = 1; setTimeout(() => el.style.opacity = 0, 1600);
+  if (onda % 5 === 0) nascer('rei');
+  som(440, 0.3, 'triangle', 0.06, 440);
+}
+
+function nascer(tipo) {
+  const t = TIPOS[tipo];
+  const lado = Math.floor(Math.random() * 4);
+  let x = Math.random() * ARENA.w, y = Math.random() * ARENA.h;
+  if (lado === 0) y = -40; if (lado === 1) y = ARENA.h + 40; if (lado === 2) x = -40; if (lado === 3) x = ARENA.w + 40;
+  const forca = 1 + onda * 0.12;
+  inimigos.push({ tipo, x, y, raio: t.raio, vida: Math.ceil(t.vida * forca), vidaMax: Math.ceil(t.vida * forca), vel: t.vel * (1 + onda * 0.02), pulo: Math.random() * 6, recarga: 2 + Math.random() * 2, piscar: 0 });
+}
+
+function escolherTipo() {
+  const r = Math.random();
+  if (onda >= 6 && r < 0.15) return 'laranja';
+  if (onda >= 3 && r < 0.3) return 'roxo';
+  if (r < 0.55) return 'azul';
+  return 'verde';
+}
+
+/* ---------------- atualizar ---------------- */
+function atualizar(dt) {
+  relogio += dt;
+  atualizarParticulas(dt);
+  if (estado !== 'jogando') return;
+
+  /* andar */
+  let dx = entrada.x, dy = entrada.y;
+  const k = entrada.teclas;
+  if (k.ArrowLeft || k.KeyA) dx -= 1; if (k.ArrowRight || k.KeyD) dx += 1;
+  if (k.ArrowUp || k.KeyW) dy -= 1; if (k.ArrowDown || k.KeyS) dy += 1;
+  const len = Math.hypot(dx, dy);
+  if (len > 0) { dx /= Math.max(1, len); dy /= Math.max(1, len); jogador.olha = Math.atan2(dy, dx); }
+  jogador.x = Math.max(jogador.raio, Math.min(ARENA.w - jogador.raio, jogador.x + dx * jogador.velocidade * dt));
+  jogador.y = Math.max(jogador.raio, Math.min(ARENA.h - jogador.raio, jogador.y + dy * jogador.velocidade * dt));
+  if (jogador.invencivel > 0) jogador.invencivel -= dt;
+
+  /* nascer */
+  tempoOnda += dt;
+  if (paraNascer > 0 && tempoOnda > 0.5) {
+    const intervalo = Math.max(0.25, 1.1 - onda * 0.05);
+    if (tempoOnda % intervalo < dt) { nascer(escolherTipo()); paraNascer--; }
+  }
+  if (paraNascer <= 0 && inimigos.length === 0) proximaOnda();
+
+  /* atirar no mais perto */
+  jogador.recarga -= dt;
+  if (jogador.recarga <= 0) {
+    let alvo = null, melhor = jogador.alcance;
+    for (const e of inimigos) { const d = Math.hypot(e.x - jogador.x, e.y - jogador.y); if (d < melhor) { melhor = d; alvo = e; } }
+    if (alvo) {
+      const base = Math.atan2(alvo.y - jogador.y, alvo.x - jogador.x);
+      for (let i = 0; i < jogador.tirosPorVez; i++) {
+        const a = base + (i - (jogador.tirosPorVez - 1) / 2) * 0.18;
+        tiros.push({ x: jogador.x, y: jogador.y, vx: Math.cos(a) * 560, vy: Math.sin(a) * 560, vida: 0.9, fura: jogador.perfura, dono: 'heroi', atingidos: [] });
+      }
+      jogador.recarga = jogador.cadencia;
+      som(880, 0.05, 'square', 0.02, -300);
+    }
+  }
+
+  /* tiros */
+  for (let i = tiros.length - 1; i >= 0; i--) {
+    const t = tiros[i];
+    t.x += t.vx * dt; t.y += t.vy * dt; t.vida -= dt;
+    let some = t.vida <= 0;
+    if (t.dono === 'heroi') {
+      for (const e of inimigos) {
+        if (t.atingidos.includes(e)) continue;
+        if (Math.hypot(e.x - t.x, e.y - t.y) < e.raio + 5) {
+          acertar(e, jogador.dano, t.vx, t.vy);
+          t.atingidos.push(e);
+          if (t.fura > 0) t.fura--; else { some = true; break; }
+        }
+      }
+    } else if (Math.hypot(jogador.x - t.x, jogador.y - t.y) < jogador.raio + 4) { ferir(1); some = true; }
+    if (some) tiros.splice(i, 1);
+  }
+
+  /* inimigos */
+  for (let i = inimigos.length - 1; i >= 0; i--) {
+    const e = inimigos[i], t = TIPOS[e.tipo];
+    const a = Math.atan2(jogador.y - e.y, jogador.x - e.x);
+    e.pulo += dt * 8;
+    const passo = (0.6 + Math.abs(Math.sin(e.pulo)) * 0.8) * e.vel * dt;
+    e.x += Math.cos(a) * passo; e.y += Math.sin(a) * passo;
+    if (e.piscar > 0) e.piscar -= dt;
+    if (t.atira) {
+      e.recarga -= dt;
+      if (e.recarga <= 0) { e.recarga = 2.5; tiros.push({ x: e.x, y: e.y, vx: Math.cos(a) * 220, vy: Math.sin(a) * 220, vida: 3, dono: 'slime', fura: 0, atingidos: [] }); }
+    }
+    if (t.chefe && Math.random() < dt * 0.4) { for (let k2 = 0; k2 < 8; k2++) { const b = k2 / 8 * Math.PI * 2; tiros.push({ x: e.x, y: e.y, vx: Math.cos(b) * 180, vy: Math.sin(b) * 180, vida: 3, dono: 'slime', fura: 0, atingidos: [] }); } }
+    if (Math.hypot(jogador.x - e.x, jogador.y - e.y) < jogador.raio + e.raio - 4) ferir(t.dano);
+    /* empurrar um do outro */
+    for (let j = i - 1; j >= 0; j--) {
+      const o = inimigos[j], d = Math.hypot(o.x - e.x, o.y - e.y), m = o.raio + e.raio;
+      if (d > 0 && d < m) { const p = (m - d) / 2; e.x -= (o.x - e.x) / d * p; e.y -= (o.y - e.y) / d * p; o.x += (o.x - e.x) / d * p; o.y += (o.y - e.y) / d * p; }
+    }
+  }
+
+  /* joias de xp */
+  for (let i = joias.length - 1; i >= 0; i--) {
+    const j = joias[i], d = Math.hypot(jogador.x - j.x, jogador.y - j.y);
+    if (d < jogador.ima) { j.x += (jogador.x - j.x) / d * 420 * dt; j.y += (jogador.y - j.y) / d * 420 * dt; }
+    if (d < jogador.raio + 8) {
+      joias.splice(i, 1);
+      if (j.tipo === 'gema') { gemas += 1; som(1320, 0.12, 'triangle', 0.05); numero(j.x, j.y, '+1 💎', '#7ff'); }
+      else { jogador.xp += j.valor; som(990 + Math.random() * 200, 0.04, 'sine', 0.03); }
+      if (jogador.xp >= jogador.xpProximo) subirNivel();
+    }
+  }
+
+  camera.x += (jogador.x - W / 2 - camera.x) * Math.min(1, dt * 8);
+  camera.y += (jogador.y - H / 2 - camera.y) * Math.min(1, dt * 8);
+  if (tremor > 0) tremor -= dt;
+  hud();
+}
+
+function acertar(e, dano, vx, vy) {
+  e.vida -= dano; e.piscar = 0.1;
+  const v = Math.hypot(vx, vy) || 1;
+  e.x += vx / v * 8; e.y += vy / v * 8;
+  numero(e.x, e.y - e.raio, String(dano), '#fff');
+  if (e.vida <= 0) matar(e);
+}
+
+function matar(e) {
+  const t = TIPOS[e.tipo];
+  inimigos.splice(inimigos.indexOf(e), 1);
+  pontos += t.pontos;
+  for (let i = 0; i < t.xp; i++) joias.push({ x: e.x + (Math.random() - 0.5) * 30, y: e.y + (Math.random() - 0.5) * 30, valor: 1, tipo: 'xp' });
+  if (Math.random() < (t.chefe ? 1 : 0.05)) joias.push({ x: e.x, y: e.y, tipo: 'gema', valor: 1 });
+  for (let i = 0; i < (t.chefe ? 60 : 14); i++) {
+    const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * 200;
+    particulas.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, vida: 0.6, cor: t.cor, r: 3 + Math.random() * 4 });
+  }
+  if (t.chefe) { tremor = 0.6; som(120, 0.8, 'sawtooth', 0.08, -60); }
+  else som(300, 0.08, 'square', 0.03, -200);
+}
+
+function ferir(d) {
+  if (jogador.invencivel > 0) return;
+  jogador.vida -= d;
+  jogador.invencivel = 1.2;
+  tremor = 0.25;
+  som(150, 0.3, 'sawtooth', 0.07, -80);
+  if (jogador.vida <= 0) fimDeJogo();
+}
+
+function subirNivel() {
+  jogador.xp -= jogador.xpProximo;
+  jogador.nivel++;
+  jogador.xpProximo = Math.round(jogador.xpProximo * 1.35 + 2);
+  estado = 'escolha';
+  som(660, 0.15, 'triangle', 0.06, 660);
+  const opcoes = MELHORIAS.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+  mostrar('<h1>Nível ' + jogador.nivel + '!</h1><p>Escolha uma melhoria</p><div class="cartas">' + opcoes.map(m =>
+    '<div class="carta" onclick="escolher(\'' + m.id + '\')"><div class="ico">' + m.ico + '</div><b>' + m.nome + '</b><small>' + m.desc + '</small></div>').join('') + '</div>');
+}
+
+function escolher(id) {
+  const m = MELHORIAS.find(x => x.id === id);
+  if (m) m.aplicar();
+  esconder();
+  estado = 'jogando';
+}
+
+function fimDeJogo() {
+  estado = 'fim';
+  if (pontos > recorde) recorde = pontos;
+  tremor = 0.5;
+  setTimeout(() => mostrar('<h1>Fim de jogo</h1><p>Você chegou à <b>onda ' + onda + '</b> com <b>' + pontos + '</b> pontos.<br>Recorde: ' + recorde + '<br>Joias raras: ' + gemas + ' 💎</p><button onclick="comecar()">Jogar de novo</button>'), 600);
+}
+
+function numero(x, y, txt, cor) { numeros.push({ x, y, txt, cor, vida: 0.8 }); }
+
+function atualizarParticulas(dt) {
+  for (let i = particulas.length - 1; i >= 0; i--) { const p = particulas[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.92; p.vy *= 0.92; p.vida -= dt; if (p.vida <= 0) particulas.splice(i, 1); }
+  for (let i = numeros.length - 1; i >= 0; i--) { const n = numeros[i]; n.y -= 40 * dt; n.vida -= dt; if (n.vida <= 0) numeros.splice(i, 1); }
+}
+
+function hud() {
+  let c = '';
+  for (let i = 0; i < jogador.vidaMax; i++) c += i < jogador.vida ? '❤' : '♡';
+  document.getElementById('coracoes').textContent = c;
+  document.querySelector('#xpBarra i').style.width = Math.min(100, jogador.xp / jogador.xpProximo * 100) + '%';
+  document.getElementById('info').textContent = 'Onda ' + onda + ' · ' + pontos + ' pts · nv ' + jogador.nivel;
+  document.getElementById('gemasTxt').textContent = '💎 ' + gemas;
+}
+
+/* ---------------- desenhar ---------------- */
+function desenhar() {
+  ctx.fillStyle = '#1b1530'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  const tx = Math.round(camera.x + (tremor > 0 ? (Math.random() - 0.5) * 10 : 0)), ty = Math.round(camera.y + (tremor > 0 ? (Math.random() - 0.5) * 10 : 0));
+  ctx.translate(-tx, -ty);
+  /* chão xadrez */
+  const q = 80;
+  for (let x = Math.floor(tx / q) * q; x < tx + W + q; x += q) {
+    for (let y = Math.floor(ty / q) * q; y < ty + H + q; y += q) {
+      if (x < 0 || y < 0 || x >= ARENA.w || y >= ARENA.h) continue;
+      ctx.fillStyle = ((x / q + y / q) % 2 === 0) ? '#2a2248' : '#272043';
+      ctx.fillRect(x, y, q, q);
+    }
+  }
+  ctx.strokeStyle = '#7b68d8'; ctx.lineWidth = 6; ctx.strokeRect(0, 0, ARENA.w, ARENA.h);
+
+  for (const j of joias) {
+    if (j.tipo === 'gema') { ctx.fillStyle = '#7ff'; ctx.beginPath(); ctx.moveTo(j.x, j.y - 9); ctx.lineTo(j.x + 7, j.y); ctx.lineTo(j.x, j.y + 9); ctx.lineTo(j.x - 7, j.y); ctx.fill(); }
+    else { ctx.fillStyle = '#8cf'; ctx.fillRect(j.x - 3, j.y - 3, 6, 6); }
+  }
+  for (const e of inimigos) desenharSlime(e);
+  for (const t of tiros) { ctx.fillStyle = t.dono === 'heroi' ? '#fff27a' : '#ff6b9a'; ctx.beginPath(); ctx.arc(t.x, t.y, t.dono === 'heroi' ? 5 : 7, 0, Math.PI * 2); ctx.fill(); }
+  desenharHeroi();
+  for (const p of particulas) { ctx.globalAlpha = Math.max(0, p.vida / 0.6); ctx.fillStyle = p.cor; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center';
+  for (const n of numeros) { ctx.globalAlpha = Math.min(1, n.vida * 2); ctx.fillStyle = n.cor; ctx.fillText(n.txt, n.x, n.y); }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  /* setinha pros slimes fora da tela */
+  for (const e of inimigos) {
+    const sx = e.x - camera.x, sy = e.y - camera.y;
+    if (sx > 0 && sx < W && sy > 0 && sy < H) continue;
+    const a = Math.atan2(sy - H / 2, sx - W / 2), r = Math.min(W, H) / 2 - 24;
+    ctx.fillStyle = TIPOS[e.tipo].cor; ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.arc(W / 2 + Math.cos(a) * r, H / 2 + Math.sin(a) * r, 5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function desenharSlime(e) {
+  const t = TIPOS[e.tipo], pula = Math.abs(Math.sin(e.pulo));
+  const largura = e.raio * (1.1 + (1 - pula) * 0.25), altura = e.raio * (0.85 + pula * 0.3);
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(e.x, e.y + e.raio * 0.8, e.raio, e.raio * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = e.piscar > 0 ? '#fff' : t.cor;
+  ctx.beginPath(); ctx.ellipse(e.x, e.y - pula * 6, largura, altura, 0, Math.PI, 0); ctx.lineTo(e.x + largura, e.y + altura * 0.5 - pula * 6); ctx.lineTo(e.x - largura, e.y + altura * 0.5 - pula * 6); ctx.fill();
+  ctx.fillStyle = '#1b1530';
+  ctx.fillRect(e.x - e.raio * 0.4, e.y - e.raio * 0.3 - pula * 6, e.raio * 0.2, e.raio * 0.3);
+  ctx.fillRect(e.x + e.raio * 0.2, e.y - e.raio * 0.3 - pula * 6, e.raio * 0.2, e.raio * 0.3);
+  if (t.chefe) { ctx.fillStyle = '#ffd23a'; ctx.beginPath(); ctx.moveTo(e.x - 20, e.y - altura - 4); ctx.lineTo(e.x - 12, e.y - altura - 22); ctx.lineTo(e.x, e.y - altura - 8); ctx.lineTo(e.x + 12, e.y - altura - 22); ctx.lineTo(e.x + 20, e.y - altura - 4); ctx.fill(); }
+  if (e.vida < e.vidaMax) { ctx.fillStyle = '#000a'; ctx.fillRect(e.x - e.raio, e.y + e.raio + 4, e.raio * 2, 4); ctx.fillStyle = '#7f7'; ctx.fillRect(e.x - e.raio, e.y + e.raio + 4, e.raio * 2 * e.vida / e.vidaMax, 4); }
+}
+
+function desenharHeroi() {
+  if (jogador.invencivel > 0 && Math.floor(relogio * 20) % 2) return;
+  const x = jogador.x, y = jogador.y;
+  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(x, y + 18, 16, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffcf6b';
+  ctx.fillRect(x - 14, y - 22, 28, 40);
+  ctx.fillStyle = '#3b6cff'; ctx.fillRect(x - 14, y - 2, 28, 12);
+  ctx.fillStyle = '#222'; ctx.fillRect(x - 8 + Math.cos(jogador.olha) * 3, y - 14, 4, 6); ctx.fillRect(x + 4 + Math.cos(jogador.olha) * 3, y - 14, 4, 6);
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.arc(x, y, jogador.alcance, 0, Math.PI * 2); ctx.stroke();
+}
+
+/* ---------------- controles ---------------- */
+addEventListener('keydown', e => { entrada.teclas[e.code] = true; if (e.code === 'KeyP' || e.code === 'Escape') pausar(); });
+addEventListener('keyup', e => { entrada.teclas[e.code] = false; });
+const stick = document.getElementById('stick'), bola = stick.querySelector('i');
+function moverStick(e) {
+  const r = stick.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  let dx = e.clientX - cx, dy = e.clientY - cy; const d = Math.hypot(dx, dy), m = 45;
+  if (d > m) { dx = dx / d * m; dy = dy / d * m; }
+  bola.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+  entrada.x = dx / m; entrada.y = dy / m;
+}
+stick.addEventListener('pointerdown', e => { entrada.toque = e.pointerId; stick.setPointerCapture(e.pointerId); moverStick(e); });
+stick.addEventListener('pointermove', e => { if (entrada.toque === e.pointerId) moverStick(e); });
+const soltar = () => { entrada.toque = null; entrada.x = entrada.y = 0; bola.style.transform = ''; };
+stick.addEventListener('pointerup', soltar); stick.addEventListener('pointercancel', soltar);
+
+function pausar() {
+  if (estado === 'jogando') { estado = 'pausa'; mostrar('<h1>Pausa</h1><p>Onda ' + onda + ' · ' + pontos + ' pontos</p><button onclick="esconder();estado=\'jogando\'">Continuar</button>'); }
+  else if (estado === 'pausa') { esconder(); estado = 'jogando'; }
+}
+document.getElementById('pausa').addEventListener('click', pausar);
+
+/* ---------------- laço ---------------- */
+let antes = performance.now();
+function quadro(agora) {
+  const dt = Math.min(0.05, (agora - antes) / 1000); antes = agora;
+  atualizar(dt); desenhar();
+  requestAnimationFrame(quadro);
+}
+redimensionar();
+menu();
+requestAnimationFrame(quadro);
+</script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Cidade Ociosa</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #e8f4ff; color: #1d2b3a; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  #app { display: grid; grid-template-columns: 1fr minmax(280px, 380px); height: 100%; }
+  @media (max-width: 760px) { #app { grid-template-columns: 1fr; grid-template-rows: 46% 54%; } }
+  #cena { position: relative; overflow: hidden; background: linear-gradient(#bfe3ff, #e8f4ff 70%); }
+  #cena canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #placar { position: absolute; top: 10px; left: 0; right: 0; text-align: center; pointer-events: none; }
+  #dinheiroTxt { font-size: 34px; font-weight: 900; color: #0f5132; text-shadow: 0 2px 0 #fff; }
+  #porSegundo { font-size: 14px; font-weight: 700; opacity: .75; }
+  #botaoGrande { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); width: 120px; height: 120px; border-radius: 50%; border: 6px solid #fff; background: radial-gradient(circle at 35% 30%, #7ee08a, #2f9e44); color: #fff; font-size: 44px; font-weight: 900; box-shadow: 0 8px 0 #1f6e2f; cursor: pointer; }
+  #botaoGrande:active { transform: translateX(-50%) translateY(4px); box-shadow: 0 4px 0 #1f6e2f; }
+  #dourada { position: absolute; width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3b0, #f5b700); border: 3px solid #fff; display: none; cursor: pointer; font-size: 26px; text-align: center; line-height: 48px; animation: gira 2s linear infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  #lado { background: #fff; border-left: 3px solid #cfe3f5; display: flex; flex-direction: column; min-height: 0; }
+  #abas { display: flex; border-bottom: 3px solid #cfe3f5; }
+  #abas button { flex: 1; font: inherit; font-weight: 800; padding: 10px 4px; border: 0; background: #f2f8fe; cursor: pointer; color: #1d2b3a; }
+  #abas button.ativa { background: #fff; color: #1971c2; box-shadow: inset 0 -3px 0 #1971c2; }
+  #lista { flex: 1; overflow-y: auto; padding: 8px; }
+  .predio { display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; align-items: center; padding: 8px; border-radius: 12px; background: #f2f8fe; margin-bottom: 6px; cursor: pointer; border: 2px solid transparent; }
+  .predio:hover { border-color: #a5d8ff; }
+  .predio.caro { opacity: .5; }
+  .predio .ico { font-size: 28px; text-align: center; }
+  .predio b { display: block; font-size: 15px; } .predio small { font-size: 12px; opacity: .7; }
+  .predio .qtd { font-size: 22px; font-weight: 900; color: #1971c2; }
+  .preco { font-weight: 800; color: #0f5132; font-size: 13px; }
+  #rodape { padding: 8px; border-top: 3px solid #cfe3f5; display: flex; gap: 6px; }
+  #rodape button { flex: 1; font: inherit; font-weight: 800; padding: 10px; border-radius: 10px; border: 0; background: #1971c2; color: #fff; cursor: pointer; }
+  #rodape button:disabled { background: #adb5bd; }
+  #toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); background: #1d2b3a; color: #fff; padding: 8px 14px; border-radius: 12px; font-weight: 700; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 9; }
+  #toast.ver { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="cena">
+    <canvas id="ceu"></canvas>
+    <div id="placar"><div id="dinheiroTxt">$ 0</div><div id="porSegundo">$ 0 por segundo</div></div>
+    <div id="dourada">★</div>
+    <button id="botaoGrande">$</button>
+  </div>
+  <div id="lado">
+    <div id="abas"><button class="ativa" data-aba="predios">Prédios</button><button data-aba="melhorias">Melhorias</button><button data-aba="conquistas">Conquistas</button></div>
+    <div id="lista"></div>
+    <div id="rodape"><button id="comprar10">Comprar x10</button><button id="renascer">Renascer</button></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   CIDADE OCIOSA - construa uma cidade que dá dinheiro sozinha
+   Toque no botão para ganhar dinheiro, compre prédios que produzem por
+   segundo, compre melhorias e renasça para ganhar estrelas de prestígio.
+   ===================================================================== */
+const ceu = document.getElementById('ceu');
+const cx = ceu.getContext('2d');
+
+let dinheiro = 0;
+let dinheiroTotal = 0;
+let porClique = 1;
+let multiplicador = 1;
+let estrelas = 0;            // prestígio
+let cliques = 0;
+let comprarDez = false;
+let abaAtual = 'predios';
+
+const PREDIOS = [
+  { id: 'banca',     ico: '🍋', nome: 'Banca de limonada', custoBase: 15,       producao: 0.5,    quantidade: 0 },
+  { id: 'padaria',   ico: '🥐', nome: 'Padaria',            custoBase: 100,      producao: 3,      quantidade: 0 },
+  { id: 'mercado',   ico: '🛒', nome: 'Mercado',            custoBase: 1100,     producao: 18,     quantidade: 0 },
+  { id: 'fabrica',   ico: '🏭', nome: 'Fábrica',            custoBase: 12000,    producao: 95,     quantidade: 0 },
+  { id: 'banco',     ico: '🏦', nome: 'Banco',              custoBase: 130000,   producao: 520,    quantidade: 0 },
+  { id: 'estadio',   ico: '🏟', nome: 'Estádio',            custoBase: 1400000,  producao: 2900,   quantidade: 0 },
+  { id: 'foguete',   ico: '🚀', nome: 'Base de foguetes',   custoBase: 20000000, producao: 16000,  quantidade: 0 },
+  { id: 'portal',    ico: '🌀', nome: 'Portal mágico',      custoBase: 330000000, producao: 99000, quantidade: 0 }
+];
+const MELHORIAS = [
+  { id: 'dedo1',  nome: 'Dedo forte',          desc: 'Cada toque vale o dobro',         custo: 100,      feita: false, aplicar: () => { porClique *= 2; } },
+  { id: 'limao',  nome: 'Limões gigantes',      desc: 'Bancas produzem o triplo',        custo: 500,      feita: false, aplicar: () => { dobrarPredio('banca', 3); } },
+  { id: 'forno',  nome: 'Forno turbo',          desc: 'Padarias produzem o dobro',       custo: 3000,     feita: false, aplicar: () => { dobrarPredio('padaria', 2); } },
+  { id: 'dedo2',  nome: 'Mão de ouro',          desc: 'Toque ganha 1% do que a cidade faz por segundo', custo: 10000, feita: false, aplicar: () => { maoDeOuro = true; } },
+  { id: 'carrin', nome: 'Carrinhos elétricos',  desc: 'Mercados produzem o dobro',       custo: 40000,    feita: false, aplicar: () => { dobrarPredio('mercado', 2); } },
+  { id: 'robos',  nome: 'Robôs na fábrica',     desc: 'Fábricas produzem o dobro',       custo: 500000,   feita: false, aplicar: () => { dobrarPredio('fabrica', 2); } },
+  { id: 'juros',  nome: 'Juros compostos',      desc: 'Tudo produz 50% a mais',          custo: 2000000,  feita: false, aplicar: () => { multiplicador *= 1.5; } },
+  { id: 'show',   nome: 'Show no estádio',      desc: 'Estádios produzem o dobro',       custo: 25000000, feita: false, aplicar: () => { dobrarPredio('estadio', 2); } }
+];
+const CONQUISTAS = [
+  { id: 'c1', nome: 'Primeiro dinheiro', teste: () => dinheiroTotal >= 1 },
+  { id: 'c2', nome: 'Mil na conta', teste: () => dinheiroTotal >= 1000 },
+  { id: 'c3', nome: 'Milionário', teste: () => dinheiroTotal >= 1e6 },
+  { id: 'c4', nome: '100 toques', teste: () => cliques >= 100 },
+  { id: 'c5', nome: '10 bancas', teste: () => PREDIOS[0].quantidade >= 10 },
+  { id: 'c6', nome: 'Primeira fábrica', teste: () => PREDIOS[3].quantidade >= 1 },
+  { id: 'c7', nome: 'Renasceu uma vez', teste: () => estrelas >= 1 },
+  { id: 'c8', nome: 'Bilionário', teste: () => dinheiroTotal >= 1e9 }
+];
+let ganhas = {};
+let maoDeOuro = false;
+let bonusPredio = {};
+let carros = [], textos = [];
+
+/* ----------- números grandes ----------- */
+function formatar(n) {
+  if (n < 1000) return (Math.round(n * 10) / 10).toString().replace('.', ',');
+  const nomes = ['', 'mil', 'mi', 'bi', 'tri', 'quatri'];
+  let i = 0; while (n >= 1000 && i < nomes.length - 1) { n /= 1000; i++; }
+  return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0).replace('.', ',') + ' ' + nomes[i];
+}
+
+/* ----------- produção ----------- */
+function custoDe(p, n) {
+  let total = 0;
+  for (let k = 0; k < (n || 1); k++) total += Math.floor(p.custoBase * Math.pow(1.15, p.quantidade + k));
+  return total;
+}
+function producaoDe(p) { return p.producao * p.quantidade * (bonusPredio[p.id] || 1) * multiplicador * (1 + estrelas * 0.1); }
+function producaoTotal() { return PREDIOS.reduce((s, p) => s + producaoDe(p), 0); }
+function dobrarPredio(id, vezes) { bonusPredio[id] = (bonusPredio[id] || 1) * vezes; }
+
+function tocar(e) {
+  let ganho = porClique * multiplicador;
+  if (maoDeOuro) ganho += producaoTotal() * 0.01;
+  dinheiro += ganho;
+  dinheiroTotal += ganho;
+  cliques++;
+  const r = document.getElementById('cena').getBoundingClientRect();
+  textos.push({ x: (e && e.clientX ? e.clientX - r.left : r.width / 2) + (Math.random() - 0.5) * 30, y: (e && e.clientY ? e.clientY - r.top : r.height - 140), txt: '+' + formatar(ganho), vida: 1 });
+  atualizarTudo();
+}
+
+function comprarPredio(id) {
+  const p = PREDIOS.find(x => x.id === id);
+  const n = comprarDez ? 10 : 1;
+  const custo = custoDe(p, n);
+  if (dinheiro < custo) { avisar('Falta dinheiro!'); return; }
+  dinheiro -= custo;
+  p.quantidade += n;
+  if (Math.random() < 0.5) carros.push({ x: -40, y: 0.78 + Math.random() * 0.1, v: 60 + Math.random() * 60, cor: ['#e03131', '#1971c2', '#f08c00', '#2f9e44'][Math.floor(Math.random() * 4)] });
+  atualizarTudo();
+}
+function comprarMelhoria(id) {
+  const m = MELHORIAS.find(x => x.id === id);
+  if (m.feita || dinheiro < m.custo) return;
+  dinheiro -= m.custo;
+  m.feita = true;
+  m.aplicar();
+  avisar('Melhoria: ' + m.nome + '!');
+  atualizarTudo();
+}
+
+function estrelasSeRenascer() { return Math.floor(Math.sqrt(dinheiroTotal / 1e6)); }
+function renascer() {
+  const novas = estrelasSeRenascer() - estrelas;
+  if (novas <= 0) { avisar('Junte pelo menos 1 milhão no total para renascer'); return; }
+  estrelas += novas;
+  dinheiro = 0; porClique = 1; multiplicador = 1; maoDeOuro = false; bonusPredio = {};
+  PREDIOS.forEach(p => p.quantidade = 0);
+  MELHORIAS.forEach(m => m.feita = false);
+  avisar('Você renasceu com ' + estrelas + ' estrelas! Tudo produz ' + (estrelas * 10) + '% a mais');
+  atualizarTudo();
+}
+
+/* ----------- estrela dourada (bônus que aparece às vezes) ----------- */
+let proximaDourada = 20;
+function mostrarDourada() {
+  const d = document.getElementById('dourada'), r = document.getElementById('cena').getBoundingClientRect();
+  d.style.left = (20 + Math.random() * (r.width - 80)) + 'px';
+  d.style.top = (70 + Math.random() * (r.height - 220)) + 'px';
+  d.style.display = 'block';
+  setTimeout(() => { d.style.display = 'none'; }, 6000);
+}
+document.getElementById('dourada').addEventListener('click', () => {
+  const premio = Math.max(50, producaoTotal() * 30);
+  dinheiro += premio; dinheiroTotal += premio;
+  document.getElementById('dourada').style.display = 'none';
+  avisar('Estrela dourada! +' + formatar(premio));
+  atualizarTudo();
+});
+
+/* ----------- tela ----------- */
+function montarLista() {
+  const L = document.getElementById('lista');
+  if (abaAtual === 'predios') {
+    L.innerHTML = PREDIOS.map(p => {
+      const custo = custoDe(p, comprarDez ? 10 : 1), caro = dinheiro < custo;
+      const visivel = p.quantidade > 0 || dinheiroTotal >= p.custoBase * 0.5;
+      if (!visivel) return '<div class="predio caro"><div class="ico">?</div><div><b>???</b><small>continue crescendo</small></div><div></div></div>';
+      return '<div class="predio' + (caro ? ' caro' : '') + '" data-id="' + p.id + '"><div class="ico">' + p.ico + '</div><div><b>' + p.nome + '</b><small>' + formatar(producaoDe(p) || p.producao) + '/s</small><div class="preco">$ ' + formatar(custo) + '</div></div><div class="qtd">' + p.quantidade + '</div></div>';
+    }).join('');
+    L.querySelectorAll('.predio[data-id]').forEach(el => el.addEventListener('click', () => comprarPredio(el.dataset.id)));
+  } else if (abaAtual === 'melhorias') {
+    const visiveis = MELHORIAS.filter(m => !m.feita);
+    L.innerHTML = visiveis.length ? visiveis.map(m => '<div class="predio' + (dinheiro < m.custo ? ' caro' : '') + '" data-m="' + m.id + '"><div class="ico">⬆</div><div><b>' + m.nome + '</b><small>' + m.desc + '</small><div class="preco">$ ' + formatar(m.custo) + '</div></div><div></div></div>').join('') : '<p style="padding:12px">Você comprou todas as melhorias!</p>';
+    L.querySelectorAll('.predio[data-m]').forEach(el => el.addEventListener('click', () => comprarMelhoria(el.dataset.m)));
+  } else {
+    L.innerHTML = CONQUISTAS.map(c => '<div class="predio' + (ganhas[c.id] ? '' : ' caro') + '"><div class="ico">' + (ganhas[c.id] ? '🏆' : '🔒') + '</div><div><b>' + c.nome + '</b></div><div></div></div>').join('');
+  }
+}
+function atualizarTudo() {
+  document.getElementById('dinheiroTxt').textContent = '$ ' + formatar(dinheiro);
+  document.getElementById('porSegundo').textContent = '$ ' + formatar(producaoTotal()) + ' por segundo' + (estrelas ? ' · ★ ' + estrelas : '');
+  document.getElementById('renascer').textContent = 'Renascer (+' + Math.max(0, estrelasSeRenascer() - estrelas) + ' ★)';
+  document.getElementById('renascer').disabled = estrelasSeRenascer() - estrelas <= 0;
+  CONQUISTAS.forEach(c => { if (!ganhas[c.id] && c.teste()) { ganhas[c.id] = true; avisar('🏆 Conquista: ' + c.nome); } });
+  montarLista();
+}
+let toastTempo = null;
+function avisar(t) { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('ver'); clearTimeout(toastTempo); toastTempo = setTimeout(() => el.classList.remove('ver'), 2200); }
+
+function redimensionar() {
+  const r = document.getElementById('cena').getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+  ceu.width = r.width * d; ceu.height = r.height * d; cx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', redimensionar);
+
+function desenharCidade(dt) {
+  const r = document.getElementById('cena').getBoundingClientRect(), W = r.width, H = r.height;
+  cx.clearRect(0, 0, W, H);
+  /* prédios: um por tipo comprado, altura pela quantidade */
+  const chao = H * 0.75;
+  cx.fillStyle = '#8ce99a'; cx.fillRect(0, chao, W, H - chao);
+  cx.fillStyle = '#495057'; cx.fillRect(0, H * 0.78, W, H * 0.1);
+  PREDIOS.forEach((p, i) => {
+    if (!p.quantidade) return;
+    const larg = W / 9, x = 8 + i * (W - 16) / 8, alt = Math.min(chao - 70, 30 + Math.log2(p.quantidade + 1) * 22 + i * 6);
+    cx.fillStyle = ['#ffd43b', '#ffa94d', '#74c0fc', '#adb5bd', '#e9ecef', '#b197fc', '#ff8787', '#63e6be'][i];
+    cx.fillRect(x, chao - alt, larg, alt);
+    cx.fillStyle = 'rgba(255,255,255,.7)';
+    for (let jy = chao - alt + 8; jy < chao - 8; jy += 14) for (let jx = x + 6; jx < x + larg - 8; jx += 12) cx.fillRect(jx, jy, 6, 7);
+  });
+  carros.forEach(c => { c.x += c.v * dt; cx.fillStyle = c.cor; cx.fillRect(c.x, H * c.y, 26, 10); cx.fillStyle = '#212529'; cx.fillRect(c.x + 3, H * c.y + 9, 6, 4); cx.fillRect(c.x + 17, H * c.y + 9, 6, 4); });
+  carros = carros.filter(c => c.x < W + 40).slice(-30);
+  cx.font = 'bold 18px system-ui'; cx.textAlign = 'center';
+  textos.forEach(t => { t.y -= 50 * dt; t.vida -= dt; cx.globalAlpha = Math.max(0, t.vida); cx.fillStyle = '#0f5132'; cx.fillText(t.txt, t.x, t.y); });
+  cx.globalAlpha = 1;
+  textos = textos.filter(t => t.vida > 0);
+}
+
+/* ----------- tempo ----------- */
+let antes = performance.now(), acumulado = 0;
+function laco(agora) {
+  const dt = Math.min(0.25, (agora - antes) / 1000); antes = agora;
+  const ganho = producaoTotal() * dt;
+  dinheiro += ganho; dinheiroTotal += ganho;
+  acumulado += dt;
+  if (acumulado > 0.5) { acumulado = 0; atualizarTudo(); }
+  proximaDourada -= dt;
+  if (proximaDourada <= 0) { proximaDourada = 40 + Math.random() * 60; mostrarDourada(); }
+  if (Math.random() < dt * Math.min(2, producaoTotal() / 50)) carros.push({ x: -40, y: 0.78 + Math.random() * 0.1, v: 60 + Math.random() * 60, cor: '#f08c00' });
+  desenharCidade(dt);
+  document.getElementById('dinheiroTxt').textContent = '$ ' + formatar(dinheiro);
+  requestAnimationFrame(laco);
+}
+
+document.getElementById('botaoGrande').addEventListener('click', tocar);
+document.querySelectorAll('#abas button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#abas button').forEach(x => x.classList.remove('ativa'));
+  b.classList.add('ativa'); abaAtual = b.dataset.aba; montarLista();
+}));
+document.getElementById('comprar10').addEventListener('click', e => { comprarDez = !comprarDez; e.target.textContent = comprarDez ? 'Comprando x10' : 'Comprar x10'; montarLista(); });
+document.getElementById('renascer').addEventListener('click', renascer);
+addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); tocar(); } });
+
+redimensionar();
+atualizarTudo();
+requestAnimationFrame(laco);
+</script>
+</body>
+</html>

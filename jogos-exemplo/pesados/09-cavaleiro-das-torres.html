@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Cavaleiro das Torres</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #2b2d4f; color: #fff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+  #hud { position: fixed; top: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px; text-shadow: 0 2px 0 #000; pointer-events: none; }
+  #controles { position: fixed; bottom: 12px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 12px; }
+  #controles div { display: flex; gap: 10px; }
+  .b { width: 66px; height: 66px; border-radius: 18px; background: rgba(255,255,255,.15); border: 3px solid rgba(255,255,255,.3); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; }
+  .b.on { background: rgba(255,220,100,.45); }
+  #aviso { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15,15,40,.8); }
+  #aviso.nao { display: none; }
+  .quadro { background: #3b3e70; border: 4px solid #ffd166; border-radius: 18px; padding: 20px; width: min(92vw, 420px); text-align: center; }
+  .quadro h1 { color: #ffd166; font-size: 28px; margin-bottom: 8px; }
+  .quadro p { line-height: 1.5; margin-bottom: 12px; font-size: 14px; }
+  .quadro button { font: inherit; font-weight: 900; font-size: 18px; border: 0; border-radius: 14px; padding: 12px; width: 100%; background: #ffd166; color: #3b3e70; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"><span id="hVidas">♥♥♥</span><span id="hFase">Torre 1</span><span id="hJoias">◆ 0</span></div>
+<div id="controles">
+  <div><div class="b" data-k="esq">◀</div><div class="b" data-k="dir">▶</div></div>
+  <div><div class="b" data-k="espada">⚔</div><div class="b" data-k="pulo">▲</div></div>
+</div>
+<div id="aviso"></div>
+
+<script>
+/* =====================================================================
+   CAVALEIRO DAS TORRES - plataforma em 4 torres
+   Pule, ataque com a espada, pegue as joias e chegue à bandeira.
+   ===================================================================== */
+const c = document.getElementById('c');
+const g = c.getContext('2d');
+let LW = 0, LH = 0, ESC = 2;
+const T = 16;
+
+/* ----------- números do jogo ----------- */
+let vidas = 3;
+let gravidade = 1500;
+let forcaPulo = 430;
+let velocidade = 150;
+let velocidadeInimigo = 45;
+let joias = 0;
+let pontos = 0;
+let fase = 0;
+
+/* ----------- as torres (cada letra é um bloco) -----------
+   # parede   = plataforma fina   ^ espinho   o joia   g slime   m morcego
+   c checkpoint   F bandeira   P início   ~ plataforma que anda   ! bloco que cai */
+const TORRES = [
+  [
+    '                                                            ',
+    '                                                            ',
+    '                                           o o o            ',
+    '                                          =====         F   ',
+    '                       o  o                           ######',
+    '                      ======        g          ~           #',
+    '              o                   #####                    #',
+    '            =====          o                               #',
+    ' P                 g     =====          ^^^      o   o     #',
+    '##########   ###########       ##################===###    #',
+    '##########^^^###########^^^^^^^##################   ###^^^^#'
+  ],
+  [
+    '                                                                    ',
+    '                                     m             o o              ',
+    '                    o o o                        =======        F   ',
+    '                   =======       c                            ######',
+    '         m                     #####      !!!!                     #',
+    '   o                    ~                         g                #',
+    ' =====          g                     ^^     ##########            #',
+    '            #########           ###############                    #',
+    ' P    ^^                 o                            o   m        #',
+    '###########        ###########       ##########     #######  ######',
+    '###########^^^^^^^^###########^^^^^^^##########^^^^^#######^^######'
+  ],
+  [
+    '                                                                        ',
+    '    o o o                    m          m                     o      F  ',
+    '   =======                                                  =====  #####',
+    '                  !!!!            ~             ~                       ',
+    '           ~                              c                             ',
+    '                        g              #######        g                 ',
+    ' P                 ##########                      #######              ',
+    '#####                                  ^^^^^^^                          ',
+    '#####^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#######^^^^^^^^^^^^^^^^^^^^^^^^^^'
+  ],
+  [
+    '                                                                              ',
+    '  m        m          o o o o o            m         m              o o   F   ',
+    '                     ===========                                   ===  ######',
+    '          !!!!                      ~           !!!!       ~                 #',
+    '                 g                        c                       g          #',
+    ' P     ~       #####          g        #######        ##########  ###        #',
+    '###                       #########                                          #',
+    '###^^^^^^^^^^^^^^^^^^^^^^^#########^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#'
+  ]
+];
+
+let mapa = [], cavaleiro = null, inimigos = [], moveis = [], caindo = [], particulas = [], checkpoint = null;
+let camX = 0, camY = 0, tremor = 0, estado = 'menu', relogio = 0;
+const teclas = { esq: false, dir: false, pulo: false, espada: false };
+
+function tamanho() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  c.width = innerWidth * d; c.height = innerHeight * d;
+  ESC = Math.max(2, Math.floor(Math.min(innerWidth / 260, innerHeight / 180))) * d;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = false;
+  LW = c.width / ESC; LH = c.height / ESC;
+}
+addEventListener('resize', tamanho);
+
+/* ----------- montar a torre ----------- */
+function carregarTorre(n) {
+  const t = TORRES[n];
+  mapa = t.map(l => l.split(''));
+  inimigos = []; moveis = []; caindo = []; particulas = []; checkpoint = null;
+  for (let y = 0; y < mapa.length; y++) for (let x = 0; x < mapa[y].length; x++) {
+    const ch = mapa[y][x];
+    if (ch === 'P') { cavaleiro = novoCavaleiro(x * T, y * T); mapa[y][x] = ' '; }
+    if (ch === 'g') { inimigos.push({ tipo: 'slime', x: x * T, y: y * T + 6, w: 14, h: 10, vx: -velocidadeInimigo, vida: 2, piscar: 0 }); mapa[y][x] = ' '; }
+    if (ch === 'm') { inimigos.push({ tipo: 'morcego', x: x * T, y: y * T, w: 14, h: 10, base: y * T, t: Math.random() * 6, vx: velocidadeInimigo * 1.4, vida: 1, piscar: 0 }); mapa[y][x] = ' '; }
+    if (ch === '~') { moveis.push({ x: x * T, y: y * T, w: T * 3, h: 6, x0: x * T, t: Math.random() * 6 }); mapa[y][x] = ' '; }
+    if (ch === '!') { caindo.push({ x: x * T, y: y * T, vy: 0, toque: 0, caiu: false }); mapa[y][x] = ' '; }
+  }
+  fase = n;
+  document.getElementById('hFase').textContent = 'Torre ' + (n + 1);
+}
+function novoCavaleiro(x, y) {
+  return { x, y, w: 12, h: 15, vx: 0, vy: 0, noChao: false, olhando: 1, ataque: 0, recarga: 0, invencivel: 0, coyote: 0, bufferPulo: 0, passo: 0, inicioX: x, inicioY: y };
+}
+
+function bloco(x, y) {
+  const tx = Math.floor(x / T), ty = Math.floor(y / T);
+  if (ty < 0 || tx < 0) return ' ';
+  if (ty >= mapa.length || tx >= mapa[0].length) return ty >= mapa.length ? '^' : '#';
+  return mapa[ty][tx];
+}
+function solido(ch) { return ch === '#'; }
+
+/* ----------- atualizar ----------- */
+function atualizar(dt) {
+  relogio += dt;
+  for (let i = particulas.length - 1; i >= 0; i--) { const p = particulas[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 400 * dt; p.vida -= dt; if (p.vida <= 0) particulas.splice(i, 1); }
+  if (tremor > 0) tremor -= dt;
+  if (estado !== 'jogando') return;
+  const k = cavaleiro;
+
+  /* andar */
+  const alvo = (teclas.dir ? 1 : 0) - (teclas.esq ? 1 : 0);
+  k.vx += (alvo * velocidade - k.vx) * Math.min(1, dt * (k.noChao ? 14 : 6));
+  if (alvo) k.olhando = alvo;
+  /* pulo com "tempo de coiote" e pulo guardado */
+  if (k.noChao) k.coyote = 0.1; else k.coyote -= dt;
+  if (teclas.pulo) { k.bufferPulo = 0.12; teclas.pulo = false; } else k.bufferPulo -= dt;
+  if (k.bufferPulo > 0 && k.coyote > 0) { k.vy = -forcaPulo; k.coyote = 0; k.bufferPulo = 0; poeira(k.x + 6, k.y + 15, 5); }
+  k.vy += gravidade * dt;
+  if (k.vy > 520) k.vy = 520;
+
+  /* espada */
+  if (k.recarga > 0) k.recarga -= dt;
+  if (teclas.espada && k.recarga <= 0) { k.ataque = 0.18; k.recarga = 0.35; teclas.espada = false; }
+  if (k.ataque > 0) k.ataque -= dt;
+
+  moverComColisao(k, dt);
+
+  /* plataformas que andam */
+  moveis.forEach(m => {
+    m.t += dt; const antes = m.x;
+    m.x = m.x0 + Math.sin(m.t * 0.9) * T * 3;
+    if (k.vy >= 0 && k.x + k.w > m.x && k.x < m.x + m.w && Math.abs(k.y + k.h - m.y) < 5) { k.y = m.y - k.h; k.vy = 0; k.noChao = true; k.x += m.x - antes; }
+  });
+  /* blocos que caem */
+  caindo.forEach(b => {
+    if (!b.caiu && k.vy >= 0 && k.x + k.w > b.x && k.x < b.x + T && Math.abs(k.y + k.h - b.y) < 4) { k.y = b.y - k.h; k.vy = 0; k.noChao = true; b.toque += dt; if (b.toque > 0.35) b.caiu = true; }
+    if (b.caiu) { b.vy += gravidade * dt; b.y += b.vy * dt; }
+  });
+
+  /* joias, espinhos, checkpoint, bandeira */
+  const meio = bloco(k.x + 6, k.y + 8), pe = bloco(k.x + 6, k.y + 14);
+  [[k.x + 6, k.y + 8], [k.x + 6, k.y + 14]].forEach(([px, py]) => {
+    const ch = bloco(px, py);
+    if (ch === 'o') { mapa[Math.floor(py / T)][Math.floor(px / T)] = ' '; joias++; pontos += 50; brilho(px, py); }
+    if (ch === 'c' && (!checkpoint || checkpoint.x !== Math.floor(px / T))) { checkpoint = { x: Math.floor(px / T), y: Math.floor(py / T) }; brilho(px, py, '#6f6'); }
+    if (ch === 'F') vencerTorre();
+  });
+  if (meio === '^' || pe === '^' || k.y > mapa.length * T + 40) machucar(true);
+  if (k.invencivel > 0) k.invencivel -= dt;
+
+  /* inimigos */
+  inimigos.forEach(e => {
+    if (e.vida <= 0) return;
+    if (e.tipo === 'slime') {
+      const frente = bloco(e.x + (e.vx > 0 ? e.w + 1 : -1), e.y + e.h + 2), parede = bloco(e.x + (e.vx > 0 ? e.w + 1 : -1), e.y + 4);
+      if (!solido(frente) || solido(parede)) e.vx = -e.vx;
+      e.x += e.vx * dt;
+    } else {
+      e.t += dt; e.x += e.vx * dt; e.y = e.base + Math.sin(e.t * 3) * 14;
+      if (solido(bloco(e.x + (e.vx > 0 ? e.w : 0), e.y + 5)) || Math.random() < dt * 0.3) e.vx = -e.vx;
+    }
+    if (e.piscar > 0) e.piscar -= dt;
+    /* espada acerta */
+    if (k.ataque > 0) {
+      const ax = k.olhando > 0 ? k.x + k.w : k.x - 16;
+      if (e.x + e.w > ax && e.x < ax + 16 && e.y + e.h > k.y && e.y < k.y + k.h) acertar(e);
+    }
+    /* encostou */
+    if (e.vida > 0 && e.x + e.w > k.x && e.x < k.x + k.w && e.y + e.h > k.y && e.y < k.y + k.h) {
+      if (k.vy > 60 && k.y + k.h - e.y < 8) { acertar(e); acertar(e); k.vy = -forcaPulo * 0.7; }
+      else machucar(false);
+    }
+  });
+
+  /* câmera */
+  const largMapa = mapa[0].length * T, altMapa = mapa.length * T;
+  camX += (k.x - LW / 2 - camX) * Math.min(1, dt * 6);
+  camY += (k.y - LH * 0.55 - camY) * Math.min(1, dt * 4);
+  camX = Math.max(0, Math.min(largMapa - LW, camX)); camY = Math.max(-40, Math.min(altMapa - LH + 20, camY));
+  hud();
+}
+
+function moverComColisao(o, dt) {
+  o.x += o.vx * dt;
+  if (o.vx > 0 && (solido(bloco(o.x + o.w, o.y + 1)) || solido(bloco(o.x + o.w, o.y + o.h - 1)))) { o.x = Math.floor((o.x + o.w) / T) * T - o.w - 0.01; o.vx = 0; }
+  if (o.vx < 0 && (solido(bloco(o.x, o.y + 1)) || solido(bloco(o.x, o.y + o.h - 1)))) { o.x = Math.floor(o.x / T + 1) * T + 0.01; o.vx = 0; }
+  o.y += o.vy * dt; o.noChao = false;
+  const chaoEsq = bloco(o.x + 1, o.y + o.h), chaoDir = bloco(o.x + o.w - 1, o.y + o.h);
+  if (o.vy >= 0 && (solido(chaoEsq) || solido(chaoDir) || ((chaoEsq === '=' || chaoDir === '=') && (o.y + o.h) % T < 6))) { o.y = Math.floor((o.y + o.h) / T) * T - o.h; o.vy = 0; o.noChao = true; }
+  if (o.vy < 0 && (solido(bloco(o.x + 1, o.y)) || solido(bloco(o.x + o.w - 1, o.y)))) { o.y = Math.floor(o.y / T + 1) * T; o.vy = 0; }
+}
+
+function acertar(e) {
+  if (e.piscar > 0) return;
+  e.vida--; e.piscar = 0.2;
+  if (e.vida <= 0) { pontos += 100; brilho(e.x + 7, e.y + 5, '#f6a'); }
+}
+function machucar(espinho) {
+  const k = cavaleiro;
+  if (k.invencivel > 0 && !espinho) return;
+  vidas--;
+  tremor = 0.3;
+  poeira(k.x + 6, k.y + 8, 14, '#f55');
+  if (vidas <= 0) { fimDeJogo(); return; }
+  if (espinho) {
+    const volta = checkpoint ? { x: checkpoint.x * T, y: checkpoint.y * T } : { x: k.inicioX, y: k.inicioY };
+    k.x = volta.x; k.y = volta.y; k.vx = k.vy = 0;
+  } else { k.vy = -200; k.vx = -k.olhando * 160; }
+  k.invencivel = 1.5;
+}
+function vencerTorre() {
+  pontos += 500 + joias * 10;
+  estado = 'entre';
+  if (fase + 1 >= TORRES.length) {
+    mostrar('<h1>🏆 Você venceu!</h1><p>O cavaleiro subiu todas as torres!<br>Pontos: <b>' + pontos + '</b> · Joias: <b>' + joias + '</b></p><button onclick="comecar()">Jogar de novo</button>');
+  } else {
+    mostrar('<h1>Torre ' + (fase + 1) + ' completa!</h1><p>Pontos: ' + pontos + '</p><button onclick="proximaTorre()">Próxima torre</button>');
+  }
+}
+function proximaTorre() { carregarTorre(fase + 1); esconder(); estado = 'jogando'; }
+function fimDeJogo() {
+  estado = 'fim';
+  mostrar('<h1>Fim de jogo</h1><p>Você chegou à torre ' + (fase + 1) + ' com ' + pontos + ' pontos.</p><button onclick="comecar()">Tentar de novo</button>');
+}
+function comecar() {
+  vidas = 3; joias = 0; pontos = 0;
+  carregarTorre(0);
+  esconder();
+  estado = 'jogando';
+}
+function mostrar(h) { const a = document.getElementById('aviso'); a.innerHTML = '<div class="quadro">' + h + '</div>'; a.classList.remove('nao'); }
+function esconder() { document.getElementById('aviso').classList.add('nao'); }
+function hud() {
+  document.getElementById('hVidas').textContent = '♥'.repeat(Math.max(0, vidas));
+  document.getElementById('hJoias').textContent = '◆ ' + joias + '  ·  ' + pontos;
+}
+function poeira(x, y, n, cor) { for (let i = 0; i < n; i++) particulas.push({ x, y, vx: (Math.random() - 0.5) * 120, vy: -Math.random() * 100, vida: 0.4, cor: cor || '#ddd' }); }
+function brilho(x, y, cor) { for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; particulas.push({ x, y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, vida: 0.5, cor: cor || '#7ef' }); } }
+
+/* ----------- desenho ----------- */
+function desenhar() {
+  g.setTransform(ESC, 0, 0, ESC, 0, 0);
+  const ceu = g.createLinearGradient(0, 0, 0, LH);
+  ceu.addColorStop(0, '#2b2d4f'); ceu.addColorStop(1, '#6a4c93');
+  g.fillStyle = ceu; g.fillRect(0, 0, LW, LH);
+  /* torres no fundo */
+  g.fillStyle = 'rgba(20,20,50,.5)';
+  for (let i = 0; i < 8; i++) { const x = ((i * 90 - camX * 0.3) % (LW + 90) + LW + 90) % (LW + 90) - 45; g.fillRect(x, LH * 0.35 + (i % 3) * 14, 30, LH); g.fillRect(x - 4, LH * 0.35 + (i % 3) * 14, 38, 8); }
+  g.save();
+  g.translate(-Math.round(camX + (tremor > 0 ? (Math.random() - 0.5) * 4 : 0)), -Math.round(camY));
+  const x0 = Math.max(0, Math.floor(camX / T)), x1 = Math.min(mapa[0].length, Math.ceil((camX + LW) / T) + 1);
+  for (let y = 0; y < mapa.length; y++) for (let x = x0; x < x1; x++) {
+    const ch = mapa[y][x], px = x * T, py = y * T;
+    if (ch === '#') { g.fillStyle = '#5c5f99'; g.fillRect(px, py, T, T); g.fillStyle = '#7d80c4'; g.fillRect(px, py, T, 3); g.fillStyle = '#44467a'; g.fillRect(px + (y % 2) * 8, py + 8, 1, 8); }
+    if (ch === '=') { g.fillStyle = '#c8a46a'; g.fillRect(px, py, T, 5); }
+    if (ch === '^') { g.fillStyle = '#ddd'; for (let s = 0; s < 4; s++) { g.beginPath(); g.moveTo(px + s * 4, py + T); g.lineTo(px + s * 4 + 2, py + 8); g.lineTo(px + s * 4 + 4, py + T); g.fill(); } }
+    if (ch === 'o') { g.fillStyle = '#7ef'; const b = Math.sin(relogio * 4 + x) * 2; g.beginPath(); g.moveTo(px + 8, py + 3 + b); g.lineTo(px + 13, py + 8 + b); g.lineTo(px + 8, py + 13 + b); g.lineTo(px + 3, py + 8 + b); g.fill(); }
+    if (ch === 'c') { g.fillStyle = checkpoint && checkpoint.x === x ? '#6f6' : '#888'; g.fillRect(px + 7, py + 2, 2, 14); g.fillRect(px + 9, py + 2, 6, 5); }
+    if (ch === 'F') { g.fillStyle = '#eee'; g.fillRect(px + 7, py - 14, 2, 30); g.fillStyle = '#ffd166'; g.fillRect(px + 9, py - 14 + Math.sin(relogio * 5), 10, 7); }
+  }
+  moveis.forEach(m => { g.fillStyle = '#c8a46a'; g.fillRect(m.x, m.y, m.w, m.h); g.fillStyle = '#8a6a3a'; g.fillRect(m.x, m.y + 4, m.w, 2); });
+  caindo.forEach(b => { g.fillStyle = b.toque > 0 ? '#b86' : '#a9a'; g.fillRect(b.x + (b.toque > 0 && !b.caiu ? (Math.random() - 0.5) * 2 : 0), b.y, T, T); });
+  inimigos.forEach(e => {
+    if (e.vida <= 0) return;
+    g.fillStyle = e.piscar > 0 ? '#fff' : e.tipo === 'slime' ? '#6c6' : '#a6c';
+    if (e.tipo === 'slime') { g.fillRect(e.x, e.y + 2, e.w, e.h - 2); g.fillRect(e.x + 2, e.y, e.w - 4, 2); }
+    else { g.fillRect(e.x + 4, e.y + 3, 6, 5); const asa = Math.sin(relogio * 20) > 0 ? 0 : 3; g.fillRect(e.x, e.y + asa, 4, 3); g.fillRect(e.x + 10, e.y + asa, 4, 3); }
+    g.fillStyle = '#000'; g.fillRect(e.x + 4, e.y + 4, 2, 2); g.fillRect(e.x + 9, e.y + 4, 2, 2);
+  });
+  desenharCavaleiro();
+  particulas.forEach(p => { g.globalAlpha = Math.max(0, p.vida * 2); g.fillStyle = p.cor; g.fillRect(p.x, p.y, 2, 2); });
+  g.globalAlpha = 1;
+  g.restore();
+}
+function desenharCavaleiro() {
+  const k = cavaleiro;
+  if (!k || (k.invencivel > 0 && Math.floor(relogio * 16) % 2)) return;
+  g.fillStyle = '#c0c6d6';
+  g.fillRect(k.x, k.y, k.w, k.h);
+  g.fillStyle = '#e04b4b'; g.fillRect(k.x + 3, k.y - 3, 6, 3);
+  g.fillStyle = '#222'; g.fillRect(k.x + (k.olhando > 0 ? 7 : 2), k.y + 4, 3, 2);
+  g.fillStyle = '#3a6ad6'; g.fillRect(k.x, k.y + 8, k.w, 3);
+  if (k.ataque > 0) { g.fillStyle = '#fff'; g.fillRect(k.olhando > 0 ? k.x + k.w : k.x - 14, k.y + 6, 14, 2); }
+}
+
+/* ----------- controles ----------- */
+const MAPA_TECLAS = { ArrowLeft: 'esq', KeyA: 'esq', ArrowRight: 'dir', KeyD: 'dir', ArrowUp: 'pulo', KeyW: 'pulo', Space: 'pulo', KeyZ: 'pulo', KeyX: 'espada', KeyJ: 'espada' };
+addEventListener('keydown', e => { const k = MAPA_TECLAS[e.code]; if (k) { e.preventDefault(); if ((k === 'pulo' || k === 'espada') && e.repeat) return; teclas[k] = true; } });
+addEventListener('keyup', e => { const k = MAPA_TECLAS[e.code]; if (k === 'esq' || k === 'dir') teclas[k] = false; });
+document.querySelectorAll('.b').forEach(b => {
+  const k = b.dataset.k;
+  b.addEventListener('pointerdown', e => { e.preventDefault(); teclas[k] = true; b.classList.add('on'); });
+  const solta = () => { if (k === 'esq' || k === 'dir') teclas[k] = false; b.classList.remove('on'); };
+  b.addEventListener('pointerup', solta); b.addEventListener('pointerleave', solta); b.addEventListener('pointercancel', solta);
+});
+
+let antes = performance.now();
+function laco(agora) { const dt = Math.min(1 / 30, (agora - antes) / 1000); antes = agora; atualizar(dt); desenhar(); requestAnimationFrame(laco); }
+tamanho();
+carregarTorre(0);
+mostrar('<h1>⚔ Cavaleiro das Torres</h1><p>Suba as 4 torres até a bandeira!<br>◀ ▶ andam · ▲ pula · ⚔ ataca com a espada.<br>Pule em cima dos slimes, cuidado com os espinhos e com os blocos que caem.</p><button onclick="comecar()">Começar</button>');
+requestAnimationFrame(laco);
+</script>
+</body>
+</html>
