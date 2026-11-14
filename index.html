@@ -26319,6 +26319,24 @@ function donoDoObjeto(T, ab, R){
     return b.v;
   }
   if(a.t === 'id' && a.v === 'return'){ var em = rangesEm(R, ab); return em.length ? em[0].nome : null; }
+  /* Object.assign(jogador, {vida: 3, ...}) -> o objeto é do jogador (o jogo zera ele assim ao começar) */
+  if(a.v === ','){
+    var d = 0;
+    for(var k = ab - 1; k >= 0 && k > ab - 60; k--){
+      var v = T[k].v;
+      if(v === ')' || v === ']' || v === '}') d++;
+      else if(v === '(' || v === '[' || v === '{'){
+        if(d === 0){
+          if(v === '(' && T[k - 1] && T[k - 1].v === 'assign' && T[k + 1] && T[k + 1].t === 'id'){
+            var fim = k + 1; while(T[fim + 1] && T[fim + 1].v === '.' && T[fim + 2] && T[fim + 2].t === 'id') fim += 2;
+            if(T[fim + 1] && T[fim + 1].v === ',') return T[fim].v;
+          }
+          return null;
+        }
+        d--;
+      }
+    }
+  }
   return null;
 }
 /* o tamanho de uma frase (de um ; até o outro) em volta do pedaço j */
@@ -26436,6 +26454,12 @@ function acharAtributos(doc, ensinado, opts){
       if(s.lit === 0) return;
       if(c === 'tempo' && !ens && /^(timer|time|tempo|temporizador)$/.test(k) && !jogoMostraTempo(doc)) return;
       if(cf.tipo === 'soma' && s.lit === null && !s.jaLigado) return;
+      /* recarga = jogador.cadencia: o valor já vem de outro número do mesmo tipo (que também é ligado) -> ligar aqui contaria duas vezes */
+      if(s.lit === null && !s.jaLigado){
+        var Tq = s.js.T, herda = false;
+        for(var q = s.vIni; q <= s.vFim; q++) if(Tq[q].t === 'id' && conceitoDoNome(Tq[q].v, ensinado) === c && res[c].some(function(o){ return o !== s && o.nome === Tq[q].v && o.lit !== null; })) herda = true;
+        if(herda) return;
+      }
       var doJogador = true;
       if(s.tipo === 'membro' || s.tipo === 'prop'){
         if(c === 'gravidade'){ if(s.dono && ehInimigo(s.dono)){ if(!(opts && opts.todos)) return; doJogador = false; } }
@@ -27445,7 +27469,16 @@ function fazerPontuar(codigo){
 }
 
 /* ---- jogar com a skin (o personagem do Koda GB vira o herói) ---- */
-var NOMES_DESENHO = /^(draw|desenha|desenhar|render|renderizar|paint|pintar|show|mostrar|display)(player|jogador|hero|heroi|personagem|nave|ship|bird|passaro|char|character|boneco|me|eu|dino|sapo|frog|gato|cat|cobra|snake|car|carro|astronauta|astronaut|ninja|jugador|personaje|avatar)$/;
+var NOMES_DESENHO = {test: function(k){
+  /* desenharJogador, drawHero, renderCorredor...: qualquer nome de herói que o agente conhece */
+  var pre = ['renderizar', 'desenhar', 'desenha', 'render', 'paint', 'pintar', 'show', 'mostrar', 'display', 'draw'];
+  for(var i = 0; i < pre.length; i++){
+    if(k.indexOf(pre[i]) !== 0) continue;
+    var resto = k.slice(pre[i].length);
+    if(resto && JOGADOR_RE.test(resto) && !INIMIGO_RE.test(resto) && !/^(x|y|me|eu|o|a)$/.test(resto) || /^(me|eu)$/.test(resto)) return true;
+  }
+  return false;
+}};
 var DICA_HEROI = null;     /* palavras que a pessoa disse sobre o herói ("a nave", "o sapo") */
 function nomeBateComDica(n){ if(!DICA_HEROI) return false; var k = chaveDeNome(n); return DICA_HEROI.some(function(h){ return h.length >= 3 && k.indexOf(h) >= 0; }); }
 function acharDesenhoDoJogador(doc, dica){
@@ -27466,7 +27499,7 @@ function acharDesenhoDoJogadorSemDica(doc){
         if(cl && ehJogador(cl.nome)) dono = 'this';
         else return;
       } else if(!especifica) return;
-      var c = chamadaDeDesenho(T, r.ini, r.fim, dono);
+      var c = melhorDesenhoDaFuncao(js, r, dono);
       if(c){ c.js = js; c.funcao = r; c.inteira = true; achado = c; }
     });
     if(achado) return;
@@ -27475,6 +27508,27 @@ function acharDesenhoDoJogadorSemDica(doc){
     if(c2){ c2.js = js; achado = c2; }
   });
   return achado;
+}
+/* dentro da função que desenha o herói: o desenho do CORPO (não a sombra, nem o brilho do turbo que fica dentro de um if) */
+function melhorDesenhoDaFuncao(js, r, dono){
+  var T = js.T, cands = [], desde = r.ini;
+  for(var guarda = 0; guarda < 60; guarda++){
+    var c = chamadaDeDesenho(T, desde, r.fim, dono);
+    if(!c) break;
+    desde = c.j + 1;
+    /* sombra: fillStyle preto transparente logo antes */
+    var sombra = false;
+    for(var k = c.j - 1; k > Math.max(r.ini, c.j - 40); k--){
+      if(T[k].t === 'id' && T[k].v === 'fillStyle' && T[k + 1] && T[k + 1].v === '='){ var cor = T[k + 2] && T[k + 2].t === 'str' ? valorDoTexto(T[k + 2].v) : ''; sombra = /^rgba\(\s*0\s*,\s*0\s*,\s*0\s*,|^#0{6}[0-9a-f]{2}$|^#0{3}[0-9a-f]$/i.test(cor); break; }
+    }
+    cands.push({c: c, sombra: sombra, prof: js.prof ? js.prof[c.j] : 0, n: cands.length});
+  }
+  if(!cands.length) return null;
+  var semSombra = cands.filter(function(x){ return !x.sombra; });
+  if(!semSombra.length) semSombra = cands;
+  var minProf = Math.min.apply(null, semSombra.map(function(x){ return x.prof; }));
+  var raso = semSombra.filter(function(x){ return x.prof === minProf; });
+  return (raso.length ? raso : semSombra)[0].c;
 }
 /* o valor de uma conta de desenho com tudo zerado (x - 14 -> -14, 10 + o -> 10). null se não der pra saber. */
 function numeroDaConta(txt){
@@ -27558,7 +27612,12 @@ function fazerSkin(codigo, forcar, dica){
   var pronto = 'window.KODA && KODA.jogador && KODA.jogador.pronto()';
   if(d.inteira){
     /* a função inteira desenha o jogador: o personagem do Koda GB entra no lugar (e o desenho antigo fica de reserva) */
-    ed.inserir(js.base + T[d.funcao.ini].e, ' if(' + pronto + '){ ' + desenha + '; return; }');
+    /* entra logo antes do desenho do corpo: as variáveis (p, alto...) e os "return" do começo (piscar) continuam valendo */
+    var antesDe = d.j - 2;
+    while(antesDe > d.funcao.ini + 1 && !/^[;{}]$/.test(T[antesDe - 1].v)) antesDe--;
+    var noTopo = !js.prof || js.prof[antesDe] === js.prof[d.funcao.ini + 1] || antesDe <= d.funcao.ini + 1;
+    if(antesDe > d.funcao.ini + 1 && noTopo) ed.inserir(js.base + T[antesDe].s, 'if(' + pronto + '){ ' + desenha + '; return; }\n' + recuoDaLinha(js.sc.corpo, T[antesDe].s));
+    else ed.inserir(js.base + T[d.funcao.ini].e, ' if(' + pronto + '){ ' + desenha + '; return; }');
   } else if(d.tipo === 'arc' || d.tipo === 'ellipse'){
     /* círculo: ctx.beginPath(); ctx.arc(...); ctx.fill();  ->  if(personagem pronto){ desenha } else { o círculo de antes } */
     var bp = -1, fl = -1;
@@ -33601,6 +33660,21 @@ function precoDaExpr(doc, js, a, b, cp, fundo){
         if(campo) return {tipo: 'lista', tabela: t0, prop: prop, campo: campo, obj: partes.slice(0, -1).join('.'), itens: t0.v.map(function(o){ return {nome: o[campo], preco: o[prop], unico: o.comprado != null || o.owned != null || o.bought != null || o.unlocked != null || o.desbloqueado != null}; })};
       }
     }
+    /* "var m = melhorias[k], preco = m.precos[m.nivel]" logo antes: a variável local vale mais que um "preco: 0" de outra tabela */
+    if(fundo < 1 && partes.length === 1){
+      var fnL = funcaoEmVolta(T, cp.gIni), iniL = fnL && fnL.abre != null ? fnL.abre : Math.max(0, cp.gIni - 400);
+      for(var kL = cp.gIni - 1; kL > iniL; kL--){
+        if(T[kL].t === 'id' && T[kL].v === c.txt && T[kL + 1] && T[kL + 1].v === '=' && T[kL - 1] && /^(var|let|const|,)$/.test(T[kL - 1].v)){
+          var eL = fimDaExpr(T, kL + 2), rL = precoDaExpr(doc, js, kL + 2, eL, cp, fundo + 1);
+          if(rL) return rL;
+          if(exprDePrecoSegura(T, kL + 2, eL)){
+            var estL = estimarPreco(doc, js, kL + 2, eL, 0);
+            return {tipo: 'dinamico', expr: c.txt, estimado: estL, a: kL + 2, b: eL};
+          }
+          break;
+        }
+      }
+    }
     var n0 = numeroInicial(doc, c.txt);
     if(n0) return {tipo: 'num', v: n0.v, muda: n0.muda, variavel: c.txt};
     var vc = partes.length >= 2 ? valorDoCaminho(doc, c.txt) : null;
@@ -34251,7 +34325,14 @@ function identidadeDaCompra(doc, js, cp){
   }
   /* 2) o calculador: um item por elemento, chave, posição ou objeto que quem chama manda */
   var din = itensDinamicos(doc, js, cp);
-  if(din && din.itens.length) return din;
+  if(din && din.itens.length){
+    /* comprar(k) com "var m = melhorias[k]" e {nome: 'Broca'} na tabela: o nome bonito na hora de pagar */
+    if(din.nomeExpr && /^[A-Za-z_$][\w$]*$/.test(din.nomeExpr)){
+      var pt = chaveDeTabela(T, cp.gIni, din.nomeExpr), tbD = pt && tabelaDoCaminho(doc, pt.tab, true), cD = tbD && campoDeNomeDosItens(tbD.v);
+      if(cD) din.nomeExpr = '(' + pt.x + ' && ' + pt.x + '.' + cD + ' || ' + din.nomeExpr + ')';
+    }
+    return din;
+  }
   /* 3) o preço é um parâmetro da função: buy(item, price) -> as chamadas dizem os itens */
   var fn = funcaoEmVolta(T, cp.gIni);
   if(fn && fn.params.length){
@@ -34260,7 +34341,15 @@ function identidadeDaCompra(doc, js, cp){
     var ip = fn.params.findIndex(function(x){ return idsDoPreco.indexOf(x) >= 0 && !PARAM_QTD.test(x) && paramSoltoNaConta(T, faixas, x); });   /* quantidade não é o preço */
     var chamadas = fn.nome ? chamadasDe(doc, fn.nome) : [];
     var ic = fn.params.findIndex(function(x, i){ return i !== ip && (PARAM_CHAVE.test(x) || chamadas.some(function(a){ return typeof a[i] === 'string'; })); });
-    if(ic >= 0){ r.idExpr = 'kodaIdDoNome(' + fn.params[ic] + ')'; r.nomeExpr = fn.params[ic]; }
+    /* comprar(k) com "var m = melhorias[k]" antes: k é a chave do item, mesmo com nome curto */
+    var porTab = null;
+    if(ic < 0) fn.params.forEach(function(x, i){ if(ic < 0 && i !== ip){ var t0 = chaveDeTabela(T, cp.gIni, x); if(t0){ ic = i; porTab = t0; } } });
+    else porTab = chaveDeTabela(T, cp.gIni, fn.params[ic]);
+    if(ic >= 0){
+      r.idExpr = 'kodaIdDoNome(' + fn.params[ic] + ')'; r.nomeExpr = fn.params[ic];
+      /* os itens da tabela têm nome ({nome: 'Broca'}): o nome bonito vem dali */
+      if(porTab){ var tbN = tabelaDoCaminho(doc, porTab.tab, true), cN = tbN && campoDeNomeDosItens(tbN.v); if(cN) r.nomeExpr = '(' + porTab.x + ' && ' + porTab.x + '.' + cN + ' || ' + fn.params[ic] + ')'; }
+    }
     if(ip >= 0 || ic >= 0){
       chamadas.forEach(function(a){
         var preco = ip >= 0 ? a[ip] : P.estimado, chave = ic >= 0 ? a[ic] : null;
@@ -34279,8 +34368,46 @@ function identidadeDaCompra(doc, js, cp){
   /* 3) o nome do que a compra muda ou da função (upgradePick, buyPotions) */
   return r;
 }
+/* "var m = TABELA[chave]" antes da compra -> {x: 'm', tab: 'TABELA'} */
+function chaveDeTabela(T, ate, chave){
+  for(var q = ate - 1; q >= 0 && q > ate - 600; q--){
+    if(T[q].t !== 'id' || !T[q + 1] || T[q + 1].v !== '=' || !T[q - 1] || !/^(var|let|const|,)$/.test(T[q - 1].v)) continue;
+    var c = caminhoDesde(T, q + 2);
+    if(c && T[c.fim + 1] && T[c.fim + 1].v === '[' && T[c.fim + 2] && T[c.fim + 2].v === chave && T[c.fim + 3] && T[c.fim + 3].v === ']') return {x: T[q].v, tab: c.txt};
+    /* const p = PREDIOS.find(x => x.id === id)  /  .find(function(x){ return x.nome === id; }) */
+    if(c && /\.find$/.test(c.txt) && T[c.fim + 1] && T[c.fim + 1].v === '('){
+      var fe = par(T, c.fim + 1), corpo = fe > 0 ? T.slice(c.fim + 2, fe).map(function(x){ return x.v; }).join(' ') : '';
+      var mf = /^\(?\s*(\w+)\s*\)?\s*=>\s*\1\s*\.\s*(\w+)\s*===?\s*(\w+)$/.exec(corpo) || /^function\s*\(\s*(\w+)\s*\)\s*\{\s*return\s+\1\s*\.\s*(\w+)\s*===?\s*(\w+)\s*;?\s*\}$/.exec(corpo);
+      if(mf && mf[3] === chave) return {x: T[q].v, tab: c.txt.replace(/\.find$/, ''), campo: mf[2]};
+    }
+    if(T[q].v === 'function') break;
+  }
+  return null;
+}
+function campoDeNomeDosItens(v){
+  if(!v || typeof v !== 'object') return null;
+  var ks = Object.keys(v); if(!ks.length) return null;
+  var cs = ['nome', 'name', 'titulo', 'title', 'label', 'nombre'];
+  for(var i = 0; i < cs.length; i++){ var c = cs[i]; if(ks.every(function(k){ return v[k] && typeof v[k] === 'object' && typeof v[k][c] === 'string'; })) return c; }
+  return null;
+}
 function estimarPorChave(doc, js, cp, faixas, chave){
   var T = js.T, out = [];
+  /* lista com .find(x => x.id === chave): um item por elemento, com o preço de começo (custoBase, preco, cost...) */
+  var pf = chaveDeTabela(T, cp.gIni, chave);
+  if(pf && pf.campo){
+    var tl = tabelaDoCaminho(doc, pf.tab, true);
+    if(!tl || !Array.isArray(tl.v)) return out;
+    var cN = campoDeNomeDosItens(tl.v);
+    tl.v.forEach(function(o){
+      if(!o || typeof o !== 'object' || o[pf.campo] == null) return;
+      var pc = null;
+      Object.keys(o).forEach(function(k3){ if(pc == null && typeof o[k3] === 'number' && /^(custo|preco|price|cost|valor|value)/i.test(k3)) pc = o[k3]; });
+      if(!(pc > 0)) return;
+      out.push({id: idDaCompra(o[pf.campo]), nome: cN ? String(o[cN]).slice(0, 40) : capitalizar(String(o[pf.campo])), preco: Math.round(pc)});
+    });
+    return out;
+  }
   /* acha "X = TABELA[chave]" antes da compra */
   for(var q = cp.gIni - 1; q >= 0 && q > cp.gIni - 600; q--){
     if(T[q].t !== 'id' || !T[q + 1] || T[q + 1].v !== '=' || !T[q - 1] || !/^(var|let|const)$/.test(T[q - 1].v)) continue;
@@ -34293,7 +34420,8 @@ function estimarPorChave(doc, js, cp, faixas, chave){
     Object.keys(tb.v).forEach(function(k2){
       var o = tb.v[k2], v = null;
       try{ v = Function(x, chave, 'return (' + expr + ')')(o, k2); }catch(e){}
-      if(typeof v === 'number' && v > 0) out.push({id: idDaCompra(k2), nome: nomeDasPalavras(palavrasDoId(k2), cp.lj) || capitalizar(k2), preco: Math.round(v)});
+      var cN = campoDeNomeDosItens(tb.v), nm = cN ? String(o[cN]).slice(0, 40) : (nomeDasPalavras(palavrasDoId(k2), cp.lj) || capitalizar(k2));
+      if(typeof v === 'number' && v > 0) out.push({id: idDaCompra(k2), nome: nm, preco: Math.round(v)});
     });
     return out;
   }
@@ -34455,6 +34583,35 @@ function escreverAjudanteMoedas(lj, moeda){
   return '<script data-koda-moedas="1">\n/* ' + TL(lj, 'dj_comentario') + ' */\nvar KODA_ID_DO_NOME = ' + ID_DO_NOME_RT + ';\nvar KODA_MOEDA_TROCA = ' + JSON.stringify(troca) + ';\n(' + kodaMoedasNoJogo.toString() + ')();\n<\/script>';
 }
 var SE_KODA = '(window.kodaLojaAtiva && kodaLojaAtiva())';
+/* o botão de comprar que fica apagado quando falta moeda DO JOGO: pagando no Koda GB, ele fica aceso
+   (coins < preco ? 'disabled' : '')  /  btn.disabled = coins < preco  /  classList.toggle('off', coins < preco) */
+function liberarBotoesDeCompra(codigo, caminhos){
+  (caminhos || []).forEach(function(c){
+    var cm = escRe(c), alvo = '(' + cm + '\\s*<=?\\s*[^?;,)\\n]{1,60}?|[^?;,(=\\n]{1,60}?\\s*>=?\\s*' + cm + '(?![\\w$.]))';
+    var nao = '!' + SE_KODA + ' && ';
+    /* ... ? 'disabled' : '' (também ' disabled', "off", 'bloqueado') */
+    codigo = codigo.replace(new RegExp('\\(\\s*' + alvo + '\\s*\\?\\s*([\'"`])\\s*(disabled|off|locked|bloqueado|desativado|caro|sem-dinheiro)', 'g'), function(t, cmp, q, w){ return '(' + nao + '(' + cmp.trim() + ') ? ' + q + t.slice(t.indexOf(q) + 1, t.indexOf(q) + 1 + t.slice(t.indexOf(q) + 1).indexOf(w)) + w; });
+    /* x.disabled = coins < preco */
+    codigo = codigo.replace(new RegExp('(\\.disabled\\s*=\\s*)' + alvo + '\\s*;', 'g'), function(t, a, cmp){ return a + nao + '(' + cmp.trim() + ');'; });
+    /* disabled: coins < preco */
+    codigo = codigo.replace(new RegExp('(\\bdisabled\\s*:\\s*)' + alvo + '(\\s*[,}])', 'g'), function(t, a, cmp, f){ return a + nao + '(' + cmp.trim() + ')' + f; });
+    /* classList.toggle('disabled', coins < preco) */
+    codigo = codigo.replace(new RegExp("(classList\\.toggle\\(\\s*(['\"])[\\w-]+\\2\\s*,\\s*)" + alvo + '\\s*\\)', 'g'), function(t, a, q, cmp){ return a + nao + '(' + cmp.trim() + '))'; });
+  });
+  return codigo;
+}
+/* if (coins < preco || m.nivel >= m.max) return;  ->  no caminho do Koda GB continua valendo "m.nivel >= m.max" */
+function restoDaGuarda(js, g){
+  var T = js.T, a = g.ifK + 1;
+  if(g.livre || !T[a] || T[a].v !== '(') return null;
+  var b = par(T, a); if(b < 0 || g.cIni <= a || g.cFim >= b) return null;
+  var d = 0, temOu = false;
+  for(var k = a + 1; k < b; k++){ var v = T[k].v; if(T[k].t === 'p' && /^[([{]$/.test(v)) d++; else if(T[k].t === 'p' && /^[)\]}]$/.test(v)) d--; else if(d === 0 && v === '||') temOu = true; else if(d === 0 && /^(&&|\?|\?\?)$/.test(v)) return null; }
+  if(!temOu) return null;
+  var antes = js.sc.corpo.slice(T[a + 1].s, T[g.cIni].s), depois = js.sc.corpo.slice(T[g.cFim].e, T[b - 1].e);
+  var txt = (antes + 'false' + depois).replace(/^\s*false\s*\|\|\s*/, '').replace(/\s*\|\|\s*false\s*$/, '').replace(/\|\|\s*false\s*\|\|/, '||').trim();
+  return txt && txt !== 'false' ? txt : null;
+}
 /* os nomes de "var" de laços em volta (for(var i...)) que o código adiado usa: viram parâmetros pra não mudar depois */
 function varsDeLaco(T, k, a, b){
   var r = [];
@@ -34680,7 +34837,8 @@ function converterMoedas(codigo, opts){
 
       ed.trocar(js.base + T[g.abre].e, js.base + T[g.fecha].s, '\n' + dentro + 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro + '  ') + ';' + (ad.temReturn ? '\n' + dentro + '  return;' : '') + '\n' + dentro + '} else {' + corpo.replace(/\s+$/, '').replace(/\n/g, '\n  ') + '\n' + dentro + '}\n' + ind);
     } else {
-      ed.inserir(js.base + T[g.ifK].s, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + recuar(chamada, dentro) + ';\n' + dentro + (g.sai === 'break' ? 'break;' : 'return;') + '\n' + ind + '}\n' + ind);
+      var resto = restoDaGuarda(js, g);
+      ed.inserir(js.base + T[g.ifK].s, 'if ' + SE_KODA + ' { /* ' + TL(lj, 'dj_marca') + ' */\n' + (resto ? dentro + 'if (' + resto + ') ' + (g.sai === 'break' ? 'break;' : 'return;') + '\n' : '') + recuar(chamada, dentro) + ';\n' + dentro + (g.sai === 'break' ? 'break;' : 'return;') + '\n' + ind + '}\n' + ind);
     }
     ocupado.push([rIni, rFim]);
     trocasFora.forEach(function(x){ ed.trocar(x[0], x[1], x[2]); });
@@ -34701,6 +34859,7 @@ function converterMoedas(codigo, opts){
   /* ajudante de uma versão antiga (sem o preço de agora): troca pelo novo */
   if(novo != null && /data-koda-moedas/.test(codigo) && !/moedaDaCompra/.test(novo)) novo = novo.replace(/<script data-koda-moedas="1">[\s\S]*?<\/script>/, escreverAjudanteMoedas(lj, moeda));
   if(novo == null) return {erro: 'edicao', moedas: moedas};
+  novo = liberarBotoesDeCompra(novo, moedas.filter(function(m){ return m.compras.some(function(c){ return feitas.indexOf(c) >= 0; }); }).map(function(m){ return m.caminho; }));
   var ok = conferirDepois(codigo, novo, {});
   if(ok.erro) return {erro: 'quebrou', moedas: moedas};
   /* os itens vão pra loja do Koda GB (cria a loja ou junta na que já existe) */
@@ -36153,14 +36312,14 @@ Object.assign(TX, {
   md_tipo_imagem: 'Uma imagem eu posso colocar de fundo do jogo, na tela inicial ou de capa.|I can put an image as the game background, on the start screen or as the cover.|Una imagen la puedo poner de fondo del juego, en la pantalla de inicio o de portada.',
   md_tipo_audio: 'Um áudio eu posso colocar de música do jogo ou tocar quando acontecer algo: pular, ganhar ponto, levar dano ou o jogo acabar.|I can use an audio as the game music or play it when something happens: jumping, scoring, taking damage or the game ending.|Un audio lo puedo poner de música del juego o sonarlo cuando pase algo: saltar, ganar punto, recibir daño o terminar el juego.',
   md_tipo_video: 'Um vídeo eu posso colocar na tela inicial do jogo.|I can put a video on the game\'s start screen.|Un video lo puedo poner en la pantalla de inicio del juego.',
-  md_fundo_ok: 'Pronto! A imagem agora é o fundo do jogo.|Done! The image is now the game background.|¡Listo! La imagen ahora es el fondo del juego.',
+  mi_fundo_ok: 'Pronto! A imagem agora é o fundo do jogo.|Done! The image is now the game background.|¡Listo! La imagen ahora es el fondo del juego.',
   md_fundo_canvas: 'Mas esse jogo pinta a tela toda de uma cor, então a imagem pode não aparecer. Teste pra ver.|But this game paints the whole screen one color, so the image may not show. Test it to see.|Pero este juego pinta toda la pantalla de un color, así que la imagen puede no verse. Pruébalo para ver.',
   md_tela_img: 'Pronto! A imagem aparece na tela inicial do jogo, a que tem o botão Jogar.|Done! The image shows on the game\'s start screen, the one with the Play button.|¡Listo! La imagen aparece en la pantalla de inicio del juego, la del botón Jugar.',
   md_tela_video: 'Pronto! O vídeo toca (sem som) na tela inicial do jogo, a que tem o botão Jogar.|Done! The video plays (muted) on the game\'s start screen, the one with the Play button.|¡Listo! El video se reproduce (sin sonido) en la pantalla de inicio del juego, la del botón Jugar.',
   md_tela_criada: 'Esse jogo não tinha tela inicial, então criei uma.|This game had no start screen, so I made one.|Este juego no tenía pantalla de inicio, así que creé una.',
   md_online: 'Jogo online não tem tela inicial do Koda GB. Posso usar a imagem de fundo do jogo, se quiser.|Online games don\'t have a Koda GB start screen. I can use the image as the game background if you want.|Los juegos en línea no tienen pantalla de inicio de Koda GB. Puedo usar la imagen de fondo del juego, si quieres.',
   md_capa_ok: 'Pronto! Usei essa imagem de capa do jogo. Ela aparece no Koda GB quando você publicar.|Done! I used this image as the game cover. It shows in Koda GB when you publish.|¡Listo! Usé esta imagen de portada del juego. Aparece en Koda GB cuando publiques.',
-  md_musica_ok: 'Pronto! Esse áudio agora é a música de fundo do jogo. Ela repete e começa no primeiro toque; o botão de som no canto liga e desliga.|Done! This audio is now the game\'s background music. It loops and starts on the first tap; the sound button in the corner turns it on and off.|¡Listo! Este audio ahora es la música de fondo del juego. Se repite y empieza con el primer toque; el botón de sonido en la esquina lo enciende y apaga.',
+  mi_musica_ok: 'Pronto! Esse áudio agora é a música de fundo do jogo. Ela repete e começa no primeiro toque; o botão de som no canto liga e desliga.|Done! This audio is now the game\'s background music. It loops and starts on the first tap; the sound button in the corner turns it on and off.|¡Listo! Este audio ahora es la música de fondo del juego. Se repite y empieza con el primer toque; el botón de sonido en la esquina lo enciende y apaga.',
   md_som_ok: 'Pronto! Esse áudio vai tocar quando {quando}.|Done! This audio will play when {quando}.|¡Listo! Este audio sonará cuando {quando}.',
   md_q_pulo: 'o jogador pular|the player jumps|el jugador salte',
   md_q_ponto: 'o jogador ganhar ponto|the player scores|el jugador gane punto',
@@ -36212,9 +36371,9 @@ H.midia_usar = function(it, ctx, est){
   if(res.erro === 'online'){ diz(r, T('md_online')); if(a.tipo === 'imagem') chip(r, T('ch_md_fundo')); return r; }
   if(res.erro === 'nao_achei'){ diz(r, T('md_som_nao', {quando: T('md_q_' + o.replace('som_', ''))})); chip(r, T('ch_md_musica')); return r; }
   if(res.erro) return diz(r, T('lj_nao_deu'));
-  if(o === 'fundo'){ diz(r, T('md_fundo_ok')); if(res.res && res.res.canvasSemFundo) diz(r, T('md_fundo_canvas')); }
+  if(o === 'fundo'){ diz(r, T('mi_fundo_ok')); if(res.res && res.res.canvasSemFundo) diz(r, T('md_fundo_canvas')); }
   else if(o === 'tela'){ diz(r, T(a.tipo === 'video' ? 'md_tela_video' : 'md_tela_img')); if(res.res && res.res.criouTela) diz(r, T('md_tela_criada')); }
-  else if(o === 'musica') diz(r, T('md_musica_ok'));
+  else if(o === 'musica') diz(r, T('mi_musica_ok'));
   else diz(r, T('md_som_ok', {quando: T('md_q_' + o.replace('som_', ''))}));
   diz(r, T('md_aviso'));
   chip(r, T('ch_testar'));
@@ -37327,6 +37486,14 @@ kodaSonsNoJogo = function(){
     dano: function(c, t){ nota(c, t, 200, 0.26, {tipo: 'triangle', f1: 85, vol: 0.26}); ruido(c, t, 0.14, 900, 0.16); },
     /* fim de jogo: três notas descendo, com a última mais longa */
     fim: function(c, t){ [523.25, 392, 329.63, 261.63].forEach(function(f, i){ nota(c, t + i * 0.15, f, i === 3 ? 0.7 : 0.28, {tipo: 'triangle', vol: 0.15, harm: [[1, 1], [2, 0.1]]}); }); },
+    /* tiro: um "piu" curto e baixinho (o jogo atira muitas vezes) */
+    tiro: function(c, t){ nota(c, t, 1400, 0.07, {tipo: 'square', f1: 520, vol: 0.045}); },
+    /* explosão: chiado que vai abafando + um grave */
+    explosao: function(c, t){ ruido(c, t, 0.35, 420, 0.22); nota(c, t, 140, 0.3, {tipo: 'triangle', f1: 45, vol: 0.2}); },
+    /* poder: três notas subindo rápido, brilhantes */
+    poder: function(c, t){ [783.99, 1046.5, 1567.98].forEach(function(f, i){ nota(c, t + i * 0.05, f, 0.16, {vol: 0.13, harm: [[1, 1], [2, 0.2]]}); }); },
+    /* fase nova / subiu de nível: fanfarra curta */
+    fase: function(c, t){ [523.25, 659.25, 783.99, 1046.5].forEach(function(f, i){ nota(c, t + i * 0.1, f, i === 3 ? 0.5 : 0.18, {tipo: 'triangle', vol: 0.15, harm: [[1, 1], [2, 0.15]]}); }); },
     /* compra: arpejo alegre subindo */
     compra: function(c, t){ [659.25, 830.61, 987.77, 1318.5].forEach(function(f, i){ nota(c, t + i * 0.06, f, 0.2, {vol: 0.12, harm: [[1, 1], [3, 0.06]]}); }); }
   };
@@ -37365,10 +37532,532 @@ kodaSonsNoJogo = function(){
     if(window.__kodaSomSo) return;
     var c = ctx(), s = SONS[nome];
     if(!c || !s || c.state !== 'running') return;
-    if(ult[nome] && t0 - ult[nome] < 70) return;
+    if(ult[nome] && t0 - ult[nome] < (nome === 'tiro' ? 90 : 70)) return;
     ult[nome] = t0;
     try{ s(c, c.currentTime + 0.005); }catch(e){}
   };
+};
+/* ====================================================================
+   JOGOS GRANDES (pesados): o "salvar" tem que valer de verdade
+   - jogos grandes zeram tudo ao começar a partida (Object.assign(heroi, {nivel: 1...}), andar = 1, pontos = 0):
+     o valor guardado volta na PRIMEIRA vez que a partida começa depois de abrir o jogo (continua de onde parou);
+     nas próximas (depois de perder) o jogo começa do zero, como antes;
+   - números que mudam junto com o que é salvo (subiu de nível -> xpProx, vidaMax, ataque) vão junto,
+     senão o nível volta e o resto não;
+   - mais nomes: melhorAndar, bestDistance (recorde), andar/floor/depth (fase).
+==================================================================== */
+NOMES_SALVAR.forEach(function(n){
+  if(n[0] === 'recorde') n[1] = new RegExp(n[1].source.replace(/\)\$$/, '|(melhor|best|recorde|record|high|hi|mejor|top)(pontos|pontuacao|score|andar|fase|nivel|level|distancia|distance|tempo|time|onda|wave|metros|km|placar|resultado|run|corrida|volta|lap|floor|depth|profundidade|stage)s?)$'));
+  if(n[0] === 'fase') n[1] = new RegExp(n[1].source.replace(/\)\$$/, '|andar|floor|piso|depth|profundidade|capitulo|chapter|andaratual|currentfloor)$'));
+});
+var VIDA_NOME = /^(vida|vidas|hp|health|saude|life|lives|energia|energy|stamina|mana|escudo|shield|veneno|poison|invencivel|invincible)$/;
+
+/* o objeto que tem a coisa salva: props numéricas que mudam junto com ela (na mesma função) */
+function companheirosDoSalvo(doc, prog){
+  var extra = [];
+  prog.forEach(function(p){
+    var partes = String(p.nome).split('.');
+    if(partes.length !== 2 || p.tipo === 'recorde') return;
+    var obj = partes[0], chave = partes[1], T = p.js.T;
+    /* as props numéricas do objeto declarado: {nivel: 1, xp: 0, xpProx: 10, vidaMax: 20, ataque: 3} */
+    var ab = p.decl + 2; if(!T[ab] || T[ab].v !== '{') return;
+    var fim = par(T, ab), props = {};
+    for(var k = ab + 1, d = 0; k < fim; k++){
+      var t = T[k];
+      if(t.t === 'p' && /^[([{]$/.test(t.v)){ d++; continue; }
+      if(t.t === 'p' && /^[)\]}]$/.test(t.v)){ d--; continue; }
+      if(d || t.t !== 'id' || !T[k + 1] || T[k + 1].v !== ':' || !(T[k - 1].v === '{' || T[k - 1].v === ',')) continue;
+      var vi = k + 2, neg = T[vi] && T[vi].v === '-' && T[vi + 1] && T[vi + 1].t === 'num';
+      if(!T[vi] || (T[vi].t !== 'num' && !neg)) continue;
+      var vf = neg ? vi + 1 : vi;
+      if(T[vf + 1] && T[vf + 1].v !== ',' && T[vf + 1].v !== '}') continue;
+      props[t.v] = {vIni: vi, vFim: vf};
+    }
+    /* funções onde "obj.chave" muda: as outras props que mudam lá vão junto */
+    doc.js.forEach(function(js){
+      if(js.sc.koda) return;
+      var U = js.T, R = rangesComNome(U);
+      R.forEach(function(r){
+        if(r.classe) return;
+        var muda = {}, temChave = false;
+        for(var j = r.ini; j < r.fim; j++){
+          if(U[j].t !== 'id' || U[j].v !== obj || !U[j + 1] || U[j + 1].v !== '.' || !U[j + 2] || U[j + 2].t !== 'id') continue;
+          var op = U[j + 3] && U[j + 3].v;
+          if(!/^(=|\+=|-=|\*=|\/=|\+\+|--)$/.test(op || '')) continue;
+          if(op === '=' && U[j + 4] && U[j + 4].v === '=') continue;
+          if(U[j + 2].v === chave) temChave = true; else muda[U[j + 2].v] = 1;
+        }
+        if(!temChave) return;
+        Object.keys(muda).forEach(function(nm){
+          if(!props[nm] || VIDA_NOME.test(chaveDeNome(nm)) || prog.concat(extra).some(function(x){ return x.nome === obj + '.' + nm; })) return;
+          extra.push({js: p.js, nome: obj + '.' + nm, tipo: 'junto', vIni: props[nm].vIni, vFim: props[nm].vFim, escopo: p.escopo, decl: p.decl});
+        });
+      });
+    });
+  });
+  return extra;
+}
+var acharProgressoAntes = acharProgresso;
+acharProgresso = function(doc){
+  var prog = acharProgressoAntes(doc);
+  try{ prog = prog.concat(companheirosDoSalvo(doc, prog)); }catch(e){}
+  return prog;
+};
+
+/* onde o jogo ZERA o que é salvo (dentro de funções): "andar = 1", "heroi.ouro = 0", Object.assign(heroi, {nivel: 1}) */
+function lugaresDeReinicio(doc, nomes){
+  var out = [];
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    var T = js.T;
+    for(var j = 1; j + 2 < T.length; j++){
+      if(!js.prof[j]) continue;
+      var t = T[j];
+      if(t.t !== 'id') continue;
+      var vi = -1, nome = null;
+      /* solta: andar = 1 (não declaração, não propriedade) */
+      if(T[j + 1].v === '=' && !(T[j + 2] && T[j + 2].v === '=') && !(T[j - 1] && /^(\.|\?\.|var|let|const)$/.test(T[j - 1].v)) && nomes[t.v]){ nome = t.v; vi = j + 2; }
+      /* heroi.ouro = 0 */
+      else if(T[j + 1].v === '.' && T[j + 2] && T[j + 2].t === 'id' && T[j + 3] && T[j + 3].v === '=' && !(T[j + 4] && T[j + 4].v === '=') && !(T[j - 1] && /^(\.|\?\.)$/.test(T[j - 1].v)) && nomes[t.v + '.' + T[j + 2].v]){ nome = t.v + '.' + T[j + 2].v; vi = j + 4; }
+      /* Object.assign(heroi, {..., nivel: 1, ...}) */
+      else if(t.v === 'assign' && T[j - 1] && T[j - 1].v === '.' && T[j - 2] && T[j - 2].v === 'Object' && T[j + 1].v === '(' && T[j + 2] && T[j + 2].t === 'id' && T[j + 3] && T[j + 3].v === ',' && T[j + 4] && T[j + 4].v === '{'){
+        var obj = T[j + 2].v, ab = j + 4, fim = par(T, ab);
+        for(var k = ab + 1, d = 0; k < fim; k++){
+          var u = T[k];
+          if(u.t === 'p' && /^[([{]$/.test(u.v)){ d++; continue; }
+          if(u.t === 'p' && /^[)\]}]$/.test(u.v)){ d--; continue; }
+          if(d || u.t !== 'id' || !T[k + 1] || T[k + 1].v !== ':' || !(T[k - 1].v === '{' || T[k - 1].v === ',') || !nomes[obj + '.' + u.v]) continue;
+          var a = k + 2, ng = T[a] && T[a].v === '-' && T[a + 1] && T[a + 1].t === 'num';
+          if(!T[a] || (T[a].t !== 'num' && !ng)) continue;
+          var b = ng ? a + 1 : a;
+          if(T[b + 1] && T[b + 1].v !== ',' && T[b + 1].v !== '}') continue;
+          out.push({js: js, nome: obj + '.' + u.v, vIni: a, vFim: b});
+        }
+        continue;
+      }
+      if(vi < 0) continue;
+      var neg = T[vi] && T[vi].v === '-' && T[vi + 1] && T[vi + 1].t === 'num';
+      if(!T[vi] || (T[vi].t !== 'num' && !neg)) continue;
+      var vf = neg ? vi + 1 : vi;
+      if(T[vf + 1] && !/^[;,)}]$/.test(T[vf + 1].v) && !T[vf + 1].nl) continue;
+      out.push({js: js, nome: nome, vIni: vi, vFim: vf});
+    }
+  });
+  return out;
+}
+var fazerSalvarAntes = fazerSalvar;
+fazerSalvar = function(codigo, tipos){
+  var r = fazerSalvarAntes(codigo, tipos);
+  if(!r || r.erro || !r.codigo) return r;
+  var novo = r.codigo, doc = lerDocumento(novo), nomes = {};
+  /* os nomes salvos, menos o recorde (o recorde nunca é zerado de propósito) */
+  var re = /kodaSalvo\('([\w$.]+)'/g, m;
+  while((m = re.exec(novo))) nomes[m[1]] = 1;
+  var prog = acharProgresso(lerDocumento(codigo));
+  prog.forEach(function(p){ if(p.tipo === 'recorde') delete nomes[p.nome]; });
+  if(!Object.keys(nomes).length) return r;
+  var lugares = lugaresDeReinicio(doc, nomes);
+  var ed = new Edicao(novo);
+  lugares.forEach(function(l){
+    var T = l.js.T, txt = novo.slice(l.js.base + T[l.vIni].s, l.js.base + T[l.vFim].e);
+    ed.trocar(l.js.base + T[l.vIni].s, l.js.base + T[l.vFim].e, '(window.kodaSalvoReinicio ? kodaSalvoReinicio(\'' + l.nome + '\', ' + txt + ') : ' + txt + ')');
+  });
+  /* o ajudante: devolve o salvo só na primeira vez que a partida começa */
+  ed.inserir(novo.indexOf('window.kodaSalvo = function'), 'var kodaJaVoltou = {};\n  window.kodaSalvoReinicio = function(nome, padrao){ if(kodaJaVoltou[nome]) return padrao; kodaJaVoltou[nome] = 1; return window.kodaSalvo(nome, padrao); };\n  ');
+  var fim = lugares.length ? ed.aplicar() : novo;
+  if(lugares.length && !fim) return r;
+  var c = conferirDepois(codigo, fim, r.res);
+  if(c.erro) return r;
+  /* o que mudou junto (xpProx, ataque) não aparece na lista pra quem pediu: só o que a pessoa entende */
+  if(c.res && c.res.vars) c.res.vars = c.res.vars.filter(function(v){ return v.tipo !== 'junto'; });
+  return c;
+};
+
+/* ---------------- sons em jogos grandes: tiro, explosão, poder e fase nova (pelas funções do jogo) ---------------- */
+Object.assign(TX, {
+  so_tiro: 'quando atira|when shooting|al disparar|quando spara|quand on tire|beim Schießen|bij het schieten|撃つとき|射击时|쏠 때',
+  so_explosao: 'nas explosões|on explosions|en las explosiones|nelle esplosioni|dans les explosions|bei Explosionen|bij explosies|爆発のとき|爆炸时|폭발할 때',
+  so_poder: 'quando pega um poder|when picking up a power-up|al tomar un poder|quando prendi un potere|quand on prend un bonus|beim Einsammeln eines Extras|bij het pakken van een power-up|パワーアップを取ったとき|拿到道具时|파워업을 먹을 때',
+  so_fase: 'quando passa de fase|when reaching a new level|al pasar de nivel|quando passi di livello|quand on change de niveau|beim nächsten Level|bij een nieuw level|ステージが進んだとき|过关时|다음 단계로 갈 때'
+});
+var NOMES_SOM_FUNCAO = [
+  ['tiro', /^(atirar|atira|disparar|dispara|shoot|fire|firebullet|shootbullet|playershoot|atirarbala|criartiro|novotiro|lancar|throw|spawnbullet)$/],
+  ['explosao', /^(explodir|explode|explosao|explosion|criarexplosao|createexplosion|spawnexplosion|boom|destruirinimigo|matarinimigo|killenemy|enemydie|enemydied|inimigomorreu)$/],
+  ['poder', /^(pegarpoder|pegaritem|pegarpowerup|coletarpoder|coletaritem|collectpowerup|pickuppowerup|powerup|getpowerup|applypowerup|pegarbonus|pegarestrela|collectitem|pickupitem)$/],
+  ['fase', /^(proximafase|nextlevel|subirnivel|levelup|novafase|passarfase|proximonivel|proximaonda|nextwave|novaonda|nextstage|proximaetapa|venceufase|completarfase)$/]
+];
+var fazerSonsAntes = fazerSons;
+fazerSons = function(codigo, quais){
+  var r = fazerSonsAntes(codigo, quais);
+  if(r && r.erro && r.erro !== 'nao_achei') return r;
+  var base = r && r.codigo ? r.codigo : codigo, doc = lerDocumento(base), ed = new Edicao(base), feitos = {};
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    rangesComNome(js.T).forEach(function(rg){
+      if(!rg.nome || rg.classe) return;
+      var k = chaveDeNome(rg.nome), tipo = null;
+      NOMES_SOM_FUNCAO.forEach(function(n){ if(!tipo && n[1].test(k)) tipo = n[0]; });
+      if(!tipo || (quais && !quais[tipo])) return;
+      /* já toca um som do Koda GB aí dentro: não repete */
+      if(/kodaSom\(/.test(js.sc.corpo.slice(js.T[rg.ini].s, js.T[rg.fim].e))) return;
+      if(js.T[rg.ini].v !== '{') return;
+      ed.inserir(js.base + js.T[rg.ini].e, ' if(window.kodaSom) kodaSom(\'' + tipo + '\');');
+      feitos[tipo] = (feitos[tipo] || 0) + 1;
+    });
+  });
+  if(!Object.keys(feitos).length) return r;
+  if(!/data-koda-sons/.test(base)) ed.inserir(pontoDeEntrada(base, doc), '\n<script data-koda-sons="1">(' + kodaSonsNoJogo.toString() + ')();<\/script>\n');
+  var novo = ed.aplicar();
+  if(!novo) return r;
+  var sons = Object.assign({}, r && r.res && r.res.sons || {}, feitos);
+  var c = conferirDepois(codigo, novo, {sons: sons});
+  return c.erro ? r : c;
+};
+/* o H.sons guardou a função antiga quando foi criado: liga na nova */
+H.sons = transformacao(function(c, a){ return fazerSons(c, a); }, function(res){ return T('so_ok', {lista: listaE(Object.keys(res.res.sons).map(function(k){ return T('so_' + k); }))}); }, 'so_ja', 'so_nao', 'd_sons');
+
+/* ---------------- ranking: o fim de jogo que vale pra vários (terminar(kart) dos karts do computador também) ----------------
+   function terminar(k){ ...; if (!k.ia) { ... } }  ->  o KODA.pontuar entra no "if (!k.ia)" (só quando QUEM JOGA termina);
+   senão o primeiro kart do computador que chega manda os pontos antes da hora (e o Koda GB ignora o 2º envio em 1,5 s) */
+var CPU_PROP = /^(ia|ai|cpu|bot|npc|computador|robo|robot|isai|iscpu|isbot|isnpc|auto|automatico)$/i;
+function ifDoJogadorNaFuncao(T, r){
+  if(!T[r.ini - 1] || T[r.ini - 1].v !== ')') return -1;
+  var pa = parAntes(T, r.ini - 1); if(pa < 0) return -1;
+  var params = paramsEntre(T, pa + 1, r.ini - 2);
+  if(!params || !params.length) return -1;
+  for(var j = r.ini + 1; j < r.fim; j++){
+    if(T[j].v !== 'if' || !T[j + 1] || T[j + 1].v !== '(') continue;
+    var f = par(T, j + 1); if(f < 0 || !T[f + 1] || T[f + 1].v !== '{') continue;
+    var txt = T.slice(j + 2, f).map(function(x){ return x.v; }).join('');
+    var ok = params.some(function(p){
+      var e = p.replace(/\$/g, '\\$');
+      return new RegExp('^!' + e + '\\.(\\w+)$').test(txt) && CPU_PROP.test(txt.split('.').pop()) ||
+        new RegExp('^' + e + '===?(jogador|player|heroi|hero|eu|me|voce|you|meukart|mycar|playercar)$', 'i').test(txt) ||
+        new RegExp('^(jogador|player|heroi|hero|eu|me|voce|you|meukart|mycar|playercar)===?' + e + '$', 'i').test(txt) ||
+        new RegExp('^' + e + '\\.(id|indice|index)===?0$').test(txt);
+    });
+    if(ok) return f + 1;
+  }
+  return -1;
+}
+var planoDePontuarAntes = planoDePontuar;
+planoDePontuar = function(doc){
+  var p = planoDePontuarAntes(doc);
+  if(!p) return p;
+  doc.js.forEach(function(js){
+    if(js.sc.koda) return;
+    rangesComNome(js.T).forEach(function(r){
+      if(!r.nome || !NOMES_FIM.test(chaveDeNome(r.nome))) return;
+      var dentro = ifDoJogadorNaFuncao(js.T, r);
+      if(dentro < 0) return;
+      /* no FIM do bloco: depois do bônus de chegada (pontos += ...) */
+      var fecha = par(js.T, dentro); if(fecha < 0) return;
+      var velho = js.base + js.T[r.ini].e, novo = js.base + js.T[fecha].s;
+      p.trocas.forEach(function(t){ if(t.ini === velho && t.fim === velho){ t.ini = novo; t.fim = novo; } });
+    });
+  });
+  return p;
+};
+
+/* ---------------- aparência da moeda em jogos grandes ----------------
+   - 🪙 é sempre moeda; 💰 💵 ● ○ só quando estão perto do nome da moeda ou de um preço
+     (o 💰 do botão "Vender" não é a moeda, o "● 30" do placar é);
+   - moeda que gira (ctx.ellipse com a largura mudando) também muda de forma. */
+var MOEDA_ATUAL = null;
+var GLIFOS_DUVIDA = ['💰', '💵', '●', '○', '◉', '⬤'];
+simbolosDaMoeda = function(codigo, fam, ped, cont){
+  var lista = (fam && FAMILIA_MOEDA[fam] ? FAMILIA_MOEDA[fam].glifos : []).slice();
+  if(fam === 'moeda' || !fam) GLIFOS_DUVIDA.forEach(function(g){ if(lista.indexOf(g) < 0) lista.push(g); });
+  var nomes = [];
+  if(MOEDA_ATUAL){ [MOEDA_ATUAL.caminho, MOEDA_ATUAL.nome].forEach(function(x){ if(x){ nomes.push(String(x)); nomes.push(String(x).split('.').pop()); } }); }
+  var perto = nomes.length ? new RegExp('(^|[^\\w$])(' + nomes.map(escRe).join('|') + '|preco|precos|price|prices|cost|costs|custo|custa|valor|venda|vende por)([^\\w$]|$)', 'i') : null;
+  lista.forEach(function(g){
+    var n = glifoNovo(ped, g);
+    if(!n || n === g) return;
+    var duvida = GLIFOS_DUVIDA.indexOf(g) >= 0, out = '', i = 0, p;
+    while((p = codigo.indexOf(g, i)) >= 0){
+      var ok = true;
+      if(duvida){
+        var jan = codigo.slice(Math.max(0, p - 24), p) + ' ' + codigo.slice(p + g.length, p + g.length + 24);
+        ok = !!perto && perto.test(jan) && colado(codigo, p, g.length);
+      }
+      out += codigo.slice(i, p) + (ok ? n : g);
+      if(ok) cont.simbolos++;
+      i = p + g.length;
+    }
+    codigo = out + codigo.slice(i);
+  });
+  return codigo;
+};
+/* o símbolo está grudado numa conta de texto ('● ' + moedas  /  preco + ' ●'), não no meio de uma frase ("💰 Vender") */
+function colado(src, p, len){
+  var antes = src.slice(Math.max(0, p - 40), p), depois = src.slice(p + len, p + len + 40);
+  var m1 = /(['"`])\s?$/.exec(antes), m2 = /^\s?(['"`])/.exec(depois);
+  if(m1){
+    if(/\+\s*['"`]\s?$/.test(antes)) return true;
+    var q = m1[1], fim = src.indexOf(q, p + len);
+    if(fim > 0 && fim - p < 80 && /^\s*\+/.test(src.slice(fim + 1, fim + 6))) return true;
+  }
+  if(m2){
+    if(/^\s?['"`]\s*\+/.test(depois)) return true;
+    var q2 = m2[1], ini = src.lastIndexOf(q2, p - 1);
+    if(ini >= 0 && p - ini < 80 && /\+\s*$/.test(src.slice(Math.max(0, ini - 6), ini))) return true;
+  }
+  return false;
+}
+var mudarAparenciaAntes = mudarAparencia;
+mudarAparencia = function(codigo, m, ped){
+  MOEDA_ATUAL = m && (m.obj || m);
+  try{
+    /* ctx.ellipse(x, y, rx, ry, ...) de uma moeda (que gira): vira arc pra forma nova pegar */
+    if(ped && ped.forma && ped.forma.id !== 'circulo'){
+      var info = palavrasDaMoeda(m), doc = lerDocumento(codigo), cvs = canvasContextos(codigo), ed = new Edicao(codigo), n = 0;
+      doc.js.forEach(function(js){
+        if(js.sc.koda) return;
+        var T = js.T, src = js.sc.corpo;
+        trechosDaMoeda(js, info.W, cvs).forEach(function(r){
+          for(var j = r[0]; j <= r[1]; j++){
+            if(T[j].t !== 'id' || T[j].v !== 'ellipse' || !T[j - 1] || T[j - 1].v !== '.' || !T[j + 1] || T[j + 1].v !== '(') continue;
+            var pc = par(T, j + 1); if(pc < 0) continue;
+            var ar = argsDaChamada(T, j + 1, pc); if(ar.length < 4) continue;
+            var tx = ar.slice(0, 4).map(function(x){ return src.slice(T[x.a].s, T[x.b].e); });
+            ed.trocar(js.base + T[j].s, js.base + T[pc].e, 'arc(' + tx[0] + ', ' + tx[1] + ', Math.max(' + tx[2] + ', ' + tx[3] + '), 0, Math.PI * 2)');
+            n++;
+          }
+        });
+      });
+      if(n){ var c2 = ed.aplicar(); if(c2) codigo = c2; }
+    }
+    return mudarAparenciaAntes(codigo, m, ped);
+  } finally { MOEDA_ATUAL = null; }
+};
+/* "● 30" no placar e a moeda azul: a bolinha vira a bolinha colorida (🔵) */
+var glifoNovoAntes = glifoNovo;
+glifoNovo = function(ped, velho){
+  if(/^[●○◉⬤]$/.test(velho) && ped && ped.cor && !ped.forma && COR_MOEDA[ped.cor.id] && COR_MOEDA[ped.cor.id].e) return COR_MOEDA[ped.cor.id].e.c;
+  return glifoNovoAntes(ped, velho);
+};
+
+/* ---------------- tradução de jogos grandes ----------------
+   1) mais frases prontas de jogo;
+   2) texto com HTML dentro ('<h1>Pausado</h1><p>...') traduz pedaço por pedaço;
+   3) rótulos curtos (até 3 palavras) traduzem palavra por palavra, mas só se TODAS as palavras forem conhecidas
+      ("Linha dupla" -> "Double line"); frase longa que eu não conheço fica como está e eu aviso quais ficaram. */
+DICIO.push(
+  ['Próxima|Proxima|Próxima peça|Proxima peca', 'Next|Next piece', 'Siguiente|Siguiente pieza'], ['Guardada|Guardar|Peça guardada|Peca guardada', 'Hold|Held piece', 'Guardada|Pieza guardada'],
+  ['Linhas', 'Lines', 'Líneas|Lineas'], ['Linha', 'Line', 'Línea|Linea'], ['Conquistas', 'Achievements', 'Logros'], ['Conquista', 'Achievement', 'Logro'],
+  ['Menu principal', 'Main menu', 'Menú principal'], ['Sair para o menu|Voltar ao menu|Voltar para o menu', 'Back to menu|Exit to menu', 'Salir al menú|Volver al menú'],
+  ['Mochila|Inventário|Inventario', 'Backpack|Inventory', 'Mochila|Inventario'], ['Loja', 'Shop|Store', 'Tienda'], ['Comprar', 'Buy', 'Comprar'], ['Vender', 'Sell', 'Vender'],
+  ['Fechar', 'Close', 'Cerrar'], ['Esperar', 'Wait', 'Esperar'], ['Pular', 'Jump|Skip', 'Saltar'], ['Atirar', 'Shoot|Fire', 'Disparar'], ['Correr', 'Run', 'Correr'],
+  ['Onda', 'Wave', 'Oleada'], ['Andar', 'Floor', 'Piso'], ['Volta', 'Lap', 'Vuelta'], ['Chegada', 'Finish', 'Llegada|Meta'], ['Largada', 'Start', 'Salida'],
+  ['Ouro', 'Gold', 'Oro'], ['Gemas', 'Gems', 'Gemas'], ['Cristais', 'Crystals', 'Cristales'], ['Item', 'Item', 'Objeto'], ['Itens', 'Items', 'Objetos'],
+  ['Fim de jogo!|Game over!', 'Game Over!', '¡Fin del juego!'], ['Muito bem|Muito bem!', 'Well done|Well done!', 'Muy bien|¡Muy bien!'], ['Boa sorte', 'Good luck', 'Buena suerte'],
+  ['Novo jogo', 'New game', 'Nuevo juego'], ['Começar de novo|Comecar de novo', 'Start over', 'Empezar de nuevo'], ['Seguir|Avançar|Avancar', 'Continue|Next', 'Seguir|Avanzar'],
+  ['Escolha uma melhoria', 'Choose an upgrade', 'Elige una mejora'], ['Melhorias', 'Upgrades', 'Mejoras'], ['Oficina', 'Workshop', 'Taller'], ['Celeiro', 'Barn', 'Granero'],
+  ['Dia', 'Day', 'Día|Dia'], ['Noite', 'Night', 'Noche'], ['Bom dia', 'Good morning', 'Buenos días'], ['Colher', 'Harvest', 'Cosechar'], ['Plantar', 'Plant', 'Plantar'], ['Regar', 'Water', 'Regar'],
+  ['Escudo', 'Shield', 'Escudo'], ['Bomba', 'Bomb', 'Bomba'], ['Turbo', 'Boost|Turbo', 'Turbo'], ['Ímã|Ima', 'Magnet', 'Imán|Iman'], ['Poção|Pocao', 'Potion', 'Poción|Pocion'],
+  ['Chefe|Chefão|Chefao', 'Boss', 'Jefe'], ['Bateu!|Bateu', 'Crashed!', '¡Chocaste!'], ['Vida extra', 'Extra life', 'Vida extra'], ['Recorde:|Recorde', 'Best:|Best', 'Récord:|Récord'],
+  ['Pausar', 'Pause', 'Pausar'], ['Som', 'Sound', 'Sonido'], ['Música|Musica', 'Music', 'Música'], ['Ligado', 'On', 'Encendido'], ['Desligado', 'Off', 'Apagado'],
+  ['Magia', 'Magic', 'Magia'], ['Combo', 'Combo', 'Combo'], ['Distância|Distancia', 'Distance', 'Distancia'], ['Velocidade', 'Speed', 'Velocidad'], ['Ataque', 'Attack', 'Ataque'], ['Defesa', 'Defense', 'Defensa']
+);
+INDICE_DICIO = null;
+/* palavra por palavra: [pt, en, es, tipo] (s = substantivo, a = adjetivo, x = outra) */
+var GLOSSARIO = [
+  ['linha', 'line', 'línea', 's'], ['linhas', 'lines', 'líneas', 's'], ['bloco', 'block', 'bloque', 's'], ['blocos', 'blocks', 'bloques', 's'], ['peça|peca', 'piece', 'pieza', 's'], ['peças|pecas', 'pieces', 'piezas', 's'],
+  ['dupla|duplo', 'double', 'doble', 'a'], ['tripla|triplo', 'triple', 'triple', 'a'], ['mágico|magico|mágica|magica', 'magic', 'mágico', 'a'], ['mágicos|magicos|mágicas|magicas', 'magic', 'mágicos', 'a'],
+  ['primeira|primeiro', 'first', 'primera', 'a'], ['última|ultima|último|ultimo', 'last', 'última', 'a'], ['nova|novo', 'new', 'nueva', 'a'], ['grande', 'big', 'grande', 'a'], ['pequeno|pequena', 'small', 'pequeño', 'a'],
+  ['rápido|rapido|rápida|rapida', 'fast', 'rápido', 'a'], ['lento|lenta', 'slow', 'lento', 'a'], ['maior', 'bigger', 'mayor', 'a'], ['menor', 'smaller', 'menor', 'a'], ['forte', 'strong', 'fuerte', 'a'],
+  ['dourado|dourada', 'golden', 'dorado', 'a'], ['secreto|secreta', 'secret', 'secreto', 'a'], ['extra', 'extra', 'extra', 'a'], ['final', 'final', 'final', 'a'], ['principal', 'main', 'principal', 'a'], ['limpas|limpos', 'cleared', 'limpias', 'a'],
+  ['pontos', 'points', 'puntos', 's'], ['ponto', 'point', 'punto', 's'], ['nível|nivel', 'level', 'nivel', 's'], ['fase', 'level', 'fase', 's'], ['tempo', 'time', 'tiempo', 's'], ['vida', 'life', 'vida', 's'], ['vidas', 'lives', 'vidas', 's'],
+  ['moeda', 'coin', 'moneda', 's'], ['moedas', 'coins', 'monedas', 's'], ['estrela', 'star', 'estrella', 's'], ['estrelas', 'stars', 'estrellas', 's'], ['tesouro', 'treasure', 'tesoro', 's'], ['baú|bau', 'chest', 'cofre', 's'],
+  ['chave', 'key', 'llave', 's'], ['porta', 'door', 'puerta', 's'], ['espada', 'sword', 'espada', 's'], ['escudo', 'shield', 'escudo', 's'], ['arma', 'weapon', 'arma', 's'], ['armadura', 'armor', 'armadura', 's'],
+  ['poder', 'power', 'poder', 's'], ['poderes', 'powers', 'poderes', 's'], ['magia', 'magic', 'magia', 's'], ['combo', 'combo', 'combo', 's'], ['conquista', 'achievement', 'logro', 's'], ['recorde', 'record', 'récord', 's'],
+  ['jogo', 'game', 'juego', 's'], ['partida', 'match', 'partida', 's'], ['corrida', 'race', 'carrera', 's'], ['volta', 'lap', 'vuelta', 's'], ['onda', 'wave', 'oleada', 's'], ['chefe', 'boss', 'jefe', 's'],
+  ['mil', 'thousand', 'mil', 'x'], ['cem', 'hundred', 'cien', 'x'], ['menu', 'menu', 'menú', 's'], ['loja', 'shop', 'tienda', 's'], ['item', 'item', 'objeto', 's'], ['itens', 'items', 'objetos', 's'],
+  ['de', 'of', 'de', 'p'], ['do|da', 'of the', 'del|de la', 'p'], ['e', 'and', 'y', 'x'], ['com', 'with', 'con', 'x'], ['sem', 'without', 'sin', 'x'], ['para|pra', 'to', 'para', 'x'], ['o|a', 'the', 'el|la', 'x'], ['um|uma', 'a', 'un|una', 'x'],
+  ['seguidas|seguidos', 'in a row', 'seguidas', 'a'], ['limpar', 'clear', 'limpiar', 'x'], ['jogar', 'play', 'jugar', 'x'], ['ganhou', 'won', 'ganaste', 'x'], ['perdeu', 'lost', 'perdiste', 'x']
+];
+var IDX_GLOSS = null;
+function indiceGlossario(){
+  if(IDX_GLOSS) return IDX_GLOSS;
+  var ix = {};
+  GLOSSARIO.forEach(function(e, k){ [0, 1, 2].forEach(function(c){ e[c].split('|').forEach(function(w){ var n = norm(w); if(n && ix[n] == null) ix[n] = k; }); }); });
+  return (IDX_GLOSS = ix);
+}
+function traduzirRotulo(txt, alvo){
+  var m = /^(\s*[¡¿]?)([^\d:!?.,;…]*?)([\s:!?.,;\-…]*\d*[\s:!?.,;\-…]*)$/.exec(txt);
+  if(!m || !m[2].trim()) return null;
+  var ws = m[2].trim().split(/\s+/);
+  if(ws.length > 3) return null;
+  var ix = indiceGlossario(), col = alvo === 'en' ? 1 : alvo === 'es' ? 2 : 0, itens = [];
+  for(var i = 0; i < ws.length; i++){ var k = ix[norm(ws[i])]; if(k == null) return null; itens.push(GLOSSARIO[k]); }
+  if(!itens.some(function(e){ return e[3] === 's' || e[3] === 'a'; })) return null;
+  /* em inglês o adjetivo vem antes: "Linha dupla" -> "Double line"; "Poção de vida" -> "Life potion" */
+  if(alvo === 'en'){
+    if(itens.length === 2 && itens[0][3] === 's' && itens[1][3] === 'a') itens = [itens[1], itens[0]];
+    else if(itens.length === 3 && itens[0][3] === 's' && itens[1][3] === 'p' && itens[2][3] === 's') itens = [itens[2], itens[0]];
+  }
+  var saida = itens.map(function(e){ return e[col].split('|')[0]; }).join(' ');
+  if(norm(saida) === norm(m[2].trim())) return null;
+  var pre = m[1], pos = m[3];
+  if(alvo !== 'es') pre = pre.replace(/[¡¿]/g, '');
+  return pre + caixaDe(m[2].trim(), saida.charAt(0).toUpperCase() + saida.slice(1)) + pos;
+}
+var traduzirTextoAntes = traduzirTexto;
+traduzirTexto = function(val, alvo){
+  /* "🏆 Conquista: " -> o símbolo fica, só o texto muda */
+  var sb = /^([^\wÀ-ɏ<>]*?)([\wÀ-ɏ][\s\S]*?)([^\wÀ-ɏ<>]*)$/.exec(val);
+  if(sb && sb[1] && /[^\s¡¿]/.test(sb[1])){ var t0 = traduzirTexto(sb[2] + sb[3], alvo); return t0 == null ? null : sb[1] + t0; }
+  var r = traduzirTextoAntes(val, alvo);
+  if(r != null) return r;
+  /* texto com HTML dentro: cada pedaço entre as marcas */
+  if(/<[a-z\/][^>]*>/i.test(val)){
+    var mudou = false;
+    var out = val.replace(/(^|>)([^<>]+)(?=<|$)/g, function(x, a, txt){
+      var lim = /^(\s*)([\s\S]*?)(\s*)$/.exec(txt), t2 = lim[2];
+      if(!t2) return x;
+      var tr = traduzirTexto(t2, alvo);
+      if(tr == null || tr === t2) return x;
+      mudou = true; return a + lim[1] + tr + lim[3];
+    });
+    return mudou ? out : null;
+  }
+  /* "🏆 Conquista: " / "✦ Magia! ✦": símbolos na volta */
+  var s = /^([^\wÀ-ɏ]*)([\s\S]*?)([^\wÀ-ɏ]*)$/.exec(val);
+  if(s && (s[1] || s[3]) && s[2] && s[2] !== val){ var t3 = traduzirTextoAntes(s[2], alvo) || traduzirRotulo(s[2], alvo); if(t3 != null) return s[1] + t3 + s[3]; }
+  return traduzirRotulo(val, alvo);
+};
+/* o que ficou sem traduzir (pra avisar quem pediu) */
+function textosSemTraducao(codigo, alvo){
+  var falta = [];
+  trocarTextosDoJogo(codigo, function(v){
+    if(!pareceTextoDeGente(v)) return null;
+    var limpo = String(v).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if(!limpo || !/[A-Za-zÀ-ɏ]{3,}/.test(limpo) || /^[a-z][\w-]*$/.test(limpo) || /[{}();=]|^#|^\./.test(limpo)) return null;
+    if(alvo === 'en' && !/[ãõçáéíóúâêôà]|\b(de|da|do|para|com|que|você|voce|seu|sua|os|as|um|uma|não|nao)\b/i.test(limpo)) return null;
+    if(falta.length < 40 && falta.indexOf(limpo) < 0) falta.push(limpo);
+    return null;
+  }, false);
+  return falta;
+}
+/* texto de gente (não chave do código): tem marca HTML, ou espaço/pontuação e começa com maiúscula ou símbolo */
+function pareceTextoDeGente(v){
+  v = String(v);
+  if(/<(h\d|p|b|i|br|li|ul|div|span|small|strong|em|button)\b[^>]*>/i.test(v)) return true;
+  if(/^(https?:|data:|#|\.|\/)/.test(v) || /[{};=]|=>/.test(v)) return false;
+  return /^[\s¡¿]*([A-ZÀ-Ý]|[^\w\s])/.test(v) && /[A-Za-zÀ-ɏ]{2,}/.test(v) && /[\s!?:.…]/.test(v.trim());
+}
+var fazerTraducaoAntes = fazerTraducao;
+fazerTraducao = function(codigo, alvo){
+  var r = fazerTraducaoAntes(codigo, alvo);
+  /* segunda passada: textos que vão pra tela por outro caminho (listas de mensagens, conquistas, HTML montado em função) */
+  var base = r && r.codigo ? r.codigo : codigo;
+  var r2 = trocarTextosDoJogo(base, function(v){ return pareceTextoDeGente(v) ? traduzirTexto(v, alvo) : null; }, false);
+  if(r2.n){
+    var c2 = conferirDepois(codigo, r2.codigo, {n: (r && r.res ? r.res.n : 0) + r2.n, lingua: alvo});
+    if(!c2.erro) r = c2;
+  }
+  if(r && r.codigo && r.res){ try{ r.res.falta = textosSemTraducao(r.codigo, alvo); }catch(e){ r.res.falta = []; } }
+  return r;
+};
+Object.assign(TX, {
+  md_trad_falta: 'Ficaram {n} frase(s) mais longas que eu ainda não sei traduzir, por exemplo: {ex}. Pra trocar, é só me pedir: troque "frase antiga" por "frase nova".|{n} longer sentence(s) are still untranslated, for example: {ex}. To change one, just ask: replace "old text" with "new text".|Quedaron {n} frase(s) más largas que todavía no sé traducir, por ejemplo: {ex}. Para cambiarla, pídemelo: cambia "texto viejo" por "texto nuevo".|Sono rimaste {n} frasi più lunghe che non so ancora tradurre, per esempio: {ex}. Per cambiarne una chiedimi: sostituisci «testo vecchio» con «testo nuovo».|Il reste {n} phrase(s) plus longues que je ne sais pas encore traduire, par exemple : {ex}. Pour en changer une, demande-moi : remplace « ancien texte » par « nouveau texte ».|{n} längere Sätze sind noch nicht übersetzt, zum Beispiel: {ex}. Zum Ändern sag einfach: ersetze „alter Text" durch „neuer Text".|Er zijn nog {n} langere zinnen niet vertaald, bijvoorbeeld: {ex}. Vraag het gewoon: vervang "oude tekst" door "nieuwe tekst".|まだ訳せていない長い文が{n}個あります。例: {ex}。変えたいときは「古い文」を「新しい文」に変えて、と言ってね。|还有 {n} 句较长的句子我还不会翻译，例如：{ex}。想改的话告诉我：把“旧文字”换成“新文字”。|아직 번역하지 못한 긴 문장이 {n}개 있어요. 예: {ex}. 바꾸려면 "옛 문장"을 "새 문장"으로 바꿔 줘 라고 말해 주세요.'
+});
+var H_trad_antes = H.mod_traduzir;
+H.mod_traduzir = function(it, ctx, est){
+  var r = H_trad_antes(it, ctx, est);
+  try{
+    if(it && it.lingua && ctx.codigo && r && r.codigo && r.codigo !== ctx.codigo){
+      var falta = textosSemTraducao(r.codigo, it.lingua);
+      if(falta.length){
+        var ex = falta.slice(0, 2).map(function(f){ return '"' + (f.length > 60 ? f.slice(0, 57) + '...' : f) + '"'; }).join(', ');
+        var bl = {t: 'txt', s: T('md_trad_falta', {n: falta.length, ex: ex})};
+        var i = r.blocos.length; while(i > 0 && r.blocos[i - 1].t !== 'txt') i--;
+        r.blocos.splice(i, 0, bl);
+      }
+    }
+  }catch(e){}
+  return r;
+};
+
+/* ---------------- "deixa mais difícil" em jogo grande ----------------
+   - velocidadeInimigo / enemySpeed / obstacleSpeed: é a velocidade DOS INIMIGOS;
+   - "const k = cavaleiro": k é o herói (a "velocidade" usada em k.vx é do jogador, não do mundo). */
+var VEL_PALAVRA = /^(velocidade|velocidad|speed|vel|spd|rapidez)/, VEL_FIM = /(velocidade|velocidad|speed|vel|spd)$/;
+var conceitoDoNomeAntes = conceitoDoNome;
+conceitoDoNome = function(nome, ensinado){
+  var c = conceitoDoNomeAntes(nome, ensinado);
+  if(c) return c;
+  var k = chaveDeNome(nome);
+  if((VEL_PALAVRA.test(k) && INIMIGO_RE.test(k.replace(VEL_PALAVRA, ''))) || (VEL_FIM.test(k) && INIMIGO_RE.test(k.replace(VEL_FIM, '')))) return 'velocidade';
+  return null;
+};
+function apelidosDoJogador(doc){
+  if(doc._apelidos) return doc._apelidos;
+  var ap = {};
+  cadaTok(doc, function(t, j, js){
+    var T = js.T;
+    if(t.t !== 'id' || !T[j + 1] || T[j + 1].v !== '=' || !T[j + 2] || T[j + 2].t !== 'id' || !ehJogador(T[j + 2].v)) return;
+    var dep = T[j + 3];
+    if(dep && !/^[;,)]$/.test(dep.v) && !dep.nl) return;
+    if(T[j - 1] && T[j - 1].v === '.') return;
+    if(!ehInimigo(t.v)) ap[t.v] = 1;
+  });
+  return (doc._apelidos = ap);
+}
+usoDoJogador = function(doc, nome){
+  var jog = 0, mundo = 0, ap = apelidosDoJogador(doc);
+  function ehJ(n){ return ehJogador(n) || !!ap[n]; }
+  /* nome que já diz que é do inimigo (velocidadeInimigo): nunca é do jogador */
+  var kn = chaveDeNome(nome);
+  if(INIMIGO_RE.test(kn.replace(VEL_PALAVRA, '').replace(VEL_FIM, '')) && kn.replace(VEL_PALAVRA, '').replace(VEL_FIM, '') !== kn) return false;
+  cadaTok(doc, function(t, j, js){
+    if(t.t !== 'id' || t.v !== nome || (js.T[j - 1] && js.T[j - 1].v === '.') || (js.T[j + 1] && js.T[j + 1].v === '=')) return;
+    var dono = donoDaConta(js.T, j);
+    if(dono){ if(ehJ(dono)) jog++; else if(ehInimigo(dono)) mundo++; return; }
+    var fr = frasePerto(js.T, j), temJ = false, temM = false;
+    fr.forEach(function(x){ if(x.t === 'id' && x.v !== nome){ if(ehJ(x.v)) temJ = true; else if(ehInimigo(x.v)) temM = true; } });
+    if(temJ && !temM) jog++;
+    if(temM && !temJ) mundo++;
+  });
+  return jog > 0 && mundo === 0;
+};
+
+/* ---------------- "dinheiroTotal" não é outra moeda ----------------
+   contador do total ganho (dinheiroTotal, coinsTotal, totalGold, maxCoins...): só serve de estatística/prestígio;
+   quando a moeda de verdade (dinheiro) tem compras e ele não, ele sai da lista */
+var moedasDoJogoAntes = moedasDoJogo;
+moedasDoJogo = function(codigo, opts){
+  var ms = moedasDoJogoAntes(codigo, opts);
+  if(!ms || ms.length < 2) return ms;
+  return ms.filter(function(m){
+    if(m.compras && m.compras.length) return true;
+    var k = chaveDeNome(String(m.nome).split('.').pop());
+    return !ms.some(function(o){
+      if(o === m || !(o.compras && o.compras.length)) return false;
+      var b = chaveDeNome(String(o.nome).split('.').pop());
+      return k !== b && (new RegExp('^' + escRe(b) + '(total|totais|ganho|ganhos|acumulado|historico|max|maximo|recorde|best|alltime|lifetime|totalganho|earned|ever)$').test(k) || new RegExp('^(total|max|best|all|lifetime)' + escRe(b) + '$').test(k));
+    });
+  });
+};
+
+/* ---------------- skin: o "tipo de jogo" não manda mais que o código ----------------
+   jogo de cavar em blocos (Mina Profunda) parece "jogo de blocos", mas tem desenharRobo(): é um herói */
+var fazerSkinAntes = fazerSkin;
+fazerSkin = function(codigo, forcar, dica){
+  var r = fazerSkinAntes(codigo, forcar, dica);
+  if(r && r.erro === 'sem_heroi' && !forcar){
+    var doc = lerDocumento(codigo), temFuncao = false;
+    doc.js.forEach(function(js){ if(js.sc.koda) return; rangesComNome(js.T).forEach(function(rg){ if(rg.nome && !rg.classe && NOMES_DESENHO.test(chaveDeNome(rg.nome))) temFuncao = true; }); });
+    if(temFuncao){ var r2 = fazerSkinAntes(codigo, true, dica); if(r2 && !r2.erro) return r2; }
+  }
+  return r;
+};
+/* boneco cujo corpo tem tamanho de variável (robo.w, robo.h): não troca pelo tamanho das pecinhas (visor, olho) */
+var ampliarDesenhoAntes = ampliarDesenho;
+ampliarDesenho = function(js, d){
+  if(d && (/[A-Za-z_$]/.test(String(d.w)) || /[A-Za-z_$]/.test(String(d.h)))) return;
+  return ampliarDesenhoAntes(js, d);
 };
 /* ---------------- o que o site usa ---------------- */
 return {
@@ -37393,7 +38082,7 @@ return {
   temLoja: function(codigo){ return lojaLer(DEP.preparar(codigo) || String(codigo || '')).tipo !== 'nenhuma'; },
   /* (pra testes) */
   orientacao: function(c){ try{ return orientacaoComDetalhe(c); }catch(e){ return {modo: null, fixo: false, motivo: "erro"}; } },
-  _: {pedeValorMoeda: pedeValorMoeda, pedeAparenciaMoeda: pedeAparenciaMoeda, pedeLojaVariada: pedeLojaVariada, pedeVantagemKoda: pedeVantagemKoda, mudarAparencia: mudarAparencia, mudarValorDaMoeda: mudarValorDaMoeda, moedasSimples: moedasSimples, acharAtributos: acharAtributos, moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
+  _: {liberarBotoesDeCompra: liberarBotoesDeCompra, pedeValorMoeda: pedeValorMoeda, pedeAparenciaMoeda: pedeAparenciaMoeda, pedeLojaVariada: pedeLojaVariada, pedeVantagemKoda: pedeVantagemKoda, mudarAparencia: mudarAparencia, mudarValorDaMoeda: mudarValorDaMoeda, moedasSimples: moedasSimples, acharAtributos: acharAtributos, moedasDoJogo: moedasDoJogo, converterMoedas: converterMoedas, tabelasDoJogo: tabelasDoJogo, nomesDaConta: nomesDaConta, exprParaJs: exprParaJs, avaliarConta: avaliarConta, itensDinamicos: itensDinamicos, renomearMoeda: renomearMoeda, norm: norm, palavras: palavras, lerNumeros: lerNumeros, tokenizar: tokenizar, lerDocumento: lerDocumento, lojaLer: lojaLer, lojaMudar: lojaMudar,
       lojaCriar: lojaCriar, lojaRemover: lojaRemover, acharAtributos: acharAtributos, compila: compila, linhaDoErro: linhaDoErro,
       paraDiamantes: paraDiamantes, paraMoedas: paraMoedas, generoDoJogo: generoDoJogo, linguaDoJogo: linguaDoJogo, conferirPares: conferirPares,
       planoDeEfeitos: planoDeEfeitos, efeitoDoNome: efeitoDoNome, verificar: verificar, consertar: consertar, avaliarJogo: avaliarJogo,

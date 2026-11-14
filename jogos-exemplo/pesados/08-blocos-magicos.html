@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Blocos Mágicos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: linear-gradient(160deg, #1a1040, #321a5c); color: #fff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #layout { display: flex; height: 100%; align-items: center; justify-content: center; gap: 14px; padding: 10px; }
+  #tabuleiro { height: min(92vh, 720px); aspect-ratio: 10 / 20; max-width: 62vw; background: rgba(0,0,0,.35); border: 3px solid #7c5cff; border-radius: 10px; }
+  #lado { display: flex; flex-direction: column; gap: 10px; width: 140px; }
+  .caixa { background: rgba(0,0,0,.3); border: 2px solid #5b46c4; border-radius: 12px; padding: 8px; text-align: center; }
+  .caixa h3 { font-size: 12px; letter-spacing: 1px; color: #b9a8ff; margin-bottom: 4px; }
+  .caixa .num { font-size: 22px; font-weight: 900; }
+  #proxima, #guardada { width: 100%; aspect-ratio: 1; }
+  #combo { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 900; color: #ffe066; text-shadow: 0 4px 0 #0008; pointer-events: none; opacity: 0; transition: opacity .2s, transform .2s; text-align: center; }
+  #combo.ver { opacity: 1; transform: translate(-50%, -60%); }
+  #toques { position: fixed; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
+  #toques button { font: inherit; font-size: 22px; width: 58px; height: 58px; border-radius: 14px; border: 2px solid #7c5cff; background: rgba(124,92,255,.25); color: #fff; }
+  #menu { position: fixed; inset: 0; background: rgba(10,5,30,.85); display: flex; align-items: center; justify-content: center; z-index: 5; }
+  #menu.sumir { display: none; }
+  .cartao { background: #24164f; border: 3px solid #7c5cff; border-radius: 18px; padding: 20px; width: min(92vw, 420px); text-align: center; }
+  .cartao h1 { font-size: 30px; color: #ffe066; margin-bottom: 6px; }
+  .cartao p { font-size: 14px; line-height: 1.5; opacity: .9; margin-bottom: 10px; }
+  .cartao ul { text-align: left; font-size: 13px; line-height: 1.6; margin: 0 0 12px 18px; opacity: .9; }
+  .cartao button { font: inherit; font-weight: 900; font-size: 17px; width: 100%; padding: 12px; border: 0; border-radius: 12px; background: #ffe066; color: #24164f; margin-top: 6px; cursor: pointer; }
+  .cartao .sec { background: transparent; color: #ffe066; border: 2px solid #ffe066; }
+  #conquistas { position: fixed; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  .conq { background: #2f1f66; border: 2px solid #ffe066; border-radius: 10px; padding: 6px 10px; font-size: 13px; font-weight: 800; animation: entra 3s forwards; }
+  @keyframes entra { 0% { opacity: 0; transform: translateX(30px); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div id="layout">
+  <canvas id="tabuleiro" width="300" height="600"></canvas>
+  <div id="lado">
+    <div class="caixa"><h3>PRÓXIMA</h3><canvas id="proxima" width="120" height="120"></canvas></div>
+    <div class="caixa"><h3>GUARDADA</h3><canvas id="guardada" width="120" height="120"></canvas></div>
+    <div class="caixa"><h3>PONTOS</h3><div class="num" id="pontos">0</div></div>
+    <div class="caixa"><h3>LINHAS</h3><div class="num" id="linhas">0</div></div>
+    <div class="caixa"><h3>NÍVEL</h3><div class="num" id="nivel">1</div></div>
+  </div>
+</div>
+<div id="combo"></div>
+<div id="conquistas"></div>
+<div id="toques">
+  <button data-a="esq">◀</button><button data-a="girar">⟳</button><button data-a="dir">▶</button><button data-a="desce">▼</button><button data-a="cai">⤓</button><button data-a="guardar">⇄</button>
+</div>
+<div id="menu"></div>
+
+<script>
+/* =====================================================================
+   BLOCOS MÁGICOS - quebra-cabeça de peças que caem
+   Complete linhas para limpar. Blocos mágicos (✦) explodem a coluna inteira!
+   ===================================================================== */
+const tab = document.getElementById('tabuleiro');
+const ctx = tab.getContext('2d');
+const prox = document.getElementById('proxima').getContext('2d');
+const guard = document.getElementById('guardada').getContext('2d');
+const COLS = 10, LINS = 20, Q = 30;
+
+const PECAS = {
+  I: { cor: '#4dd6ff', forma: [[1, 1, 1, 1]] },
+  O: { cor: '#ffe066', forma: [[1, 1], [1, 1]] },
+  T: { cor: '#c77dff', forma: [[0, 1, 0], [1, 1, 1]] },
+  S: { cor: '#6bff8f', forma: [[0, 1, 1], [1, 1, 0]] },
+  Z: { cor: '#ff6b8b', forma: [[1, 1, 0], [0, 1, 1]] },
+  J: { cor: '#5b8cff', forma: [[1, 0, 0], [1, 1, 1]] },
+  L: { cor: '#ffa64d', forma: [[0, 0, 1], [1, 1, 1]] }
+};
+const MENSAGENS = {
+  1: 'Linha!',
+  2: 'Linha dupla!',
+  3: 'Linha tripla!',
+  4: 'TETRA MÁGICO!'
+};
+const CONQUISTAS = [
+  { id: 'primeira', nome: 'Primeira linha', feito: s => s.linhas >= 1 },
+  { id: 'dez', nome: '10 linhas limpas', feito: s => s.linhas >= 10 },
+  { id: 'tetra', nome: 'Fez um Tetra Mágico', feito: s => s.tetras >= 1 },
+  { id: 'combo3', nome: 'Combo de 3 seguidas', feito: s => s.combo >= 3 },
+  { id: 'magia', nome: 'Usou um bloco mágico', feito: s => s.magicos >= 1 },
+  { id: 'nivel5', nome: 'Chegou ao nível 5', feito: s => s.nivel >= 5 },
+  { id: 'mil', nome: 'Mil pontos', feito: s => s.pontos >= 1000 }
+];
+
+let grade = [], peca = null, proxima = null, guardada = null, podeGuardar = true;
+let saco = [];
+let pontos = 0, linhas = 0, nivel = 1, combo = -1, tetras = 0, magicos = 0;
+let queda = 0, travar = 0, jogando = false, pausado = false;
+let ganhas = {};
+let efeitos = [];
+
+function novaGrade() { grade = Array.from({ length: LINS }, () => Array(COLS).fill(null)); }
+function sortear() {
+  if (!saco.length) saco = Object.keys(PECAS).sort(() => Math.random() - 0.5);
+  const tipo = saco.pop();
+  const magica = Math.random() < 0.08;
+  return { tipo, forma: PECAS[tipo].forma.map(l => l.slice()), cor: PECAS[tipo].cor, x: 3, y: 0, magica };
+}
+function cabe(p, dx, dy, forma) {
+  forma = forma || p.forma;
+  for (let y = 0; y < forma.length; y++) for (let x = 0; x < forma[y].length; x++) {
+    if (!forma[y][x]) continue;
+    const nx = p.x + x + dx, ny = p.y + y + dy;
+    if (nx < 0 || nx >= COLS || ny >= LINS) return false;
+    if (ny >= 0 && grade[ny][nx]) return false;
+  }
+  return true;
+}
+function girar() {
+  const f = peca.forma, nova = f[0].map((_, i) => f.map(l => l[i]).reverse());
+  for (const chute of [0, -1, 1, -2, 2]) if (cabe(peca, chute, 0, nova)) { peca.forma = nova; peca.x += chute; travar = Math.min(travar, 0.3); return; }
+}
+function mover(dx) { if (cabe(peca, dx, 0)) { peca.x += dx; travar = Math.min(travar, 0.3); } }
+function descer() { if (cabe(peca, 0, 1)) { peca.y++; pontos += 1; return true; } return false; }
+function cairDeVez() { let n = 0; while (cabe(peca, 0, 1)) { peca.y++; n++; } pontos += n * 2; fixar(); }
+function guardarPeca() {
+  if (!podeGuardar) return;
+  const atual = { tipo: peca.tipo, forma: PECAS[peca.tipo].forma.map(l => l.slice()), cor: peca.cor, x: 3, y: 0, magica: peca.magica };
+  if (guardada) { peca = guardada; peca.x = 3; peca.y = 0; } else { peca = proxima; proxima = sortear(); }
+  guardada = atual; podeGuardar = false;
+  desenharMini();
+}
+
+function fixar() {
+  peca.forma.forEach((l, y) => l.forEach((v, x) => {
+    if (v && peca.y + y >= 0) grade[peca.y + y][peca.x + x] = { cor: peca.cor, magico: peca.magica && x === Math.floor(l.length / 2) && y === 0 };
+  }));
+  if (peca.forma.some((l, y) => l.some(v => v) && peca.y + y < 0)) { fimDeJogo(); return; }
+  limparLinhas();
+  peca = proxima; proxima = sortear(); podeGuardar = true; travar = 0;
+  if (!cabe(peca, 0, 0)) fimDeJogo();
+  desenharMini();
+}
+
+function limparLinhas() {
+  const cheias = [];
+  for (let y = 0; y < LINS; y++) if (grade[y].every(c => c)) cheias.push(y);
+  if (!cheias.length) { combo = -1; return; }
+  /* bloco mágico numa linha cheia: limpa a coluna inteira dele */
+  let colunasMagicas = [];
+  cheias.forEach(y => grade[y].forEach((c, x) => { if (c.magico) colunasMagicas.push(x); }));
+  cheias.forEach(y => { efeitos.push({ y, vida: 0.4 }); grade.splice(y, 1); grade.unshift(Array(COLS).fill(null)); });
+  colunasMagicas.forEach(x => { for (let y = 0; y < LINS; y++) grade[y][x] = null; magicos++; efeitos.push({ coluna: x, vida: 0.6 }); });
+  combo++;
+  const n = cheias.length;
+  const base = [0, 100, 300, 500, 800][n] * nivel;
+  pontos += base + Math.max(0, combo) * 50 * nivel + colunasMagicas.length * 200;
+  linhas += n;
+  if (n === 4) tetras++;
+  const antes = nivel;
+  nivel = 1 + Math.floor(linhas / 10);
+  let texto = MENSAGENS[n];
+  if (combo > 0) texto += '<br>Combo x' + (combo + 1);
+  if (colunasMagicas.length) texto += '<br>✦ Magia! ✦';
+  if (nivel > antes) texto += '<br>Nível ' + nivel + '!';
+  mostrarCombo(texto);
+  conferirConquistas();
+}
+
+function mostrarCombo(t) {
+  const el = document.getElementById('combo');
+  el.innerHTML = t; el.classList.add('ver');
+  clearTimeout(mostrarCombo.t); mostrarCombo.t = setTimeout(() => el.classList.remove('ver'), 1100);
+}
+function conferirConquistas() {
+  const s = { linhas, tetras, combo, magicos, nivel, pontos };
+  CONQUISTAS.forEach(c => {
+    if (ganhas[c.id] || !c.feito(s)) return;
+    ganhas[c.id] = true;
+    const d = document.createElement('div'); d.className = 'conq'; d.textContent = '🏆 Conquista: ' + c.nome;
+    document.getElementById('conquistas').appendChild(d); setTimeout(() => d.remove(), 3100);
+  });
+}
+
+function fimDeJogo() {
+  jogando = false;
+  const feitas = CONQUISTAS.filter(c => ganhas[c.id]).length;
+  abrirMenu('<h1>Fim de jogo</h1><p>Você fez <b>' + pontos + '</b> pontos e limpou <b>' + linhas + '</b> linhas.<br>Conquistas: ' + feitas + ' de ' + CONQUISTAS.length + '</p><button onclick="comecar()">Jogar de novo</button><button class="sec" onclick="telaInicial()">Menu principal</button>');
+}
+function pausar() {
+  if (!jogando) return;
+  pausado = !pausado;
+  if (pausado) abrirMenu('<h1>Pausado</h1><p>Respire fundo. As peças esperam por você.</p><button onclick="pausar()">Continuar</button><button class="sec" onclick="telaInicial()">Sair para o menu</button>');
+  else fecharMenu();
+}
+function abrirMenu(h) { const m = document.getElementById('menu'); m.innerHTML = '<div class="cartao">' + h + '</div>'; m.classList.remove('sumir'); }
+function fecharMenu() { document.getElementById('menu').classList.add('sumir'); }
+function telaInicial() {
+  jogando = false; pausado = false;
+  abrirMenu('<h1>✦ Blocos Mágicos ✦</h1><p>Encaixe as peças que caem e complete linhas para limpar o tabuleiro.</p><ul><li>◀ ▶ movem a peça</li><li>⟳ ou ↑ gira</li><li>▼ desce mais rápido, ⤓ ou Espaço derruba de vez</li><li>⇄ ou C guarda a peça para depois</li><li>Peças com ✦ são mágicas: ao limpar a linha, a coluna inteira some!</li></ul><button onclick="comecar()">Jogar</button><button class="sec" onclick="mostrarConquistas()">Conquistas</button>');
+}
+function mostrarConquistas() {
+  abrirMenu('<h1>🏆 Conquistas</h1><ul>' + CONQUISTAS.map(c => '<li>' + (ganhas[c.id] ? '✅ ' : '⬜ ') + c.nome + '</li>').join('') + '</ul><button onclick="telaInicial()">Voltar</button>');
+}
+function comecar() {
+  novaGrade(); saco = [];
+  pontos = 0; linhas = 0; nivel = 1; combo = -1; tetras = 0; magicos = 0;
+  peca = sortear(); proxima = sortear(); guardada = null; podeGuardar = true;
+  jogando = true; pausado = false; queda = 0; travar = 0;
+  fecharMenu(); desenharMini();
+}
+
+/* ---------------- tempo ---------------- */
+function atualizar(dt) {
+  for (let i = efeitos.length - 1; i >= 0; i--) { efeitos[i].vida -= dt; if (efeitos[i].vida <= 0) efeitos.splice(i, 1); }
+  if (!jogando || pausado) return;
+  const velocidade = Math.max(0.06, 0.8 - (nivel - 1) * 0.07);
+  queda += dt;
+  if (queda >= velocidade) { queda = 0; if (!cabe(peca, 0, 1)) { travar += velocidade; if (travar > 0.5) fixar(); } else peca.y++; }
+  document.getElementById('pontos').textContent = pontos;
+  document.getElementById('linhas').textContent = linhas;
+  document.getElementById('nivel').textContent = nivel;
+}
+
+/* ---------------- desenho ---------------- */
+function bloco(c, x, y, tam, cor, magico, fantasma) {
+  if (fantasma) { c.strokeStyle = cor; c.globalAlpha = 0.35; c.lineWidth = 2; c.strokeRect(x + 2, y + 2, tam - 4, tam - 4); c.globalAlpha = 1; return; }
+  c.fillStyle = cor; c.fillRect(x + 1, y + 1, tam - 2, tam - 2);
+  c.fillStyle = 'rgba(255,255,255,.3)'; c.fillRect(x + 1, y + 1, tam - 2, 5);
+  c.fillStyle = 'rgba(0,0,0,.2)'; c.fillRect(x + 1, y + tam - 6, tam - 2, 5);
+  if (magico) { c.fillStyle = '#fff'; c.font = 'bold ' + Math.floor(tam * 0.6) + 'px system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✦', x + tam / 2, y + tam / 2 + 1); }
+}
+function desenhar() {
+  ctx.clearRect(0, 0, tab.width, tab.height);
+  ctx.strokeStyle = 'rgba(255,255,255,.05)';
+  for (let x = 1; x < COLS; x++) { ctx.beginPath(); ctx.moveTo(x * Q, 0); ctx.lineTo(x * Q, LINS * Q); ctx.stroke(); }
+  for (let y = 1; y < LINS; y++) { ctx.beginPath(); ctx.moveTo(0, y * Q); ctx.lineTo(COLS * Q, y * Q); ctx.stroke(); }
+  grade.forEach((l, y) => l.forEach((c, x) => { if (c) bloco(ctx, x * Q, y * Q, Q, c.cor, c.magico); }));
+  if (peca && jogando) {
+    let fy = 0; while (cabe(peca, 0, fy + 1)) fy++;
+    peca.forma.forEach((l, y) => l.forEach((v, x) => { if (v) bloco(ctx, (peca.x + x) * Q, (peca.y + y + fy) * Q, Q, peca.cor, false, true); }));
+    peca.forma.forEach((l, y) => l.forEach((v, x) => { if (v) bloco(ctx, (peca.x + x) * Q, (peca.y + y) * Q, Q, peca.cor, peca.magica && x === Math.floor(l.length / 2) && y === 0); }));
+  }
+  efeitos.forEach(e => {
+    ctx.fillStyle = 'rgba(255,255,255,' + e.vida * 2 + ')';
+    if (e.coluna != null) ctx.fillRect(e.coluna * Q, 0, Q, LINS * Q); else ctx.fillRect(0, e.y * Q, COLS * Q, Q);
+  });
+}
+function desenharMini() {
+  [[prox, proxima], [guard, guardada]].forEach(([c, p]) => {
+    c.clearRect(0, 0, 120, 120);
+    if (!p) return;
+    const t = 24, f = p.forma, ox = (120 - f[0].length * t) / 2, oy = (120 - f.length * t) / 2;
+    f.forEach((l, y) => l.forEach((v, x) => { if (v) bloco(c, ox + x * t, oy + y * t, t, p.cor, p.magica && x === Math.floor(l.length / 2) && y === 0); }));
+  });
+}
+
+/* ---------------- controles ---------------- */
+function acao(a) {
+  if (!jogando || pausado) return;
+  if (a === 'esq') mover(-1);
+  if (a === 'dir') mover(1);
+  if (a === 'girar') girar();
+  if (a === 'desce') descer();
+  if (a === 'cai') cairDeVez();
+  if (a === 'guardar') guardarPeca();
+}
+addEventListener('keydown', e => {
+  const m = { ArrowLeft: 'esq', ArrowRight: 'dir', ArrowUp: 'girar', KeyX: 'girar', ArrowDown: 'desce', Space: 'cai', KeyC: 'guardar' }[e.code];
+  if (m) { e.preventDefault(); acao(m); }
+  if (e.code === 'KeyP' || e.code === 'Escape') pausar();
+});
+document.querySelectorAll('#toques button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); acao(b.dataset.a); }));
+
+let antes = performance.now();
+function laco(agora) { const dt = Math.min(0.05, (agora - antes) / 1000); antes = agora; atualizar(dt); desenhar(); requestAnimationFrame(laco); }
+novaGrade();
+telaInicial();
+requestAnimationFrame(laco);
+</script>
+</body>
+</html>

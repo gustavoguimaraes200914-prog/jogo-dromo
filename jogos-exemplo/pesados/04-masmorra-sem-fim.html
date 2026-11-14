@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Masmorra Sem Fim</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: #0d0b14; color: #eae4ff; font-family: "Courier New", ui-monospace, monospace; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #jogo { display: flex; flex-direction: column; height: 100%; }
+  #barra { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 12px; background: #17132a; border-bottom: 2px solid #2d2650; font-size: 14px; font-weight: bold; }
+  #barra .v { color: #ff6b7a; } #barra .o { color: #ffd34d; } #barra .x { color: #7fd8ff; } #barra .a { color: #b9a7ff; }
+  #area { flex: 1; position: relative; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  #diario { height: 74px; overflow: hidden; padding: 6px 12px; font-size: 13px; background: #120f20; border-top: 2px solid #2d2650; line-height: 1.35; }
+  #diario div:first-child { color: #fff; } #diario div { color: #9b93c0; }
+  #botoes { position: absolute; right: 10px; bottom: 10px; display: grid; grid-template-columns: repeat(3, 52px); gap: 6px; }
+  #botoes button, #acoes button { font: inherit; font-weight: bold; font-size: 20px; height: 52px; border-radius: 12px; border: 2px solid #3b3366; background: rgba(30,24,60,.85); color: #eae4ff; }
+  #acoes { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; }
+  #acoes button { width: auto; padding: 0 12px; font-size: 14px; }
+  #janela { position: fixed; inset: 0; background: rgba(5,4,10,.85); display: flex; align-items: center; justify-content: center; z-index: 9; }
+  #janela.oculta { display: none; }
+  .quadro { width: min(92vw, 440px); background: #17132a; border: 3px solid #4b3f8a; border-radius: 16px; padding: 18px; text-align: center; }
+  .quadro h1 { color: #ffd34d; font-size: 26px; margin-bottom: 8px; }
+  .quadro p { font-size: 14px; line-height: 1.5; margin-bottom: 12px; color: #cfc6f5; }
+  .quadro button { font: inherit; font-weight: bold; font-size: 17px; padding: 12px; width: 100%; border: 0; border-radius: 12px; background: #ffd34d; color: #17132a; cursor: pointer; margin-top: 6px; }
+  .inv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0; }
+  .inv div { background: #241e44; border-radius: 10px; padding: 8px 2px; font-size: 12px; cursor: pointer; }
+  .inv div b { display: block; font-size: 20px; }
+</style>
+</head>
+<body>
+<div id="jogo">
+  <div id="barra">
+    <span class="v" id="tVida">♥ 20/20</span>
+    <span class="o" id="tOuro">$ 0</span>
+    <span class="x" id="tXp">Nv 1 (0/10)</span>
+    <span class="a" id="tAndar">Andar 1</span>
+    <span id="tArma">⚔ Punhos</span>
+  </div>
+  <div id="area">
+    <canvas id="tela"></canvas>
+    <div id="acoes"><button id="bMochila">Mochila</button><button id="bEsperar">Esperar</button></div>
+    <div id="botoes">
+      <span></span><button data-d="0,-1">▲</button><span></span>
+      <button data-d="-1,0">◀</button><button data-d="0,1">▼</button><button data-d="1,0">▶</button>
+    </div>
+  </div>
+  <div id="diario"></div>
+</div>
+<div id="janela"></div>
+
+<script>
+/* =====================================================================
+   MASMORRA SEM FIM - roguelike por turnos
+   Cada andar é sorteado. Desça as escadas, ganhe XP, junte ouro e itens.
+   ===================================================================== */
+const tela = document.getElementById('tela');
+const ctx = tela.getContext('2d');
+const LARGURA = 48, ALTURA = 32;
+let T = 24; // tamanho do quadrado na tela
+
+const PAREDE = 0, CHAO = 1, ESCADA = 2, PORTA = 3;
+
+let mapa = [], visto = [], visivel = [];
+let monstros = [], itensNoChao = [];
+let andar = 1;
+let melhorAndar = 1;
+let turno = 0;
+let diario = [];
+let fimDeJogo = false;
+
+const heroi = {
+  x: 0, y: 0,
+  vida: 20, vidaMax: 20,
+  ataque: 3, defesa: 0,
+  nivel: 1, xp: 0, xpProx: 10,
+  ouro: 0,
+  arma: { nome: 'Punhos', bonus: 0 },
+  armadura: { nome: 'Roupa', bonus: 0 },
+  mochila: [],
+  mortos: 0
+};
+
+const BESTIARIO = [
+  { nome: 'Rato',      letra: 'r', cor: '#b0a080', vida: 4,  ataque: 2,  xp: 2,  desde: 1 },
+  { nome: 'Morcego',   letra: 'm', cor: '#a07acc', vida: 5,  ataque: 2,  xp: 3,  desde: 1, rapido: true },
+  { nome: 'Goblin',    letra: 'g', cor: '#6cc46c', vida: 9,  ataque: 4,  xp: 6,  desde: 2 },
+  { nome: 'Esqueleto', letra: 'E', cor: '#e8e8e8', vida: 14, ataque: 5,  xp: 10, desde: 3 },
+  { nome: 'Aranha',    letra: 'a', cor: '#c44c4c', vida: 12, ataque: 6,  xp: 12, desde: 4, veneno: true },
+  { nome: 'Orc',       letra: 'O', cor: '#5f9f3f', vida: 24, ataque: 8,  xp: 20, desde: 5 },
+  { nome: 'Fantasma',  letra: 'F', cor: '#9fd8ff', vida: 18, ataque: 9,  xp: 26, desde: 7, atravessa: true },
+  { nome: 'Dragão',    letra: 'D', cor: '#ff5a2a', vida: 60, ataque: 14, xp: 90, desde: 9 }
+];
+const ARMAS = [
+  { nome: 'Adaga', bonus: 2 }, { nome: 'Espada curta', bonus: 4 }, { nome: 'Machado', bonus: 6 },
+  { nome: 'Espada longa', bonus: 8 }, { nome: 'Martelo de guerra', bonus: 11 }, { nome: 'Lâmina de fogo', bonus: 15 }
+];
+const ARMADURAS = [
+  { nome: 'Couro', bonus: 1 }, { nome: 'Cota de malha', bonus: 2 }, { nome: 'Placas', bonus: 4 }, { nome: 'Armadura mágica', bonus: 6 }
+];
+
+/* ---------------------- sorteio ---------------------- */
+function sorte(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function escolher(lista) { return lista[Math.floor(Math.random() * lista.length)]; }
+
+/* ---------------------- gerar andar ---------------------- */
+function gerarAndar() {
+  mapa = []; visto = []; visivel = [];
+  for (let y = 0; y < ALTURA; y++) { mapa.push(new Array(LARGURA).fill(PAREDE)); visto.push(new Array(LARGURA).fill(false)); visivel.push(new Array(LARGURA).fill(false)); }
+  const salas = [];
+  for (let tentativa = 0; tentativa < 80 && salas.length < 10; tentativa++) {
+    const w = sorte(5, 11), h = sorte(4, 8), x = sorte(1, LARGURA - w - 2), y = sorte(1, ALTURA - h - 2);
+    if (salas.some(s => x < s.x + s.w + 1 && x + w + 1 > s.x && y < s.y + s.h + 1 && y + h + 1 > s.y)) continue;
+    salas.push({ x, y, w, h, cx: x + Math.floor(w / 2), cy: y + Math.floor(h / 2) });
+    for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) mapa[yy][xx] = CHAO;
+  }
+  /* corredores ligando cada sala na anterior */
+  for (let i = 1; i < salas.length; i++) {
+    const a = salas[i - 1], b = salas[i];
+    if (Math.random() < 0.5) { cavarH(a.cx, b.cx, a.cy); cavarV(a.cy, b.cy, b.cx); }
+    else { cavarV(a.cy, b.cy, a.cx); cavarH(a.cx, b.cx, b.cy); }
+  }
+  heroi.x = salas[0].cx; heroi.y = salas[0].cy;
+  const ultima = salas[salas.length - 1];
+  mapa[ultima.cy][ultima.cx] = ESCADA;
+
+  monstros = []; itensNoChao = [];
+  const podem = BESTIARIO.filter(b => b.desde <= andar);
+  for (let i = 1; i < salas.length; i++) {
+    const s = salas[i], qtd = sorte(0, 1 + Math.floor(andar / 3));
+    for (let k = 0; k < qtd; k++) {
+      const tipo = escolher(podem.slice(-4));
+      const forca = 1 + (andar - tipo.desde) * 0.12;
+      monstros.push({ tipo, x: sorte(s.x, s.x + s.w - 1), y: sorte(s.y, s.y + s.h - 1), vida: Math.round(tipo.vida * forca), vidaMax: Math.round(tipo.vida * forca), ataque: Math.round(tipo.ataque * forca), acordado: false, veneno: 0 });
+    }
+    if (Math.random() < 0.7) itensNoChao.push(sortearItem(sorte(s.x, s.x + s.w - 1), sorte(s.y, s.y + s.h - 1)));
+    if (Math.random() < 0.6) itensNoChao.push({ tipo: 'ouro', qtd: sorte(3, 8) * andar, x: sorte(s.x, s.x + s.w - 1), y: sorte(s.y, s.y + s.h - 1) });
+  }
+  calcularVisao();
+}
+function cavarH(x1, x2, y) { for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) if (mapa[y][x] === PAREDE) mapa[y][x] = CHAO; }
+function cavarV(y1, y2, x) { for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) if (mapa[y][x] === PAREDE) mapa[y][x] = CHAO; }
+
+function sortearItem(x, y) {
+  const r = Math.random();
+  if (r < 0.45) return { tipo: 'pocao', nome: 'Poção de vida', x, y };
+  if (r < 0.6) return { tipo: 'pergaminho', nome: 'Pergaminho de fogo', x, y };
+  if (r < 0.7) return { tipo: 'mapa', nome: 'Mapa do andar', x, y };
+  if (r < 0.85) { const a = ARMAS[Math.min(ARMAS.length - 1, sorte(0, Math.floor(andar / 2)))]; return { tipo: 'arma', nome: a.nome, bonus: a.bonus, x, y }; }
+  const ar = ARMADURAS[Math.min(ARMADURAS.length - 1, sorte(0, Math.floor(andar / 3)))];
+  return { tipo: 'armadura', nome: ar.nome, bonus: ar.bonus, x, y };
+}
+
+/* ---------------------- visão (sombra) ---------------------- */
+function calcularVisao() {
+  for (let y = 0; y < ALTURA; y++) visivel[y].fill(false);
+  const raio = 7;
+  for (let a = 0; a < 360; a += 2) {
+    const dx = Math.cos(a * Math.PI / 180), dy = Math.sin(a * Math.PI / 180);
+    let x = heroi.x + 0.5, y = heroi.y + 0.5;
+    for (let i = 0; i < raio; i++) {
+      const cx = Math.floor(x), cy = Math.floor(y);
+      if (cx < 0 || cy < 0 || cx >= LARGURA || cy >= ALTURA) break;
+      visivel[cy][cx] = true; visto[cy][cx] = true;
+      if (mapa[cy][cx] === PAREDE) break;
+      x += dx; y += dy;
+    }
+  }
+}
+
+/* ---------------------- diário ---------------------- */
+function escrever(txt) {
+  diario.unshift(txt); diario = diario.slice(0, 4);
+  document.getElementById('diario').innerHTML = diario.map(t => '<div>' + t + '</div>').join('');
+}
+
+/* ---------------------- turno do herói ---------------------- */
+function mover(dx, dy) {
+  if (fimDeJogo || !mapa.length || !document.getElementById('janela').classList.contains('oculta')) return;
+  const nx = heroi.x + dx, ny = heroi.y + dy;
+  if (mapa[ny] === undefined || mapa[ny][nx] === PAREDE) return;
+  const alvo = monstros.find(m => m.x === nx && m.y === ny);
+  if (alvo) atacar(alvo);
+  else {
+    heroi.x = nx; heroi.y = ny;
+    pegarDoChao();
+    if (mapa[ny][nx] === ESCADA) { descer(); return; }
+  }
+  passarTurno();
+}
+
+function atacar(m) {
+  const dano = Math.max(1, heroi.ataque + heroi.arma.bonus + sorte(-1, 2));
+  m.vida -= dano; m.acordado = true;
+  efeito(m.x, m.y, '#fff', String(dano));
+  if (m.vida <= 0) {
+    escrever('Você derrotou o ' + m.tipo.nome + '! +' + m.tipo.xp + ' XP');
+    monstros.splice(monstros.indexOf(m), 1);
+    heroi.mortos++;
+    ganharXp(m.tipo.xp);
+    if (Math.random() < 0.35) itensNoChao.push({ tipo: 'ouro', qtd: sorte(2, 6) * andar, x: m.x, y: m.y });
+  } else escrever('Você acerta o ' + m.tipo.nome + ' (' + dano + ').');
+}
+
+function ganharXp(q) {
+  heroi.xp += q;
+  while (heroi.xp >= heroi.xpProx) {
+    heroi.xp -= heroi.xpProx;
+    heroi.nivel++;
+    heroi.xpProx = Math.round(heroi.xpProx * 1.5);
+    heroi.vidaMax += 5; heroi.vida = heroi.vidaMax; heroi.ataque += 1;
+    escrever('★ Subiu para o nível ' + heroi.nivel + '! Vida cheia.');
+  }
+}
+
+function pegarDoChao() {
+  for (let i = itensNoChao.length - 1; i >= 0; i--) {
+    const it = itensNoChao[i];
+    if (it.x !== heroi.x || it.y !== heroi.y) continue;
+    itensNoChao.splice(i, 1);
+    if (it.tipo === 'ouro') { heroi.ouro += it.qtd; escrever('Você pegou ' + it.qtd + ' de ouro.'); continue; }
+    if (heroi.mochila.length >= 8) { escrever('A mochila está cheia.'); itensNoChao.push(it); continue; }
+    heroi.mochila.push(it);
+    escrever('Você pegou: ' + it.nome + '.');
+  }
+}
+
+function descer() {
+  andar++;
+  if (andar > melhorAndar) melhorAndar = andar;
+  escrever('Você desceu para o andar ' + andar + '...');
+  gerarAndar();
+  atualizarBarra();
+  desenhar();
+}
+
+/* ---------------------- turno dos monstros ---------------------- */
+function passarTurno() {
+  if (!mapa.length) return;
+  turno++;
+  for (const m of monstros) {
+    const dist = Math.abs(m.x - heroi.x) + Math.abs(m.y - heroi.y);
+    if (!m.acordado && visivel[m.y][m.x] && dist < 7) m.acordado = true;
+    if (!m.acordado) continue;
+    const passos = m.tipo.rapido && turno % 2 === 0 ? 2 : 1;
+    for (let p = 0; p < passos; p++) {
+      const d = Math.abs(m.x - heroi.x) + Math.abs(m.y - heroi.y);
+      if (d === 1) { morder(m); break; }
+      const opcoes = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => ({ x: m.x + dx, y: m.y + dy }))
+        .filter(o => (m.tipo.atravessa || (mapa[o.y] && mapa[o.y][o.x] !== PAREDE)) && !monstros.some(n => n.x === o.x && n.y === o.y) && !(o.x === heroi.x && o.y === heroi.y))
+        .sort((a, b) => (Math.abs(a.x - heroi.x) + Math.abs(a.y - heroi.y)) - (Math.abs(b.x - heroi.x) + Math.abs(b.y - heroi.y)));
+      if (opcoes.length) { m.x = opcoes[0].x; m.y = opcoes[0].y; }
+    }
+  }
+  if (heroi.veneno > 0) { heroi.veneno--; heroi.vida -= 1; escrever('O veneno queima... (-1)'); }
+  if (heroi.vida <= 0) morrer();
+  calcularVisao();
+  atualizarBarra();
+  desenhar();
+}
+
+function morder(m) {
+  const dano = Math.max(0, m.ataque + sorte(-1, 1) - heroi.armadura.bonus - heroi.defesa);
+  heroi.vida -= dano;
+  efeito(heroi.x, heroi.y, '#ff6b7a', String(dano));
+  escrever('O ' + m.tipo.nome + ' te acerta (' + dano + ').');
+  if (m.tipo.veneno && Math.random() < 0.4) { heroi.veneno = 4; escrever('Você foi envenenado!'); }
+}
+
+function morrer() {
+  fimDeJogo = true;
+  if (andar > melhorAndar) melhorAndar = andar;
+  abrir('<h1>Você caiu no andar ' + andar + '</h1><p>Nível ' + heroi.nivel + ' · ' + heroi.ouro + ' de ouro · ' + heroi.mortos + ' monstros derrotados.<br>Melhor andar: ' + melhorAndar + '</p><button onclick="novoJogo()">Começar de novo</button>');
+}
+
+/* ---------------------- mochila ---------------------- */
+function abrirMochila() {
+  if (fimDeJogo) return;
+  const icones = { pocao: '🧪', pergaminho: '📜', mapa: '🗺', arma: '⚔', armadura: '🛡' };
+  const html = heroi.mochila.length ? heroi.mochila.map((it, i) => '<div onclick="usar(' + i + ')"><b>' + icones[it.tipo] + '</b>' + it.nome + (it.bonus ? ' +' + it.bonus : '') + '</div>').join('') : '<p>A mochila está vazia.</p>';
+  abrir('<h1>Mochila</h1><p>Toque num item para usar ou equipar.</p><div class="inv">' + html + '</div><button onclick="fechar()">Fechar</button>');
+}
+function usar(i) {
+  const it = heroi.mochila[i];
+  if (!it) return;
+  heroi.mochila.splice(i, 1);
+  if (it.tipo === 'pocao') { const c = Math.round(heroi.vidaMax * 0.5); heroi.vida = Math.min(heroi.vidaMax, heroi.vida + c); heroi.veneno = 0; escrever('Você bebeu a poção (+' + c + ').'); }
+  else if (it.tipo === 'pergaminho') {
+    let n = 0;
+    for (const m of monstros.slice()) if (visivel[m.y][m.x]) { m.vida -= 12 + andar * 2; m.acordado = true; efeito(m.x, m.y, '#ff9a3a', '🔥'); n++; if (m.vida <= 0) { monstros.splice(monstros.indexOf(m), 1); ganharXp(m.tipo.xp); } }
+    escrever(n ? 'Fogo! ' + n + ' monstro(s) atingido(s).' : 'O fogo não acertou ninguém.');
+  }
+  else if (it.tipo === 'mapa') { for (let y = 0; y < ALTURA; y++) for (let x = 0; x < LARGURA; x++) if (mapa[y][x] !== PAREDE) visto[y][x] = true; escrever('O mapa revela o andar todo.'); }
+  else if (it.tipo === 'arma') { if (heroi.arma.bonus > 0) heroi.mochila.push({ tipo: 'arma', nome: heroi.arma.nome, bonus: heroi.arma.bonus }); heroi.arma = { nome: it.nome, bonus: it.bonus }; escrever('Equipou: ' + it.nome + '.'); }
+  else if (it.tipo === 'armadura') { if (heroi.armadura.bonus > 0) heroi.mochila.push({ tipo: 'armadura', nome: heroi.armadura.nome, bonus: heroi.armadura.bonus }); heroi.armadura = { nome: it.nome, bonus: it.bonus }; escrever('Vestiu: ' + it.nome + '.'); }
+  fechar();
+  passarTurno();
+}
+
+/* ---------------------- janelas ---------------------- */
+function abrir(html) { const j = document.getElementById('janela'); j.innerHTML = '<div class="quadro">' + html + '</div>'; j.classList.remove('oculta'); }
+function fechar() { document.getElementById('janela').classList.add('oculta'); }
+
+function atualizarBarra() {
+  document.getElementById('tVida').textContent = '♥ ' + Math.max(0, heroi.vida) + '/' + heroi.vidaMax + (heroi.veneno > 0 ? ' ☠' : '');
+  document.getElementById('tOuro').textContent = '$ ' + heroi.ouro;
+  document.getElementById('tXp').textContent = 'Nv ' + heroi.nivel + ' (' + heroi.xp + '/' + heroi.xpProx + ')';
+  document.getElementById('tAndar').textContent = 'Andar ' + andar;
+  document.getElementById('tArma').textContent = '⚔ ' + heroi.arma.nome + ' · 🛡 ' + heroi.armadura.nome;
+}
+
+/* ---------------------- desenho ---------------------- */
+let efeitos = [];
+function efeito(x, y, cor, txt) { efeitos.push({ x, y, cor, txt, vida: 1 }); }
+
+function redimensionar() {
+  const a = document.getElementById('area'), d = Math.min(devicePixelRatio || 1, 2);
+  tela.width = a.clientWidth * d; tela.height = a.clientHeight * d;
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  T = Math.max(16, Math.min(30, Math.floor(Math.min(a.clientWidth / 19, a.clientHeight / 13))));
+  desenhar();
+}
+addEventListener('resize', redimensionar);
+
+function desenhar() {
+  if (!mapa.length) return;
+  const a = document.getElementById('area'), W = a.clientWidth, H = a.clientHeight;
+  ctx.fillStyle = '#0d0b14'; ctx.fillRect(0, 0, W, H);
+  const ox = Math.floor(W / 2 - (heroi.x + 0.5) * T), oy = Math.floor(H / 2 - (heroi.y + 0.5) * T);
+  ctx.font = 'bold ' + Math.floor(T * 0.8) + 'px "Courier New", monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let y = 0; y < ALTURA; y++) {
+    for (let x = 0; x < LARGURA; x++) {
+      if (!visto[y][x]) continue;
+      const px = ox + x * T, py = oy + y * T;
+      if (px < -T || py < -T || px > W || py > H) continue;
+      const v = visivel[y][x], c = mapa[y][x];
+      if (c === PAREDE) { ctx.fillStyle = v ? '#4a3f78' : '#241f3a'; ctx.fillRect(px, py, T, T); ctx.fillStyle = v ? '#5a4f90' : '#2a2444'; ctx.fillRect(px, py, T, 3); }
+      else { ctx.fillStyle = v ? '#1f1a33' : '#141124'; ctx.fillRect(px, py, T, T); if (v && (x + y) % 2) { ctx.fillStyle = '#231d3a'; ctx.fillRect(px + T / 2 - 1, py + T / 2 - 1, 2, 2); } }
+      if (c === ESCADA) { ctx.fillStyle = v ? '#ffd34d' : '#806a26'; ctx.fillText('>', px + T / 2, py + T / 2 + 1); }
+    }
+  }
+  for (const it of itensNoChao) {
+    if (!visivel[it.y][it.x]) continue;
+    const s = { ouro: ['$', '#ffd34d'], pocao: ['!', '#ff6b9a'], pergaminho: ['?', '#ffb36b'], mapa: ['%', '#9fe8b0'], arma: [')', '#cfd8ff'], armadura: ['[', '#8fb0ff'] }[it.tipo];
+    ctx.fillStyle = s[1]; ctx.fillText(s[0], ox + it.x * T + T / 2, oy + it.y * T + T / 2 + 1);
+  }
+  for (const m of monstros) {
+    if (!visivel[m.y][m.x]) continue;
+    ctx.fillStyle = m.tipo.cor; ctx.fillText(m.tipo.letra, ox + m.x * T + T / 2, oy + m.y * T + T / 2 + 1);
+    if (m.vida < m.vidaMax) { ctx.fillStyle = '#000'; ctx.fillRect(ox + m.x * T + 2, oy + m.y * T + 1, T - 4, 3); ctx.fillStyle = '#ff6b7a'; ctx.fillRect(ox + m.x * T + 2, oy + m.y * T + 1, (T - 4) * m.vida / m.vidaMax, 3); }
+  }
+  desenharHeroi(ox + heroi.x * T, oy + heroi.y * T);
+  ctx.font = 'bold 14px system-ui';
+  for (const e of efeitos) { ctx.globalAlpha = Math.max(0, e.vida); ctx.fillStyle = e.cor; ctx.fillText(e.txt, ox + e.x * T + T / 2, oy + e.y * T - (1 - e.vida) * 20); }
+  ctx.globalAlpha = 1;
+}
+
+function desenharHeroi(px, py) {
+  ctx.fillStyle = '#ffe9a8';
+  ctx.fillRect(px + 4, py + 2, T - 8, T - 4);
+  ctx.fillStyle = '#0d0b14'; ctx.fillRect(px + T * 0.32, py + T * 0.3, 3, 3); ctx.fillRect(px + T * 0.6, py + T * 0.3, 3, 3);
+  ctx.fillStyle = heroi.armadura.bonus ? '#8fb0ff' : '#c08050'; ctx.fillRect(px + 4, py + T * 0.55, T - 8, T * 0.3);
+}
+
+function animarEfeitos() {
+  if (efeitos.length) { efeitos.forEach(e => e.vida -= 0.04); efeitos = efeitos.filter(e => e.vida > 0); desenhar(); }
+  requestAnimationFrame(animarEfeitos);
+}
+
+/* ---------------------- começar ---------------------- */
+function novoJogo() {
+  andar = 1; turno = 0; fimDeJogo = false; diario = [];
+  Object.assign(heroi, { vida: 20, vidaMax: 20, ataque: 3, defesa: 0, nivel: 1, xp: 0, xpProx: 10, ouro: 0, mochila: [{ tipo: 'pocao', nome: 'Poção de vida' }], mortos: 0, veneno: 0 });
+  heroi.arma = { nome: 'Punhos', bonus: 0 }; heroi.armadura = { nome: 'Roupa', bonus: 0 };
+  gerarAndar();
+  fechar();
+  escrever('Você entra na Masmorra Sem Fim. Ache a escada (>)!');
+  atualizarBarra();
+  redimensionar();
+}
+
+const TECLAS = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
+addEventListener('keydown', e => {
+  if (TECLAS[e.code]) { e.preventDefault(); mover(...TECLAS[e.code]); }
+  if (e.code === 'KeyI') abrirMochila();
+  if (e.code === 'Space') { e.preventDefault(); if (!fimDeJogo) passarTurno(); }
+  if (e.code === 'Escape') fechar();
+});
+document.querySelectorAll('#botoes button').forEach(b => b.addEventListener('click', () => { const [dx, dy] = b.dataset.d.split(',').map(Number); mover(dx, dy); }));
+document.getElementById('bMochila').addEventListener('click', abrirMochila);
+document.getElementById('bEsperar').addEventListener('click', () => { if (!fimDeJogo) passarTurno(); });
+
+abrir('<h1>⚔ Masmorra Sem Fim</h1><p>Explore andares sorteados, derrote monstros e desça pelas escadas (<b>&gt;</b>).<br>Ande com as setas (ou os botões). Andar contra um monstro ataca.<br><b>I</b> abre a mochila · <b>Espaço</b> espera um turno.</p><button onclick="novoJogo()">Entrar na masmorra</button>');
+redimensionar();
+requestAnimationFrame(animarEfeitos);
+</script>
+</body>
+</html>

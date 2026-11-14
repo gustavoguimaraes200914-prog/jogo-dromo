@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Esquadrilha Estelar</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #000; color: #fff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; margin: 0 auto; height: 100%; max-width: 100%; background: #02030c; }
+  #hud { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); width: min(100%, 560px); display: flex; justify-content: space-between; padding: 0 12px; font-weight: 800; font-size: 15px; pointer-events: none; text-shadow: 0 2px 0 #000; }
+  #chefeBarra { position: fixed; top: 36px; left: 50%; transform: translateX(-50%); width: min(80%, 420px); height: 10px; background: #300; border: 2px solid #f55; border-radius: 6px; display: none; }
+  #chefeBarra i { display: block; height: 100%; background: linear-gradient(90deg, #f33, #fa3); }
+  #cortina { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,10,.75); }
+  #cortina.sumiu { display: none; }
+  .placa { text-align: center; padding: 24px; max-width: 420px; }
+  .placa h1 { font-size: 38px; letter-spacing: 2px; color: #7df; margin-bottom: 8px; }
+  .placa p { opacity: .85; line-height: 1.5; margin-bottom: 16px; }
+  .placa button { font: inherit; font-size: 18px; font-weight: 900; padding: 12px 30px; border-radius: 30px; border: 0; background: #7df; color: #012; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="espaco" width="540" height="960"></canvas>
+<div id="hud"><span id="hPontos">0</span><span id="hFase">FASE 1</span><span id="hVidas">▲▲▲</span></div>
+<div id="chefeBarra"><i></i></div>
+<div id="cortina"><div class="placa"><h1>ESQUADRILHA<br>ESTELAR</h1><p>Arraste o dedo (ou use as setas) para mover a nave. Ela atira sozinha.<br>Pegue os poderes: <b style="color:#ff5">P</b> tiro mais forte, <b style="color:#5f5">S</b> escudo, <b style="color:#f5f">B</b> bomba.<br>No fim de cada fase vem um chefe!</p><button id="bComecar">DECOLAR</button></div></div>
+<script>
+/* =====================================================================
+   ESQUADRILHA ESTELAR - nave vertical com fases, chefes e poderes
+   ===================================================================== */
+const tela = document.getElementById('espaco');
+const ctx = tela.getContext('2d');
+const W = tela.width, H = tela.height;
+
+let pontos = 0;
+let vidas = 3;
+let fase = 1;
+let bombas = 1;
+let rodando = false;
+let tempoFase = 0;
+let chefe = null;
+let tremor = 0;
+
+const nave = { x: W / 2, y: H - 140, w: 44, h: 52, velocidade: 520, poder: 1, escudo: 0, recarga: 0, invencivel: 0 };
+let tiros = [], tirosInimigos = [], inimigos = [], poderes = [], explosoes = [], estrelas = [];
+let alvoToque = null;
+const teclas = {};
+
+for (let i = 0; i < 140; i++) estrelas.push({ x: Math.random() * W, y: Math.random() * H, v: 30 + Math.random() * 220, t: Math.random() < 0.15 ? 2 : 1 });
+
+/* ---------------- ondas de cada fase ---------------- */
+const FORMACOES = ['fila', 'v', 'zigue', 'chuva', 'circulo'];
+let proximaOnda = 1.5;
+
+function criarOnda() {
+  const tipo = FORMACOES[Math.floor(Math.random() * Math.min(FORMACOES.length, 2 + fase))];
+  const n = 5 + fase;
+  for (let i = 0; i < n; i++) {
+    const e = { x: 0, y: -40 - i * 50, vida: 1 + Math.floor(fase / 2), tipo: 'caca', t: 0, fase: i * 0.4, formacao: tipo, valor: 100, atira: Math.random() < 0.25 + fase * 0.05, recarga: 1 + Math.random() * 2 };
+    if (tipo === 'fila') e.x = 60 + i * ((W - 120) / Math.max(1, n - 1)), e.y = -40;
+    if (tipo === 'v') { e.x = W / 2 + (i - n / 2) * 50; e.y = -40 - Math.abs(i - n / 2) * 40; }
+    if (tipo === 'zigue') e.x = W / 2;
+    if (tipo === 'chuva') { e.x = 40 + Math.random() * (W - 80); e.y = -40 - Math.random() * 400; e.tipo = 'meteoro'; e.vida = 3; e.valor = 150; e.atira = false; }
+    if (tipo === 'circulo') { e.x = W / 2; e.y = -40; }
+    inimigos.push(e);
+  }
+  if (fase >= 2 && Math.random() < 0.5) inimigos.push({ x: Math.random() < 0.5 ? -40 : W + 40, y: 120 + Math.random() * 200, vida: 8 + fase * 2, tipo: 'tanque', t: 0, fase: 0, formacao: 'lado', valor: 500, atira: true, recarga: 1 });
+}
+
+function criarChefe() {
+  chefe = { x: W / 2, y: -160, w: 220, h: 120, vida: 120 + fase * 60, vidaMax: 120 + fase * 60, t: 0, padrao: 0, recarga: 1 };
+  document.getElementById('chefeBarra').style.display = 'block';
+}
+
+/* ---------------- ações ---------------- */
+function atirar() {
+  const p = nave.poder;
+  const x = nave.x, y = nave.y - nave.h / 2;
+  tiros.push({ x, y, vx: 0, vy: -900, dano: 1 });
+  if (p >= 2) { tiros.push({ x: x - 14, y: y + 10, vx: -60, vy: -880, dano: 1 }); tiros.push({ x: x + 14, y: y + 10, vx: 60, vy: -880, dano: 1 }); }
+  if (p >= 3) { tiros.push({ x: x - 24, y: y + 20, vx: -200, vy: -820, dano: 1 }); tiros.push({ x: x + 24, y: y + 20, vx: 200, vy: -820, dano: 1 }); }
+  if (p >= 4) tiros.push({ x, y, vx: 0, vy: -1100, dano: 3, laser: true });
+  nave.recarga = p >= 3 ? 0.09 : 0.13;
+}
+
+function soltarBomba() {
+  if (bombas <= 0 || !rodando) return;
+  bombas--;
+  tremor = 0.6;
+  for (const e of inimigos.slice()) acertarInimigo(e, 20);
+  tirosInimigos = [];
+  if (chefe) chefe.vida -= 25;
+  explosoes.push({ x: W / 2, y: H / 2, r: 0, max: 700, vida: 0.7, cor: '#fff' });
+  atualizarHud();
+}
+
+function explodir(x, y, tamanho, cor) {
+  explosoes.push({ x, y, r: 4, max: tamanho, vida: 0.5, cor: cor || '#fa3' });
+  for (let i = 0; i < tamanho / 3; i++) {
+    const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 240;
+    explosoes.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, faisca: true, vida: 0.4 + Math.random() * 0.4, cor: Math.random() < 0.5 ? '#ff5' : cor || '#f83' });
+  }
+}
+
+function acertarInimigo(e, dano) {
+  e.vida -= dano;
+  e.piscar = 0.08;
+  if (e.vida > 0) return;
+  inimigos.splice(inimigos.indexOf(e), 1);
+  pontos += e.valor * fase;
+  explodir(e.x, e.y, e.tipo === 'tanque' ? 90 : 50);
+  if (Math.random() < (e.tipo === 'tanque' ? 0.9 : 0.08)) {
+    const r = Math.random();
+    poderes.push({ x: e.x, y: e.y, tipo: r < 0.55 ? 'P' : r < 0.85 ? 'S' : 'B', t: 0 });
+  }
+}
+
+function pegarPoder(p) {
+  if (p.tipo === 'P') nave.poder = Math.min(4, nave.poder + 1);
+  if (p.tipo === 'S') nave.escudo = 8;
+  if (p.tipo === 'B') bombas = Math.min(5, bombas + 1);
+  pontos += 250;
+  atualizarHud();
+}
+
+function perderVida() {
+  if (nave.invencivel > 0) return;
+  if (nave.escudo > 0) { nave.escudo = 0; nave.invencivel = 1; explodir(nave.x, nave.y, 40, '#5f5'); return; }
+  vidas--;
+  nave.poder = Math.max(1, nave.poder - 1);
+  nave.invencivel = 2.5;
+  tremor = 0.5;
+  explodir(nave.x, nave.y, 80, '#7df');
+  tirosInimigos = [];
+  atualizarHud();
+  if (vidas <= 0) fimDeJogo();
+}
+
+function vencerChefe() {
+  explodir(chefe.x, chefe.y, 220, '#f55');
+  for (let i = 0; i < 6; i++) setTimeout(() => chefe && explodir(chefe.x + (Math.random() - 0.5) * 200, chefe.y + (Math.random() - 0.5) * 100, 90), i * 120);
+  pontos += 5000 * fase;
+  tremor = 1;
+  setTimeout(() => { chefe = null; document.getElementById('chefeBarra').style.display = 'none'; proximaFase(); }, 900);
+}
+
+function proximaFase() {
+  fase++;
+  tempoFase = 0;
+  proximaOnda = 2;
+  bombas = Math.min(5, bombas + 1);
+  mostrar('<h1>FASE ' + fase + '</h1><p>Muito bem, piloto! Os inimigos agora são mais rápidos.</p><button onclick="continuar()">SEGUIR</button>');
+  rodando = false;
+  atualizarHud();
+}
+function continuar() { esconder(); rodando = true; }
+
+function fimDeJogo() {
+  rodando = false;
+  setTimeout(() => mostrar('<h1>FIM DE JOGO</h1><p>Você chegou à fase ' + fase + ' com <b>' + pontos + '</b> pontos.</p><button onclick="comecar()">DE NOVO</button>'), 900);
+}
+
+function comecar() {
+  pontos = 0; vidas = 3; fase = 1; bombas = 1; tempoFase = 0; chefe = null; proximaOnda = 1.5;
+  nave.x = W / 2; nave.y = H - 140; nave.poder = 1; nave.escudo = 0; nave.invencivel = 2;
+  tiros = []; tirosInimigos = []; inimigos = []; poderes = []; explosoes = [];
+  document.getElementById('chefeBarra').style.display = 'none';
+  esconder();
+  rodando = true;
+  atualizarHud();
+}
+
+function mostrar(html) { const c = document.getElementById('cortina'); c.innerHTML = '<div class="placa">' + html + '</div>'; c.classList.remove('sumiu'); }
+function esconder() { document.getElementById('cortina').classList.add('sumiu'); }
+function atualizarHud() {
+  document.getElementById('hPontos').textContent = pontos;
+  document.getElementById('hFase').textContent = 'FASE ' + fase + (bombas ? ' · B×' + bombas : '');
+  document.getElementById('hVidas').textContent = '▲'.repeat(Math.max(0, vidas));
+}
+
+/* ---------------- atualizar ---------------- */
+function atualizar(dt) {
+  for (const s of estrelas) { s.y += s.v * dt; if (s.y > H) { s.y = 0; s.x = Math.random() * W; } }
+  for (let i = explosoes.length - 1; i >= 0; i--) {
+    const e = explosoes[i]; e.vida -= dt;
+    if (e.faisca) { e.x += e.vx * dt; e.y += e.vy * dt; } else e.r += (e.max - e.r) * Math.min(1, dt * 8);
+    if (e.vida <= 0) explosoes.splice(i, 1);
+  }
+  if (tremor > 0) tremor -= dt;
+  if (!rodando) return;
+  tempoFase += dt;
+
+  /* mover a nave */
+  let dx = 0, dy = 0;
+  if (teclas.ArrowLeft || teclas.KeyA) dx--; if (teclas.ArrowRight || teclas.KeyD) dx++;
+  if (teclas.ArrowUp || teclas.KeyW) dy--; if (teclas.ArrowDown || teclas.KeyS) dy++;
+  nave.x += dx * nave.velocidade * dt; nave.y += dy * nave.velocidade * dt;
+  if (alvoToque) { nave.x += (alvoToque.x - nave.x) * Math.min(1, dt * 14); nave.y += (alvoToque.y - 70 - nave.y) * Math.min(1, dt * 14); }
+  nave.x = Math.max(24, Math.min(W - 24, nave.x)); nave.y = Math.max(80, Math.min(H - 40, nave.y));
+  if (nave.escudo > 0) nave.escudo -= dt;
+  if (nave.invencivel > 0) nave.invencivel -= dt;
+
+  nave.recarga -= dt;
+  if (nave.recarga <= 0) atirar();
+
+  /* ondas e chefe */
+  if (!chefe) {
+    proximaOnda -= dt;
+    if (tempoFase < 40 && proximaOnda <= 0) { criarOnda(); proximaOnda = Math.max(2.2, 5 - fase * 0.4); }
+    if (tempoFase >= 40 && inimigos.length === 0) criarChefe();
+  }
+
+  for (let i = tiros.length - 1; i >= 0; i--) {
+    const t = tiros[i]; t.x += t.vx * dt; t.y += t.vy * dt;
+    if (t.y < -20) { tiros.splice(i, 1); continue; }
+    let acertou = false;
+    for (const e of inimigos) { if (Math.abs(e.x - t.x) < 22 && Math.abs(e.y - t.y) < 22) { acertarInimigo(e, t.dano); acertou = true; break; } }
+    if (!acertou && chefe && chefe.y > 0 && Math.abs(chefe.x - t.x) < chefe.w / 2 && Math.abs(chefe.y - t.y) < chefe.h / 2) {
+      chefe.vida -= t.dano; chefe.piscar = 0.05; acertou = true; pontos += 10;
+      if (chefe.vida <= 0 && !chefe.vencido) { chefe.vencido = true; vencerChefe(); }
+    }
+    if (acertou && !t.laser) tiros.splice(i, 1);
+  }
+
+  for (let i = inimigos.length - 1; i >= 0; i--) {
+    const e = inimigos[i]; e.t += dt;
+    const vel = 120 + fase * 18;
+    if (e.formacao === 'fila' || e.formacao === 'v') e.y += vel * dt;
+    if (e.formacao === 'zigue') { e.y += vel * dt; e.x = W / 2 + Math.sin(e.t * 2 + e.fase) * (W * 0.35); }
+    if (e.formacao === 'chuva') { e.y += vel * 1.3 * dt; e.gira = (e.gira || 0) + dt * 3; }
+    if (e.formacao === 'circulo') { const a = e.t * 1.6 + e.fase; e.x = W / 2 + Math.cos(a) * 160; e.y = 120 + e.t * 40 + Math.sin(a) * 120; }
+    if (e.formacao === 'lado') { e.x += (e.x < W / 2 ? 1 : -1) * 0 + Math.sin(e.t) * 60 * dt; if (e.t < 1.5) e.x += (e.x < W / 2 ? 140 : -140) * dt; }
+    if (e.piscar > 0) e.piscar -= dt;
+    if (e.atira) {
+      e.recarga -= dt;
+      if (e.recarga <= 0 && e.y > 0) {
+        e.recarga = Math.max(0.8, 2.6 - fase * 0.2);
+        const a = Math.atan2(nave.y - e.y, nave.x - e.x), v = 220 + fase * 20;
+        tirosInimigos.push({ x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v });
+        if (e.tipo === 'tanque') for (const d of [-0.3, 0.3]) tirosInimigos.push({ x: e.x, y: e.y, vx: Math.cos(a + d) * v, vy: Math.sin(a + d) * v });
+      }
+    }
+    if (e.y > H + 60 || e.t > 25) { inimigos.splice(i, 1); continue; }
+    if (Math.abs(e.x - nave.x) < 30 && Math.abs(e.y - nave.y) < 30) { acertarInimigo(e, 99); perderVida(); }
+  }
+
+  if (chefe) {
+    chefe.t += dt;
+    if (chefe.y < 170) chefe.y += 80 * dt;
+    chefe.x = W / 2 + Math.sin(chefe.t * 0.8) * (W / 2 - chefe.w / 2 - 10);
+    if (chefe.piscar > 0) chefe.piscar -= dt;
+    chefe.recarga -= dt;
+    if (chefe.recarga <= 0 && chefe.y > 100 && !chefe.vencido) {
+      chefe.padrao = (chefe.padrao + 1) % 3;
+      if (chefe.padrao === 0) for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2 + chefe.t; tirosInimigos.push({ x: chefe.x, y: chefe.y, vx: Math.cos(a) * 200, vy: Math.sin(a) * 200 }); }
+      if (chefe.padrao === 1) for (let k = -3; k <= 3; k++) tirosInimigos.push({ x: chefe.x + k * 24, y: chefe.y + 50, vx: k * 30, vy: 320 });
+      if (chefe.padrao === 2) { const a = Math.atan2(nave.y - chefe.y, nave.x - chefe.x); for (let k = 0; k < 5; k++) tirosInimigos.push({ x: chefe.x, y: chefe.y + 40, vx: Math.cos(a) * (260 + k * 40), vy: Math.sin(a) * (260 + k * 40) }); }
+      chefe.recarga = Math.max(0.7, 1.6 - fase * 0.1);
+    }
+    document.querySelector('#chefeBarra i').style.width = Math.max(0, chefe.vida / chefe.vidaMax * 100) + '%';
+  }
+
+  for (let i = tirosInimigos.length - 1; i >= 0; i--) {
+    const t = tirosInimigos[i]; t.x += t.vx * dt; t.y += t.vy * dt;
+    if (t.x < -20 || t.x > W + 20 || t.y < -20 || t.y > H + 20) { tirosInimigos.splice(i, 1); continue; }
+    if (Math.hypot(t.x - nave.x, t.y - nave.y) < 12) { tirosInimigos.splice(i, 1); perderVida(); }
+  }
+
+  for (let i = poderes.length - 1; i >= 0; i--) {
+    const p = poderes[i]; p.t += dt; p.y += 90 * dt; p.x += Math.sin(p.t * 3) * 40 * dt;
+    if (p.y > H + 20) { poderes.splice(i, 1); continue; }
+    if (Math.hypot(p.x - nave.x, p.y - nave.y) < 34) { poderes.splice(i, 1); pegarPoder(p); }
+  }
+  document.getElementById('hPontos').textContent = pontos;
+}
+
+/* ---------------- desenhar ---------------- */
+function desenhar() {
+  ctx.save();
+  if (tremor > 0) ctx.translate((Math.random() - 0.5) * 16 * tremor, (Math.random() - 0.5) * 16 * tremor);
+  ctx.fillStyle = '#02030c'; ctx.fillRect(-20, -20, W + 40, H + 40);
+  for (const s of estrelas) { ctx.fillStyle = s.t === 2 ? '#9cf' : '#567'; ctx.fillRect(s.x, s.y, s.t, s.t * (1 + s.v / 120)); }
+
+  for (const p of poderes) {
+    const cor = p.tipo === 'P' ? '#ff5' : p.tipo === 'S' ? '#5f5' : '#f5f';
+    ctx.fillStyle = cor; ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000'; ctx.font = 'bold 16px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.tipo, p.x, p.y + 1);
+  }
+  for (const e of inimigos) desenharInimigo(e);
+  if (chefe) desenharChefe();
+  for (const t of tiros) { ctx.fillStyle = t.laser ? '#f5f' : '#7df'; ctx.fillRect(t.x - (t.laser ? 3 : 2), t.y - 10, t.laser ? 6 : 4, t.laser ? 26 : 14); }
+  for (const t of tirosInimigos) { ctx.fillStyle = '#f75'; ctx.beginPath(); ctx.arc(t.x, t.y, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fd9'; ctx.beginPath(); ctx.arc(t.x, t.y, 3, 0, Math.PI * 2); ctx.fill(); }
+  if (rodando || vidas > 0) desenharNave();
+  for (const e of explosoes) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, e.vida * 2));
+    if (e.faisca) { ctx.fillStyle = e.cor; ctx.fillRect(e.x - 2, e.y - 2, 4, 4); }
+    else { ctx.strokeStyle = e.cor; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function desenharNave() {
+  if (nave.invencivel > 0 && Math.floor(nave.invencivel * 20) % 2) return;
+  const x = nave.x, y = nave.y;
+  ctx.fillStyle = '#f83'; ctx.fillRect(x - 6, y + 20, 12, 8 + Math.random() * 12);
+  ctx.fillStyle = '#cde'; ctx.beginPath(); ctx.moveTo(x, y - 26); ctx.lineTo(x + 22, y + 20); ctx.lineTo(x - 22, y + 20); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#39f'; ctx.fillRect(x - 5, y - 8, 10, 14);
+  ctx.fillStyle = '#89a'; ctx.fillRect(x - 26, y + 6, 10, 16); ctx.fillRect(x + 16, y + 6, 10, 16);
+  if (nave.escudo > 0) { ctx.strokeStyle = 'rgba(80,255,80,.7)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 38, 0, Math.PI * 2); ctx.stroke(); }
+}
+
+function desenharInimigo(e) {
+  ctx.save(); ctx.translate(e.x, e.y);
+  if (e.tipo === 'meteoro') {
+    ctx.rotate(e.gira || 0); ctx.fillStyle = e.piscar > 0 ? '#fff' : '#866';
+    ctx.beginPath(); for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2, r = 18 + (k % 2) * 6; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.fill();
+  } else if (e.tipo === 'tanque') {
+    ctx.fillStyle = e.piscar > 0 ? '#fff' : '#a5f'; ctx.fillRect(-30, -20, 60, 40); ctx.fillStyle = '#527'; ctx.fillRect(-10, 10, 20, 18);
+  } else {
+    ctx.fillStyle = e.piscar > 0 ? '#fff' : '#f55';
+    ctx.beginPath(); ctx.moveTo(0, 20); ctx.lineTo(18, -14); ctx.lineTo(0, -6); ctx.lineTo(-18, -14); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function desenharChefe() {
+  const c = chefe;
+  ctx.fillStyle = c.piscar > 0 ? '#fff' : '#a23';
+  ctx.beginPath(); ctx.moveTo(c.x - c.w / 2, c.y - 20); ctx.lineTo(c.x - c.w / 4, c.y - c.h / 2); ctx.lineTo(c.x + c.w / 4, c.y - c.h / 2); ctx.lineTo(c.x + c.w / 2, c.y - 20); ctx.lineTo(c.x + c.w / 3, c.y + c.h / 2); ctx.lineTo(c.x - c.w / 3, c.y + c.h / 2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#ff5'; ctx.beginPath(); ctx.arc(c.x, c.y, 18 + Math.sin(c.t * 6) * 3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#511'; ctx.fillRect(c.x - c.w / 2 + 10, c.y, 30, 40); ctx.fillRect(c.x + c.w / 2 - 40, c.y, 30, 40);
+}
+
+/* ---------------- controles ---------------- */
+addEventListener('keydown', e => { teclas[e.code] = true; if (e.code === 'KeyB' || e.code === 'Space') soltarBomba(); });
+addEventListener('keyup', e => { teclas[e.code] = false; });
+function ponto(e) { const r = tela.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
+tela.addEventListener('pointerdown', e => { alvoToque = ponto(e); if (e.detail === 2) soltarBomba(); });
+tela.addEventListener('pointermove', e => { if (alvoToque) alvoToque = ponto(e); });
+addEventListener('pointerup', () => { alvoToque = null; });
+document.getElementById('bComecar').addEventListener('click', comecar);
+
+let antes = performance.now();
+function laco(agora) {
+  const dt = Math.min(0.05, (agora - antes) / 1000); antes = agora;
+  atualizar(dt); desenhar();
+  requestAnimationFrame(laco);
+}
+requestAnimationFrame(laco);
+</script>
+</body>
+</html>

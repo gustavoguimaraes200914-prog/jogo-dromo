@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mina Profunda</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #120c08; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #fff; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #hud { position: fixed; top: 8px; left: 8px; right: 8px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; }
+  .pill { background: rgba(0,0,0,.55); border: 2px solid rgba(255,255,255,.15); border-radius: 12px; padding: 5px 10px; font-weight: 800; font-size: 14px; }
+  .bar { width: 90px; height: 10px; background: #333; border-radius: 6px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 4px; }
+  .bar > i { display: block; height: 100%; background: linear-gradient(90deg,#ff5b3a,#ffd23a); }
+  #painel { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10,6,4,.78); }
+  #painel.escondido { display: none; }
+  .caixa { background: #2a1d14; border: 3px solid #6b4a2e; border-radius: 18px; padding: 18px; width: min(92vw, 420px); max-height: 86vh; overflow: auto; box-shadow: 0 10px 0 #0006; }
+  .caixa h1 { font-size: 26px; color: #ffd23a; text-align: center; margin-bottom: 6px; }
+  .caixa p { font-size: 14px; opacity: .9; text-align: center; margin-bottom: 12px; line-height: 1.4; }
+  .item { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #3a2a1d; border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; }
+  .item b { font-size: 15px; } .item small { display: block; opacity: .7; font-size: 12px; }
+  button { font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 10px 14px; background: #ffd23a; color: #2a1d14; cursor: pointer; box-shadow: 0 4px 0 #a37b12; }
+  button:active { transform: translateY(2px); box-shadow: 0 2px 0 #a37b12; }
+  button:disabled { background: #6b5a3a; color: #aaa; box-shadow: none; }
+  .grande { width: 100%; font-size: 18px; margin-top: 6px; }
+  #controles { position: fixed; bottom: 14px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 14px; pointer-events: none; }
+  .pad { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 58px); gap: 6px; pointer-events: auto; }
+  .tecla { background: rgba(255,255,255,.14); border: 2px solid rgba(255,255,255,.25); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .tecla.on { background: rgba(255,210,58,.45); }
+  #avisos { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); pointer-events: none; text-align: center; }
+  .aviso { background: rgba(0,0,0,.7); padding: 6px 12px; border-radius: 10px; margin-top: 4px; font-weight: 700; animation: sobe 2.2s forwards; }
+  @keyframes sobe { 0% { opacity: 0; transform: translateY(8px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-10px); } }
+</style>
+</head>
+<body>
+<canvas id="tela"></canvas>
+<div id="hud">
+  <div class="pill" id="hudMoedas">🪙 0</div>
+  <div class="pill" id="hudFundo">⬇ 0 m</div>
+  <div class="pill">⛽<span class="bar"><i id="hudComb"></i></span></div>
+  <div class="pill">❤<span class="bar"><i id="hudCasco"></i></span></div>
+  <div class="pill" id="hudCarga">🎒 0/10</div>
+</div>
+<div id="avisos"></div>
+<div id="controles">
+  <div class="pad">
+    <div></div><div class="tecla" data-k="cima">▲</div><div></div>
+    <div class="tecla" data-k="esq">◀</div><div class="tecla" data-k="baixo">▼</div><div class="tecla" data-k="dir">▶</div>
+  </div>
+</div>
+<div id="painel"></div>
+
+<script>
+/* =========================================================
+   MINA PROFUNDA
+   Cave fundo, junte minérios, volte à superfície pra vender.
+   Moedas (coins) compram broca, tanque e mochila melhores.
+   ========================================================= */
+var tela = document.getElementById('tela');
+var ctx = tela.getContext('2d');
+var LARG = 0, ALT = 0, DPR = 1;
+var TAM = 40;              // tamanho de cada bloco
+var COLS = 24;             // largura do mundo em blocos
+var LINHAS = 260;          // profundidade do mundo
+var SUPERFICIE = 6;        // linhas de céu
+
+var coins = 0;             // as moedas do jogo
+var recorde = 0;
+var mundo = [];
+var particulas = [];
+var textos = [];
+var camera = { x: 0, y: 0, treme: 0 };
+var estado = 'menu';       // menu | jogando | loja | fim
+var tempo = 0;
+
+var MINERIOS = {
+  1: { nome: 'Terra',     cor: '#7a5230', dur: 1.0, preco: 0 },
+  2: { nome: 'Pedra',     cor: '#5f5f66', dur: 2.2, preco: 0 },
+  3: { nome: 'Carvão',    cor: '#2b2b2b', dur: 1.6, preco: 2,  brilho: '#555' },
+  4: { nome: 'Ferro',     cor: '#b98d6a', dur: 2.4, preco: 5,  brilho: '#e8c3a0' },
+  5: { nome: 'Prata',     cor: '#c9d2dd', dur: 3.0, preco: 12, brilho: '#ffffff' },
+  6: { nome: 'Ouro',      cor: '#f2b52b', dur: 3.4, preco: 25, brilho: '#fff1a8' },
+  7: { nome: 'Esmeralda', cor: '#26c46b', dur: 4.0, preco: 60, brilho: '#a8ffcf' },
+  8: { nome: 'Rubi',      cor: '#e2304a', dur: 4.6, preco: 120, brilho: '#ffb3c0' },
+  9: { nome: 'Diamante',  cor: '#5ce1ff', dur: 5.5, preco: 250, brilho: '#e8fbff' },
+  10:{ nome: 'Lava',      cor: '#ff5a1f', dur: 99,  preco: 0 },
+  11:{ nome: 'Rocha dura',cor: '#2e2a33', dur: 9.0, preco: 0 },
+  12:{ nome: 'Baú',       cor: '#9c6b2f', dur: 1.2, preco: 0 }
+};
+
+var melhorias = {
+  broca:   { nivel: 1, max: 6, precos: [0, 60, 180, 450, 1100, 2600], nome: 'Broca', desc: 'cava mais rápido' },
+  tanque:  { nivel: 1, max: 6, precos: [0, 50, 150, 380, 900, 2000],  nome: 'Tanque', desc: 'mais combustível' },
+  mochila: { nivel: 1, max: 6, precos: [0, 40, 120, 320, 800, 1800],  nome: 'Mochila', desc: 'carrega mais minério' },
+  casco:   { nivel: 1, max: 6, precos: [0, 70, 200, 500, 1200, 2800], nome: 'Casco', desc: 'aguenta mais pancada' },
+  motor:   { nivel: 1, max: 5, precos: [0, 90, 260, 650, 1500],       nome: 'Motor', desc: 'voa mais forte' }
+};
+
+var robo = {
+  x: 0, y: 0, vx: 0, vy: 0, w: 30, h: 30,
+  comb: 100, combMax: 100, casco: 100, cascoMax: 100,
+  carga: [], cargaMax: 10, cavando: null, progresso: 0, olhando: 1, vivo: true, maisFundo: 0
+};
+
+var teclas = { cima: false, baixo: false, esq: false, dir: false };
+
+/* ---------- números aleatórios com semente (o mundo é sempre diferente) ---------- */
+var semente = Date.now() % 100000;
+function aleatorio() { semente = (semente * 9301 + 49297) % 233280; return semente / 233280; }
+
+function ajustarTela() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  LARG = window.innerWidth; ALT = window.innerHeight;
+  tela.width = LARG * DPR; tela.height = ALT * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', ajustarTela);
+
+/* ---------- gerar o mundo ---------- */
+function gerarMundo() {
+  mundo = [];
+  for (var l = 0; l < LINHAS; l++) {
+    var linha = [];
+    for (var c = 0; c < COLS; c++) {
+      if (l < SUPERFICIE) { linha.push(0); continue; }
+      var prof = l - SUPERFICIE;
+      var r = aleatorio();
+      var bloco = prof < 3 ? 1 : (r < 0.55 ? 1 : 2);
+      if (prof > 4 && aleatorio() < 0.12) bloco = 3;
+      if (prof > 12 && aleatorio() < 0.08) bloco = 4;
+      if (prof > 30 && aleatorio() < 0.06) bloco = 5;
+      if (prof > 55 && aleatorio() < 0.045) bloco = 6;
+      if (prof > 90 && aleatorio() < 0.035) bloco = 7;
+      if (prof > 130 && aleatorio() < 0.025) bloco = 8;
+      if (prof > 180 && aleatorio() < 0.02) bloco = 9;
+      if (prof > 40 && aleatorio() < 0.03 + prof / 6000) bloco = 10;
+      if (prof > 70 && aleatorio() < 0.05) bloco = 11;
+      if (prof > 8 && aleatorio() < 0.008) bloco = 12;
+      if (prof > 20 && aleatorio() < 0.04) bloco = 0; // cavernas
+      linha.push(bloco);
+    }
+    mundo.push(linha);
+  }
+  /* poço inicial e a base na superfície */
+  for (var k = 0; k < 3; k++) mundo[SUPERFICIE + k][Math.floor(COLS / 2)] = 1;
+}
+
+function blocoEm(c, l) {
+  if (c < 0 || c >= COLS) return 11;
+  if (l < 0) return 0;
+  if (l >= LINHAS) return 11;
+  return mundo[l][c];
+}
+function solido(b) { return b !== 0; }
+
+/* ---------- sons simples ---------- */
+var audio = null;
+function bip(freq, dur, tipo, vol) {
+  try {
+    if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+    var o = audio.createOscillator(), g = audio.createGain();
+    o.type = tipo || 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || 0.05, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
+    o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + dur);
+  } catch (e) {}
+}
+
+/* ---------- avisos e efeitos ---------- */
+function aviso(txt) {
+  var d = document.createElement('div'); d.className = 'aviso'; d.textContent = txt;
+  document.getElementById('avisos').appendChild(d);
+  setTimeout(function () { d.remove(); }, 2300);
+}
+function explodir(x, y, cor, n) {
+  for (var i = 0; i < n; i++) {
+    var a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 160;
+    particulas.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, vida: 0.5 + Math.random() * 0.6, cor: cor, t: 2 + Math.random() * 4 });
+  }
+}
+function textoFlutuante(x, y, txt, cor) { textos.push({ x: x, y: y, txt: txt, cor: cor || '#ffd23a', vida: 1.2 }); }
+
+/* ---------- começar ---------- */
+function novoJogo() {
+  semente = Date.now() % 100000;
+  gerarMundo();
+  coins = 0;
+  for (var k in melhorias) melhorias[k].nivel = 1;
+  aplicarMelhorias();
+  robo.x = Math.floor(COLS / 2) * TAM + 5; robo.y = (SUPERFICIE - 1) * TAM + 5;
+  robo.vx = robo.vy = 0; robo.comb = robo.combMax; robo.casco = robo.cascoMax;
+  robo.carga = []; robo.vivo = true; robo.maisFundo = 0;
+  particulas = []; textos = [];
+  estado = 'jogando';
+  fecharPainel();
+}
+
+function aplicarMelhorias() {
+  robo.combMax = 100 + (melhorias.tanque.nivel - 1) * 60;
+  robo.cascoMax = 100 + (melhorias.casco.nivel - 1) * 50;
+  robo.cargaMax = 10 + (melhorias.mochila.nivel - 1) * 6;
+}
+
+/* ---------- física e cavar ---------- */
+var GRAV = 900;
+function atualizar(dt) {
+  tempo += dt;
+  if (estado !== 'jogando') { atualizarEfeitos(dt); return; }
+  var forcaMotor = 1500 + (melhorias.motor.nivel - 1) * 380;
+  var velLado = 190;
+
+  if (teclas.esq) { robo.vx = -velLado; robo.olhando = -1; }
+  else if (teclas.dir) { robo.vx = velLado; robo.olhando = 1; }
+  else robo.vx *= 0.8;
+
+  if (teclas.cima && robo.comb > 0) {
+    robo.vy -= forcaMotor * dt;
+    robo.comb -= 6 * dt;
+    if (Math.random() < 0.6) particulas.push({ x: robo.x + robo.w / 2, y: robo.y + robo.h, vx: (Math.random() - 0.5) * 40, vy: 120, vida: 0.3, cor: '#ffb347', t: 3 });
+  }
+  robo.vy += GRAV * dt;
+  if (robo.vy > 600) robo.vy = 600;
+  if (robo.vy < -380) robo.vy = -380;
+
+  robo.comb -= 0.6 * dt;
+  if (robo.comb <= 0) { robo.comb = 0; if (!naSuperficie()) acabou('Acabou o combustível!'); }
+
+  /* mover e bater */
+  var ny = robo.y + robo.vy * dt;
+  if (colide(robo.x, ny)) {
+    if (robo.vy > 420) { var dano = (robo.vy - 420) * 0.15; robo.casco -= dano; camera.treme = 0.3; bip(90, 0.2, 'sawtooth', 0.08); aviso('Ai! -' + Math.round(dano) + ' casco'); }
+    robo.vy = 0;
+  } else robo.y = ny;
+  var nx = robo.x + robo.vx * dt;
+  if (!colide(nx, robo.y)) robo.x = nx; else robo.vx = 0;
+
+  /* cavar: para baixo ou para os lados, quando está encostado */
+  var noChao = colide(robo.x, robo.y + 2);
+  var alvo = null;
+  var cc = Math.floor((robo.x + robo.w / 2) / TAM), ll = Math.floor((robo.y + robo.h / 2) / TAM);
+  if (teclas.baixo && noChao) alvo = { c: cc, l: Math.floor((robo.y + robo.h + 4) / TAM) };
+  else if (teclas.esq && noChao && colide(robo.x - 3, robo.y)) alvo = { c: Math.floor((robo.x - 4) / TAM), l: ll };
+  else if (teclas.dir && noChao && colide(robo.x + 3, robo.y)) alvo = { c: Math.floor((robo.x + robo.w + 4) / TAM), l: ll };
+
+  if (alvo && solido(blocoEm(alvo.c, alvo.l)) && alvo.l >= SUPERFICIE) {
+    var tipo = blocoEm(alvo.c, alvo.l);
+    if (!robo.cavando || robo.cavando.c !== alvo.c || robo.cavando.l !== alvo.l) { robo.cavando = alvo; robo.progresso = 0; }
+    var forca = 1 + (melhorias.broca.nivel - 1) * 0.7;
+    robo.progresso += dt * forca / MINERIOS[tipo].dur * 2.2;
+    robo.comb -= 2 * dt;
+    if (Math.random() < 0.5) particulas.push({ x: alvo.c * TAM + TAM / 2, y: alvo.l * TAM + TAM / 2, vx: (Math.random() - 0.5) * 120, vy: -Math.random() * 120, vida: 0.4, cor: MINERIOS[tipo].cor, t: 3 });
+    if (tipo === 11 && melhorias.broca.nivel < 3) { if (Math.random() < 0.02) aviso('Rocha dura! Precisa da broca nível 3'); robo.progresso = 0; }
+    if (robo.progresso >= 1) quebrar(alvo.c, alvo.l, tipo);
+  } else { robo.cavando = null; robo.progresso = 0; }
+
+  /* lava */
+  var embaixo = blocoEm(cc, Math.floor((robo.y + robo.h + 2) / TAM));
+  if (embaixo === 10 || blocoEm(cc, ll) === 10) { robo.casco -= 40 * dt; camera.treme = 0.15; }
+
+  if (robo.casco <= 0) acabou('O robô quebrou!');
+
+  var prof = Math.max(0, Math.floor(robo.y / TAM) - SUPERFICIE + 1);
+  if (prof > robo.maisFundo) {
+    if (Math.floor(prof / 50) > Math.floor(robo.maisFundo / 50)) { aviso('Recorde de fundura: ' + prof + ' m!'); bip(880, 0.25, 'triangle', 0.06); }
+    robo.maisFundo = prof;
+  }
+  if (naSuperficie() && robo.carga.length && Math.abs(robo.vy) < 1) venderTudo();
+
+  atualizarEfeitos(dt);
+  atualizarCamera(dt);
+  atualizarHUD();
+}
+
+function naSuperficie() { return robo.y + robo.h <= SUPERFICIE * TAM + 1; }
+
+function colide(x, y) {
+  var pontos = [[x + 2, y + 2], [x + robo.w - 2, y + 2], [x + 2, y + robo.h], [x + robo.w - 2, y + robo.h], [x + robo.w / 2, y + robo.h]];
+  for (var i = 0; i < pontos.length; i++) {
+    var b = blocoEm(Math.floor(pontos[i][0] / TAM), Math.floor(pontos[i][1] / TAM));
+    if (solido(b) && b !== 10) return true;
+  }
+  return false;
+}
+
+function quebrar(c, l, tipo) {
+  mundo[l][c] = 0;
+  robo.cavando = null; robo.progresso = 0;
+  explodir(c * TAM + TAM / 2, l * TAM + TAM / 2, MINERIOS[tipo].cor, 10);
+  bip(200 + tipo * 40, 0.06, 'square', 0.03);
+  if (tipo === 12) { abrirBau(c, l); return; }
+  if (MINERIOS[tipo].preco > 0) {
+    if (robo.carga.length < robo.cargaMax) {
+      robo.carga.push(tipo);
+      textoFlutuante(c * TAM + TAM / 2, l * TAM, '+' + MINERIOS[tipo].nome, MINERIOS[tipo].brilho);
+      bip(660, 0.08, 'triangle', 0.05);
+    } else aviso('Mochila cheia! Volte pra superfície');
+  }
+}
+
+function abrirBau(c, l) {
+  var premio = 20 + Math.floor(Math.random() * 60) + Math.floor(robo.maisFundo / 2);
+  for (var i = 0; i < premio; i++) {
+    coins += 1;
+  }
+  textoFlutuante(c * TAM + TAM / 2, l * TAM, '+' + premio + ' 🪙', '#ffd23a');
+  explodir(c * TAM + TAM / 2, l * TAM + TAM / 2, '#ffd23a', 30);
+  aviso('Baú do tesouro! +' + premio + ' moedas');
+  bip(990, 0.3, 'triangle', 0.07);
+  if (Math.random() < 0.3) { robo.comb = robo.combMax; aviso('Tinha combustível dentro!'); }
+}
+
+function venderTudo() {
+  var total = 0;
+  for (var i = 0; i < robo.carga.length; i++) total += MINERIOS[robo.carga[i]].preco;
+  robo.carga = [];
+  coins += total;
+  if (total > 0) { aviso('Vendeu tudo por ' + total + ' moedas!'); textoFlutuante(robo.x, robo.y - 10, '+' + total + ' 🪙'); bip(1200, 0.2, 'triangle', 0.06); }
+  robo.comb = robo.combMax; robo.casco = Math.min(robo.cascoMax, robo.casco + 30);
+}
+
+function acabou(motivo) {
+  if (estado !== 'jogando') return;
+  robo.vivo = false; estado = 'fim';
+  explodir(robo.x + 15, robo.y + 15, '#ff7a3a', 50);
+  bip(110, 0.6, 'sawtooth', 0.09);
+  if (robo.maisFundo > recorde) recorde = robo.maisFundo;
+  setTimeout(function () {
+    mostrarPainel('<h1>' + motivo + '</h1><p>Você chegou a <b>' + robo.maisFundo + ' m</b> de fundura e juntou <b>' + coins + '</b> moedas.<br>Recorde: ' + recorde + ' m</p><button class="grande" onclick="novoJogo()">Jogar de novo</button>');
+  }, 700);
+}
+
+/* ---------- loja da superfície ---------- */
+function abrirLoja() {
+  if (!naSuperficie()) { aviso('A loja fica na superfície'); return; }
+  estado = 'loja';
+  var html = '<h1>Oficina</h1><p>Você tem <b>' + coins + '</b> 🪙</p>';
+  for (var k in melhorias) {
+    var m = melhorias[k];
+    var preco = m.precos[m.nivel];
+    var max = m.nivel >= m.max;
+    html += '<div class="item"><div><b>' + m.nome + ' nv ' + m.nivel + '</b><small>' + m.desc + '</small></div>' +
+      (max ? '<button disabled>Máx</button>' : '<button ' + (coins < preco ? 'disabled' : '') + ' onclick="comprar(\'' + k + '\')">' + preco + ' 🪙</button>') + '</div>';
+  }
+  html += '<div class="item"><div><b>Encher o tanque</b><small>combustível cheio</small></div><button onclick="robo.comb=robo.combMax;aviso(\'Tanque cheio\')">Grátis</button></div>';
+  html += '<button class="grande" onclick="fecharPainel();estado=\'jogando\'">Voltar a cavar</button>';
+  mostrarPainel(html);
+}
+function comprar(k) {
+  var m = melhorias[k], preco = m.precos[m.nivel];
+  if (coins < preco || m.nivel >= m.max) return;
+  coins -= preco; m.nivel++;
+  aplicarMelhorias();
+  bip(1046, 0.2, 'triangle', 0.07);
+  aviso(m.nome + ' agora é nível ' + m.nivel + '!');
+  abrirLoja();
+}
+
+function mostrarPainel(html) { var p = document.getElementById('painel'); p.innerHTML = '<div class="caixa">' + html + '</div>'; p.classList.remove('escondido'); }
+function fecharPainel() { document.getElementById('painel').classList.add('escondido'); }
+
+/* ---------- efeitos ---------- */
+function atualizarEfeitos(dt) {
+  for (var i = particulas.length - 1; i >= 0; i--) {
+    var p = particulas[i];
+    p.vida -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 500 * dt;
+    if (p.vida <= 0) particulas.splice(i, 1);
+  }
+  for (var j = textos.length - 1; j >= 0; j--) { textos[j].vida -= dt; textos[j].y -= 30 * dt; if (textos[j].vida <= 0) textos.splice(j, 1); }
+  if (particulas.length > 400) particulas.splice(0, particulas.length - 400);
+}
+function atualizarCamera(dt) {
+  var alvoX = robo.x + robo.w / 2 - LARG / 2, alvoY = robo.y + robo.h / 2 - ALT / 2;
+  alvoX = Math.max(0, Math.min(COLS * TAM - LARG, alvoX));
+  if (COLS * TAM < LARG) alvoX = (COLS * TAM - LARG) / 2;
+  camera.x += (alvoX - camera.x) * Math.min(1, dt * 6);
+  camera.y += (alvoY - camera.y) * Math.min(1, dt * 6);
+  if (camera.treme > 0) camera.treme -= dt;
+}
+function atualizarHUD() {
+  document.getElementById('hudMoedas').textContent = '🪙 ' + coins;
+  document.getElementById('hudFundo').textContent = '⬇ ' + Math.max(0, Math.floor(robo.y / TAM) - SUPERFICIE + 1) + ' m';
+  document.getElementById('hudComb').style.width = Math.max(0, robo.comb / robo.combMax * 100) + '%';
+  document.getElementById('hudCasco').style.width = Math.max(0, robo.casco / robo.cascoMax * 100) + '%';
+  document.getElementById('hudCarga').textContent = '🎒 ' + robo.carga.length + '/' + robo.cargaMax;
+}
+
+/* ---------- desenho ---------- */
+function desenhar() {
+  var tx = Math.round(camera.x + (camera.treme > 0 ? (Math.random() - 0.5) * 8 : 0));
+  var ty = Math.round(camera.y + (camera.treme > 0 ? (Math.random() - 0.5) * 8 : 0));
+  /* céu e fundo da caverna */
+  var ceu = ctx.createLinearGradient(0, 0, 0, ALT);
+  var fundura = Math.min(1, Math.max(0, camera.y / (LINHAS * TAM * 0.7)));
+  ceu.addColorStop(0, fundura < 0.05 ? '#7ec8ff' : '#1a120c');
+  ceu.addColorStop(1, fundura < 0.05 ? '#d8f0ff' : '#0a0604');
+  ctx.fillStyle = ceu; ctx.fillRect(0, 0, LARG, ALT);
+
+  ctx.save();
+  ctx.translate(-tx, -ty);
+  /* sol e loja na superfície */
+  if (ty < SUPERFICIE * TAM) {
+    ctx.fillStyle = '#ffe36b'; ctx.beginPath(); ctx.arc(COLS * TAM - 120, 80, 36, 0, Math.PI * 2); ctx.fill();
+    desenharLoja(Math.floor(COLS / 2) * TAM - 140, (SUPERFICIE - 3) * TAM);
+  }
+  var c0 = Math.max(0, Math.floor(tx / TAM)), c1 = Math.min(COLS - 1, Math.ceil((tx + LARG) / TAM));
+  var l0 = Math.max(0, Math.floor(ty / TAM)), l1 = Math.min(LINHAS - 1, Math.ceil((ty + ALT) / TAM));
+  for (var l = l0; l <= l1; l++) {
+    for (var c = c0; c <= c1; c++) {
+      var b = mundo[l][c];
+      var x = c * TAM, y = l * TAM;
+      if (b === 0) {
+        if (l >= SUPERFICIE) { ctx.fillStyle = '#1d140d'; ctx.fillRect(x, y, TAM, TAM); }
+        continue;
+      }
+      desenharBloco(b, x, y, l, c);
+    }
+  }
+  /* rachadura do bloco que está sendo cavado */
+  if (robo.cavando) {
+    ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 2;
+    var bx = robo.cavando.c * TAM, by = robo.cavando.l * TAM, n = Math.floor(robo.progresso * 5);
+    for (var r = 0; r < n; r++) { ctx.beginPath(); ctx.moveTo(bx + 6 + r * 6, by + 4); ctx.lineTo(bx + 20 - r * 3, by + 20); ctx.lineTo(bx + 10 + r * 5, by + TAM - 4); ctx.stroke(); }
+  }
+  desenharRobo();
+  for (var i = 0; i < particulas.length; i++) { var p = particulas[i]; ctx.globalAlpha = Math.max(0, Math.min(1, p.vida * 2)); ctx.fillStyle = p.cor; ctx.fillRect(p.x, p.y, p.t, p.t); }
+  ctx.globalAlpha = 1;
+  ctx.font = 'bold 15px system-ui'; ctx.textAlign = 'center';
+  for (var j = 0; j < textos.length; j++) { var t = textos[j]; ctx.globalAlpha = Math.min(1, t.vida); ctx.fillStyle = '#000'; ctx.fillText(t.txt, t.x + 1, t.y + 1); ctx.fillStyle = t.cor; ctx.fillText(t.txt, t.x, t.y); }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  /* escuridão: a luz do robô */
+  if (fundura > 0.02) {
+    var lx = robo.x - tx + robo.w / 2, ly = robo.y - ty + robo.h / 2;
+    var raio = 220 - Math.min(120, fundura * 160);
+    var g = ctx.createRadialGradient(lx, ly, raio * 0.3, lx, ly, raio * 1.6);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,' + Math.min(0.85, fundura * 1.4) + ')');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, LARG, ALT);
+  }
+  desenharMinimapa();
+}
+
+function desenharBloco(b, x, y, l, c) {
+  var m = MINERIOS[b];
+  ctx.fillStyle = (b >= 3 && b <= 9) ? '#5c4026' : m.cor;
+  ctx.fillRect(x, y, TAM, TAM);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(x, y + TAM - 4, TAM, 4);
+  ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(x, y, TAM, 3);
+  if (l === SUPERFICIE && b === 1) { ctx.fillStyle = '#4caf50'; ctx.fillRect(x, y, TAM, 8); }
+  if (b >= 3 && b <= 9) {
+    var brilha = 0.6 + 0.4 * Math.sin(tempo * 3 + c + l);
+    ctx.fillStyle = m.cor;
+    for (var k = 0; k < 4; k++) {
+      var px = x + 6 + ((c * 7 + l * 3 + k * 11) % 24), py = y + 6 + ((c * 5 + l * 9 + k * 7) % 24);
+      ctx.beginPath(); ctx.moveTo(px, py - 5); ctx.lineTo(px + 5, py); ctx.lineTo(px, py + 5); ctx.lineTo(px - 5, py); ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = brilha * 0.6; ctx.fillStyle = m.brilho; ctx.fillRect(x + 10 + (c % 3) * 6, y + 10, 3, 3); ctx.globalAlpha = 1;
+  }
+  if (b === 10) { ctx.fillStyle = 'rgba(255,220,80,' + (0.3 + 0.3 * Math.sin(tempo * 5 + c)) + ')'; ctx.fillRect(x, y, TAM, TAM); }
+  if (b === 12) {
+    ctx.fillStyle = '#6b4520'; ctx.fillRect(x + 6, y + 12, TAM - 12, TAM - 18);
+    ctx.fillStyle = '#ffd23a'; ctx.fillRect(x + TAM / 2 - 3, y + 18, 6, 8);
+  }
+}
+
+function desenharLoja(x, y) {
+  ctx.fillStyle = '#8b5a2b'; ctx.fillRect(x, y + 20, 110, 100);
+  ctx.fillStyle = '#c0392b'; ctx.beginPath(); ctx.moveTo(x - 10, y + 24); ctx.lineTo(x + 55, y - 16); ctx.lineTo(x + 120, y + 24); ctx.fill();
+  ctx.fillStyle = '#ffd23a'; ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center'; ctx.fillText('OFICINA', x + 55, y + 50);
+  ctx.fillStyle = '#3a2412'; ctx.fillRect(x + 40, y + 70, 30, 50);
+}
+
+function desenharRobo() {
+  var x = robo.x, y = robo.y;
+  if (!robo.vivo) return;
+  ctx.fillStyle = '#ffb81c';
+  ctx.fillRect(x, y, robo.w, robo.h);
+  ctx.fillStyle = '#2b2b2b'; ctx.fillRect(x + 4, y + 6, 22, 10);
+  ctx.fillStyle = '#7ef9ff'; ctx.fillRect(x + (robo.olhando > 0 ? 16 : 6), y + 8, 8, 6);
+  ctx.fillStyle = '#555';
+  var giro = (tempo * 30) % 6;
+  ctx.beginPath(); ctx.moveTo(x + 8, y + robo.h); ctx.lineTo(x + 15, y + robo.h + 10 + (robo.cavando ? giro : 0)); ctx.lineTo(x + 22, y + robo.h); ctx.fill();
+  if (teclas.cima && robo.comb > 0) { ctx.fillStyle = '#ff7a1f'; ctx.fillRect(x + 4, y + robo.h - 2, 6, 6 + Math.random() * 8); ctx.fillRect(x + 20, y + robo.h - 2, 6, 6 + Math.random() * 8); }
+}
+
+function desenharMinimapa() {
+  var mw = 44, mh = 120, mx = LARG - mw - 10, my = ALT - mh - 150;
+  ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(mx - 3, my - 3, mw + 6, mh + 6);
+  var escala = mh / LINHAS;
+  ctx.fillStyle = '#4a3220'; ctx.fillRect(mx, my + SUPERFICIE * escala, mw, mh - SUPERFICIE * escala);
+  ctx.fillStyle = '#ffd23a'; ctx.fillRect(mx, my + (robo.y / TAM) * escala - 1, mw, 3);
+  ctx.fillStyle = '#ff5a5a'; ctx.fillRect(mx, my + (robo.maisFundo + SUPERFICIE) * escala, mw, 1);
+}
+
+/* ---------- entrada ---------- */
+var MAPA = { ArrowUp: 'cima', KeyW: 'cima', ArrowDown: 'baixo', KeyS: 'baixo', ArrowLeft: 'esq', KeyA: 'esq', ArrowRight: 'dir', KeyD: 'dir' };
+document.addEventListener('keydown', function (e) {
+  if (MAPA[e.code]) { teclas[MAPA[e.code]] = true; e.preventDefault(); }
+  if (e.code === 'KeyL' && estado === 'jogando') abrirLoja();
+  if (e.code === 'Escape' && estado === 'loja') { fecharPainel(); estado = 'jogando'; }
+});
+document.addEventListener('keyup', function (e) { if (MAPA[e.code]) teclas[MAPA[e.code]] = false; });
+document.querySelectorAll('.tecla').forEach(function (el) {
+  var k = el.getAttribute('data-k');
+  function liga(e) { e.preventDefault(); teclas[k] = true; el.classList.add('on'); }
+  function desliga(e) { e.preventDefault(); teclas[k] = false; el.classList.remove('on'); }
+  el.addEventListener('pointerdown', liga); el.addEventListener('pointerup', desliga);
+  el.addEventListener('pointerleave', desliga); el.addEventListener('pointercancel', desliga);
+});
+tela.addEventListener('pointerdown', function (e) {
+  /* tocar na oficina abre a loja */
+  var wx = e.clientX + camera.x, wy = e.clientY + camera.y;
+  var lx = Math.floor(COLS / 2) * TAM - 140, ly = (SUPERFICIE - 3) * TAM;
+  if (wx > lx && wx < lx + 110 && wy > ly - 16 && wy < ly + 120) abrirLoja();
+});
+
+/* ---------- laço principal (mesma velocidade em 60 e 120 Hz) ---------- */
+var ultimo = performance.now();
+function laco(agora) {
+  var dt = Math.min(0.05, (agora - ultimo) / 1000); ultimo = agora;
+  atualizar(dt);
+  desenhar();
+  requestAnimationFrame(laco);
+}
+
+ajustarTela();
+gerarMundo();
+robo.x = Math.floor(COLS / 2) * TAM + 5; robo.y = (SUPERFICIE - 1) * TAM + 5;
+mostrarPainel('<h1>⛏ Mina Profunda</h1><p>Cave para baixo, junte minérios e volte para a superfície para vender.<br>Com as moedas, melhore o robô na <b>Oficina</b> (toque nela ou aperte L).<br><br>▼ cava · ◀ ▶ anda e cava pros lados · ▲ voa</p><button class="grande" onclick="novoJogo()">Começar</button>');
+requestAnimationFrame(laco);
+</script>
+</body>
+</html>
